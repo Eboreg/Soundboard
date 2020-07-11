@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Soundboard</string>
+    <string name="add_sound_label">Add sound</string>
+    <string name="add_sound_title">Add sound</string>
+    <string name="sound_context_menu_delete">Delete</string>
+    <string name="sound_context_menu_edit">Edit</string>
+    <string name="sound_name_hint">Name</string>
+    <string name="edit_sound_title">Edit sound</string>
+    <string name="sound_save_button">Save</string>
+    <string name="sound_cancel_button">Cancel</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="sound_name_cannot_be_empty">Name cannot be empty</string>
+</resources>
