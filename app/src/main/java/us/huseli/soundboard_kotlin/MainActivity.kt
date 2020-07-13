@@ -15,6 +15,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.Observer
 import us.huseli.soundboard_kotlin.data.SoundListViewModel
 import us.huseli.soundboard_kotlin.data.SoundViewModel
+import us.huseli.soundboard_kotlin.helpers.EditSoundInterface
 
 class MainActivity : AppCompatActivity(), EditSoundInterface {
     companion object {

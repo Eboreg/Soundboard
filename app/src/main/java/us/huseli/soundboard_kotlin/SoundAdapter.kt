@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import kotlinx.android.synthetic.main.fragment_sound.view.*
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.data.SoundViewModel
+import us.huseli.soundboard_kotlin.helpers.ItemTouchHelperAdapter
 
 class SoundViewHolder(view: View, private val context: Context) : ViewHolder(view), View.OnClickListener, View.OnLongClickListener {
     private lateinit var adapter: SoundAdapter

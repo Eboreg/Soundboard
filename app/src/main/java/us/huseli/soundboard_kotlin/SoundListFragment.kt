@@ -9,6 +9,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import us.huseli.soundboard_kotlin.data.SoundListViewModel
+import us.huseli.soundboard_kotlin.helpers.EditSoundInterface
+import us.huseli.soundboard_kotlin.helpers.SoundItemTouchHelperCallback
 
 class SoundListFragment : Fragment() {
     private val listViewModel: SoundListViewModel by activityViewModels()

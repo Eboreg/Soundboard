@@ -1,4 +1,4 @@
-package us.huseli.soundboard_kotlin
+package us.huseli.soundboard_kotlin.helpers
 
 import us.huseli.soundboard_kotlin.data.SoundViewModel
 

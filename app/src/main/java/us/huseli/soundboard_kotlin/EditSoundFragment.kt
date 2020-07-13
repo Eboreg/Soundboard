@@ -9,6 +9,7 @@ import androidx.fragment.app.DialogFragment
 import kotlinx.android.synthetic.main.fragment_edit_sound.*
 import kotlinx.android.synthetic.main.fragment_edit_sound.view.*
 import us.huseli.soundboard_kotlin.data.SoundViewModel
+import us.huseli.soundboard_kotlin.helpers.EditSoundInterface
 
 open class EditSoundFragment : DialogFragment() {
     private lateinit var soundViewModel: SoundViewModel
