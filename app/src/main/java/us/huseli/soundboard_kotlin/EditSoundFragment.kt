@@ -8,40 +8,32 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import kotlinx.android.synthetic.main.fragment_edit_sound.*
 import kotlinx.android.synthetic.main.fragment_edit_sound.view.*
+import us.huseli.soundboard_kotlin.data.SoundViewModel
 
 open class EditSoundFragment : DialogFragment() {
-    private var soundId: Int? = null
-    private var soundName: String? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            soundId = it.getInt(SoundListFragment.ARG_SOUND_ID)
-            soundName = it.getString(SoundListFragment.ARG_SOUND_NAME)
-        }
-    }
+    private lateinit var soundViewModel: SoundViewModel
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = LayoutInflater.from(requireContext()).inflate(R.layout.fragment_edit_sound, edit_sound_fragment, false).apply {
-            sound_name.setText(soundName)
+            sound_name.setText(soundViewModel.name)
             sound_name.requestFocus()
+            volume.progress = soundViewModel.volume
         }
         return AlertDialog.Builder(requireContext()).run {
-            when (soundId) {
+            when (soundViewModel.id) {
                 null -> setTitle(R.string.add_sound_title)
                 else -> setTitle(R.string.edit_sound_title)
             }
             setView(view)
             setPositiveButton(R.string.sound_save_button) { _, _ ->
-                soundName = view.sound_name.text.toString().trim()
+                val soundName = view.sound_name.text.toString().trim()
                 if (soundName!!.isEmpty()) {
                     Toast.makeText(requireContext(), R.string.sound_name_cannot_be_empty, Toast.LENGTH_SHORT).show()
                 } else {
                     val listener = requireActivity() as EditSoundInterface
-                    listener.onSoundDialogSave(Bundle().apply {
-                        soundId?.let { putInt(SoundListFragment.ARG_SOUND_ID, it) }
-                        putString(SoundListFragment.ARG_SOUND_NAME, soundName)
-                    })
+                    soundViewModel.volume = view.volume.progress
+                    soundViewModel.name = soundName
+                    listener.onSoundDialogSave(soundViewModel)
                     dismiss()
                 }
             }
@@ -52,13 +44,9 @@ open class EditSoundFragment : DialogFragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance(soundId: Int?, soundName: String) =
-                EditSoundFragment().apply {
-                    arguments = Bundle().apply {
-                        if (soundId != null)
-                            putInt(SoundListFragment.ARG_SOUND_ID, soundId)
-                        putString(SoundListFragment.ARG_SOUND_NAME, soundName)
-                    }
+        fun newInstance(soundViewModel: SoundViewModel) =
+                EditSoundFragment().also {
+                    it.soundViewModel = soundViewModel
                 }
     }
 }

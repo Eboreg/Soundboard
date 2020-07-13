@@ -4,14 +4,15 @@ import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface SoundDao {
     @Insert
-    fun save(sound: Sound)
+    fun insert(sound: Sound)
 
-    @Query("UPDATE Sound SET name = :name WHERE id = :soundId")
-    fun updateName(soundId: Int, name: String)
+    @Update
+    fun update(sound: Sound)
 
     @Query("SELECT * FROM Sound ORDER BY `order`")
     fun getAll(): LiveData<List<Sound>>

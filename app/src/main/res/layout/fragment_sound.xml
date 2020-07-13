@@ -1,21 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:menu="@menu/sound_context_menu"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:menu="@menu/sound_context_menu">
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/sound_card"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_margin="@dimen/margin_normal">
+        android:layout_height="0dp"
+        android:layout_margin="@dimen/margin_normal"
+        app:cardElevation="@dimen/sound_card_elevation"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="4:4"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints">
 
         <TextView
             android:id="@+id/sound_name"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:layout_margin="@dimen/margin_normal" />
 
         <ImageView
             android:id="@+id/play_icon"
@@ -28,5 +37,5 @@
 
     </androidx.cardview.widget.CardView>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
 

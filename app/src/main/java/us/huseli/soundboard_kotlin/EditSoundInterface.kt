@@ -1,9 +1,8 @@
 package us.huseli.soundboard_kotlin
 
-import android.os.Bundle
-import us.huseli.soundboard_kotlin.data.Sound
+import us.huseli.soundboard_kotlin.data.SoundViewModel
 
 interface EditSoundInterface {
-    fun onSoundDialogSave(data: Bundle)
-    fun showEditDialog(sound: Sound)
+    fun onSoundDialogSave(soundViewModel: SoundViewModel)
+    fun showEditDialog(soundViewModel: SoundViewModel)
 }
