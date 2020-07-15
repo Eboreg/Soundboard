@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class SoundCategoryListViewModel(application: Application) : AndroidViewModel(application) {
@@ -16,7 +17,7 @@ class SoundCategoryListViewModel(application: Application) : AndroidViewModel(ap
         categories = repository.categories
     }
 
-    fun save(category: SoundCategory) = viewModelScope.launch {
+    fun save(category: SoundCategory) = viewModelScope.launch(Dispatchers.IO) {
         when(category.id) {
             null -> repository.insert(category)
             else -> repository.update(category)

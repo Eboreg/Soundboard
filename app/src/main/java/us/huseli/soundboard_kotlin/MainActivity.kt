@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.graphics.Color
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.view.Menu
@@ -13,7 +12,6 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import us.huseli.soundboard_kotlin.data.SoundCategory
 import us.huseli.soundboard_kotlin.data.SoundCategoryListViewModel
@@ -27,10 +25,11 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditSoundCategoryI
         const val REQUEST_SOUND_GET = 1
     }
 
+    var categories = emptyList<SoundCategory>()
+
     private lateinit var preferences: SharedPreferences
     private val viewModel by viewModels<SoundListViewModel>()
     private val categoryViewModel by viewModels<SoundCategoryListViewModel>()
-    private val categories: LiveData<List<SoundCategory>> by lazy { categoryViewModel.categories }
     private lateinit var toolbar: Toolbar
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,9 +44,7 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditSoundCategoryI
                 apply()
             }
         })
-        categories.observe(this, Observer {  })
-        if (categoryViewModel.get(0) == null)
-            categoryViewModel.save(SoundCategory("Default", Color.DKGRAY, Color.WHITE, 0))
+        categoryViewModel.categories.observe(this, Observer { categories = it })
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
     }
@@ -125,7 +122,7 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditSoundCategoryI
 
     override fun showSoundEditDialog(soundViewModel: SoundViewModel) {
         supportFragmentManager.beginTransaction().apply {
-            val fragment = EditSoundFragment.newInstance(soundViewModel)
+            val fragment = EditSoundFragment.newInstance(soundViewModel, categories)
             add(0, fragment)
             show(fragment)
             commit()

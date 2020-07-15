@@ -5,6 +5,7 @@ import android.media.MediaPlayer
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class SoundViewModel(application: Application) : AndroidViewModel(application) {
@@ -59,9 +60,9 @@ class SoundViewModel(application: Application) : AndroidViewModel(application) {
         mediaPlayer.setOnCompletionListener { function() }
     }
 
-    private fun insert() = viewModelScope.launch { sound?.let { repository.insert(it) } }
+    private fun insert() = viewModelScope.launch(Dispatchers.IO) { sound?.let { repository.insert(it) } }
 
-    private fun update() = viewModelScope.launch { sound?.let { repository.update(it) } }
+    private fun update() = viewModelScope.launch(Dispatchers.IO) { sound?.let { repository.update(it) } }
 
     companion object {
         fun getInstance(application: Application, sound: Sound): SoundViewModel {

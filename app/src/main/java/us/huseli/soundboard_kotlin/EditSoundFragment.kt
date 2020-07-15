@@ -7,17 +7,15 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.viewModels
 import kotlinx.android.synthetic.main.fragment_edit_sound.*
 import kotlinx.android.synthetic.main.fragment_edit_sound.view.*
 import us.huseli.soundboard_kotlin.data.SoundCategory
-import us.huseli.soundboard_kotlin.data.SoundCategoryListViewModel
 import us.huseli.soundboard_kotlin.data.SoundViewModel
 import us.huseli.soundboard_kotlin.helpers.EditSoundInterface
 
 open class EditSoundFragment : DialogFragment() {
     private lateinit var viewModel: SoundViewModel
-    private val categoryListViewModel by viewModels<SoundCategoryListViewModel>()
+    private lateinit var categories: List<SoundCategory>
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = LayoutInflater.from(requireContext()).inflate(R.layout.fragment_edit_sound, edit_sound_fragment, false).apply {
@@ -39,25 +37,24 @@ open class EditSoundFragment : DialogFragment() {
                     val listener = requireActivity() as EditSoundInterface
                     viewModel.volume = view.volume.progress
                     viewModel.sound.name = soundName
-                    viewModel.category = view.category.selectedItem as SoundCategory
+                    viewModel.category = view.category.selectedItem as SoundCategory?
                     listener.onSoundDialogSave(viewModel)
                     dismiss()
                 }
             }
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
-            categoryListViewModel.categories.value?.let {
-                view.category.adapter = ArrayAdapter<SoundCategory>(context, R.layout.support_simple_spinner_dropdown_item, it)
-                view.category.setSelection(it.indexOf(viewModel.category))
-            }
+            view.category.adapter = ArrayAdapter<SoundCategory>(context, R.layout.support_simple_spinner_dropdown_item, categories)
+            view.category.post { Runnable { view.category.setSelection(categories.indexOf(viewModel.category)) } }
             create()
         }
     }
 
     companion object {
         @JvmStatic
-        fun newInstance(soundViewModel: SoundViewModel) =
+        fun newInstance(soundViewModel: SoundViewModel, categories: List<SoundCategory>) =
                 EditSoundFragment().also {
                     it.viewModel = soundViewModel
+                    it.categories = categories
                 }
     }
 }
