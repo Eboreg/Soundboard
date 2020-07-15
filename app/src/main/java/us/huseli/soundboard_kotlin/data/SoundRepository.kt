@@ -1,11 +1,9 @@
 package us.huseli.soundboard_kotlin.data
 
-import android.app.Application
 import androidx.lifecycle.LiveData
 import java.util.*
 
-class SoundRepository(application: Application) {
-    private val soundDao = SoundDatabase.getInstance(application).soundDao()
+class SoundRepository(private val soundDao: SoundDao) {
     val sounds: LiveData<List<Sound>> = soundDao.getAll()
 
     fun insert(sound: Sound) {
@@ -33,14 +31,4 @@ class SoundRepository(application: Application) {
     fun update(sound: Sound) = soundDao.update(sound)
 
     fun delete(soundId: Int) = soundDao.delete(soundId)
-
-    companion object {
-        @Volatile private var instance: SoundRepository? = null
-
-        fun getInstance(application: Application): SoundRepository {
-            return instance ?: synchronized(this) {
-                instance ?: SoundRepository(application).also { instance = it }
-            }
-        }
-    }
 }

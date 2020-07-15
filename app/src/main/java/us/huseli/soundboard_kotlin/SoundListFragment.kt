@@ -81,7 +81,7 @@ class SoundListFragment : Fragment() {
         val soundViewModel = adapter.currentSoundViewModel!!
         when (item.itemId) {
             R.id.sound_context_menu_edit -> (activity as EditSoundInterface).showSoundEditDialog(soundViewModel)
-            R.id.sound_context_menu_delete -> soundViewModel.id?.let { listViewModel.deleteSound(it) }
+            R.id.sound_context_menu_delete -> soundViewModel.sound.id?.let { listViewModel.deleteSound(it) }
         }
         return true
     }

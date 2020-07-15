@@ -21,12 +21,12 @@ open class EditSoundFragment : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = LayoutInflater.from(requireContext()).inflate(R.layout.fragment_edit_sound, edit_sound_fragment, false).apply {
-            sound_name.setText(viewModel.name)
+            sound_name.setText(viewModel.sound.name)
             sound_name.requestFocus()
             volume.progress = viewModel.volume
         }
         return AlertDialog.Builder(requireContext()).run {
-            when (viewModel.id) {
+            when (viewModel.sound.id) {
                 null -> setTitle(R.string.add)
                 else -> setTitle(R.string.edit_sound)
             }
@@ -38,7 +38,7 @@ open class EditSoundFragment : DialogFragment() {
                 } else {
                     val listener = requireActivity() as EditSoundInterface
                     viewModel.volume = view.volume.progress
-                    viewModel.name = soundName
+                    viewModel.sound.name = soundName
                     viewModel.category = view.category.selectedItem as SoundCategory
                     listener.onSoundDialogSave(viewModel)
                     dismiss()

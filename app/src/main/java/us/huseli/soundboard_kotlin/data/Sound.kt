@@ -12,13 +12,13 @@ import androidx.room.PrimaryKey
 )
 data class Sound(
         @PrimaryKey(autoGenerate = true) val id: Int? = null,
-        var categoryId: Int,
+        var categoryId: Int?,
         var name: String,
         val uri: Uri,
         var order: Int,
         var volume: Int
 ) {
     // TODO: Constructors with categoryId
-    constructor(name: String, uri: Uri): this(null, 0, name.trim(), uri, 0, 100)
-    constructor(name: String, uri: Uri, volume: Int): this(null, 0, name.trim(), uri, 0, volume)
+    constructor(name: String, uri: Uri): this(null, null, name.trim(), uri, 0, 100)
+    constructor(name: String, uri: Uri, volume: Int): this(null, null, name.trim(), uri, 0, volume)
 }

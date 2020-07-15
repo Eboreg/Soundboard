@@ -31,7 +31,7 @@ class SoundViewHolder(view: View) : ViewHolder(view), View.OnClickListener, View
         this.viewModel = viewModel
         this.viewModel.setOnCompletionListener { pause() }
         this.adapter = adapter
-        this.nameTextView.text = viewModel.name
+        this.nameTextView.text = viewModel.sound.name
     }
 
     override fun onLongClick(v: View?): Boolean {

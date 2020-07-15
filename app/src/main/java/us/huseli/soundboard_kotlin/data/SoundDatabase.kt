@@ -8,6 +8,8 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Database(entities = [Sound::class, SoundCategory::class], version = 7, exportSchema = false)
 @TypeConverters(Converters::class)
@@ -53,7 +55,6 @@ abstract class SoundDatabase : RoomDatabase() {
                         textColor INTEGER NOT NULL,
                         'order' INTEGER NOT NULL
                     )""".trimIndent())
-                database.execSQL("INSERT INTO SoundCategory VALUES (0, 'Default', " + Color.DKGRAY + ", " + Color.WHITE + ", 0)")
                 database.execSQL("""
                     CREATE TABLE Sound_new (
                         id INTEGER PRIMARY KEY,
@@ -61,12 +62,12 @@ abstract class SoundDatabase : RoomDatabase() {
                         uri TEXT NOT NULL,
                         'order' INTEGER NOT NULL,
                         volume INTEGER NOT NULL,
-                        categoryId INTEGER NOT NULL DEFAULT 0,
-                        FOREIGN KEY (categoryId) REFERENCES SoundCategory(id) ON UPDATE NO ACTION ON DELETE NO ACTION
+                        categoryId INTEGER,
+                        FOREIGN KEY (categoryId) REFERENCES SoundCategory(id) ON UPDATE SET NULL ON DELETE SET NULL
                     )""".trimIndent())
                 database.execSQL("""
                     INSERT INTO Sound_new (id, name, uri, 'order', volume, categoryId)
-                    SELECT id, name, uri, 'order', volume, 0 FROM Sound
+                    SELECT id, name, uri, 'order', volume, NULL FROM Sound
                     """.trimIndent())
                 database.execSQL("DROP TABLE Sound")
                 database.execSQL("ALTER TABLE Sound_new RENAME TO Sound")
@@ -74,19 +75,33 @@ abstract class SoundDatabase : RoomDatabase() {
             }
         }
 
-        fun getInstance(application: Application): SoundDatabase {
+        fun getInstance(application: Application, scope: CoroutineScope): SoundDatabase {
             return instance ?: synchronized(this) {
-                instance ?: buildDatabase(application).also { instance = it }
+                instance ?: buildDatabase(application, scope).also { instance = it }
             }
         }
 
-        private fun buildDatabase(application: Application): SoundDatabase {
+        private fun buildDatabase(application: Application, scope: CoroutineScope): SoundDatabase {
             return Room.databaseBuilder(application, SoundDatabase::class.java, "sound_database")
                     .addMigrations(MIGRATION_4_5)
                     .addMigrations(MIGRATION_5_6)
                     .addMigrations(MIGRATION_6_7)
                     .fallbackToDestructiveMigration()
+                    .addCallback(SoundDatabaseCallback(scope))
                     .build()
+        }
+    }
+
+    private class SoundDatabaseCallback(private val scope: CoroutineScope) : RoomDatabase.Callback() {
+        override fun onCreate(db: SupportSQLiteDatabase) {
+            super.onCreate(db)
+            instance?.let {
+                scope.launch { addDefaultCategory(it.soundCategoryDao()) }
+            }
+        }
+
+        suspend fun addDefaultCategory(dao: SoundCategoryDao) {
+            dao.insert(SoundCategory("Default", Color.DKGRAY, Color.WHITE, 0))
         }
     }
 }

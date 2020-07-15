@@ -7,8 +7,14 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 
 class SoundCategoryListViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = SoundCategoryRepository.getInstance(application)
-    val categories: LiveData<List<SoundCategory>> by lazy { repository.categories }
+    private val repository: SoundCategoryRepository
+    val categories: LiveData<List<SoundCategory>>
+
+    init {
+        val dao = SoundDatabase.getInstance(application, viewModelScope).soundCategoryDao()
+        repository = SoundCategoryRepository(dao)
+        categories = repository.categories
+    }
 
     fun save(category: SoundCategory) = viewModelScope.launch {
         when(category.id) {

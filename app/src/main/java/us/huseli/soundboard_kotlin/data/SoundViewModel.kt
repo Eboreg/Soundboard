@@ -9,24 +9,19 @@ import kotlinx.coroutines.launch
 
 class SoundViewModel(application: Application) : AndroidViewModel(application) {
     // Private fields
-    private val catRepository = SoundCategoryRepository(application)
-    private val repository = SoundRepository(application)
+    private val catRepository: SoundCategoryRepository
+    private val repository: SoundRepository
 
-    private var sound: Sound? = null
-        set(value) {
-            value?.let {
-                name = it.name
-                id = it.id
-                volume = it.volume
-                category = catRepository.get(it.categoryId)
-            }
-            field = value
-        }
+    init {
+        val db = SoundDatabase.getInstance(application, viewModelScope)
+        repository = SoundRepository(db.soundDao())
+        catRepository = SoundCategoryRepository(db.soundCategoryDao())
+    }
+
+    lateinit var sound: Sound
     private var mediaPlayer = MediaPlayer()
 
     // Model fields
-    var name: String = ""
-    var id: Int? = null
     var volume: Int = 100
         set(value) {
             field = value
@@ -51,13 +46,12 @@ class SoundViewModel(application: Application) : AndroidViewModel(application) {
 
     fun save() {
         sound?.let {
-            it.name = name
             it.categoryId = category?.id ?: 0
             it.volume = volume
-        }
-        when (id) {
-            null -> insert()
-            else -> update()
+            when (it.id) {
+                null -> insert()
+                else -> update()
+            }
         }
     }
 
