@@ -1,18 +1,20 @@
 <resources>
     <string name="app_name">Söun̈dböärd</string>
-    <string name="add_sound_label">Add sound</string>
-    <string name="add_sound_title">Add sound</string>
-    <string name="sound_context_menu_delete">Delete</string>
-    <string name="sound_context_menu_edit">Edit</string>
-    <string name="sound_name_hint">Name</string>
-    <string name="edit_sound_title">Edit sound</string>
-    <string name="sound_save_button">Save</string>
-    <string name="sound_cancel_button">Cancel</string>
-    <string name="sound_name_cannot_be_empty">Name cannot be empty</string>
-    <string name="toggle_reorder_label">Reorder</string>
-    <string name="toast_reordering_enabled">Reordering enabled</string>
-    <string name="toast_reordering_disabled">Reordering disabled</string>
-    <string name="zoom_in_label">Zoom in</string>
-    <string name="zoom_out_label">Zoom out</string>
-    <string name="volume_hint">Volume</string>
+    <string name="add">Add sound</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="name">Name</string>
+    <string name="edit_sound">Edit sound</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="name_cannot_be_empty">Name cannot be empty</string>
+    <string name="reorder">Reorder</string>
+    <string name="reordering_enabled">Reordering enabled</string>
+    <string name="reordering_disabled">Reordering disabled</string>
+    <string name="zoom_in">Zoom in</string>
+    <string name="zoom_out">Zoom out</string>
+    <string name="volume">Volume</string>
+    <string name="category">Category</string>
+    <string name="add_category">Add category</string>
+    <string name="edit_category">Edit category</string>
 </resources>

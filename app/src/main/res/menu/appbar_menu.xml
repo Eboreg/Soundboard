@@ -5,29 +5,35 @@
     <item
         android:id="@+id/action_zoom_in"
         android:icon="@drawable/ic_zoom_in"
-        android:title="@string/zoom_in_label"
+        android:title="@string/zoom_in"
         android:orderInCategory="2"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_zoom_out"
         android:icon="@drawable/ic_zoom_out"
-        android:title="@string/zoom_out_label"
+        android:title="@string/zoom_out"
         android:orderInCategory="2"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_toggle_reorder"
         android:icon="@drawable/ic_enable_move"
-        android:title="@string/toggle_reorder_label"
+        android:title="@string/reorder"
         android:orderInCategory="1"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_add_sound"
         android:icon="@drawable/ic_add_sound"
-        android:title="@string/add_sound_label"
+        android:title="@string/add"
         android:orderInCategory="0"
         app:showAsAction="ifRoom" />
 
+    <item
+        android:id="@+id/action_add_category"
+        android:icon="@drawable/ic_add_category"
+        android:title="@string/add_category"
+        android:orderInCategory="2"
+        app:showAsAction="ifRoom" />
 </menu>

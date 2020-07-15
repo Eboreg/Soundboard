@@ -13,10 +13,7 @@ class SoundListViewModel(application: Application) : AndroidViewModel(applicatio
 
     val sounds: LiveData<List<Sound>> by lazy { repository.sounds }
     val reorderEnabled: MutableLiveData<Boolean> by lazy { MutableLiveData<Boolean>(false) }
-    val zoomLevel: MutableLiveData<Int> by lazy {
-
-        MutableLiveData(0)
-    }
+    val zoomLevel: MutableLiveData<Int> by lazy { MutableLiveData(0) }
 
     // We get this from SoundListFragment, and the positions refer to those in our `sounds`
     fun updateSoundOrder(fromPosition: Int, toPosition: Int) = viewModelScope.launch(Dispatchers.IO) {

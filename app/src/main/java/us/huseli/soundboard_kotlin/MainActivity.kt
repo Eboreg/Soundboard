@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.view.Menu
@@ -12,18 +13,24 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import us.huseli.soundboard_kotlin.data.SoundCategory
+import us.huseli.soundboard_kotlin.data.SoundCategoryListViewModel
 import us.huseli.soundboard_kotlin.data.SoundListViewModel
 import us.huseli.soundboard_kotlin.data.SoundViewModel
+import us.huseli.soundboard_kotlin.helpers.EditSoundCategoryInterface
 import us.huseli.soundboard_kotlin.helpers.EditSoundInterface
 
-class MainActivity : AppCompatActivity(), EditSoundInterface {
+class MainActivity : AppCompatActivity(), EditSoundInterface, EditSoundCategoryInterface {
     companion object {
         const val REQUEST_SOUND_GET = 1
     }
 
     private lateinit var preferences: SharedPreferences
     private val viewModel by viewModels<SoundListViewModel>()
+    private val categoryViewModel by viewModels<SoundCategoryListViewModel>()
+    private val categories: LiveData<List<SoundCategory>> by lazy { categoryViewModel.categories }
     private lateinit var toolbar: Toolbar
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,6 +45,9 @@ class MainActivity : AppCompatActivity(), EditSoundInterface {
                 apply()
             }
         })
+        categories.observe(this, Observer {  })
+        if (categoryViewModel.get(0) == null)
+            categoryViewModel.save(SoundCategory("Default", Color.DKGRAY, Color.WHITE, 0))
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
     }
@@ -60,9 +70,9 @@ class MainActivity : AppCompatActivity(), EditSoundInterface {
             R.id.action_toggle_reorder -> {
                 viewModel.reorderEnabled.value = !viewModel.reorderEnabled.value!!
                 if (viewModel.reorderEnabled.value!!)
-                    Toast.makeText(this, R.string.toast_reordering_enabled, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.reordering_enabled, Toast.LENGTH_SHORT).show()
                 else
-                    Toast.makeText(this, R.string.toast_reordering_disabled, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.reordering_disabled, Toast.LENGTH_SHORT).show()
             }
             R.id.action_zoom_in -> {
                 viewModel.zoomLevel.value = viewModel.zoomLevel.value?.plus(1)
@@ -70,8 +80,24 @@ class MainActivity : AppCompatActivity(), EditSoundInterface {
             R.id.action_zoom_out -> {
                 viewModel.zoomLevel.value = viewModel.zoomLevel.value?.minus(1)
             }
+            R.id.action_add_category -> {
+                showSoundCategoryEditDialog(null)
+            }
         }
         return true
+    }
+
+    override fun onSoundCategoryDialogSave(category: SoundCategory) {
+        categoryViewModel.save(category)
+    }
+
+    override fun showSoundCategoryEditDialog(category: SoundCategory?) {
+        supportFragmentManager.beginTransaction().apply {
+            val fragment = EditSoundCategoryFragment()
+            add(0, fragment)
+            show(fragment)
+            commit()
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -92,12 +118,12 @@ class MainActivity : AppCompatActivity(), EditSoundInterface {
                         cursor.close()
                     }
                 }
-                showEditDialog(SoundViewModel.Companion.getInstance(this, soundName, it))
+                showSoundEditDialog(SoundViewModel.getInstance(application, soundName, it))
             }
         }
     }
 
-    override fun showEditDialog(soundViewModel: SoundViewModel) {
+    override fun showSoundEditDialog(soundViewModel: SoundViewModel) {
         supportFragmentManager.beginTransaction().apply {
             val fragment = EditSoundFragment.newInstance(soundViewModel)
             add(0, fragment)

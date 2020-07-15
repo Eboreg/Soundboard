@@ -1,33 +1,39 @@
 package us.huseli.soundboard_kotlin.data
 
-import android.content.Context
+import android.app.Application
 import android.media.MediaPlayer
 import android.net.Uri
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class SoundViewModel : ViewModel() {
+class SoundViewModel(application: Application) : AndroidViewModel(application) {
     // Private fields
-    private lateinit var sound: Sound
-    private lateinit var repository: SoundRepository
+    private val catRepository = SoundCategoryRepository(application)
+    private val repository = SoundRepository(application)
+
+    private var sound: Sound? = null
+        set(value) {
+            value?.let {
+                name = it.name
+                id = it.id
+                volume = it.volume
+                category = catRepository.get(it.categoryId)
+            }
+            field = value
+        }
     private var mediaPlayer = MediaPlayer()
 
     // Model fields
     var name: String = ""
-        set(value) {
-            field = value.trim()
-            sound.name = field
-        }
     var id: Int? = null
-    // Volume = 0 - 100 here, although MediaPlayer uses 0.0F - 1.0F internally
     var volume: Int = 100
         set(value) {
             field = value
-            sound.volume = field
+            // Volume = 0 - 100 here, although MediaPlayer uses 0.0F - 1.0F internally
             mediaPlayer.setVolume(field.toFloat() / 100, field.toFloat() / 100)
         }
+    var category: SoundCategory? = null
 
     var errorMessage: String = ""
     var isValid: Boolean = true
@@ -44,6 +50,11 @@ class SoundViewModel : ViewModel() {
     }
 
     fun save() {
+        sound?.let {
+            it.name = name
+            it.categoryId = category?.id ?: 0
+            it.volume = volume
+        }
         when (id) {
             null -> insert()
             else -> update()
@@ -54,20 +65,16 @@ class SoundViewModel : ViewModel() {
         mediaPlayer.setOnCompletionListener { function() }
     }
 
-    private fun insert() = viewModelScope.launch(Dispatchers.IO) { repository.insert(sound) }
+    private fun insert() = viewModelScope.launch { sound?.let { repository.insert(it) } }
 
-    private fun update() = viewModelScope.launch(Dispatchers.IO) { repository.update(sound) }
+    private fun update() = viewModelScope.launch { sound?.let { repository.update(it) } }
 
     companion object {
-        fun getInstance(context: Context, sound: Sound): SoundViewModel {
-            return SoundViewModel().apply {
+        fun getInstance(application: Application, sound: Sound): SoundViewModel {
+            return SoundViewModel(application).apply {
                 this.sound = sound
-                repository = SoundRepository.getInstance(context)
-                name = sound.name
-                id = sound.id
-                volume = sound.volume
                 try {
-                    mediaPlayer.setDataSource(context, sound.uri)
+                    mediaPlayer.setDataSource(application, sound.uri)
                     mediaPlayer.prepare()
                 } catch (e: Exception) {
                     isValid = false
@@ -76,9 +83,9 @@ class SoundViewModel : ViewModel() {
             }
         }
 
-        fun getInstance(context: Context, name: String, uri: Uri): SoundViewModel {
+        fun getInstance(application: Application, name: String, uri: Uri): SoundViewModel {
             val sound = Sound(name, uri)
-            return getInstance(context, sound)
+            return getInstance(application, sound)
         }
     }
 }

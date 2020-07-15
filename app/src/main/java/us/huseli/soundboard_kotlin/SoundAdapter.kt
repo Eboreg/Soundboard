@@ -1,6 +1,5 @@
 package us.huseli.soundboard_kotlin
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +13,7 @@ import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.data.SoundViewModel
 import us.huseli.soundboard_kotlin.helpers.ItemTouchHelperAdapter
 
-class SoundViewHolder(view: View, private val context: Context) : ViewHolder(view), View.OnClickListener, View.OnLongClickListener {
+class SoundViewHolder(view: View) : ViewHolder(view), View.OnClickListener, View.OnLongClickListener {
     private lateinit var adapter: SoundAdapter
     private lateinit var viewModel: SoundViewModel
 
@@ -24,7 +23,7 @@ class SoundViewHolder(view: View, private val context: Context) : ViewHolder(vie
     init {
         view.setOnClickListener(this)
         view.setOnLongClickListener(this)
-        nameTextView = view.sound_name
+        nameTextView = view.sound_category_name
         playIcon = view.play_icon
     }
 
@@ -60,7 +59,7 @@ class SoundViewHolder(view: View, private val context: Context) : ViewHolder(vie
     }
 
     private fun showErrorToast() {
-        Toast.makeText(context, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
+        Toast.makeText(GlobalApplication.context, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -69,7 +68,6 @@ class SoundAdapter : RecyclerView.Adapter<SoundViewHolder>(), ItemTouchHelperAda
     var currentSoundViewModel: SoundViewModel? = null
 
     private var sounds: MutableList<Sound> = emptyList<Sound>().toMutableList()
-    private lateinit var context: Context
 
     // Called by SoundListFragment.onViewCreated
     internal fun setSounds(sounds: List<Sound>) {
@@ -78,13 +76,12 @@ class SoundAdapter : RecyclerView.Adapter<SoundViewHolder>(), ItemTouchHelperAda
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SoundViewHolder {
-        this.context = parent.context
-        val view = LayoutInflater.from(context).inflate(R.layout.fragment_sound, parent, false)
-        return SoundViewHolder(view, context)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.fragment_sound, parent, false)
+        return SoundViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: SoundViewHolder, position: Int) {
-        holder.bind(SoundViewModel.getInstance(context, sounds[position]), this)
+        holder.bind(SoundViewModel.getInstance(GlobalApplication.application, sounds[position]), this)
     }
 
     override fun getItemCount(): Int = sounds.size

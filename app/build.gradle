@@ -53,7 +53,7 @@ dependencies {
 
     // Lifecycle components
     //implementation "androidx.lifecycle:lifecycle-extensions:$rootProject.lifecycle_version"
-    kapt "androidx.lifecycle:lifecycle-compiler:$rootProject.lifecycle_version"
+    //kapt "androidx.lifecycle:lifecycle-compiler:$rootProject.lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.lifecycle_version"
     //implementation "androidx.lifecycle:lifecycle-livedata-ktx:$rootProject.lifecycle_version"
 

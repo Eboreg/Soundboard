@@ -11,4 +11,5 @@ object Converters {
     @TypeConverter
     @JvmStatic
     fun stringToUri(str: String): Uri = Uri.parse(str)
+
 }

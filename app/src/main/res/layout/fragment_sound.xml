@@ -21,7 +21,7 @@
         tools:ignore="MissingConstraints">
 
         <TextView
-            android:id="@+id/sound_name"
+            android:id="@+id/sound_category_name"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_margin="@dimen/margin_normal" />
