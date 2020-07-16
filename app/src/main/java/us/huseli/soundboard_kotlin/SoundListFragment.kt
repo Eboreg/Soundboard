@@ -35,20 +35,9 @@ class SoundListFragment : Fragment() {
         })
 
         itemTouchHelper = ItemTouchHelper(SoundItemTouchHelperCallback(adapter))
-
         view.layoutManager = GridLayoutManager(view.context, columnCountAtZoomLevelZero())
 
         return view
-    }
-
-    private fun onReorderEnabledChange(value: Boolean) {
-        if (value) {
-            unregisterForContextMenu(view)
-            itemTouchHelper.attachToRecyclerView(view)
-        } else {
-            itemTouchHelper.attachToRecyclerView(null)
-            registerForContextMenu(view)
-        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -59,6 +48,16 @@ class SoundListFragment : Fragment() {
         listViewModel.sounds.observe(viewLifecycleOwner, Observer { sounds -> sounds?.let { adapter.setSounds(it) }})
         listViewModel.reorderEnabled.observe(viewLifecycleOwner, Observer { onReorderEnabledChange(it) })
         listViewModel.zoomLevel.observe(viewLifecycleOwner, Observer { onZoomLevelChange(it, view as RecyclerView) })
+    }
+
+    private fun onReorderEnabledChange(value: Boolean) {
+        if (value) {
+            unregisterForContextMenu(view)
+            itemTouchHelper.attachToRecyclerView(view)
+        } else {
+            itemTouchHelper.attachToRecyclerView(null)
+            registerForContextMenu(view)
+        }
     }
 
     private fun onZoomLevelChange(value: Int?, view: RecyclerView) {

@@ -21,6 +21,8 @@ class SoundListViewModel(application: Application) : AndroidViewModel(applicatio
         sounds = repository.sounds
     }
 
+    fun soundsByCategory(catId: Int): LiveData<List<Sound>> = repository.soundsByCategory(catId)
+
     // We get this from SoundListFragment, and the positions refer to those in our `sounds`
     fun updateSoundOrder(fromPosition: Int, toPosition: Int) = viewModelScope.launch(Dispatchers.IO) {
         repository.updateOrder(fromPosition, toPosition)

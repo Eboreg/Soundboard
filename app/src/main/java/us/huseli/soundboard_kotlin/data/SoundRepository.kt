@@ -6,6 +6,8 @@ import java.util.*
 class SoundRepository(private val soundDao: SoundDao) {
     val sounds: LiveData<List<Sound>> = soundDao.getAll()
 
+    fun soundsByCategory(catId: Int) = soundDao.byCategory(catId)
+
     fun insert(sound: Sound) {
         // If sounds exist, set sound.order to max order + 1; else 0
         val lastSound = sounds.value?.maxBy { it.order }

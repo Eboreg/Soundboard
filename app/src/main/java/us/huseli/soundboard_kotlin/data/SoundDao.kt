@@ -17,6 +17,9 @@ interface SoundDao {
     @Query("SELECT * FROM Sound ORDER BY `order`")
     fun getAll(): LiveData<List<Sound>>
 
+    @Query("SELECT * FROM Sound WHERE categoryId = :catId ORDER BY `order`")
+    fun byCategory(catId: Int): LiveData<List<Sound>>
+
     @Query("DELETE FROM Sound")
     fun deleteAll()
 
