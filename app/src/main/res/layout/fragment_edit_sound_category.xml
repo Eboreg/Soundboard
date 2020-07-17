@@ -32,5 +32,39 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/sound_category_name_label" />
 
+    <TextView
+        android:id="@+id/sound_category_colour_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/background_colour"
+        android:layout_marginTop="@dimen/margin_normal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sound_category_name" />
+
+    <LinearLayout
+        android:id="@+id/colour_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sound_category_colour_label">
+
+        <ImageView
+            android:id="@+id/current_colour"
+            android:layout_width="@dimen/action_button_height"
+            android:layout_height="@dimen/action_button_height"
+            android:layout_marginRight="@dimen/margin_normal"
+            android:src="@drawable/colour_circle" />
+
+        <Button
+            android:id="@+id/select_colour_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/select_colour" />
+    </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

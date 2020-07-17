@@ -8,3 +8,4 @@ Try setting AudioAttributes: https://developer.android.com/reference/kotlin/andr
 - FLAG_LOW_LATENCY (Deprecated: Use AudioTrack.Builder#setPerformanceMode(int) with AudioTrack#PERFORMANCE_MODE_LOW_LATENCY to control performance.)
 - USAGE_MEDIA
 
+EditSoundCategoryFragment: Remember chosen colour and whether colour picker is open on rotate

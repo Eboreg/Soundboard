@@ -68,6 +68,10 @@ dependencies {
 
     // Fragments
     implementation "androidx.fragment:fragment-ktx:$rootProject.fragment_version"
+
+    // Colorpicker
+    implementation 'petrov.kristiyan:colorpicker-library:1.1.10'
+
 //    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 //    testImplementation 'junit:junit:4.13'
 //    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
