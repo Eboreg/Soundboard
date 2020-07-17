@@ -14,7 +14,7 @@ interface SoundDao {
     @Update
     fun update(sound: Sound)
 
-    @Query("SELECT * FROM Sound ORDER BY `order`")
+    @Query("SELECT Sound.* FROM Sound, SoundCategory WHERE Sound.categoryId = SoundCategory.id ORDER BY SoundCategory.`order`, Sound.`order`")
     fun getAll(): LiveData<List<Sound>>
 
     @Query("SELECT * FROM Sound WHERE categoryId = :catId ORDER BY `order`")
