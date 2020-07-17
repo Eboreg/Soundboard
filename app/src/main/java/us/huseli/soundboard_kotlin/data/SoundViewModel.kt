@@ -10,13 +10,13 @@ import kotlinx.coroutines.launch
 
 class SoundViewModel(application: Application) : AndroidViewModel(application) {
     // Private fields
-    private val catRepository: SoundCategoryRepository
+    private val catRepository: CategoryRepository
     private val repository: SoundRepository
 
     init {
         val db = SoundDatabase.getInstance(application, viewModelScope)
         repository = SoundRepository(db.soundDao())
-        catRepository = SoundCategoryRepository(db.soundCategoryDao())
+        catRepository = CategoryRepository(db.categoryDao())
     }
 
     lateinit var sound: Sound
@@ -29,7 +29,7 @@ class SoundViewModel(application: Application) : AndroidViewModel(application) {
             // Volume = 0 - 100 here, although MediaPlayer uses 0.0F - 1.0F internally
             mediaPlayer.setVolume(field.toFloat() / 100, field.toFloat() / 100)
         }
-    var category: SoundCategory? = null
+    var category: Category? = null
 
     var errorMessage: String = ""
     var isValid: Boolean = true

@@ -1,8 +1,8 @@
 package us.huseli.soundboard_kotlin.helpers
 
-import us.huseli.soundboard_kotlin.data.SoundCategory
+import us.huseli.soundboard_kotlin.data.Category
 
 interface EditSoundCategoryInterface {
-    fun onSoundCategoryDialogSave(category: SoundCategory)
-    fun showSoundCategoryEditDialog(category: SoundCategory?)
+    fun onSoundCategoryDialogSave(category: Category)
+    fun showSoundCategoryEditDialog(category: Category?)
 }

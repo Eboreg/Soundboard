@@ -8,18 +8,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
-import kotlinx.android.synthetic.main.fragment_edit_sound_category.*
-import kotlinx.android.synthetic.main.fragment_edit_sound_category.view.*
+import kotlinx.android.synthetic.main.fragment_edit_category.*
+import kotlinx.android.synthetic.main.fragment_edit_category.view.*
 import petrov.kristiyan.colorpicker.ColorPicker
-import us.huseli.soundboard_kotlin.data.SoundCategory
+import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.helpers.EditSoundCategoryInterface
 
-class EditSoundCategoryFragment : DialogFragment() {
-    private var category: SoundCategory = SoundCategory()
+class EditCategoryFragment : DialogFragment() {
+    private var category: Category = Category()
     private lateinit var currentColourDrawable: GradientDrawable
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val view = LayoutInflater.from(requireContext()).inflate(R.layout.fragment_edit_sound_category, edit_sound_category_fragment, false)
+        val view = LayoutInflater.from(requireContext()).inflate(R.layout.fragment_edit_category, edit_sound_category_fragment, false)
         return AlertDialog.Builder(requireContext()).run {
             when (category.id) {
                 null -> setTitle(R.string.add_category)
@@ -27,7 +27,7 @@ class EditSoundCategoryFragment : DialogFragment() {
             }
             setView(view)
             setPositiveButton(R.string.save) { _, _ ->
-                val catName = view.sound_category_name.text.toString().trim()
+                val catName = view.category_name.text.toString().trim()
                 if (catName.isEmpty()) {
                     Toast.makeText(requireContext(), R.string.name_cannot_be_empty, Toast.LENGTH_SHORT).show()
                 } else {
@@ -71,6 +71,6 @@ class EditSoundCategoryFragment : DialogFragment() {
         val COLOURS = COLOURS_BLACK_BG + COLOURS_WHITE_BG
 
         @JvmStatic
-        fun newInstance(category: SoundCategory) = EditSoundCategoryFragment().apply { this.category = category }
+        fun newInstance(category: Category) = EditCategoryFragment().apply { this.category = category }
     }
 }

@@ -7,7 +7,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
-        foreignKeys = [ForeignKey(entity = SoundCategory::class, parentColumns = ["id"], childColumns = ["categoryId"])],
+        foreignKeys = [ForeignKey(entity = Category::class, parentColumns = ["id"], childColumns = ["categoryId"])],
         indices = [Index("categoryId")]
 )
 data class Sound(

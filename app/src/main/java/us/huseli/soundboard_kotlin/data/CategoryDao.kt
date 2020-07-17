@@ -7,14 +7,14 @@ import androidx.room.Query
 import androidx.room.Update
 
 @Dao
-interface SoundCategoryDao {
+interface CategoryDao {
     @Insert
-    fun insert(category: SoundCategory)
+    fun insert(category: Category)
 
     @Update
-    fun update(category: SoundCategory)
+    fun update(category: Category)
 
     @Query("SELECT * FROM SoundCategory ORDER BY `order`")
-    fun getAll(): LiveData<List<SoundCategory>>
+    fun getAll(): LiveData<List<Category>>
 
 }

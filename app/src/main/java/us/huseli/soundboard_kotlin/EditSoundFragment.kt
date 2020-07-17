@@ -9,13 +9,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import kotlinx.android.synthetic.main.fragment_edit_sound.*
 import kotlinx.android.synthetic.main.fragment_edit_sound.view.*
-import us.huseli.soundboard_kotlin.data.SoundCategory
+import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.data.SoundViewModel
 import us.huseli.soundboard_kotlin.helpers.EditSoundInterface
 
 open class EditSoundFragment : DialogFragment() {
     private lateinit var viewModel: SoundViewModel
-    private lateinit var categories: List<SoundCategory>
+    private lateinit var categories: List<Category>
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = LayoutInflater.from(requireContext()).inflate(R.layout.fragment_edit_sound, edit_sound_fragment, false).apply {
@@ -37,13 +37,13 @@ open class EditSoundFragment : DialogFragment() {
                     val listener = requireActivity() as EditSoundInterface
                     viewModel.volume = view.volume.progress
                     viewModel.sound.name = soundName
-                    viewModel.category = view.category.selectedItem as SoundCategory?
+                    viewModel.category = view.category.selectedItem as Category?
                     listener.onSoundDialogSave(viewModel)
                     dismiss()
                 }
             }
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
-            view.category.adapter = ArrayAdapter<SoundCategory>(context, R.layout.support_simple_spinner_dropdown_item, categories)
+            view.category.adapter = ArrayAdapter<Category>(context, R.layout.support_simple_spinner_dropdown_item, categories)
             view.category.post { Runnable { view.category.setSelection(categories.indexOf(viewModel.category)) } }
             create()
         }
@@ -51,7 +51,7 @@ open class EditSoundFragment : DialogFragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance(soundViewModel: SoundViewModel, categories: List<SoundCategory>) =
+        fun newInstance(soundViewModel: SoundViewModel, categories: List<Category>) =
                 EditSoundFragment().also {
                     it.viewModel = soundViewModel
                     it.categories = categories

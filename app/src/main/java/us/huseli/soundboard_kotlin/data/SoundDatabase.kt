@@ -11,11 +11,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@Database(entities = [Sound::class, SoundCategory::class], version = 7, exportSchema = false)
+@Database(entities = [Sound::class, Category::class], version = 7, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class SoundDatabase : RoomDatabase() {
     abstract fun soundDao(): SoundDao
-    abstract fun soundCategoryDao(): SoundCategoryDao
+    abstract fun categoryDao(): CategoryDao
 
     companion object {
         @Volatile private var instance: SoundDatabase? = null
@@ -96,12 +96,12 @@ abstract class SoundDatabase : RoomDatabase() {
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             instance?.let {
-                scope.launch { addDefaultCategory(it.soundCategoryDao()) }
+                scope.launch { addDefaultCategory(it.categoryDao()) }
             }
         }
 
-        suspend fun addDefaultCategory(dao: SoundCategoryDao) {
-            dao.insert(SoundCategory("Default", Color.DKGRAY, Color.WHITE, 0))
+        suspend fun addDefaultCategory(dao: CategoryDao) {
+            dao.insert(Category("Default", Color.DKGRAY, Color.WHITE, 0))
         }
     }
 }

@@ -13,8 +13,8 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.Observer
-import us.huseli.soundboard_kotlin.data.SoundCategory
-import us.huseli.soundboard_kotlin.data.SoundCategoryListViewModel
+import us.huseli.soundboard_kotlin.data.Category
+import us.huseli.soundboard_kotlin.data.CategoryListViewModel
 import us.huseli.soundboard_kotlin.data.SoundListViewModel
 import us.huseli.soundboard_kotlin.data.SoundViewModel
 import us.huseli.soundboard_kotlin.helpers.EditSoundCategoryInterface
@@ -25,11 +25,11 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditSoundCategoryI
         const val REQUEST_SOUND_GET = 1
     }
 
-    var categories = emptyList<SoundCategory>()
+    var categories = emptyList<Category>()
 
     private lateinit var preferences: SharedPreferences
     private val viewModel by viewModels<SoundListViewModel>()
-    private val categoryViewModel by viewModels<SoundCategoryListViewModel>()
+    private val categoryViewModel by viewModels<CategoryListViewModel>()
     private lateinit var toolbar: Toolbar
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,13 +84,13 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditSoundCategoryI
         return true
     }
 
-    override fun onSoundCategoryDialogSave(category: SoundCategory) {
+    override fun onSoundCategoryDialogSave(category: Category) {
         categoryViewModel.save(category)
     }
 
-    override fun showSoundCategoryEditDialog(category: SoundCategory?) {
+    override fun showSoundCategoryEditDialog(category: Category?) {
         supportFragmentManager.beginTransaction().apply {
-            val fragment = EditSoundCategoryFragment()
+            val fragment = EditCategoryFragment()
             add(0, fragment)
             show(fragment)
             commit()

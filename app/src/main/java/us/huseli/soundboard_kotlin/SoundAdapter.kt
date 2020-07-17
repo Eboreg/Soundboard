@@ -23,7 +23,7 @@ class SoundViewHolder(view: View) : ViewHolder(view), View.OnClickListener, View
     init {
         view.setOnClickListener(this)
         view.setOnLongClickListener(this)
-        nameTextView = view.sound_category_name
+        nameTextView = view.category_name
         playIcon = view.play_icon
     }
 
