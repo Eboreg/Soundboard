@@ -9,3 +9,5 @@ Try setting AudioAttributes: https://developer.android.com/reference/kotlin/andr
 - USAGE_MEDIA
 
 EditSoundCategoryFragment: Remember chosen colour and whether colour picker is open on rotate
+
+fragment_sound.xml maybe needs no ConstraintLayout?

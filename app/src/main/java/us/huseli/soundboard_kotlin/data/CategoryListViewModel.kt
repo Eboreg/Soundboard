@@ -1,18 +1,19 @@
 package us.huseli.soundboard_kotlin.data
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import us.huseli.soundboard_kotlin.GlobalApplication
 
-class CategoryListViewModel(application: Application) : AndroidViewModel(application) {
+class CategoryListViewModel(private val state: SavedStateHandle) : ViewModel() {
     private val repository: CategoryRepository
     val categories: LiveData<List<Category>>
 
     init {
-        val dao = SoundDatabase.getInstance(application, viewModelScope).categoryDao()
+        val dao = SoundDatabase.getInstance(GlobalApplication.application, viewModelScope).categoryDao()
         repository = CategoryRepository(dao)
         categories = repository.categories
     }

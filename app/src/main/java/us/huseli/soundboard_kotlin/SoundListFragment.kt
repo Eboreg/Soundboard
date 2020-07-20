@@ -8,6 +8,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.android.synthetic.main.fragment_sound_list.view.*
 import us.huseli.soundboard_kotlin.data.SoundListViewModel
 import us.huseli.soundboard_kotlin.helpers.EditSoundInterface
 import us.huseli.soundboard_kotlin.helpers.SoundItemTouchHelperCallback
@@ -15,17 +16,21 @@ import us.huseli.soundboard_kotlin.helpers.SoundItemTouchHelperCallback
 class SoundListFragment : Fragment() {
     private val listViewModel: SoundListViewModel by activityViewModels()
     private lateinit var adapter: SoundAdapter
-    private lateinit var view: RecyclerView
+    // private lateinit var view: View
+    private lateinit var recyclerView: RecyclerView
     private lateinit var itemTouchHelper: ItemTouchHelper
+    private val categoryId: Int? by lazy { arguments?.getInt(ARG_CATEGORY_ID, 0) }
 
     private fun columnCountAtZoomLevelZero(): Int {
         return resources.configuration.screenWidthDp / 80
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        val view = inflater.inflate(R.layout.fragment_sound_list, container, false)
+        // TODO: move to onViewCreated?
         adapter = SoundAdapter()
-        view = inflater.inflate(R.layout.fragment_sound_list, container, false) as RecyclerView
-        view.adapter = adapter
+        recyclerView = view.sound_list
+        recyclerView.adapter = adapter
 
         // To keep us informed of items changing places
         adapter.registerAdapterDataObserver(object: RecyclerView.AdapterDataObserver() {
@@ -35,16 +40,16 @@ class SoundListFragment : Fragment() {
         })
 
         itemTouchHelper = ItemTouchHelper(SoundItemTouchHelperCallback(adapter))
-        view.layoutManager = GridLayoutManager(view.context, columnCountAtZoomLevelZero())
+        recyclerView.layoutManager = GridLayoutManager(view.context, columnCountAtZoomLevelZero())
 
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // TODO: move to onCreateView?
         registerForContextMenu(view)
 
+        listViewModel.categoryId = categoryId
         listViewModel.sounds.observe(viewLifecycleOwner, Observer { sounds -> sounds?.let { adapter.setSounds(it) }})
         listViewModel.reorderEnabled.observe(viewLifecycleOwner, Observer { onReorderEnabledChange(it) })
         listViewModel.zoomLevel.observe(viewLifecycleOwner, Observer { onZoomLevelChange(it, view as RecyclerView) })
@@ -52,11 +57,11 @@ class SoundListFragment : Fragment() {
 
     private fun onReorderEnabledChange(value: Boolean) {
         if (value) {
-            unregisterForContextMenu(view)
-            itemTouchHelper.attachToRecyclerView(view)
+            unregisterForContextMenu(recyclerView)
+            itemTouchHelper.attachToRecyclerView(recyclerView)
         } else {
             itemTouchHelper.attachToRecyclerView(null)
-            registerForContextMenu(view)
+            registerForContextMenu(recyclerView)
         }
     }
 
@@ -83,5 +88,15 @@ class SoundListFragment : Fragment() {
             R.id.sound_context_menu_delete -> soundViewModel.sound.id?.let { listViewModel.deleteSound(it) }
         }
         return true
+    }
+
+    companion object {
+        const val ARG_CATEGORY_ID = "categoryId"
+
+        fun newInstance(categoryId: Int): SoundListFragment {
+            return SoundListFragment().apply {
+                arguments = Bundle().also { it.putInt(ARG_CATEGORY_ID, categoryId) }
+            }
+        }
     }
 }

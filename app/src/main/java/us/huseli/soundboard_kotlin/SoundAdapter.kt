@@ -8,7 +8,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
-import kotlinx.android.synthetic.main.fragment_sound.view.*
+import kotlinx.android.synthetic.main.item_sound.view.*
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.data.SoundViewModel
 import us.huseli.soundboard_kotlin.helpers.ItemTouchHelperAdapter
@@ -23,7 +23,7 @@ class SoundViewHolder(view: View) : ViewHolder(view), View.OnClickListener, View
     init {
         view.setOnClickListener(this)
         view.setOnLongClickListener(this)
-        nameTextView = view.category_name
+        nameTextView = view.sound_name
         playIcon = view.play_icon
     }
 
@@ -64,7 +64,7 @@ class SoundViewHolder(view: View) : ViewHolder(view), View.OnClickListener, View
 }
 
 
-class SoundAdapter : RecyclerView.Adapter<SoundViewHolder>(), ItemTouchHelperAdapter {
+open class SoundAdapter : RecyclerView.Adapter<SoundViewHolder>(), ItemTouchHelperAdapter {
     var currentSoundViewModel: SoundViewModel? = null
 
     private var sounds: MutableList<Sound> = emptyList<Sound>().toMutableList()
@@ -76,7 +76,7 @@ class SoundAdapter : RecyclerView.Adapter<SoundViewHolder>(), ItemTouchHelperAda
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SoundViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.fragment_sound, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_sound, parent, false)
         return SoundViewHolder(view)
     }
 

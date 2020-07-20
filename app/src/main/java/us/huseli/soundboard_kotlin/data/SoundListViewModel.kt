@@ -9,17 +9,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class SoundListViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: SoundRepository
+    private val repository = SoundRepository(SoundDatabase.getInstance(application, viewModelScope).soundDao())
 
-    val sounds: LiveData<List<Sound>>
+    var categoryId: Int? = null
+    val sounds: LiveData<List<Sound>> by lazy {
+        categoryId?.let { repository.soundsByCategory(it) } ?: repository.sounds
+    }
     val reorderEnabled: MutableLiveData<Boolean> by lazy { MutableLiveData<Boolean>(false) }
     val zoomLevel: MutableLiveData<Int> by lazy { MutableLiveData(0) }
-
-    init {
-        val dao = SoundDatabase.getInstance(application, viewModelScope).soundDao()
-        repository = SoundRepository(dao)
-        sounds = repository.sounds
-    }
 
     fun soundsByCategory(catId: Int): LiveData<List<Sound>> = repository.soundsByCategory(catId)
 

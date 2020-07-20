@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditSoundCategoryI
 
     private lateinit var preferences: SharedPreferences
     private val viewModel by viewModels<SoundListViewModel>()
-    private val categoryViewModel by viewModels<CategoryListViewModel>()
+    private val categoryListViewModel by viewModels<CategoryListViewModel>()
     private lateinit var toolbar: Toolbar
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditSoundCategoryI
                 apply()
             }
         })
-        categoryViewModel.categories.observe(this, Observer { categories = it })
+        categoryListViewModel.categories.observe(this, Observer { categories = it })
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
     }
@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditSoundCategoryI
     }
 
     override fun onSoundCategoryDialogSave(category: Category) {
-        categoryViewModel.save(category)
+        categoryListViewModel.save(category)
     }
 
     override fun showSoundCategoryEditDialog(category: Category?) {

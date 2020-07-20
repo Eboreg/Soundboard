@@ -16,14 +16,14 @@
         app:layout_constraintDimensionRatio="4:4"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints">
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/category_name"
+            android:id="@+id/sound_name"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="@dimen/margin_normal" />
+            android:layout_margin="@dimen/margin_normal"
+            tools:text="Sound name" />
 
         <ImageView
             android:id="@+id/play_icon"
