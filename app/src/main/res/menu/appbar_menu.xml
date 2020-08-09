@@ -26,7 +26,7 @@
     <item
         android:id="@+id/action_add_sound"
         android:icon="@drawable/ic_add_sound"
-        android:title="@string/add"
+        android:title="@string/add_sound"
         android:orderInCategory="0"
         app:showAsAction="ifRoom" />
 

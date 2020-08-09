@@ -100,7 +100,7 @@ abstract class SoundDatabase : RoomDatabase() {
             }
         }
 
-        suspend fun addDefaultCategory(dao: CategoryDao) {
+        fun addDefaultCategory(dao: CategoryDao) {
             dao.insert(Category("Default", Color.DKGRAY, Color.WHITE, 0))
         }
     }

@@ -6,39 +6,91 @@
 
     <data>
         <variable
-            name="viewModel"
-            type="us.huseli.soundboard_kotlin.data.CategoryViewModel" />
+            name="categoryViewModel"
+            type="us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/category_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@{categoryViewModel.backgroundColor}"
             android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:padding="@dimen/margin_normal"
+            tools:background="@android:color/black">
 
             <TextView
                 android:id="@+id/category_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@{viewModel.category.name}"
-                tools:text="Category name" />
-        </LinearLayout>
+                android:text="@{categoryViewModel.name}"
+                android:textColor="@{categoryViewModel.textColor}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Category name"
+                tools:textColor="@android:color/white" />
 
-        <FrameLayout
+            <ImageView
+                android:id="@+id/category_delete_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:drawableColor="@{categoryViewModel.textColor}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_delete" />
+
+            <ImageView
+                android:id="@+id/category_edit_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_normal"
+                app:drawableColor="@{categoryViewModel.textColor}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/category_delete_button"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_edit" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.fragment.app.FragmentContainerView
             android:id="@+id/sound_list_container"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
+            tools:layout="@layout/fragment_sound_list" />
+
+<!--
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/sound_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/category_header"
-            tools:layout="@layout/fragment_sound_list" />
+            app:viewModel="@{categoryViewModel.soundListViewModel}"
+            tools:context=".SoundListFragment"
+            tools:itemCount="6"
+            tools:listitem="@layout/item_sound"
+            tools:spanCount="4" />
+-->
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <!--
+                <FrameLayout
+                    android:id="@+id/sound_list_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/category_header"
+                    tools:layout="@layout/fragment_sound_list" />
+        -->
+
+    </LinearLayout>
 </layout>

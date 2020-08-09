@@ -1,7 +1,6 @@
 package us.huseli.soundboard_kotlin.data
 
 import androidx.lifecycle.LiveData
-import java.util.*
 
 class SoundRepository(private val soundDao: SoundDao) {
     val sounds: LiveData<List<Sound>> = soundDao.getAll()
@@ -17,20 +16,9 @@ class SoundRepository(private val soundDao: SoundDao) {
         soundDao.insert(sound)
     }
 
-    fun updateOrder(fromPosition: Int, toPosition: Int) {
-        sounds.value?.let {
-            if (fromPosition < toPosition) for (i in fromPosition until toPosition) Collections.swap(it, i, i + 1)
-            else for (i in fromPosition downTo toPosition + 1) Collections.swap(it, i, i - 1)
-            it.forEachIndexed { idx, s ->
-                if (s.order != idx) {
-                    s.order = idx
-                    soundDao.update(s)
-                }
-            }
-        }
-    }
-
     fun update(sound: Sound) = soundDao.update(sound)
 
     fun delete(soundId: Int) = soundDao.delete(soundId)
+
+    suspend fun get(soundId: Int) = soundDao.get(soundId)
 }

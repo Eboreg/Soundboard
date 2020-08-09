@@ -1,17 +1,14 @@
 package us.huseli.soundboard_kotlin.data
 
 import android.net.Uri
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Index
-import androidx.room.PrimaryKey
+import androidx.room.*
 
 @Entity(
         foreignKeys = [ForeignKey(entity = Category::class, parentColumns = ["id"], childColumns = ["categoryId"])],
         indices = [Index("categoryId")]
 )
 data class Sound(
-        @PrimaryKey(autoGenerate = true) val id: Int? = null,
+        @PrimaryKey(autoGenerate = true) var id: Int? = null,
         var categoryId: Int?,
         var name: String,
         val uri: Uri,
@@ -19,6 +16,6 @@ data class Sound(
         var volume: Int
 ) {
     // TODO: Constructors with categoryId
-    constructor(name: String, uri: Uri): this(null, null, name.trim(), uri, 0, 100)
-    constructor(name: String, uri: Uri, volume: Int): this(null, null, name.trim(), uri, 0, volume)
+    @Ignore constructor(name: String, uri: Uri, volume: Int): this(null, null, name, uri, 0, volume)
+    @Ignore constructor(name: String, uri: Uri): this(name, uri, 100)
 }

@@ -11,6 +11,8 @@ class GlobalApplication : Application() {
     }
 
     companion object {
+        const val LOG_TAG = "sgrumf"
+
         lateinit var context: Context
         lateinit var application: GlobalApplication
     }

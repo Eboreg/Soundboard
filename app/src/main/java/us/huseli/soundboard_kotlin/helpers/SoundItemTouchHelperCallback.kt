@@ -3,7 +3,7 @@ package us.huseli.soundboard_kotlin.helpers
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
-import us.huseli.soundboard_kotlin.SoundAdapter
+import us.huseli.soundboard_kotlin.adapters.SoundAdapter
 
 class SoundItemTouchHelperCallback(private val adapter: SoundAdapter) : ItemTouchHelper.Callback() {
     override fun isLongPressDragEnabled(): Boolean {

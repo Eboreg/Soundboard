@@ -1,69 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/edit_sound_category_fragment"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center"
-    android:orientation="vertical"
-    android:padding="@dimen/margin_big"
-    tools:context=".EditCategoryFragment">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <TextView
-        android:id="@+id/category_name_label"
+    <data>
+        <import type="androidx.databinding.ObservableInt" />
+        <variable
+            name="viewModel"
+            type="us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel" />
+        <variable
+            name="backgroundColor"
+            type="ObservableInt" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/edit_sound_category_fragment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/name"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/margin_big"
+        tools:context=".fragments.EditCategoryDialogFragment">
 
-    <EditText
-        android:id="@+id/category_name"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="@string/name"
-        android:importantForAutofill="no"
-        android:inputType="text"
-        android:singleLine="true"
-        android:textColor="@android:color/primary_text_dark"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/category_name_label" />
+        <TextView
+            android:id="@+id/category_name_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/name"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/category_colour_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/background_colour"
-        android:layout_marginTop="@dimen/margin_normal"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/category_name" />
+        <EditText
+            android:id="@+id/category_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="@string/name"
+            android:importantForAutofill="no"
+            android:inputType="text"
+            android:singleLine="true"
+            android:textColor="@android:color/primary_text_dark"
+            android:text="@{viewModel.name}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/category_name_label" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_normal"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/category_colour_label">
+        <TextView
+            android:id="@+id/category_colour_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/background_colour"
+            android:layout_marginTop="@dimen/margin_normal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/category_name" />
 
-        <ImageView
-            android:id="@+id/current_colour"
-            android:layout_width="@dimen/action_button_height"
-            android:layout_height="@dimen/action_button_height"
-            android:layout_marginEnd="@dimen/margin_normal"
-            android:src="@drawable/colour_circle" />
-
-        <Button
-            android:id="@+id/select_colour_button"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/select_colour" />
-    </LinearLayout>
+            android:layout_marginTop="@dimen/margin_normal"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/category_colour_label">
+
+            <ImageView
+                android:id="@+id/current_colour"
+                android:layout_width="@dimen/action_button_height"
+                android:layout_height="@dimen/action_button_height"
+                android:layout_marginEnd="@dimen/margin_normal"
+                app:drawableColor="@{viewModel.newBackgroundColor}"
+                android:src="@drawable/colour_circle" />
+
+            <Button
+                android:id="@+id/select_colour_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/select_colour" />
+        </LinearLayout>
 
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

@@ -3,20 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <data>
-        <variable
-            name="adapter"
-            type="us.huseli.soundboard_kotlin.CategoryAdapter" />
-    </data>
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/category_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:context=".CategoryListFragment"
+        tools:context=".fragments.CategoryListFragment"
         tools:itemCount="3"
-        tools:listitem="@layout/item_category">
-
-    </androidx.recyclerview.widget.RecyclerView>
+        tools:listitem="@layout/item_category" />
 </layout>
