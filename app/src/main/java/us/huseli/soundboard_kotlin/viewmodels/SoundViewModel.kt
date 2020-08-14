@@ -47,6 +47,10 @@ class SoundViewModel(private val sound: Sound) : ViewModel() {
         }
     }
 
+    fun delete() = viewModelScope.launch(Dispatchers.IO) {
+        sound.id?.let { id -> repository.delete(id) }
+    }
+
     private fun insert() = viewModelScope.launch(Dispatchers.IO) { repository.insert(sound) }
 
     private fun update() = viewModelScope.launch(Dispatchers.IO) { repository.update(sound) }

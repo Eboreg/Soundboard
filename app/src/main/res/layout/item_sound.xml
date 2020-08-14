@@ -18,11 +18,13 @@
         android:orientation="vertical"
         tools:menu="@menu/sound_context_menu">
 
+        <!--suppress Annotator -->
         <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="@dimen/margin_normal"
             android:background="@{categoryViewModel.backgroundColor}"
+            app:cardCornerRadius="@dimen/sound_card_corner_radius"
             app:cardElevation="@dimen/sound_card_elevation"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="4:4"
@@ -35,7 +37,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_margin="@dimen/margin_normal"
+                android:gravity="center_horizontal|center_vertical"
                 android:text="@{viewModel.name}"
+                android:textAlignment="center"
                 android:textColor="@{categoryViewModel.textColor}"
                 tools:text="Sound name" />
 
@@ -46,6 +50,15 @@
                 android:contentDescription=""
                 android:visibility="invisible"
                 app:srcCompat="@drawable/ic_playing"
+                tools:ignore="ContentDescription" />
+
+            <ImageView
+                android:id="@+id/fail_icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription=""
+                android:visibility="invisible"
+                app:srcCompat="@drawable/ic_fail"
                 tools:ignore="ContentDescription" />
 
         </androidx.cardview.widget.CardView>

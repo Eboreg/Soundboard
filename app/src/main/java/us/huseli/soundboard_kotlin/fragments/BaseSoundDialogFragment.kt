@@ -16,12 +16,12 @@ import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
 import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
 
 abstract class BaseSoundDialogFragment : DialogFragment() {
-    // private lateinit var categoryViewModels: List<CategoryViewModel>
     private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
     internal lateinit var binding: FragmentEditSoundBinding
 
     internal abstract var viewModel: SoundViewModel
     internal abstract val title: Int
+    internal abstract val categoryIndex: Int?
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val inflater = LayoutInflater.from(requireContext())
@@ -41,15 +41,25 @@ abstract class BaseSoundDialogFragment : DialogFragment() {
                 } else {
                     viewModel.setVolume(view.volume.progress)
                     viewModel.setName(soundName)
-                    viewModel.setCategoryId((view.category.selectedItem as CategoryViewModel).id.value!!)
+                    viewModel.setCategoryId((view.category.selectedItem as CategoryViewModel).id!!)
                     viewModel.save()
                     dismiss()
                 }
             }
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
-            // view.category.adapter = ArrayAdapter<CategoryViewModel>(context, R.layout.support_simple_spinner_dropdown_item)
-            // view.category.post { Runnable { view.category.setSelection(categoryViewModels.map { it.id.value }.indexOf(viewModel.categoryId.value)) } }
             create()
+        }
+    }
+
+    override fun onResume() {
+        /**
+         * Set pre-selected category.
+         * For some reason, this will only work from this method.
+         * https://stackoverflow.com/a/25315436
+         */
+        super.onResume()
+        categoryIndex?.let {
+            binding.root.category?.setSelection(it)
         }
     }
 }

@@ -8,17 +8,21 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import us.huseli.soundboard_kotlin.data.CategoryRepository
 import us.huseli.soundboard_kotlin.data.CategoryExtended
+import us.huseli.soundboard_kotlin.data.CategoryRepository
 import us.huseli.soundboard_kotlin.data.SoundDatabase
 
 class CategoryViewModel(application: Application, category: CategoryExtended?) : AndroidViewModel(application) {
     private val repository = CategoryRepository(SoundDatabase.getInstance(application, viewModelScope).categoryDao())
     private val _categoryWithSounds = category ?: CategoryExtended("", Color.DKGRAY, Color.WHITE, 0)
 
+/*
     private val _id = MutableLiveData<Int?>()
     val id: LiveData<Int?>
         get() = _id
+*/
+
+    val id: Int?
 
     private val _name = MutableLiveData<String>()
     val name: LiveData<String>
@@ -44,14 +48,19 @@ class CategoryViewModel(application: Application, category: CategoryExtended?) :
     val soundCount: LiveData<Int>
         get() = _soundCount
 
+    val soundListViewModel: SoundListViewModel
+
     init {
-        _id.value = _categoryWithSounds.category.id
+        // TODO: Refactor this as in SoundViewModel
+        // _id.value = _categoryWithSounds.category.id
+        id = _categoryWithSounds.category.id
         _name.value = _categoryWithSounds.category.name
         _backgroundColor.value = _categoryWithSounds.category.backgroundColor
         _newBackgroundColor.value = _categoryWithSounds.category.backgroundColor
         _textColor.value = _categoryWithSounds.category.textColor
         _order.value = _categoryWithSounds.category.order
         _soundCount.value = _categoryWithSounds.soundCount
+        soundListViewModel = id?.let { id -> SoundListViewModel(id) } ?: SoundListViewModel()
     }
 
     override fun toString(): String {
@@ -87,7 +96,7 @@ class CategoryViewModel(application: Application, category: CategoryExtended?) :
     fun delete() = viewModelScope.launch(Dispatchers.IO) { repository.delete(_categoryWithSounds.category) }
 
     companion object {
-        val COLOURS_WHITE_BG = intArrayOf(Color.BLACK, Color.GRAY, Color.DKGRAY, Color.BLUE, Color.RED, Color.MAGENTA)
+        private val COLOURS_WHITE_BG = intArrayOf(Color.BLACK, Color.GRAY, Color.DKGRAY, Color.BLUE, Color.RED, Color.MAGENTA)
         val COLOURS_BLACK_BG = intArrayOf(Color.CYAN, Color.GREEN, Color.WHITE, Color.YELLOW)
         val COLOURS = COLOURS_BLACK_BG + COLOURS_WHITE_BG
     }

@@ -10,8 +10,10 @@ import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
 class EditSoundDialogFragment : BaseSoundDialogFragment() {
     private val soundId: Int by lazy { requireArguments().getInt(ARG_SOUND_ID) }
     private val soundListViewModel by activityViewModels<SoundListViewModel>()
-    override lateinit var viewModel: SoundViewModel
+
+    override val categoryIndex by lazy { requireArguments().getInt(ARG_CATEGORY_INDEX) }
     override val title = R.string.edit_sound
+    override lateinit var viewModel: SoundViewModel
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -20,11 +22,13 @@ class EditSoundDialogFragment : BaseSoundDialogFragment() {
 
     companion object {
         const val ARG_SOUND_ID = "soundId"
+        const val ARG_CATEGORY_INDEX = "categoryIndex"
 
         @JvmStatic
-        fun newInstance(soundId: Int) = EditSoundDialogFragment().apply {
+        fun newInstance(soundId: Int, categoryIndex: Int) = EditSoundDialogFragment().apply {
             arguments = Bundle().apply {
                 putInt(ARG_SOUND_ID, soundId)
+                putInt(ARG_CATEGORY_INDEX, categoryIndex)
             }
         }
     }

@@ -45,7 +45,6 @@ class EditCategoryDialogFragment : DialogFragment() {
                 if (catName.isEmpty())
                     Toast.makeText(requireContext(), R.string.name_cannot_be_empty, Toast.LENGTH_SHORT).show()
                 else
-                    // viewModel.setBackgroundColor(backgroundColor.get())
                     viewModel.setName(catName)
                     viewModel.save()
                 }
@@ -55,9 +54,7 @@ class EditCategoryDialogFragment : DialogFragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return binding.root
-    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) = binding.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -72,7 +69,6 @@ class EditCategoryDialogFragment : DialogFragment() {
             setRoundColorButton(true)
             setTitle(getString(R.string.select_background_colour))
             setOnChooseColorListener(object : ColorPicker.OnChooseColorListener {
-                // override fun onChooseColor(position: Int, color: Int) { backgroundColor.set(color) }
                 override fun onChooseColor(position: Int, color: Int) { viewModel.setNewBackgroundColor(color) }
                 override fun onCancel() {}
             })

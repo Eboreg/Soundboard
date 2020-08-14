@@ -2,5 +2,6 @@
 <resources>
     <dimen name="margin_normal">8dp</dimen>
     <dimen name="margin_big">24dp</dimen>
-    <dimen name="sound_card_elevation">8dp</dimen>
+    <dimen name="sound_card_elevation">16dp</dimen>
+    <dimen name="sound_card_corner_radius">8dp</dimen>
 </resources>

@@ -28,7 +28,7 @@ class SoundListViewModel : ViewModel {
         }
     }
 
-    fun getSoundViewModel(sound: Sound): SoundViewModel = SoundViewModel(sound)
+    private fun getSoundViewModel(sound: Sound): SoundViewModel = SoundViewModel(sound)
 
     fun getSoundViewModel(soundId: Int): SoundViewModel? =
             sounds.value?.find { it.id == soundId }?.let { sound -> getSoundViewModel(sound) }
@@ -47,9 +47,5 @@ class SoundListViewModel : ViewModel {
                 }
             }
         }
-    }
-
-    fun deleteSound(soundId: Int) = viewModelScope.launch(Dispatchers.IO) {
-        repository.delete(soundId)
     }
 }

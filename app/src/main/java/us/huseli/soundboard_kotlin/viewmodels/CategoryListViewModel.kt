@@ -30,5 +30,5 @@ class CategoryListViewModel : ViewModel() {
     fun delete(category: Category) = viewModelScope.launch(Dispatchers.IO) { repository.delete(category) }
 
     // Will only work if categoryViewModels is observed
-    fun get(id: Int): CategoryViewModel? = categoryViewModels.value?.find { it.id.value == id }
+    fun get(id: Int): CategoryViewModel? = categoryViewModels.value?.find { it.id == id }
 }

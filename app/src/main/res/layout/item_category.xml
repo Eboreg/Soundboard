@@ -11,10 +11,12 @@
     </data>
 
     <LinearLayout
-        android:orientation="vertical"
+        android:id="@+id/category_item"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
+        <!--suppress Annotator -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/category_header"
             android:layout_width="match_parent"
@@ -38,14 +40,15 @@
 
             <ImageView
                 android:id="@+id/category_delete_button"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/margin_normal"
                 app:drawableColor="@{categoryViewModel.textColor}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_delete" />
+                app:srcCompat="@drawable/ic_delete"
+                android:contentDescription="@string/delete_category" />
 
             <ImageView
                 android:id="@+id/category_edit_button"
@@ -56,41 +59,18 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/category_delete_button"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_edit" />
+                app:srcCompat="@drawable/ic_edit"
+                android:contentDescription="@string/edit_category" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/sound_list_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:layout="@layout/fragment_sound_list" />
-
-<!--
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/sound_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/category_header"
-            app:viewModel="@{categoryViewModel.soundListViewModel}"
-            tools:context=".SoundListFragment"
-            tools:itemCount="6"
+            tools:itemCount="2"
             tools:listitem="@layout/item_sound"
-            tools:spanCount="4" />
--->
-
-        <!--
-                <FrameLayout
-                    android:id="@+id/sound_list_container"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/category_header"
-                    tools:layout="@layout/fragment_sound_list" />
-        -->
+            tools:spanCount="2" />
 
     </LinearLayout>
 </layout>

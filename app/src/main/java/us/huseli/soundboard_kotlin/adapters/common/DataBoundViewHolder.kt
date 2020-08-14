@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleRegistry
 import androidx.recyclerview.widget.RecyclerView
 
 open class DataBoundViewHolder<B: ViewDataBinding>(internal val binding: B) : RecyclerView.ViewHolder(binding.root), LifecycleOwner {
+    @Suppress("LeakingThis")
     private val lifecycleRegistry = LifecycleRegistry(this).apply { currentState = Lifecycle.State.INITIALIZED }
     private var wasPaused = false
 

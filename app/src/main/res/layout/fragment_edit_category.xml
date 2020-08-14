@@ -70,7 +70,8 @@
                 android:layout_height="@dimen/action_button_height"
                 android:layout_marginEnd="@dimen/margin_normal"
                 app:drawableColor="@{viewModel.newBackgroundColor}"
-                android:src="@drawable/colour_circle" />
+                android:src="@drawable/colour_circle"
+                tools:ignore="ContentDescription" />
 
             <Button
                 android:id="@+id/select_colour_button"

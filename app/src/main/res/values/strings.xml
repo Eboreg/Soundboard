@@ -16,16 +16,13 @@
     <string name="volume">Volume</string>
     <string name="category">Category</string>
     <string name="add_category">Add category</string>
-    <string name="edit_category">Edit category</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="select_colour">Select Colour</string>
     <string name="select_background_colour">Select background colour</string>
     <string name="background_colour">Background colour</string>
-    <string name="delete_category">Delete category</string>
     <string name="refusing_delete_category_items">Refusing to delete category with items!</string>
     <string name="ok">OK</string>
-    <string name="player_not_prepared">Player not yet prepared</string>
-    <string name="no_sound_or_sound_id">No sound or sound ID set</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="zoom_level_colon">"Zoom level: "</string>
+    <string name="data_not_fetched_yet">Data not fetched yet, please try again</string>
+    <string name="delete_category">Delete category</string>
+    <string name="edit_category">Edit category</string>
 </resources>

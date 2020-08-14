@@ -1,5 +1,3 @@
-SoundViewModel.zoomLevel: Refuse to add when SoundListFragment.view.layoutManager.spanCount == 1
-
 Try setting AudioAttributes: https://developer.android.com/reference/kotlin/android/media/AudioAttributes
 - FLAG_LOW_LATENCY (Deprecated: Use AudioTrack.Builder#setPerformanceMode(int) with AudioTrack#PERFORMANCE_MODE_LOW_LATENCY to control performance.)
 - USAGE_MEDIA
@@ -7,8 +5,3 @@ Try setting AudioAttributes: https://developer.android.com/reference/kotlin/andr
 Maybe not use LiveData for SoundViewModel and CategoryViewModel attributes at all, but rely on them
 updating when their respective ListViewModel updates?
 
-
-Reorder button erroneously says it's enabled to begin with, and does not change layout
-
-
-category.soundcount not working

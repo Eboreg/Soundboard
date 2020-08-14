@@ -7,15 +7,13 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import us.huseli.soundboard_kotlin.R
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
-import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
 
 class DeleteCategoryFragment : DialogFragment() {
     private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
     private val categoryId: Int by lazy { requireArguments().getInt(ARG_CATEGORY_ID) }
-    private lateinit var viewModel: CategoryViewModel
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        viewModel = categoryListViewModel.get(categoryId)!!
+        val viewModel = categoryListViewModel.get(categoryId)!!
 
         return AlertDialog.Builder(requireActivity()).run {
             setTitle(R.string.delete_category)

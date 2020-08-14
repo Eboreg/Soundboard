@@ -1,4 +1,4 @@
-package us.huseli.soundboard_kotlin.helpers
+package us.huseli.soundboard_kotlin.interfaces
 
 import us.huseli.soundboard_kotlin.data.Category
 
