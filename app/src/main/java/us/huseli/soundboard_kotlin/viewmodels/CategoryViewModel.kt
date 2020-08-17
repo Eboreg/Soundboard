@@ -2,10 +2,7 @@ package us.huseli.soundboard_kotlin.viewmodels
 
 import android.app.Application
 import android.graphics.Color
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.data.CategoryExtended
@@ -13,67 +10,22 @@ import us.huseli.soundboard_kotlin.data.CategoryRepository
 import us.huseli.soundboard_kotlin.data.SoundDatabase
 
 class CategoryViewModel(application: Application, category: CategoryExtended?) : AndroidViewModel(application) {
+    /** Private fields */
     private val repository = CategoryRepository(SoundDatabase.getInstance(application, viewModelScope).categoryDao())
     private val _categoryWithSounds = category ?: CategoryExtended("", Color.DKGRAY, Color.WHITE, 0)
 
-/*
-    private val _id = MutableLiveData<Int?>()
-    val id: LiveData<Int?>
-        get() = _id
-*/
+    /** Model fields */
+    val id: Int? = _categoryWithSounds.category.id
 
-    val id: Int?
+    val name = liveData { emit(_categoryWithSounds.category.name) }
+    fun setName(value: String) {
+        if (value.trim().isNotEmpty()) _categoryWithSounds.category.name = value.trim()
+    }
 
-    private val _name = MutableLiveData<String>()
-    val name: LiveData<String>
-        get() = _name
-
-    private val _backgroundColor = MutableLiveData<Int>()
+    // This particular xml attribute doesn't seem to work so well with data binding?
+    private val _backgroundColor = MutableLiveData<Int>(_categoryWithSounds.category.backgroundColor)
     val backgroundColor: LiveData<Int>
         get() = _backgroundColor
-
-    private val _newBackgroundColor = MutableLiveData<Int>()
-    val newBackgroundColor: LiveData<Int>
-        get() = _newBackgroundColor
-
-    private val _textColor = MutableLiveData<Int>()
-    val textColor: LiveData<Int>
-        get() = _textColor
-
-    private val _order = MutableLiveData<Int>()
-    val order: LiveData<Int>
-        get() = _order
-
-    private val _soundCount = MutableLiveData<Int>()
-    val soundCount: LiveData<Int>
-        get() = _soundCount
-
-    val soundListViewModel: SoundListViewModel
-
-    init {
-        // TODO: Refactor this as in SoundViewModel
-        // _id.value = _categoryWithSounds.category.id
-        id = _categoryWithSounds.category.id
-        _name.value = _categoryWithSounds.category.name
-        _backgroundColor.value = _categoryWithSounds.category.backgroundColor
-        _newBackgroundColor.value = _categoryWithSounds.category.backgroundColor
-        _textColor.value = _categoryWithSounds.category.textColor
-        _order.value = _categoryWithSounds.category.order
-        _soundCount.value = _categoryWithSounds.soundCount
-        soundListViewModel = id?.let { id -> SoundListViewModel(id) } ?: SoundListViewModel()
-    }
-
-    override fun toString(): String {
-        return name.value ?: "[no name]"
-    }
-
-    fun setName(value: String) {
-        if (value.trim().isNotEmpty()){
-            _name.value = value.trim()
-            _categoryWithSounds.category.name = value.trim()
-        }
-    }
-
     private fun setBackgroundColor(value: Int) {
         _backgroundColor.value = value
         val textColor = if (COLOURS_BLACK_BG.indexOf(value) > -1) Color.BLACK else Color.WHITE
@@ -81,7 +33,23 @@ class CategoryViewModel(application: Application, category: CategoryExtended?) :
         _categoryWithSounds.category.textColor = textColor
     }
 
+    val textColor = liveData { emit(_categoryWithSounds.category.textColor) }
+
+    // We are not observing this ATM, just reading it once from DeleteCategoryFragment
+    val soundCount = _categoryWithSounds.soundCount
+
+    /** Derived fields */
+    val soundListViewModel: SoundListViewModel = id?.let { id -> SoundListViewModel(id) } ?: SoundListViewModel()
+
+    private val _newBackgroundColor = MutableLiveData<Int>(_categoryWithSounds.category.backgroundColor)
+    val newBackgroundColor: LiveData<Int>
+        get() = _newBackgroundColor
     fun setNewBackgroundColor(value: Int) { _newBackgroundColor.value = value }
+
+    /** Methods */
+    override fun toString(): String {
+        return name.value ?: "[no name]"
+    }
 
     fun save() {
         _newBackgroundColor.value?.let { setBackgroundColor(it) }

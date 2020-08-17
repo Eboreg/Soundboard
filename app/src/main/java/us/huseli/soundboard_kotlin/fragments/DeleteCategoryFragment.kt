@@ -18,7 +18,7 @@ class DeleteCategoryFragment : DialogFragment() {
         return AlertDialog.Builder(requireActivity()).run {
             setTitle(R.string.delete_category)
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
-            if (viewModel.soundCount.value!! > 0)
+            if (viewModel.soundCount > 0)
                 setMessage(R.string.refusing_delete_category_items)
             else {
                 setMessage("Delete category ${viewModel.name.value}?")

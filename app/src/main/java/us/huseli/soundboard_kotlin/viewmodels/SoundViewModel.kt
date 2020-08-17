@@ -14,14 +14,13 @@ import us.huseli.soundboard_kotlin.data.SoundRepository
 
 @Suppress("LocalVariableName")
 class SoundViewModel(private val sound: Sound) : ViewModel() {
-    // Private fields
-    private val db = SoundDatabase.getInstance(GlobalApplication.application, viewModelScope)
-    private val repository = SoundRepository(db.soundDao())
+    /** Private fields */
+    private val repository = SoundRepository(SoundDatabase.getInstance(GlobalApplication.application, viewModelScope).soundDao())
 
-    // Public fields
-    val player: Player by lazy { Player(sound, GlobalApplication.application) }
+    /** Public fields */
+    val player: Player by lazy { Player(GlobalApplication.application) }
 
-    // Model fields
+    /** Model fields */
     val id: Int? = sound.id
 
     val volume = liveData { emit(sound.volume) }
@@ -40,6 +39,7 @@ class SoundViewModel(private val sound: Sound) : ViewModel() {
         sound.categoryId = value
     }
 
+    /** Methods */
     fun save() {
         when (sound.id) {
             null -> insert()
@@ -52,14 +52,13 @@ class SoundViewModel(private val sound: Sound) : ViewModel() {
     }
 
     private fun insert() = viewModelScope.launch(Dispatchers.IO) { repository.insert(sound) }
-
     private fun update() = viewModelScope.launch(Dispatchers.IO) { repository.update(sound) }
 
 
-    class Player(sound: Sound, context: Context) {
+    inner class Player(context: Context) {
         private val mediaPlayer = MediaPlayer()
 
-        val isPlaying: Boolean
+        val isPlaying
             get() = mediaPlayer.isPlaying
         var isValid = true
         var errorMessage = ""
@@ -80,13 +79,9 @@ class SoundViewModel(private val sound: Sound) : ViewModel() {
             mediaPlayer.seekTo(0)
         }
 
-        fun play() {
-            mediaPlayer.start()
-        }
+        fun play() = mediaPlayer.start()
 
-        fun setVolume(value: Int) {
-            mediaPlayer.setVolume(value.toFloat() / 100, value.toFloat() / 100)
-        }
+        fun setVolume(value: Int) = mediaPlayer.setVolume(value.toFloat() / 100, value.toFloat() / 100)
 
         fun setOnCompletionListener(function: () -> Unit) = mediaPlayer.setOnCompletionListener { function() }
     }

@@ -101,7 +101,7 @@ class CategoryAdapter(private val fragment: Fragment, private val appViewModel: 
                 return 4 - zoomLevel
             } else {
                 // Zoomlevel 0 in landscape mode = this number of columns:
-                val zoomLevel0SpanCount: Int = 4 * (config.screenWidthDp / config.screenHeightDp)
+                val zoomLevel0SpanCount: Int = 3 * (config.screenWidthDp / config.screenHeightDp)
                 if (zoomLevel >= (zoomLevel0SpanCount - 1)) return 1
                 return zoomLevel0SpanCount - zoomLevel
             }

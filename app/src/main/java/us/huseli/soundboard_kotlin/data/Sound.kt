@@ -15,7 +15,5 @@ data class Sound(
         var order: Int,
         var volume: Int
 ) {
-    // TODO: Constructors with categoryId
-    @Ignore constructor(name: String, uri: Uri, volume: Int): this(null, null, name, uri, 0, volume)
-    @Ignore constructor(name: String, uri: Uri): this(name, uri, 100)
+    @Ignore constructor(name: String, uri: Uri): this(null, null, name, uri, 0, 100)
 }
