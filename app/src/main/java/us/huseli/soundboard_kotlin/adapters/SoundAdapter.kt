@@ -17,6 +17,7 @@ import us.huseli.soundboard_kotlin.R
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundListAdapter
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundViewHolder
 import us.huseli.soundboard_kotlin.databinding.ItemSoundBinding
+import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditSoundInterface
 import us.huseli.soundboard_kotlin.interfaces.ItemTouchHelperAdapter
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
@@ -68,7 +69,8 @@ class SoundAdapter(private val fragment: Fragment, private val appViewModel: App
             DataBoundViewHolder<ItemSoundBinding>(binding),
             View.OnClickListener,
             View.OnLongClickListener,
-            PopupMenu.OnMenuItemClickListener {
+            PopupMenu.OnMenuItemClickListener,
+            AppViewModelListenerInterface {
         internal lateinit var viewModel: SoundViewModel
         private var categoryId: Int? = null
 
@@ -87,8 +89,10 @@ class SoundAdapter(private val fragment: Fragment, private val appViewModel: App
             viewModel.categoryId.observe(this, Observer { categoryId = it })
         }
 
-        private fun onReorderEnabledChange(value: Boolean) =
+        override fun onReorderEnabledChange(value: Boolean) =
                 if (value) binding.root.setOnLongClickListener(null) else binding.root.setOnLongClickListener(this)
+
+        override fun onZoomLevelChange(value: Int) = Unit
 
         override fun onLongClick(v: View?): Boolean {
             // v = item_sound.root (ConstraintLayout)

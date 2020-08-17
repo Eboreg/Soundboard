@@ -16,6 +16,7 @@ import us.huseli.soundboard_kotlin.adapters.common.DataBoundListAdapter
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundViewHolder
 import us.huseli.soundboard_kotlin.databinding.ItemCategoryBinding
 import us.huseli.soundboard_kotlin.helpers.SoundItemTouchHelperCallback
+import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
@@ -45,7 +46,8 @@ class CategoryAdapter(private val fragment: Fragment, private val appViewModel: 
      */
     inner class ViewHolder(binding: ItemCategoryBinding) :
             DataBoundViewHolder<ItemCategoryBinding>(binding),
-            View.OnClickListener {
+            View.OnClickListener,
+            AppViewModelListenerInterface {
         private lateinit var categoryViewModel: CategoryViewModel
         private lateinit var soundAdapter: SoundAdapter
         private lateinit var itemTouchHelper: ItemTouchHelper
@@ -53,6 +55,7 @@ class CategoryAdapter(private val fragment: Fragment, private val appViewModel: 
         init {
             binding.categoryEditButton.setOnClickListener(this)
             binding.categoryDeleteButton.setOnClickListener(this)
+            binding.categoryMoveButton
         }
 
         fun bind(categoryViewModel: CategoryViewModel) {
@@ -85,10 +88,10 @@ class CategoryAdapter(private val fragment: Fragment, private val appViewModel: 
             }
         }
 
-        private fun onReorderEnabledChange(value: Boolean) =
+        override fun onReorderEnabledChange(value: Boolean) =
                 if (value) itemTouchHelper.attachToRecyclerView(binding.soundList) else itemTouchHelper.attachToRecyclerView(null)
 
-        private fun onZoomLevelChange(value: Int) {
+        override fun onZoomLevelChange(value: Int) {
             Log.i(GlobalApplication.LOG_TAG, "CategoryAdapter.ViewHolder ${hashCode()} onZoomLevelChange: $value")
             (binding.soundList.layoutManager as GridLayoutManager).apply { spanCount = zoomLevelToSpanCount(value) }
         }

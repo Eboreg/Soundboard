@@ -22,11 +22,12 @@ import us.huseli.soundboard_kotlin.fragments.AddSoundDialogFragment
 import us.huseli.soundboard_kotlin.fragments.DeleteCategoryFragment
 import us.huseli.soundboard_kotlin.fragments.EditCategoryDialogFragment
 import us.huseli.soundboard_kotlin.fragments.EditSoundDialogFragment
+import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
 import us.huseli.soundboard_kotlin.interfaces.EditSoundInterface
 import us.huseli.soundboard_kotlin.viewmodels.*
 
-class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterface {
+class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterface, AppViewModelListenerInterface {
     companion object {
         const val REQUEST_SOUND_GET = 1
     }
@@ -157,7 +158,7 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         }
     }
 
-    private fun onReorderEnabledChange(value: Boolean) {
+    override fun onReorderEnabledChange(value: Boolean) {
         val item = toolbar.menu.findItem(R.id.action_toggle_reorder)
         if (value) {
             if (reorderEnabled != null) Toast.makeText(this, R.string.reordering_enabled, Toast.LENGTH_SHORT).show()
@@ -169,7 +170,7 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         reorderEnabled = value
     }
 
-    private fun onZoomLevelChange(value: Int) {
+    override fun onZoomLevelChange(value: Int) {
         if (zoomLevel != null) Toast.makeText(this, getString(R.string.zoom_level_colon) + value, Toast.LENGTH_SHORT).show()
         zoomLevel = value
         preferences.edit {
