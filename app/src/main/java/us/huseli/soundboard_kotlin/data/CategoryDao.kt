@@ -17,7 +17,4 @@ interface CategoryDao {
 
     @Delete
     fun delete(category: Category)
-
-    @Query("SELECT COUNT(*) FROM Sound WHERE categoryId = :id")
-    fun soundCount(id: Int): Int
 }

@@ -14,9 +14,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
-import androidx.lifecycle.Observer
 import kotlinx.android.synthetic.main.activity_main.*
-import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.fragments.AddSoundDialogFragment
 import us.huseli.soundboard_kotlin.fragments.DeleteCategoryFragment
@@ -50,19 +48,19 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        appViewModel.zoomLevel.observe(this, Observer { value -> onZoomLevelChange(value) })
+        appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
         preferences.getInt("zoomLevel", 0).let { if (it != 0) appViewModel.setZoomLevel(it) }
 
-        categoryListViewModel.categoryViewModels.observe(this, Observer { categoryViewModels = it })
+        categoryListViewModel.categoryViewModels.observe(this, { categoryViewModels = it })
 
         // We keep track of these for the sake of EditSoundDialogFragment
-        soundListViewModel.soundViewModels.observe(this, Observer { soundViewModels = it })
+        soundListViewModel.soundViewModels.observe(this, { soundViewModels = it })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.appbar_menu, menu)
         // This has to be done here, because the callback requires the menu to exist
-        appViewModel.reorderEnabled.observe(this, Observer { value -> onReorderEnabledChange(value) })
+        appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
         return true
     }
 
@@ -72,7 +70,7 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
             R.id.action_toggle_reorder -> appViewModel.toggleReorderEnabled()
             R.id.action_zoom_in -> appViewModel.zoomIn()
             R.id.action_zoom_out -> appViewModel.zoomOut()
-            R.id.action_add_category -> showCategoryEditDialog(null)
+            R.id.action_add_category -> showCategoryAddDialog()
         }
         return true
     }
@@ -117,10 +115,6 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         }
     }
 
-    override fun onCategoryDialogSave(category: Category) {
-        categoryListViewModel.save(category)
-    }
-
     override fun showCategoryDeleteDialog(categoryId: Int) {
         supportFragmentManager.beginTransaction().apply {
             val fragment = DeleteCategoryFragment.newInstance(categoryId)
@@ -130,9 +124,17 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         }
     }
 
-    override fun showCategoryEditDialog(categoryId: Int?) {
+    override fun showCategoryAddDialog() {
+        // If categories exist, set category.order to max order + 1; else 0
+        val lastCat = categoryListViewModel.categoryViewModels.value?.maxByOrNull { it.order }
+        showCategoryDialog(null, lastCat?.order?.plus(1) ?: 0)
+    }
+
+    override fun showCategoryEditDialog(categoryId: Int?) = showCategoryDialog(categoryId, null)
+
+    private fun showCategoryDialog(categoryId: Int?, order: Int?) {
         supportFragmentManager.beginTransaction().apply {
-            val fragment = EditCategoryDialogFragment.newInstance(categoryId)
+            val fragment = EditCategoryDialogFragment.newInstance(categoryId, order)
             add(0, fragment)
             show(fragment)
             commit()

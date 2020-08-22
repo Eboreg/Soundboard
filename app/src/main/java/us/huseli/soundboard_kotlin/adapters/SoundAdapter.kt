@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import us.huseli.soundboard_kotlin.GlobalApplication
@@ -56,8 +55,6 @@ class SoundAdapter(private val fragment: Fragment, private val appViewModel: App
 
     override fun onItemMove(fromPosition: Int, toPosition: Int) = notifyItemMoved(fromPosition, toPosition)
 
-    override fun onItemDismiss(position: Int) = Unit
-
 
     inner class AdapterDataObserver : RecyclerView.AdapterDataObserver() {
         override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
@@ -85,8 +82,8 @@ class SoundAdapter(private val fragment: Fragment, private val appViewModel: App
             this.viewModel = viewModel
             viewModel.player.setOnCompletionListener { pause() }
             if (!viewModel.player.isValid) binding.failIcon.visibility = View.VISIBLE
-            appViewModel.reorderEnabled.observe(this, Observer { value -> onReorderEnabledChange(value) })
-            viewModel.categoryId.observe(this, Observer { categoryId = it })
+            appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
+            viewModel.categoryId.observe(this, { categoryId = it })
         }
 
         override fun onReorderEnabledChange(value: Boolean) =

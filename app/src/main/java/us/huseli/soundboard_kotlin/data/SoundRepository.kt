@@ -9,7 +9,7 @@ class SoundRepository(private val soundDao: SoundDao) {
 
     fun insert(sound: Sound) {
         // If sounds exist, set sound.order to max order + 1; else 0
-        val lastSound = sounds.value?.maxBy { it.order }
+        val lastSound = sounds.value?.maxByOrNull { it.order }
         lastSound?.order?.let {
             sound.order = it + 1
         }

@@ -5,15 +5,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import us.huseli.soundboard_kotlin.adapters.SoundAdapter
 
-class SoundItemTouchHelperCallback(private val adapter: SoundAdapter) : ItemTouchHelper.Callback() {
-    override fun isLongPressDragEnabled(): Boolean {
-        return true
-    }
-
-    override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: ViewHolder): Int {
-        val dragFlags = ItemTouchHelper.UP or ItemTouchHelper.DOWN or ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
-        return makeMovementFlags(dragFlags, 0)
-    }
+class SoundItemTouchHelperCallback(private val adapter: SoundAdapter) :
+        ItemTouchHelper.SimpleCallback(
+                ItemTouchHelper.UP or ItemTouchHelper.DOWN or ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT, 0) {
 
     override fun onMove(recyclerView: RecyclerView, viewHolder: ViewHolder, target: ViewHolder): Boolean {
         adapter.onItemMove(viewHolder.adapterPosition, target.adapterPosition)
@@ -21,5 +15,4 @@ class SoundItemTouchHelperCallback(private val adapter: SoundAdapter) : ItemTouc
     }
 
     override fun onSwiped(viewHolder: ViewHolder, direction: Int) {}
-
 }
