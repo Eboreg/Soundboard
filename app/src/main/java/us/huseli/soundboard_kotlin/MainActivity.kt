@@ -17,10 +17,7 @@ import androidx.core.content.edit
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import kotlinx.android.synthetic.main.activity_main.*
 import us.huseli.soundboard_kotlin.data.Sound
-import us.huseli.soundboard_kotlin.fragments.AddSoundDialogFragment
-import us.huseli.soundboard_kotlin.fragments.DeleteCategoryFragment
-import us.huseli.soundboard_kotlin.fragments.EditCategoryDialogFragment
-import us.huseli.soundboard_kotlin.fragments.EditSoundDialogFragment
+import us.huseli.soundboard_kotlin.fragments.*
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
 import us.huseli.soundboard_kotlin.interfaces.EditSoundInterface
@@ -139,16 +136,16 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         val lastCat = categoryListViewModel.categoryViewModels.value?.maxByOrNull { it.order }
         val order = lastCat?.order?.plus(1) ?: 0
         supportFragmentManager.beginTransaction().apply {
-            val fragment = EditCategoryDialogFragment.newInstance(null, order, DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG))
+            val fragment = AddCategoryDialogFragment.newInstance(order, DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG))
             add(fragment, CATEGORY_ADD_DIALOG_TAG)
             show(fragment)
             commit()
         }
     }
 
-    override fun showCategoryEditDialog(categoryId: Int?) {
+    override fun showCategoryEditDialog(categoryId: Int) {
         supportFragmentManager.beginTransaction().apply {
-            val fragment = EditCategoryDialogFragment.newInstance(categoryId, null, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG))
+            val fragment = EditCategoryDialogFragment.newInstance(categoryId, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG))
             add(fragment, CATEGORY_EDIT_DIALOG_TAG)
             show(fragment)
             commit()
@@ -168,6 +165,15 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         val categoryIndex = categoryViewModels.map { it.id }.indexOf(categoryId)
         supportFragmentManager.beginTransaction().apply {
             val fragment = EditSoundDialogFragment.newInstance(soundId, categoryIndex)
+            add(fragment, null)
+            show(fragment)
+            commit()
+        }
+    }
+
+    override fun showSoundDeleteDialog(soundId: Int, soundName: String) {
+        supportFragmentManager.beginTransaction().apply {
+            val fragment = DeleteSoundFragment.newInstance(soundId, soundName)
             add(fragment, null)
             show(fragment)
             commit()

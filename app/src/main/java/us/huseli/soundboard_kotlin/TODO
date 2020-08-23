@@ -1,10 +1,8 @@
 Don't redraw the whole thing for each little change
 
-State of sound edit fragment doesn't persist during orientation change?
-
-Implement deletion of category WITH items
-
 Drag sounds between categories? Is it even possible?
+
+Check "!!" calls for NullPointerException
 
 ######## MAYBES #########
 

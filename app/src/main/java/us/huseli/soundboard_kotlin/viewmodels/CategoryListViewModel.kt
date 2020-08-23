@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.GlobalApplication
-import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.data.CategoryRepository
 import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 import java.util.*
@@ -34,9 +33,6 @@ class CategoryListViewModel : ViewModel() {
             }
         }
     }
-
-    // Not used?
-    fun delete(category: Category) = viewModelScope.launch(Dispatchers.IO) { repository.delete(category) }
 
     // Will only work if categoryViewModels is observed
     fun get(id: Int): CategoryViewModel? = categoryViewModels.value?.find { it.id == id }

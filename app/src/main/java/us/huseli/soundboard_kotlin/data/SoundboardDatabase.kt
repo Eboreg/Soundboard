@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@Database(entities = [Sound::class, Category::class], version = 8, exportSchema = false)
+@Database(entities = [Sound::class, Category::class], version = 9, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class SoundboardDatabase : RoomDatabase() {
     abstract fun soundDao(): SoundDao
@@ -96,6 +96,29 @@ abstract class SoundboardDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_8_9 = object: Migration(8, 9) {
+            // Sets ON UPDATE and ON DELETE on Sound
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE Sound_new (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        uri TEXT NOT NULL,
+                        'order' INTEGER NOT NULL,
+                        volume INTEGER NOT NULL,
+                        categoryId INTEGER,
+                        FOREIGN KEY (categoryId) REFERENCES SoundCategory(id) ON UPDATE CASCADE ON DELETE CASCADE
+                    )""".trimIndent())
+                database.execSQL("""
+                    INSERT INTO Sound_new (id, name, uri, 'order', volume, categoryId)
+                    SELECT id, name, uri, 'order', volume, categoryId FROM Sound
+                    """.trimIndent())
+                database.execSQL("DROP TABLE Sound")
+                database.execSQL("ALTER TABLE Sound_new RENAME TO Sound")
+                database.execSQL("CREATE INDEX index_Sound_categoryId ON Sound(categoryId)")
+            }
+        }
+
         fun getInstance(application: Application, scope: CoroutineScope): SoundboardDatabase {
             return instance ?: synchronized(this) {
                 instance ?: buildDatabase(application, scope).also { instance = it }
@@ -108,6 +131,7 @@ abstract class SoundboardDatabase : RoomDatabase() {
                     .addMigrations(MIGRATION_5_6)
                     .addMigrations(MIGRATION_6_7)
                     .addMigrations(MIGRATION_7_8)
+                    .addMigrations(MIGRATION_8_9)
                     .fallbackToDestructiveMigration()
                     .addCallback(SoundDatabaseCallback(scope))
                     .build()

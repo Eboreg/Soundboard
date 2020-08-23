@@ -29,7 +29,7 @@ class SoundAdapter(private val fragment: Fragment, private val appViewModel: App
         DataBoundListAdapter<SoundViewModel, SoundAdapter.ViewHolder, ItemSoundBinding>(Companion),
         ItemDragHelperAdapter {
 
-    companion object: DiffUtil.ItemCallback<SoundViewModel>() {
+    companion object : DiffUtil.ItemCallback<SoundViewModel>() {
         override fun areItemsTheSame(oldItem: SoundViewModel, newItem: SoundViewModel) = oldItem === newItem
         override fun areContentsTheSame(oldItem: SoundViewModel, newItem: SoundViewModel) = oldItem.id == newItem.id
     }
@@ -112,15 +112,15 @@ class SoundAdapter(private val fragment: Fragment, private val appViewModel: App
         override fun toString() = super.toString() + " '" + binding.soundName.text + "'"
 
         override fun onMenuItemClick(item: MenuItem?): Boolean {
-            when (item?.itemId) {
-                R.id.sound_context_menu_edit -> {
-                    categoryId?.let { catId ->
-                        viewModel.id?.let { soundId ->
-                            (fragment.requireActivity() as EditSoundInterface).showSoundEditDialog(soundId, catId)
-                        }
-                    } ?: Toast.makeText(context, R.string.data_not_fetched_yet, Toast.LENGTH_SHORT).show()
+            try {
+                when (item?.itemId) {
+                    R.id.sound_context_menu_edit ->
+                        (fragment.requireActivity() as EditSoundInterface).showSoundEditDialog(viewModel.id!!, categoryId!!)
+                    R.id.sound_context_menu_delete ->
+                        (fragment.requireActivity() as EditSoundInterface).showSoundDeleteDialog(viewModel.id!!, viewModel.name.value!!)
                 }
-                R.id.sound_context_menu_delete -> viewModel.delete()
+            } catch (e: NullPointerException) {
+                Toast.makeText(context, R.string.data_not_fetched_yet, Toast.LENGTH_SHORT).show()
             }
             return true
         }

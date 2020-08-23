@@ -6,7 +6,7 @@
     <data>
         <variable
             name="viewModel"
-            type="us.huseli.soundboard_kotlin.viewmodels.SoundViewModel" />
+            type="us.huseli.soundboard_kotlin.viewmodels.SoundEditViewModel" />
 
         <variable
             name="categoryListViewModel"

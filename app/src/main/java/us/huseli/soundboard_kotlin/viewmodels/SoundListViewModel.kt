@@ -5,8 +5,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.Sound
-import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 import us.huseli.soundboard_kotlin.data.SoundRepository
+import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 import java.util.*
 
 class SoundListViewModel : ViewModel {
@@ -28,10 +28,9 @@ class SoundListViewModel : ViewModel {
         }
     }
 
-    private fun getSoundViewModel(sound: Sound): SoundViewModel = SoundViewModel(sound)
+    fun getSoundEditViewModel(soundId: Int) = sounds.value?.find { it.id == soundId }?.let { sound -> SoundEditViewModel(sound) }
 
-    fun getSoundViewModel(soundId: Int): SoundViewModel? =
-            sounds.value?.find { it.id == soundId }?.let { sound -> getSoundViewModel(sound) }
+    fun delete(soundId: Int) = viewModelScope.launch(Dispatchers.IO) { repository.delete(soundId) }
 
     // We get this from SoundListFragment, and the positions refer to those in our `sounds`
     fun updateSoundOrder(fromPosition: Int, toPosition: Int) = viewModelScope.launch(Dispatchers.IO) {

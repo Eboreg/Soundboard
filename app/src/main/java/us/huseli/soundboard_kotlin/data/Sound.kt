@@ -4,7 +4,9 @@ import android.net.Uri
 import androidx.room.*
 
 @Entity(
-        foreignKeys = [ForeignKey(entity = Category::class, parentColumns = ["id"], childColumns = ["categoryId"])],
+        foreignKeys = [ForeignKey(
+                entity = Category::class, parentColumns = ["id"], childColumns = ["categoryId"],
+                onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE)],
         indices = [Index("categoryId")]
 )
 data class Sound(
