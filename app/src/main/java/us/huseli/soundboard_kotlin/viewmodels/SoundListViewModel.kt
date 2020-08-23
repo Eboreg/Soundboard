@@ -5,12 +5,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.Sound
-import us.huseli.soundboard_kotlin.data.SoundDatabase
+import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 import us.huseli.soundboard_kotlin.data.SoundRepository
 import java.util.*
 
 class SoundListViewModel : ViewModel {
-    private val repository = SoundRepository(SoundDatabase.getInstance(GlobalApplication.application, viewModelScope).soundDao())
+    private val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application, viewModelScope).soundDao())
     private val sounds: LiveData<List<Sound>>
     val soundViewModels: LiveData<List<SoundViewModel>>
 

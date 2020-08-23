@@ -7,18 +7,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.Sound
-import us.huseli.soundboard_kotlin.data.SoundDatabase
 import us.huseli.soundboard_kotlin.data.SoundRepository
+import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 
 @Suppress("LocalVariableName")
 class SoundViewModel(private val sound: Sound) : ViewModel() {
     /** Private fields */
-    private val repository = SoundRepository(SoundDatabase.getInstance(GlobalApplication.application, viewModelScope).soundDao())
+    private val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application, viewModelScope).soundDao())
 
     /** Public fields */
     val player: Player by lazy { Player(GlobalApplication.application) }
 
-    private val _isPlaying = MutableLiveData<Boolean>(false)
+    private val _isPlaying = MutableLiveData(false)
     val isPlaying: LiveData<Boolean>
         get() = _isPlaying
 

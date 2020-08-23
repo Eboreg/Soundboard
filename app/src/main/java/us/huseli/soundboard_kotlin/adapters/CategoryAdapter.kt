@@ -1,5 +1,6 @@
 package us.huseli.soundboard_kotlin.adapters
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.util.Log
 import android.view.LayoutInflater
@@ -39,9 +40,9 @@ class CategoryAdapter(private val fragment: Fragment, private val categoryListVi
 
     override fun createViewHolder(binding: ItemCategoryBinding, parent: ViewGroup) = ViewHolder(binding)
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun bind(holder: ViewHolder, item: CategoryViewModel) {
         Log.d(GlobalApplication.LOG_TAG, "CategoryAdapter ${this.hashCode()}, bind holder ${holder.hashCode()} with viewmodel ${item.hashCode()}")
-        // TODO: https://stackoverflow.com/questions/47107105/android-button-has-setontouchlistener-called-on-it-but-does-not-override-perform
         holder.binding.categoryMoveButton.setOnTouchListener { _, motionEvent ->
             if (motionEvent.action == MotionEvent.ACTION_DOWN) (fragment as StartDragListenerInterface).onStartDrag(holder)
             return@setOnTouchListener false

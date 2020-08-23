@@ -9,15 +9,15 @@ import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.data.CategoryRepository
-import us.huseli.soundboard_kotlin.data.SoundDatabase
+import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 import java.util.*
 
 class CategoryListViewModel : ViewModel() {
     private val repository: CategoryRepository =
-            CategoryRepository(SoundDatabase.getInstance(GlobalApplication.application, viewModelScope).categoryDao())
+            CategoryRepository(SoundboardDatabase.getInstance(GlobalApplication.application, viewModelScope).categoryDao())
     private val categories = repository.categories
     val categoryViewModels = Transformations.switchMap(categories) {
-        MutableLiveData(it.map { category -> CategoryViewModel(GlobalApplication.application, category, category.category.order) })
+        MutableLiveData(it.map { category -> CategoryViewModel(GlobalApplication.application, category) })
     }
 
     fun updateOrder(fromPosition: Int, toPosition: Int) = viewModelScope.launch(Dispatchers.IO) {
@@ -40,4 +40,8 @@ class CategoryListViewModel : ViewModel() {
 
     // Will only work if categoryViewModels is observed
     fun get(id: Int): CategoryViewModel? = categoryViewModels.value?.find { it.id == id }
+
+    fun getEditViewModel(id: Int): CategoryEditViewModel? {
+        return categories.value?.find { it.category.id == id }?.let { CategoryEditViewModel(it.category, it.category.order) }
+    }
 }

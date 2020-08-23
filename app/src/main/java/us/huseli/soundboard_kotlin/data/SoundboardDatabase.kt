@@ -11,14 +11,14 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@Database(entities = [Sound::class, Category::class], version = 7, exportSchema = false)
+@Database(entities = [Sound::class, Category::class], version = 8, exportSchema = false)
 @TypeConverters(Converters::class)
-abstract class SoundDatabase : RoomDatabase() {
+abstract class SoundboardDatabase : RoomDatabase() {
     abstract fun soundDao(): SoundDao
     abstract fun categoryDao(): CategoryDao
 
     companion object {
-        @Volatile private var instance: SoundDatabase? = null
+        @Volatile private var instance: SoundboardDatabase? = null
 
         private val MIGRATION_4_5 = object: Migration(4, 5) {
             override fun migrate(database: SupportSQLiteDatabase) {
@@ -75,17 +75,39 @@ abstract class SoundDatabase : RoomDatabase() {
             }
         }
 
-        fun getInstance(application: Application, scope: CoroutineScope): SoundDatabase {
+        private val MIGRATION_7_8 = object: Migration(7, 8) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE SoundCategory_new (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        backgroundColor INTEGER NOT NULL,
+                        'order' INTEGER NOT NULL
+                    )
+                """.trimIndent())
+                database.execSQL("""
+                    INSERT INTO SoundCategory_new (id, name, backgroundColor, 'order')
+                    SELECT id, name, backgroundColor, 'order' FROM SoundCategory
+                """.trimIndent())
+                database.execSQL("DROP INDEX index_Sound_categoryId")
+                database.execSQL("DROP TABLE SoundCategory")
+                database.execSQL("ALTER TABLE SoundCategory_new RENAME TO SoundCategory")
+                database.execSQL("CREATE INDEX index_Sound_categoryId ON Sound(categoryId)")
+            }
+        }
+
+        fun getInstance(application: Application, scope: CoroutineScope): SoundboardDatabase {
             return instance ?: synchronized(this) {
                 instance ?: buildDatabase(application, scope).also { instance = it }
             }
         }
 
-        private fun buildDatabase(application: Application, scope: CoroutineScope): SoundDatabase {
-            return Room.databaseBuilder(application, SoundDatabase::class.java, "sound_database")
+        private fun buildDatabase(application: Application, scope: CoroutineScope): SoundboardDatabase {
+            return Room.databaseBuilder(application, SoundboardDatabase::class.java, "sound_database")
                     .addMigrations(MIGRATION_4_5)
                     .addMigrations(MIGRATION_5_6)
                     .addMigrations(MIGRATION_6_7)
+                    .addMigrations(MIGRATION_7_8)
                     .fallbackToDestructiveMigration()
                     .addCallback(SoundDatabaseCallback(scope))
                     .build()

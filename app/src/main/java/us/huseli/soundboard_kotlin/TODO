@@ -1,6 +1,6 @@
 Don't redraw the whole thing for each little change
 
-State of "new category" fragment doesn't persist during orientation change
+State of sound edit fragment doesn't persist during orientation change?
 
 Implement deletion of category WITH items
 
