@@ -19,7 +19,6 @@
     <string name="select_colour">Select Colour</string>
     <string name="select_background_colour">Select background colour</string>
     <string name="background_colour">Background colour</string>
-    <string name="refusing_delete_category_items">Refusing to delete category with items!</string>
     <string name="ok">OK</string>
     <string name="zoom_level_colon">"Zoom level: "</string>
     <string name="data_not_fetched_yet">Data not fetched yet, please try again</string>

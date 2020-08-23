@@ -35,9 +35,9 @@ class CategoryListViewModel : ViewModel() {
     }
 
     // Will only work if categoryViewModels is observed
-    fun get(id: Int): CategoryViewModel? = categoryViewModels.value?.find { it.id == id }
+    fun getCategoryViewModel(id: Int): CategoryViewModel? = categoryViewModels.value?.find { it.id == id }
 
-    fun getEditViewModel(id: Int): CategoryEditViewModel? {
+    fun getCategoryEditViewModel(id: Int): CategoryEditViewModel? {
         return categories.value?.find { it.category.id == id }?.let { CategoryEditViewModel(it.category, it.category.order) }
     }
 }

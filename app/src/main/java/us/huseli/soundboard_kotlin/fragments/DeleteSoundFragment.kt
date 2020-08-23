@@ -19,7 +19,7 @@ class DeleteSoundFragment : DialogFragment() {
             setTitle(R.string.delete_sound)
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
             setMessage(resources.getString(R.string.delete_sound) + " $soundName?")
-            setPositiveButton(R.string.ok) { _, _, -> soundListViewModel.delete(soundId) }
+            setPositiveButton(R.string.ok) { _, _ -> soundListViewModel.delete(soundId) }
             create()
         }
     }

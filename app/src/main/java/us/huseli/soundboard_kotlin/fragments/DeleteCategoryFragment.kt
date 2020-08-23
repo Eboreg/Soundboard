@@ -12,7 +12,7 @@ class DeleteCategoryFragment : DialogFragment() {
     private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val viewModel = categoryListViewModel.get(requireArguments().getInt(ARG_CATEGORY_ID))!!
+        val viewModel = categoryListViewModel.getCategoryViewModel(requireArguments().getInt(ARG_CATEGORY_ID))!!
 
         return AlertDialog.Builder(requireContext()).run {
             setTitle(R.string.delete_category)

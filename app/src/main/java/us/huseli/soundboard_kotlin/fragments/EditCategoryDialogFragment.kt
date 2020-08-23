@@ -17,7 +17,7 @@ class EditCategoryDialogFragment : BaseCategoryDialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return try {
-            viewModel = categoryListViewModel.getEditViewModel(categoryId)!!
+            viewModel = categoryListViewModel.getCategoryEditViewModel(categoryId)!!
             super.onCreateDialog(savedInstanceState)
         } catch (e: NullPointerException) {
             AlertDialog.Builder(requireContext()).run {

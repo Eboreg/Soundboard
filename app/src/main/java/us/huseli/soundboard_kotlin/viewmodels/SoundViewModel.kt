@@ -2,17 +2,15 @@ package us.huseli.soundboard_kotlin.viewmodels
 
 import android.content.Context
 import android.media.MediaPlayer
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.Sound
-import us.huseli.soundboard_kotlin.data.SoundRepository
-import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 
 @Suppress("LocalVariableName")
 class SoundViewModel(private val sound: Sound) : ViewModel() {
-    /** Private fields */
-    private val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application, viewModelScope).soundDao())
-
     /** Public fields */
     val player: Player by lazy { Player(GlobalApplication.application) }
 
