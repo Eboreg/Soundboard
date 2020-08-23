@@ -14,7 +14,7 @@ data class Category(
         var order: Int
 ) {
     constructor(name: String, backgroundColor: Int, textColor: Int, order: Int): this(null, name, backgroundColor, textColor, order)
-    constructor(): this("", Color.DKGRAY, Color.WHITE, 0)
+    constructor(name: String, backgroundColor: Int, textColor: Int): this(name, backgroundColor, textColor, 0)
 
     override fun toString() = name
 }
@@ -23,5 +23,5 @@ data class CategoryExtended(
         @Embedded val category: Category,
         val soundCount: Int
 ) {
-    constructor(name: String, backgroundColor: Int, textColor: Int, order: Int): this(Category(name, backgroundColor, textColor, order), 0)
+    constructor(backgroundColor: Int, order: Int): this(Category("", backgroundColor, Color.WHITE, order), 0)
 }

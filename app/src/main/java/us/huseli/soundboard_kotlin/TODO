@@ -1,12 +1,10 @@
 Don't redraw the whole thing for each little change
 
-"Playing" overlays don't persist during orientation change
-
 State of "new category" fragment doesn't persist during orientation change
 
-Color list won't scroll all the way down in landscape mode. And if I change number of columns, it
-doesn't change the dialog width so it all looks weird. Find some better colorpicker.
+Implement deletion of category WITH items
 
+Drag sounds between categories? Is it even possible?
 
 ######## MAYBES #########
 

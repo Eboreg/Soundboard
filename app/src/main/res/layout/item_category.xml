@@ -21,6 +21,7 @@
             android:id="@+id/category_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_normal"
             android:background="@{categoryViewModel.backgroundColor}"
             android:orientation="horizontal"
             android:padding="@dimen/margin_normal"
@@ -38,23 +39,25 @@
                 tools:text="Category name"
                 tools:textColor="@android:color/white" />
 
-            <ImageView
+            <ImageButton
                 android:id="@+id/category_edit_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/margin_normal"
+                android:contentDescription="@string/edit_category"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 app:drawableColor="@{categoryViewModel.textColor}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/category_delete_button"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_edit"
-                android:contentDescription="@string/edit_category" />
+                app:srcCompat="@drawable/ic_edit" />
 
-            <ImageView
+            <ImageButton
                 android:id="@+id/category_delete_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/margin_normal"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 app:drawableColor="@{categoryViewModel.textColor}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/category_move_button"
@@ -62,11 +65,12 @@
                 app:srcCompat="@drawable/ic_delete"
                 android:contentDescription="@string/delete_category" />
 
-            <ImageView
+            <ImageButton
                 android:id="@+id/category_move_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/margin_normal"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 app:drawableColor="@{categoryViewModel.textColor}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

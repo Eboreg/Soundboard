@@ -2,9 +2,7 @@ package us.huseli.soundboard_kotlin.viewmodels
 
 import android.content.Context
 import android.media.MediaPlayer
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.GlobalApplication
@@ -19,6 +17,10 @@ class SoundViewModel(private val sound: Sound) : ViewModel() {
 
     /** Public fields */
     val player: Player by lazy { Player(GlobalApplication.application) }
+
+    private val _isPlaying = MutableLiveData<Boolean>(false)
+    val isPlaying: LiveData<Boolean>
+        get() = _isPlaying
 
     /** Model fields */
     val id: Int? = sound.id
@@ -58,8 +60,6 @@ class SoundViewModel(private val sound: Sound) : ViewModel() {
     inner class Player(context: Context) {
         private val mediaPlayer = MediaPlayer()
 
-        val isPlaying
-            get() = mediaPlayer.isPlaying
         var isValid = true
         var errorMessage = ""
 
@@ -67,6 +67,7 @@ class SoundViewModel(private val sound: Sound) : ViewModel() {
             try {
                 mediaPlayer.setDataSource(context, sound.uri)
                 mediaPlayer.prepare()
+                mediaPlayer.setOnCompletionListener { pause() }
                 setVolume(sound.volume)
             } catch (e: Exception) {
                 isValid = false
@@ -74,15 +75,19 @@ class SoundViewModel(private val sound: Sound) : ViewModel() {
             }
         }
 
-        fun pause() {
+        private fun pause() {
             mediaPlayer.pause()
+            _isPlaying.value = false
             mediaPlayer.seekTo(0)
         }
 
-        fun play() = mediaPlayer.start()
+        private fun play() {
+            mediaPlayer.start()
+            _isPlaying.value = true
+        }
+
+        fun playOrPause() = if (mediaPlayer.isPlaying) pause() else play()
 
         fun setVolume(value: Int) = mediaPlayer.setVolume(value.toFloat() / 100, value.toFloat() / 100)
-
-        fun setOnCompletionListener(function: () -> Unit) = mediaPlayer.setOnCompletionListener { function() }
-    }
+   }
 }

@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
+import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import kotlinx.android.synthetic.main.activity_main.*
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.fragments.AddSoundDialogFragment
@@ -25,9 +26,12 @@ import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
 import us.huseli.soundboard_kotlin.interfaces.EditSoundInterface
 import us.huseli.soundboard_kotlin.viewmodels.*
 
-class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterface, AppViewModelListenerInterface {
+class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterface, AppViewModelListenerInterface, ColorPickerDialogListener {
     companion object {
         const val REQUEST_SOUND_GET = 1
+        const val CATEGORY_ADD_DIALOG_TAG = "categoryAddDialog"
+        const val CATEGORY_EDIT_DIALOG_TAG = "categoryEditDialog"
+        val DIALOG_TAGS = listOf(CATEGORY_ADD_DIALOG_TAG, CATEGORY_EDIT_DIALOG_TAG)
     }
 
     private var categoryViewModels = emptyList<CategoryViewModel>()
@@ -43,7 +47,7 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
     private var reorderEnabled: Boolean? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.i(GlobalApplication.LOG_TAG, "MainActivity ${this.hashCode()} onCreate")
+        Log.d(GlobalApplication.LOG_TAG, "MainActivity ${this.hashCode()} onCreate")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
@@ -51,10 +55,16 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
         preferences.getInt("zoomLevel", 0).let { if (it != 0) appViewModel.setZoomLevel(it) }
 
-        categoryListViewModel.categoryViewModels.observe(this, { categoryViewModels = it })
+        categoryListViewModel.categoryViewModels.observe(this, {
+            Log.i(GlobalApplication.LOG_TAG, "MainActivity: categoryListViewModel.categoryViewModels changed: $it")
+            categoryViewModels = it
+        })
 
         // We keep track of these for the sake of EditSoundDialogFragment
-        soundListViewModel.soundViewModels.observe(this, { soundViewModels = it })
+        soundListViewModel.soundViewModels.observe(this, {
+            Log.i(GlobalApplication.LOG_TAG, "MainActivity: soundListViewModel.soundViewModels changed: $it")
+            soundViewModels = it
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -127,15 +137,19 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
     override fun showCategoryAddDialog() {
         // If categories exist, set category.order to max order + 1; else 0
         val lastCat = categoryListViewModel.categoryViewModels.value?.maxByOrNull { it.order }
-        showCategoryDialog(null, lastCat?.order?.plus(1) ?: 0)
+        val order = lastCat?.order?.plus(1) ?: 0
+        supportFragmentManager.beginTransaction().apply {
+            val fragment = EditCategoryDialogFragment.newInstance(null, order, DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG))
+            add(fragment, CATEGORY_ADD_DIALOG_TAG)
+            show(fragment)
+            commit()
+        }
     }
 
-    override fun showCategoryEditDialog(categoryId: Int?) = showCategoryDialog(categoryId, null)
-
-    private fun showCategoryDialog(categoryId: Int?, order: Int?) {
+    override fun showCategoryEditDialog(categoryId: Int?) {
         supportFragmentManager.beginTransaction().apply {
-            val fragment = EditCategoryDialogFragment.newInstance(categoryId, order)
-            add(0, fragment)
+            val fragment = EditCategoryDialogFragment.newInstance(categoryId, null, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG))
+            add(fragment, CATEGORY_EDIT_DIALOG_TAG)
             show(fragment)
             commit()
         }
@@ -180,4 +194,11 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
             apply()
         }
     }
+
+    override fun onColorSelected(dialogId: Int, color: Int) {
+        // Have to do this just because ColorPickerDialog won't accept a Fragment as context :/
+        (supportFragmentManager.findFragmentByTag(DIALOG_TAGS[dialogId]) as ColorPickerDialogListener).onColorSelected(dialogId, color)
+    }
+
+    override fun onDialogDismissed(dialogId: Int) = Unit
 }

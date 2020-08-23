@@ -81,7 +81,8 @@ dependencies {
     implementation "androidx.fragment:fragment-ktx:$fragment_version"
 
     // Colorpicker
-    implementation 'petrov.kristiyan:colorpicker-library:1.1.10'
+    implementation 'com.jaredrummler:colorpicker:1.1.0'
+    // implementation 'petrov.kristiyan:colorpicker-library:1.1.10'
 
     // ViewPager2 (for FragmentStateAdapter)
     // implementation "androidx.viewpager2:viewpager2:$viewpager2_version"

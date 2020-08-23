@@ -20,9 +20,11 @@
 
         <!--suppress Annotator -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/sound_card"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_margin="@dimen/margin_normal"
+            android:layout_marginHorizontal="@dimen/margin_normal"
+            android:layout_marginBottom="@dimen/margin_normal"
             app:cardBackgroundColor="@{categoryViewModel.backgroundColor}"
             app:cardCornerRadius="@dimen/sound_card_corner_radius"
             app:cardElevation="@dimen/sound_card_elevation"
@@ -30,7 +32,8 @@
             app:layout_constraintDimensionRatio="4:3"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent"
+            tools:cardBackgroundColor="@color/deep_purple_500">
 
             <TextView
                 android:id="@+id/sound_name"
@@ -49,6 +52,7 @@
                 android:layout_height="match_parent"
                 android:contentDescription=""
                 android:visibility="invisible"
+                app:drawableColor="@{categoryViewModel.textColor}"
                 app:srcCompat="@drawable/ic_playing"
                 tools:ignore="ContentDescription" />
 
@@ -58,6 +62,7 @@
                 android:layout_height="match_parent"
                 android:contentDescription=""
                 android:visibility="invisible"
+                app:drawableColor="@{categoryViewModel.textColor}"
                 app:srcCompat="@drawable/ic_fail"
                 tools:ignore="ContentDescription" />
 
