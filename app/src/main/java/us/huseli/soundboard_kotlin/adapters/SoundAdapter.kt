@@ -73,7 +73,7 @@ class SoundAdapter(private val fragment: Fragment, private val appViewModel: App
             this.viewModel = viewModel
             if (!viewModel.player.isValid) binding.failIcon.visibility = View.VISIBLE
             appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
-            viewModel.categoryId.observe(this, { categoryId = it })
+            //viewModel.categoryId.observe(this, { categoryId = it })
             viewModel.isPlaying.observe(this, { onIsPlayingChange(it) })
         }
 
@@ -115,9 +115,9 @@ class SoundAdapter(private val fragment: Fragment, private val appViewModel: App
             try {
                 when (item?.itemId) {
                     R.id.sound_context_menu_edit ->
-                        (fragment.requireActivity() as EditSoundInterface).showSoundEditDialog(viewModel.id!!, categoryId!!)
+                        (fragment.requireActivity() as EditSoundInterface).showSoundEditDialog(viewModel.id!!, viewModel.categoryId!!)
                     R.id.sound_context_menu_delete ->
-                        (fragment.requireActivity() as EditSoundInterface).showSoundDeleteDialog(viewModel.id!!, viewModel.name.value!!)
+                        (fragment.requireActivity() as EditSoundInterface).showSoundDeleteDialog(viewModel.id!!, viewModel.name)
                 }
             } catch (e: NullPointerException) {
                 Toast.makeText(context, R.string.data_not_fetched_yet, Toast.LENGTH_SHORT).show()

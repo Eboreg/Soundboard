@@ -1,7 +1,8 @@
 package us.huseli.soundboard_kotlin.viewmodels
 
 import android.app.Application
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.data.CategoryExtended
@@ -21,22 +22,17 @@ class CategoryViewModel(application: Application, category: CategoryExtended) : 
 
     val order = _categoryWithSounds.category.order
 
-    val name = liveData { emit(_categoryWithSounds.category.name) }
+    val name = _categoryWithSounds.category.name
 
-    // This particular xml attribute doesn't seem to work so well with data binding?
-    private val _backgroundColor = MutableLiveData(_categoryWithSounds.category.backgroundColor)
-    val backgroundColor: LiveData<Int>
-        get() = _backgroundColor
+    val backgroundColor = _categoryWithSounds.category.backgroundColor
 
-    val textColor = Transformations.switchMap(_backgroundColor) {
-        MutableLiveData(colorHelper.getTextColorForBackgroundColor(it))
-    }
+    val textColor = colorHelper.getTextColorForBackgroundColor(backgroundColor)
 
     // We are not observing this ATM, just reading it once from DeleteCategoryFragment
     val soundCount = _categoryWithSounds.soundCount
 
     /** Derived fields */
-    val soundListViewModel: SoundListViewModel = id?.let { id -> SoundListViewModel(id) } ?: SoundListViewModel()
+    val soundListViewModel = id?.let { id -> SoundListViewModel(id) } ?: SoundListViewModel()
 
     /** Methods */
     override fun toString() = _categoryWithSounds.category.name

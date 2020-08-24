@@ -5,7 +5,6 @@ import android.media.MediaPlayer
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.Sound
 
@@ -21,11 +20,9 @@ class SoundViewModel(private val sound: Sound) : ViewModel() {
     /** Model fields */
     val id: Int? = sound.id
 
-    val volume = liveData { emit(sound.volume) }
+    val name = sound.name
 
-    val name = liveData { emit(sound.name) }
-
-    val categoryId = liveData { emit(sound.categoryId) }
+    val categoryId = sound.categoryId
 
 
     inner class Player(context: Context) {

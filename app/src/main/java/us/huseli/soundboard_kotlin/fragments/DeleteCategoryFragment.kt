@@ -18,9 +18,9 @@ class DeleteCategoryFragment : DialogFragment() {
             setTitle(R.string.delete_category)
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
             when(viewModel.soundCount) {
-                0 -> setMessage(resources.getString(R.string.delete_category_with_name, viewModel.name.value))
-                1 -> setMessage(resources.getString(R.string.delete_category_with_name_and_sound, viewModel.name.value))
-                else -> setMessage(resources.getString(R.string.delete_category_with_name_and_sounds, viewModel.name.value, viewModel.soundCount))
+                0 -> setMessage(resources.getString(R.string.delete_category_with_name, viewModel.name))
+                1 -> setMessage(resources.getString(R.string.delete_category_with_name_and_sound, viewModel.name))
+                else -> setMessage(resources.getString(R.string.delete_category_with_name_and_sounds, viewModel.name, viewModel.soundCount))
             }
             setPositiveButton(R.string.ok) { _, _ -> viewModel.delete() }
             create()
