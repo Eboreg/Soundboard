@@ -15,7 +15,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.actionbar.*
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.fragments.*
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
@@ -46,8 +46,13 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(GlobalApplication.LOG_TAG, "MainActivity ${this.hashCode()} onCreate")
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_main)
+
         setSupportActionBar(toolbar)
+        supportActionBar?.apply {
+            setDisplayShowTitleEnabled(false)
+        }
 
         appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
         preferences.getInt("zoomLevel", 0).let { if (it != 0) appViewModel.setZoomLevel(it) }

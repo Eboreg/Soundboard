@@ -2,6 +2,9 @@ Don't redraw the whole thing for each little change
 
 Drag sounds between categories? Is it even possible?
 
+Does title in topmenu have to take so much space?
+A: https://stackoverflow.com/q/15917973
+
 Check "!!" calls for NullPointerException
 
 ######## MAYBES #########

@@ -6,4 +6,5 @@
     <dimen name="sound_card_corner_radius">4dp</dimen>
     <dimen name="margin_small">4dp</dimen>
     <dimen name="action_button_height">32dp</dimen>
+    <dimen name="actionbar_height">50dp</dimen>
 </resources>
