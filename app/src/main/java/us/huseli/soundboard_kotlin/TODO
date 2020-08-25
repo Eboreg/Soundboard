@@ -1,4 +1,17 @@
 Don't redraw the whole thing for each little change
+Perhaps use lists of sounds and categories in MainActivity, which are populated from their
+respective list viewmodels, make MainActivity wrap them in item viewmodels, and pass those to
+fragments, adapters and viewholders?
+Or pass around only id's (categoryId, SoundId) and let fragments produce their own viewmodels
+via viewModels{}, instead of using the activity's viewmodels, just via id's, so everything gets
+decoupled?
+Maybe the ideal is to have a separate observer for each item. So each piece of the UI holds full
+responsibility for its containing item and only reacts to relevant changes to it:
+* CategoryListFragment reacts to category addition, deletion, and change in order
+* CategoryAdapter.ViewHolder reacts to changes in category name and colour
+* CategoryAdapter.ViewHolder also observes its category's sound list, and so reacts to changes in
+  order within it
+* SoundAdapter.ViewHolder reacts to sound name and volume changes
 
 Drag sounds between categories? Is it even possible?
 
