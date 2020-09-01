@@ -1,3 +1,68 @@
+SoundViewModel
+=================
+
+KRAVSPEC:
+Name ska vara livedata och uppdateras med repositoryt
+Ny viewmodel ska bara skapas när ett nytt ljud läggs till
+Jag vill att denna viewmodel ska hålla en Player och uppdatera den när Sound-data ändras i
+repository. MEN jag vill också att SoundAdapter ska kunna ta emot en lista av Sound-objekt.
+
+PROBLEM:
+Varje gång config ändras, skärm vrids etc, kommer SoundAdapter att skapa alla sina
+viewmodels på nytt. Detta vill jag ej.
+
+LÖSNING?
+Kanske inte ha detalj-viewmodel alls, utan bara en samlad SoundViewModel som håller reda
+på hela listan och spottar ur sig Sound-objekt? Men hur få den att också spotta ur sig
+Players?
+
+KRAVSPEC 2:
+Jag vill att detta ska ske:
+1. App startar
+2. Fragment/viewholder/whatever får viewmodel att hämta Sounds
+3. En Player för varje observerad Sound skapas
+4. Denna Player kvarstår oavsett konfig-ändringar, skärmvridning, ändring av irrelevanta
+   data (namn, färg, kategori)
+5. Player dödas bara när resten av appen gör det ELLER Sound tas bort från DB
+
+Det objekt som håller reda på Players får alltså inte vara något med en lifecycle som kommer
+och går. Dvs ej ett Fragment eller Activity.
+
+LÖSNING?
+Samlad SoundViewModel enligt ovan (för alla Sounds), som dels implementerar "hämta Sounds
+efter kategori" men också håller en lista över Players, eller snarare ngt slags dict/map
+där Players är indexerade efter Sound-id (vi tillåter ändå inte ändring av Uri på existerande
+Sounds).
+Eller så ska rentav GlobalApplication hålla koll på Players.
+Vem som än gör det, får ha en metod getPlayer() som returnerar existerande Player om den
+finns, annars skapar en ny och lägger den till "listan".
+
+https://developer.android.com/topic/libraries/architecture/viewmodel
+"You usually request a ViewModel the first time the system calls an activity object's
+onCreate() method. The system may call onCreate() several times throughout the life of an
+activity, such as when a device screen is rotated. The ViewModel exists from when you first
+request a ViewModel until the activity is finished and destroyed."
+
+Verkar som om varje anrop till activityViewModels() returnerar samma viewmodel-instans
+oavsett varifrån det görs. Men behöver aktiviteten inte alls ha med denna viewmodel att göra?
+Inte referera till den, observera den etc?
+
+https://proandroiddev.com/optimizing-viewmodel-with-lifecycle-2-2-0-a2895b5c01fd sez:
+"Use by activityViewModels in fragments, when the fragment is sharing data/communicating
+with another activity/fragment."
+Men också: "activityViewModels is an extension function applied to a fragment that returns a
+fragment’s parent’s activity’s VM."
+Betyder detta att aktiviteten på något sätt måste "ha" denna viewmodel för att det ska funka?
+
+https://developer.android.com/reference/kotlin/androidx/fragment/app/package-summary#activityviewmodels sez:
+"Returns a property delegate to access parent activity's ViewModel, if factoryProducer is 
+specified then ViewModelProvider.Factory returned by it will be used to create ViewModel 
+first time. Otherwise, the activity's 
+androidx.activity.ComponentActivity.getDefaultViewModelProviderFactory will be used."
+
+Verkar som om viewmodelen måste refereras i activity med viewModels(). Men det kanske är allt som
+behövs?
+
 ============================================
 activity_main
 	toolbar
@@ -158,45 +223,3 @@ CategoryAdapter skapas i CategoryListFragment.onViewCreated
 SoundAdapter skapas i SoundListFragment.onViewCreated
 Bägge körs vid resume
 Även SoundAdapter.submitList körs varje resume
-
-
-########################################
-
-Varför inte skippa SoundListFragment och flytta all kod till SoundAdapter.ViewHolder?
-
-SoundListFragment gör:
-* Skapar ItemTouchHelper för sin SoundAdapter
-* Observerar soundListViewModel.soundViewModels
-    * Skickar till sin SoundAdapter
-* Observerar sin SoundAdapter
-    * Kör soundListViewModel.updateSoundOrder
-* Observerar preferences
-    * Sätter spanCount på sin RecyclerViews layoutManager
-    * Kör this.registerForContextMenu på sin RecyclerView
-    * Kör itemTouchHelper.attachToRecyclerView med sin RecyclerView
-* onCreateContextMenu kanske kan lyftas till CategoryListFragment?
-
-
-
-import android.app.Activity
-import android.content.Intent
-import android.os.Build
-import android.os.Bundle
-import android.provider.OpenableColumns
-import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
-import android.widget.Toast
-import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.Observer
-import us.huseli.soundboard_kotlin.data.Category
-import us.huseli.soundboard_kotlin.data.Sound
-import us.huseli.soundboard_kotlin.fragments.AddSoundDialogFragment
-import us.huseli.soundboard_kotlin.fragments.DeleteCategoryFragment
-import us.huseli.soundboard_kotlin.fragments.EditCategoryDialogFragment
-import us.huseli.soundboard_kotlin.fragments.EditSoundDialogFragment
-import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
-import us.huseli.soundboard_kotlin.interfaces.EditSoundInterface
-import us.huseli.soundboard_kotlin.viewmodels.*

@@ -16,12 +16,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import kotlinx.android.synthetic.main.actionbar.*
+import us.huseli.soundboard_kotlin.data.CategoryWithSounds
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.fragments.*
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
 import us.huseli.soundboard_kotlin.interfaces.EditSoundInterface
-import us.huseli.soundboard_kotlin.viewmodels.*
+import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
+import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 
 class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterface, AppViewModelListenerInterface, ColorPickerDialogListener {
     companion object {
@@ -31,17 +33,17 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         val DIALOG_TAGS = listOf(CATEGORY_ADD_DIALOG_TAG, CATEGORY_EDIT_DIALOG_TAG)
     }
 
-    private var categoryViewModels = emptyList<CategoryViewModel>()
-    private var soundViewModels = emptyList<SoundViewModel>()
+    private var categories = emptyList<CategoryWithSounds>()
 
     private val preferences: SharedPreferences by lazy { getPreferences(Context.MODE_PRIVATE) }
     private val categoryListViewModel by viewModels<CategoryListViewModel>()
-    private val soundListViewModel by viewModels<SoundListViewModel>()
     private val appViewModel by viewModels<AppViewModel>()
 
     // These are just to know whether a toast should be shown on value change
     private var zoomLevel: Int? = null
     private var reorderEnabled: Boolean? = null
+
+    private var maxCategoryOrder: Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(GlobalApplication.LOG_TAG, "MainActivity ${this.hashCode()} onCreate")
@@ -57,16 +59,11 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
         preferences.getInt("zoomLevel", 0).let { if (it != 0) appViewModel.setZoomLevel(it) }
 
-        categoryListViewModel.categoryViewModels.observe(this, {
-            Log.i(GlobalApplication.LOG_TAG, "MainActivity: categoryListViewModel.categoryViewModels changed: $it")
-            categoryViewModels = it
-        })
+        // Keep track of this to be able to set order on new category
+        categoryListViewModel.maxOrder.observe(this, { maxCategoryOrder = it })
 
-        // We keep track of these for the sake of EditSoundDialogFragment
-        soundListViewModel.soundViewModels.observe(this, {
-            Log.i(GlobalApplication.LOG_TAG, "MainActivity: soundListViewModel.soundViewModels changed: $it")
-            soundViewModels = it
-        })
+        // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment
+        categoryListViewModel.categories.observe(this, { categories = it })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -127,9 +124,9 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         }
     }
 
-    override fun showCategoryDeleteDialog(categoryId: Int) {
+    override fun showCategoryDeleteDialog(id: Int, name: String, soundCount: Int) {
         supportFragmentManager.beginTransaction().apply {
-            val fragment = DeleteCategoryFragment.newInstance(categoryId)
+            val fragment = DeleteCategoryFragment.newInstance(id, name, soundCount)
             add(0, fragment)
             show(fragment)
             commit()
@@ -138,8 +135,7 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
 
     override fun showCategoryAddDialog() {
         // If categories exist, set category.order to max order + 1; else 0
-        val lastCat = categoryListViewModel.categoryViewModels.value?.maxByOrNull { it.order }
-        val order = lastCat?.order?.plus(1) ?: 0
+        val order = maxCategoryOrder?.plus(1) ?: 0
         supportFragmentManager.beginTransaction().apply {
             val fragment = AddCategoryDialogFragment.newInstance(order, DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG))
             add(fragment, CATEGORY_ADD_DIALOG_TAG)
@@ -167,7 +163,7 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
     }
 
     override fun showSoundEditDialog(soundId: Int, categoryId: Int) {
-        val categoryIndex = categoryViewModels.map { it.id }.indexOf(categoryId)
+        val categoryIndex = categories.map { it.id }.indexOf(categoryId)
         supportFragmentManager.beginTransaction().apply {
             val fragment = EditSoundDialogFragment.newInstance(soundId, categoryIndex)
             add(fragment, null)

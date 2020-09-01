@@ -19,10 +19,10 @@ import us.huseli.soundboard_kotlin.viewmodels.CategoryEditViewModel
 abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogListener {
     private val colorHelper by lazy { ColorHelper(requireContext()) }
     private val dialogId by lazy { requireArguments().getInt(ARG_DIALOG_ID) }
+    private lateinit var binding: FragmentEditCategoryBinding
 
     internal abstract var viewModel: CategoryEditViewModel
     internal abstract val title: Int
-    internal lateinit var binding: FragmentEditCategoryBinding
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         savedInstanceState?.getString(ARG_NAME)?.let { viewModel.name = it }
@@ -57,6 +57,8 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // This has to be done here, otherwise: "Can't access the Fragment View's LifecycleOwner
+        // when getView() is null i.e., before onCreateView() or after onDestroyView()"
         binding.lifecycleOwner = viewLifecycleOwner
     }
 

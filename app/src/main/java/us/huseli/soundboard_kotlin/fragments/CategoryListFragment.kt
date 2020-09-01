@@ -44,9 +44,9 @@ class CategoryListFragment : Fragment(), StartDragListenerInterface {
         binding.categoryList.adapter = adapter
         binding.categoryList.layoutManager = LinearLayoutManager(requireContext())
 
-        categoryListViewModel.categoryViewModels.observe(viewLifecycleOwner, {
+        categoryListViewModel.categories.observe(viewLifecycleOwner, {
             Log.i(GlobalApplication.LOG_TAG, "CategoryListFragment: categoryListViewModel.categoryViewModels changed: $it")
-            adapter.submitList(it)
+            adapter.submitList(it.toMutableList())
         })
     }
 

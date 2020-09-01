@@ -10,28 +10,31 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
-import androidx.fragment.app.Fragment
+import androidx.lifecycle.LifecycleRegistry
 import androidx.recyclerview.widget.DiffUtil
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.R
+import us.huseli.soundboard_kotlin.SoundPlayer
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundListAdapter
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundViewHolder
+import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.databinding.ItemSoundBinding
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditSoundInterface
 import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
-import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
+import us.huseli.soundboard_kotlin.viewmodels.SoundListViewModel
 import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
 
 
-class SoundAdapter(private val fragment: Fragment, private val appViewModel: AppViewModel, private val categoryViewModel: CategoryViewModel) :
-        DataBoundListAdapter<SoundViewModel, SoundAdapter.ViewHolder, ItemSoundBinding>(Companion),
-        ItemDragHelperAdapter {
+class SoundAdapter(private val activity: EditSoundInterface, private val appViewModel: AppViewModel, private val soundListViewModel: SoundListViewModel) :
+        DataBoundListAdapter<Sound, SoundAdapter.ViewHolder, ItemSoundBinding>(Companion),
+        ItemDragHelperAdapter<Sound> {
 
-    companion object : DiffUtil.ItemCallback<SoundViewModel>() {
-        override fun areItemsTheSame(oldItem: SoundViewModel, newItem: SoundViewModel) = oldItem === newItem
-        override fun areContentsTheSame(oldItem: SoundViewModel, newItem: SoundViewModel) = oldItem.id == newItem.id
+    companion object : DiffUtil.ItemCallback<Sound>() {
+        override fun areItemsTheSame(oldItem: Sound, newItem: Sound) = oldItem.id == newItem.id
+        override fun areContentsTheSame(oldItem: Sound, newItem: Sound) =
+                oldItem.uri == newItem.uri && oldItem.name == newItem.name && oldItem.order == newItem.order
     }
 
     override fun createViewHolder(binding: ItemSoundBinding, parent: ViewGroup) = ViewHolder(binding, parent.context)
@@ -39,18 +42,20 @@ class SoundAdapter(private val fragment: Fragment, private val appViewModel: App
     override fun createBinding(parent: ViewGroup, viewType: Int) =
             ItemSoundBinding.inflate(LayoutInflater.from(parent.context), parent, false)
 
-    override fun bind(holder: ViewHolder, item: SoundViewModel) {
+    override fun bind(holder: ViewHolder, item: Sound) {
         Log.d(GlobalApplication.LOG_TAG, "SoundAdapter ${this.hashCode()}, bind holder ${holder.hashCode()} with viewmodel ${item.hashCode()}")
         holder.bind(item)
-        holder.binding.categoryViewModel = categoryViewModel
     }
 
-    // Called several times DURING move
-    override fun onItemMove(fromPosition: Int, toPosition: Int) = notifyItemMoved(fromPosition, toPosition)
-
-    override fun onItemMoved(fromPosition: Int, toPosition: Int) {
-        categoryViewModel.soundListViewModel.updateSoundOrder(fromPosition, toPosition)
+    override fun onItemMove(fromPosition: Int, toPosition: Int) {
+        notifyItemMoved(fromPosition, toPosition)
     }
+
+    override fun onItemsReordered(newList: MutableList<Sound>) {
+        soundListViewModel.updateOrder(newList)
+    }
+
+    override fun getMutableList(): MutableList<Sound> = currentList.toMutableList()
 
 
     inner class ViewHolder(binding: ItemSoundBinding, private val context: Context) :
@@ -59,22 +64,38 @@ class SoundAdapter(private val fragment: Fragment, private val appViewModel: App
             View.OnLongClickListener,
             PopupMenu.OnMenuItemClickListener,
             AppViewModelListenerInterface {
-        internal lateinit var viewModel: SoundViewModel
-        private var categoryId: Int? = null
+        private var isValid = true
+        private lateinit var viewModel: SoundViewModel
+        private lateinit var player: SoundPlayer
+        private lateinit var sound: Sound
+        private lateinit var soundName: String
+
+        override val lifecycleRegistry = LifecycleRegistry(this)
 
         init {
             binding.soundCard.setOnClickListener(this)
             binding.soundCard.setOnLongClickListener(this)
         }
 
-        fun bind(viewModel: SoundViewModel) {
-            Log.d(GlobalApplication.LOG_TAG, "SoundAdapter.ViewHolder ${hashCode()} bind SoundViewModel ${viewModel.hashCode()}")
+        fun bind(sound: Sound) {
+            Log.d(GlobalApplication.LOG_TAG, "SoundAdapter.ViewHolder ${hashCode()} bind Sound $sound")
+
+            this.sound = sound
+
+            player = GlobalApplication.application.getPlayer(sound)
+            viewModel = SoundViewModel(sound.id!!)
             binding.viewModel = viewModel
-            this.viewModel = viewModel
-            if (!viewModel.player.isValid) binding.failIcon.visibility = View.VISIBLE
+
+            viewModel.name.observe(this, { soundName = it })
+
+            player.isValid.observe(this, { isValid ->
+                this.isValid = isValid
+                binding.failIcon.visibility = if (!isValid) View.VISIBLE else View.INVISIBLE
+            })
+
+            player.isPlaying.observe(this, { onIsPlayingChange(it) })
+
             appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
-            //viewModel.categoryId.observe(this, { categoryId = it })
-            viewModel.isPlaying.observe(this, { onIsPlayingChange(it) })
         }
 
         private fun onIsPlayingChange(value: Boolean) {
@@ -99,7 +120,7 @@ class SoundAdapter(private val fragment: Fragment, private val appViewModel: App
         }
 
         override fun onClick(view: View?) {
-            if (!viewModel.player.isValid) showErrorToast() else viewModel.player.playOrPause()
+            if (!isValid) showErrorToast() else player.playOrPause()
 
             view?.let {
                 (AnimatorInflater.loadAnimator(context, R.animator.sound_item_animator) as AnimatorSet).apply {
@@ -115,9 +136,9 @@ class SoundAdapter(private val fragment: Fragment, private val appViewModel: App
             try {
                 when (item?.itemId) {
                     R.id.sound_context_menu_edit ->
-                        (fragment.requireActivity() as EditSoundInterface).showSoundEditDialog(viewModel.id!!, viewModel.categoryId!!)
+                        activity.showSoundEditDialog(sound.id!!, sound.categoryId!!)
                     R.id.sound_context_menu_delete ->
-                        (fragment.requireActivity() as EditSoundInterface).showSoundDeleteDialog(viewModel.id!!, viewModel.name)
+                        activity.showSoundDeleteDialog(sound.id!!, viewModel.name.value!!)
                 }
             } catch (e: NullPointerException) {
                 Toast.makeText(context, R.string.data_not_fetched_yet, Toast.LENGTH_SHORT).show()
@@ -125,6 +146,6 @@ class SoundAdapter(private val fragment: Fragment, private val appViewModel: App
             return true
         }
 
-        private fun showErrorToast() = Toast.makeText(context, viewModel.player.errorMessage, Toast.LENGTH_SHORT).show()
+        private fun showErrorToast() = Toast.makeText(context, player.errorMessage, Toast.LENGTH_SHORT).show()
     }
 }

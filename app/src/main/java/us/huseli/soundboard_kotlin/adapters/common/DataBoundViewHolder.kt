@@ -6,9 +6,9 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.recyclerview.widget.RecyclerView
 
-open class DataBoundViewHolder<B: ViewDataBinding>(internal val binding: B) : RecyclerView.ViewHolder(binding.root), LifecycleOwner {
-    @Suppress("LeakingThis")
-    private val lifecycleRegistry = LifecycleRegistry(this).apply { currentState = Lifecycle.State.INITIALIZED }
+abstract class DataBoundViewHolder<B: ViewDataBinding>(internal val binding: B) : RecyclerView.ViewHolder(binding.root), LifecycleOwner {
+    internal abstract val lifecycleRegistry: LifecycleRegistry
+    //private val lifecycleRegistry = LifecycleRegistry(this).apply { currentState = Lifecycle.State.INITIALIZED }
     private var wasPaused = false
 
     fun markCreated() {

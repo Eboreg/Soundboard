@@ -24,9 +24,12 @@
     <string name="data_not_fetched_yet">Data not fetched yet, please try again</string>
     <string name="delete_category">Delete category</string>
     <string name="delete_category_with_name">Delete category %1$s?</string>
-    <string name="delete_category_with_name_and_sound">Delete category %1$s and 1 sound?</string>
-    <string name="delete_category_with_name_and_sounds">Delete category %1$s and %2$d sound(s)?</string>
     <string name="edit_category">Edit category</string>
     <string name="move_category">Move category</string>
     <string name="delete_sound">Delete sound</string>
+    <string name="not_initialized_yet">Not initialized yet!</string>
+    <plurals name="delete_category_with_name_and_sounds">
+        <item quantity="one">Delete category %1$s and 1 sound?</item>
+        <item quantity="other">Delete category %1$s and %2$d sound(s)?</item>
+    </plurals>
 </resources>

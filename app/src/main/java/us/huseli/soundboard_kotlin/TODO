@@ -5,6 +5,7 @@ fragments, adapters and viewholders?
 Or pass around only id's (categoryId, SoundId) and let fragments produce their own viewmodels
 via viewModels{}, instead of using the activity's viewmodels, just via id's, so everything gets
 decoupled?
+
 Maybe the ideal is to have a separate observer for each item. So each piece of the UI holds full
 responsibility for its containing item and only reacts to relevant changes to it:
 * CategoryListFragment reacts to category addition, deletion, and change in order
@@ -15,10 +16,15 @@ responsibility for its containing item and only reacts to relevant changes to it
 
 Drag sounds between categories? Is it even possible?
 
+Make sure volume on player is updated on sound volume changed (it's not now)
+Also to update UI on all relevant changes (soundname isn't updated)
+
 Does title in topmenu have to take so much space?
 A: https://stackoverflow.com/q/15917973
 
 Check "!!" calls for NullPointerException
+
+Trash CategoryListFragment, put it all in MainActivity?
 
 ######## MAYBES #########
 

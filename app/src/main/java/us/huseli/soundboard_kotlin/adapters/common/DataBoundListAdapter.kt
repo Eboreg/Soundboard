@@ -2,6 +2,7 @@ package us.huseli.soundboard_kotlin.adapters.common
 
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 
@@ -11,6 +12,7 @@ abstract class DataBoundListAdapter<T, VH: DataBoundViewHolder<B>, B: ViewDataBi
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val binding = createBinding(parent, viewType)
         val viewHolder = createViewHolder(binding, parent)
+        viewHolder.lifecycleRegistry.currentState = Lifecycle.State.INITIALIZED
         binding.lifecycleOwner = viewHolder
         viewHolder.markCreated()
         viewHolders.add(viewHolder)

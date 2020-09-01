@@ -3,37 +3,50 @@ package us.huseli.soundboard_kotlin.fragments
 import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import kotlinx.android.synthetic.main.fragment_edit_sound.*
 import kotlinx.android.synthetic.main.fragment_edit_sound.view.*
 import us.huseli.soundboard_kotlin.R
+import us.huseli.soundboard_kotlin.data.CategoryWithSounds
+import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.databinding.FragmentEditSoundBinding
+import us.huseli.soundboard_kotlin.viewmodels.BaseSoundEditViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
-import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
-import us.huseli.soundboard_kotlin.viewmodels.SoundEditViewModel
+import us.huseli.soundboard_kotlin.viewmodels.SoundListViewModel
+import us.huseli.soundboard_kotlin.viewmodels.SoundListViewModelFactory
 
-abstract class BaseSoundDialogFragment : DialogFragment() {
+abstract class BaseSoundDialogFragment<VM: BaseSoundEditViewModel> : DialogFragment() {
     private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
-    internal lateinit var binding: FragmentEditSoundBinding
+    private var categoryId: Int? = null
+    private val soundListViewModel by viewModels<SoundListViewModel> { SoundListViewModelFactory(categoryId) }
+    private lateinit var binding: FragmentEditSoundBinding
 
-    internal abstract var viewModel: SoundEditViewModel
+    internal lateinit var sounds: List<Sound>
+    internal abstract var viewModel: VM
     internal abstract val title: Int
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         savedInstanceState?.let { state ->
-            state.getString(ARG_NAME)?.let { viewModel.name = it }
+            state.getString(ARG_NAME)?.let { viewModel.setName(it) }
             viewModel.categoryIndex = state.getInt(ARG_CATEGORY_INDEX)
-            viewModel.volume = state.getInt(ARG_VOLUME)
+            viewModel.setVolume(state.getInt(ARG_VOLUME))
         }
+
+        viewModel.categoryId.observe(this, {
+            categoryId = it
+            soundListViewModel.sounds.observe(this, { list -> sounds = list })
+        })
 
         val inflater = LayoutInflater.from(requireContext())
         binding = FragmentEditSoundBinding.inflate(inflater, edit_sound_fragment, false)
         binding.viewModel = viewModel
         binding.categoryListViewModel = categoryListViewModel
-        binding.lifecycleOwner = requireActivity()
 
         return AlertDialog.Builder(requireContext()).run {
             setTitle(title)
@@ -43,16 +56,29 @@ abstract class BaseSoundDialogFragment : DialogFragment() {
                 if (soundName.isEmpty()) {
                     Toast.makeText(requireContext(), R.string.name_cannot_be_empty, Toast.LENGTH_SHORT).show()
                 } else {
-                    viewModel.volume = binding.volume.progress
-                    viewModel.name = soundName
-                    viewModel.categoryId = (binding.category.selectedItem as CategoryViewModel).id!!
-                    viewModel.save()
+                    viewModel.setVolume(binding.volume.progress)
+                    viewModel.setName(soundName)
+                    viewModel.setCategoryId((binding.category.selectedItem as CategoryWithSounds).id!!)
+                    save()
                     dismiss()
                 }
             }
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
             create()
         }
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) = binding.root
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        // This has to be done here, otherwise: "Can't access the Fragment View's LifecycleOwner
+        // when getView() is null i.e., before onCreateView() or after onDestroyView()"
+        binding.lifecycleOwner = viewLifecycleOwner
+    }
+
+    internal open fun save() {
+        viewModel.save()
     }
 
     override fun onResume() {

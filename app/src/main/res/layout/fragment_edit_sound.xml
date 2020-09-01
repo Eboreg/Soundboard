@@ -6,7 +6,7 @@
     <data>
         <variable
             name="viewModel"
-            type="us.huseli.soundboard_kotlin.viewmodels.SoundEditViewModel" />
+            type="us.huseli.soundboard_kotlin.viewmodels.BaseSoundEditViewModel" />
 
         <variable
             name="categoryListViewModel"
@@ -84,7 +84,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_normal"
-            android:entries="@{categoryListViewModel.categoryViewModels}"
+            android:entries="@{categoryListViewModel.categories}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
