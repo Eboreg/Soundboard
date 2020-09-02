@@ -11,6 +11,9 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.recyclerview.widget.DiffUtil
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.R
@@ -25,11 +28,14 @@ import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.SoundListViewModel
 import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
+import us.huseli.soundboard_kotlin.viewmodels.SoundViewModelFactory
 
 
 class SoundAdapter(private val activity: EditSoundInterface, private val appViewModel: AppViewModel, private val soundListViewModel: SoundListViewModel) :
         DataBoundListAdapter<Sound, SoundAdapter.ViewHolder, ItemSoundBinding>(Companion),
-        ItemDragHelperAdapter<Sound> {
+        ItemDragHelperAdapter<Sound>,
+        ViewModelStoreOwner {
+    private val viewModelStore = ViewModelStore()
 
     companion object : DiffUtil.ItemCallback<Sound>() {
         override fun areItemsTheSame(oldItem: Sound, newItem: Sound) = oldItem.id == newItem.id
@@ -57,6 +63,8 @@ class SoundAdapter(private val activity: EditSoundInterface, private val appView
 
     override fun getMutableList(): MutableList<Sound> = currentList.toMutableList()
 
+    override fun getViewModelStore() = viewModelStore
+
 
     inner class ViewHolder(binding: ItemSoundBinding, private val context: Context) :
             DataBoundViewHolder<ItemSoundBinding>(binding),
@@ -83,16 +91,12 @@ class SoundAdapter(private val activity: EditSoundInterface, private val appView
             this.sound = sound
 
             player = GlobalApplication.application.getPlayer(sound)
-            viewModel = SoundViewModel(sound.id!!)
+            viewModel = ViewModelProvider(this@SoundAdapter, SoundViewModelFactory(sound.id!!)).get(SoundViewModel::class.java)
             binding.viewModel = viewModel
 
             viewModel.name.observe(this, { soundName = it })
 
-            player.isValid.observe(this, { isValid ->
-                this.isValid = isValid
-                binding.failIcon.visibility = if (!isValid) View.VISIBLE else View.INVISIBLE
-            })
-
+            player.isValid.observe(this, { onIsValidChange(it) })
             player.isPlaying.observe(this, { onIsPlayingChange(it) })
 
             appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
@@ -100,6 +104,11 @@ class SoundAdapter(private val activity: EditSoundInterface, private val appView
 
         private fun onIsPlayingChange(value: Boolean) {
             binding.playIcon.visibility = if (value) View.VISIBLE else View.INVISIBLE
+        }
+
+        private fun onIsValidChange(value: Boolean) {
+            isValid = value
+            binding.failIcon.visibility = if (!value) View.VISIBLE else View.INVISIBLE
         }
 
         override fun onReorderEnabledChange(value: Boolean) =
@@ -138,7 +147,7 @@ class SoundAdapter(private val activity: EditSoundInterface, private val appView
                     R.id.sound_context_menu_edit ->
                         activity.showSoundEditDialog(sound.id!!, sound.categoryId!!)
                     R.id.sound_context_menu_delete ->
-                        activity.showSoundDeleteDialog(sound.id!!, viewModel.name.value!!)
+                        activity.showSoundDeleteDialog(sound.id!!, soundName)
                 }
             } catch (e: NullPointerException) {
                 Toast.makeText(context, R.string.data_not_fetched_yet, Toast.LENGTH_SHORT).show()

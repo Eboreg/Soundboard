@@ -3,12 +3,19 @@ package us.huseli.soundboard_kotlin.data
 import androidx.lifecycle.LiveData
 import androidx.room.*
 
+@Suppress("FunctionName")
 @Dao
 interface SoundDao {
     @Insert
-    fun insert(sound: Sound)
+    fun _insert(sound: Sound)
 
-    fun insert(sound: Sound, order: Int) = insert(Sound(sound, order))
+    @Query("SELECT MAX(`order`) FROM Sound WHERE categoryId = :categoryId")
+    fun _getMaxOrder(categoryId: Int): Int?
+
+    fun insert(sound: Sound) {
+        val maxOrder = _getMaxOrder(sound.categoryId!!) ?: -1
+        _insert(Sound(sound, maxOrder + 1))
+    }
 
     @Update
     fun update(sound: Sound)
@@ -30,8 +37,8 @@ interface SoundDao {
     fun delete(soundId: Int)
 
     @Query("SELECT * FROM Sound WHERE id = :soundId")
-    fun get(soundId: Int): LiveData<Sound>
+    fun get(soundId: Int): LiveData<Sound?>
 
-    @Query("SELECT c.backgroundColor FROM SoundCategory c, Sound s WHERE c.id = s.categoryId AND s.id = :soundId")
-    fun getBackgroundColor(soundId: Int): LiveData<Int>
+    @Query("SELECT backgroundColor FROM SoundCategory WHERE id = :categoryId")
+    fun getBackgroundColor(categoryId: Int): LiveData<Int?>
 }

@@ -1,42 +1,37 @@
 package us.huseli.soundboard_kotlin.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import us.huseli.soundboard_kotlin.GlobalApplication
-import us.huseli.soundboard_kotlin.data.CategoryRepository
-import us.huseli.soundboard_kotlin.data.CategoryWithSounds
-import us.huseli.soundboard_kotlin.data.SoundboardDatabase
-import us.huseli.soundboard_kotlin.helpers.ColorHelper
 
-class CategoryEditViewModel(private val category: CategoryWithSounds?, private val order: Int?) : ViewModel() {
-    private val repository: CategoryRepository =
-            CategoryRepository(SoundboardDatabase.getInstance(GlobalApplication.application, viewModelScope).categoryDao())
-    private val colorHelper = ColorHelper(GlobalApplication.application)
-    private val _backgroundColor = MutableLiveData(category?.backgroundColor ?: colorHelper.colors.random())
+//class CategoryEditViewModel(private val category: CategoryWithSounds?, private val order: Int?) : ViewModel() {
+class CategoryEditViewModel(categoryId: Int) : BaseCategoryEditViewModel() {
+    private val category = repository.get(categoryId)
+    private val _newBackgroundColor = MutableLiveData<Int>()
+    private val _originalBackgroundColor = category.map { it.backgroundColor }
+    private val _backgroundColor = MediatorLiveData<Int>()
 
-    var name = category?.name ?: ""
-    val backgroundColor: LiveData<Int>
-        get() = _backgroundColor
-
-    fun setBackgroundColor(value: Int) {
-        _backgroundColor.value = value
+    init {
+        _backgroundColor.addSource(_originalBackgroundColor) { _backgroundColor.value = it }
+        _backgroundColor.addSource(_newBackgroundColor) { _backgroundColor.value = it }
     }
 
-    fun save() {
-        viewModelScope.launch(Dispatchers.IO) {
-            @Suppress("LocalVariableName")
-            val _category = category?.also { category ->
-                category.name = name
-                category.backgroundColor = _backgroundColor.value!!
-            } ?: CategoryWithSounds(name, _backgroundColor.value!!, order ?: 0)
-            when (_category.id) {
-                null -> repository.insert(_category)
-                else -> repository.update(_category)
-            }
+    override var name = category.map { it.name }
+    override val backgroundColor: LiveData<Int>
+        get() = _backgroundColor
+
+    override fun setName(value: String) {
+        category.value?.name = value
+    }
+
+    override fun setBackgroundColor(value: Int) {
+        _newBackgroundColor.value = value
+    }
+
+    override fun save() = viewModelScope.launch(Dispatchers.IO) {
+        category.value?.let {
+            _newBackgroundColor.value?.let { color -> it.backgroundColor = color }
+            repository.update(it)
         }
     }
 }

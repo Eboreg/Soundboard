@@ -1,10 +1,12 @@
 package us.huseli.soundboard_kotlin.data
 
+import android.graphics.Color
+import androidx.lifecycle.map
+
 class SoundRepository(private val soundDao: SoundDao) {
     val sounds= soundDao.getAll()
 
     fun insert(sound: Sound) = soundDao.insert(sound)
-    fun insert(sound: Sound, order: Int) = soundDao.insert(sound, order)
 
     fun update(sound: Sound) = soundDao.update(sound)
 
@@ -14,5 +16,5 @@ class SoundRepository(private val soundDao: SoundDao) {
 
     fun get(soundId: Int) = soundDao.get(soundId)
 
-    fun getBackgroundColor(soundId: Int) = soundDao.getBackgroundColor(soundId)
+    fun getBackgroundColor(categoryId: Int) = soundDao.getBackgroundColor(categoryId).map { it ?: Color.DKGRAY }
 }

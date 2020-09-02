@@ -29,7 +29,7 @@
     <string name="delete_sound">Delete sound</string>
     <string name="not_initialized_yet">Not initialized yet!</string>
     <plurals name="delete_category_with_name_and_sounds">
-        <item quantity="one">Delete category %1$s and 1 sound?</item>
-        <item quantity="other">Delete category %1$s and %2$d sound(s)?</item>
+        <item quantity="one">Delete category %1s and one sound?</item>
+        <item quantity="other">Delete category %1s and %2d sounds?</item>
     </plurals>
 </resources>

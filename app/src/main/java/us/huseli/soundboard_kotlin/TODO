@@ -1,3 +1,9 @@
+Shit fucks up with colours, names etc when adding new sound :((((((
+
+Trash CategoryViewModel?
+
+SoundListViewModelFactory not used
+
 Don't redraw the whole thing for each little change
 Perhaps use lists of sounds and categories in MainActivity, which are populated from their
 respective list viewmodels, make MainActivity wrap them in item viewmodels, and pass those to
@@ -15,9 +21,6 @@ responsibility for its containing item and only reacts to relevant changes to it
 * SoundAdapter.ViewHolder reacts to sound name and volume changes
 
 Drag sounds between categories? Is it even possible?
-
-Make sure volume on player is updated on sound volume changed (it's not now)
-Also to update UI on all relevant changes (soundname isn't updated)
 
 Does title in topmenu have to take so much space?
 A: https://stackoverflow.com/q/15917973

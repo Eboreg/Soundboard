@@ -6,7 +6,7 @@
     <data>
         <variable
             name="viewModel"
-            type="us.huseli.soundboard_kotlin.viewmodels.CategoryEditViewModel" />
+            type="us.huseli.soundboard_kotlin.viewmodels.BaseCategoryEditViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

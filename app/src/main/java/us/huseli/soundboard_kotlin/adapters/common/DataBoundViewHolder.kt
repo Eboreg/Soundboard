@@ -8,7 +8,6 @@ import androidx.recyclerview.widget.RecyclerView
 
 abstract class DataBoundViewHolder<B: ViewDataBinding>(internal val binding: B) : RecyclerView.ViewHolder(binding.root), LifecycleOwner {
     internal abstract val lifecycleRegistry: LifecycleRegistry
-    //private val lifecycleRegistry = LifecycleRegistry(this).apply { currentState = Lifecycle.State.INITIALIZED }
     private var wasPaused = false
 
     fun markCreated() {

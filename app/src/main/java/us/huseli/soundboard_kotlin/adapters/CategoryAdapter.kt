@@ -7,9 +7,9 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.recyclerview.widget.DiffUtil
@@ -17,24 +17,27 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import us.huseli.soundboard_kotlin.GlobalApplication
+import us.huseli.soundboard_kotlin.R
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundListAdapter
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundViewHolder
-import us.huseli.soundboard_kotlin.data.CategoryWithSounds
+import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.databinding.ItemCategoryBinding
+import us.huseli.soundboard_kotlin.fragments.CategoryListFragment
 import us.huseli.soundboard_kotlin.helpers.SoundItemDragHelperCallback
 import us.huseli.soundboard_kotlin.interfaces.*
-import us.huseli.soundboard_kotlin.viewmodels.*
+import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
+import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
+import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
 
 class CategoryAdapter(private val fragment: Fragment, private val categoryListViewModel: CategoryListViewModel, private val appViewModel: AppViewModel) :
-        DataBoundListAdapter<CategoryWithSounds, CategoryAdapter.ViewHolder, ItemCategoryBinding>(Companion),
-        ItemDragHelperAdapter<CategoryWithSounds> {
+        DataBoundListAdapter<Category, CategoryAdapter.ViewHolder, ItemCategoryBinding>(Companion),
+        ItemDragHelperAdapter<Category> {
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 20) }
 
-    companion object : DiffUtil.ItemCallback<CategoryWithSounds>() {
-        override fun areItemsTheSame(oldItem: CategoryWithSounds, newItem: CategoryWithSounds) = oldItem.id == newItem.id
-        override fun areContentsTheSame(oldItem: CategoryWithSounds, newItem: CategoryWithSounds): Boolean {
-            return oldItem.name == newItem.name && oldItem.backgroundColor == newItem.backgroundColor && oldItem.order == newItem.order
-        }
+    companion object : DiffUtil.ItemCallback<Category>() {
+        override fun areItemsTheSame(oldItem: Category, newItem: Category) = oldItem.id == newItem.id
+        override fun areContentsTheSame(oldItem: Category, newItem: Category) =
+                oldItem.name == newItem.name && oldItem.backgroundColor == newItem.backgroundColor && oldItem.order == newItem.order
     }
 
     override fun createBinding(parent: ViewGroup, viewType: Int) =
@@ -43,7 +46,7 @@ class CategoryAdapter(private val fragment: Fragment, private val categoryListVi
     override fun createViewHolder(binding: ItemCategoryBinding, parent: ViewGroup) = ViewHolder(binding)
 
     @SuppressLint("ClickableViewAccessibility")
-    override fun bind(holder: ViewHolder, item: CategoryWithSounds) {
+    override fun bind(holder: ViewHolder, item: Category) {
         Log.d(GlobalApplication.LOG_TAG, "CategoryAdapter ${this.hashCode()}, bind holder ${holder.hashCode()} with viewmodel ${item.hashCode()}")
         holder.binding.categoryMoveButton.setOnTouchListener { _, motionEvent ->
             if (motionEvent.action == MotionEvent.ACTION_DOWN) (fragment as StartDragListenerInterface).onStartDrag(holder)
@@ -56,11 +59,11 @@ class CategoryAdapter(private val fragment: Fragment, private val categoryListVi
         notifyItemMoved(fromPosition, toPosition)
     }
 
-    override fun onItemsReordered(newList: MutableList<CategoryWithSounds>) {
+    override fun onItemsReordered(newList: MutableList<Category>) {
         categoryListViewModel.updateOrder(newList)
     }
 
-    override fun getMutableList(): MutableList<CategoryWithSounds> = currentList.toMutableList()
+    override fun getMutableList(): MutableList<Category> = currentList.toMutableList()
 
 
     /**
@@ -72,10 +75,9 @@ class CategoryAdapter(private val fragment: Fragment, private val categoryListVi
             View.OnClickListener,
             AppViewModelListenerInterface,
             ViewModelStoreOwner {
-        private lateinit var categoryViewModel: CategoryViewModel
-        private lateinit var soundAdapter: SoundAdapter
         private lateinit var soundItemTouchHelper: ItemTouchHelper
-        private lateinit var soundListViewModel: SoundListViewModel
+        private lateinit var categoryViewModel: CategoryViewModel
+        private var soundCount: Int? = null
         private val viewModelStore = ViewModelStore()
 
         override val lifecycleRegistry = LifecycleRegistry(this)
@@ -86,27 +88,33 @@ class CategoryAdapter(private val fragment: Fragment, private val categoryListVi
             binding.categoryMoveButton.setOnClickListener(this)
         }
 
-        fun bind(category: CategoryWithSounds) {
+        fun bind(category: Category) {
             Log.d(GlobalApplication.LOG_TAG, "CategoryAdapter.ViewHolder ${hashCode()} bind Category ${category.hashCode()}")
+
             categoryViewModel = CategoryViewModel(category)
-            //this.categoryViewModel = categoryViewModel
             binding.categoryViewModel = categoryViewModel
 
-            soundListViewModel = ViewModelProvider(this, SoundListViewModelFactory(categoryViewModel.id!!)).get(SoundListViewModel::class.java)
+            // TODO: Debugging test stuff below
+            //val soundListViewModel = SoundListViewModel(category.id)
+            val soundListViewModel = (fragment as CategoryListFragment).soundListViewModel
 
             // Create "sub-adapter" SoundAdapter and do various bindings
-            soundAdapter = SoundAdapter(fragment.requireActivity() as EditSoundInterface, appViewModel, soundListViewModel)
+            val soundAdapter = SoundAdapter(fragment.requireActivity() as EditSoundInterface, appViewModel, soundListViewModel)
             soundItemTouchHelper = ItemTouchHelper(SoundItemDragHelperCallback(soundAdapter))
 
             binding.soundList.apply {
                 adapter = soundAdapter
                 layoutManager = GridLayoutManager(context, zoomLevelToSpanCount(0))
+                itemAnimator = null
                 setRecycledViewPool(soundViewPool)
             }
 
             soundListViewModel.sounds.observe(this, {
-                Log.i(GlobalApplication.LOG_TAG, "CategoryAdapter: soundListViewModel.sounds changed: $it")
-                soundAdapter.submitList(it.toMutableList())
+                Log.i(GlobalApplication.LOG_TAG,
+                        "CategoryAdapter ${this@CategoryAdapter.hashCode()}, Category ${category.id} ${category.name}: " +
+                        "SoundListViewModel ${soundListViewModel.hashCode()} sounds changed: $it, sending to SoundAdapter ${soundAdapter.hashCode()}")
+                soundCount = it.count()
+                soundAdapter.submitList(it)
             })
 
             // Observe changes in zoomLevel and reorderEnabled
@@ -120,7 +128,13 @@ class CategoryAdapter(private val fragment: Fragment, private val categoryListVi
             val categoryId = categoryViewModel.id!!
             when (v) {
                 binding.categoryEditButton -> activity.showCategoryEditDialog(categoryId)
-                binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(categoryViewModel.id!!, categoryViewModel.name, categoryViewModel.soundCount)
+                binding.categoryDeleteButton -> {
+                    soundCount?.let {
+                        activity.showCategoryDeleteDialog(categoryId, categoryViewModel.name, it)
+                    } ?: run {
+                        Toast.makeText(fragment.requireContext(), R.string.not_initialized_yet, Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
         }
 

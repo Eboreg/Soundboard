@@ -11,7 +11,7 @@ import us.huseli.soundboard_kotlin.data.SoundRepository
 import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 
 class SoundListViewModel(private val categoryId: Int?) : ViewModel() {
-    constructor() : this(null)
+    //constructor() : this(null)
 
     private val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application, viewModelScope).soundDao())
 

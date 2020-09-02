@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,8 +18,13 @@ import us.huseli.soundboard_kotlin.helpers.CategoryItemDragHelperCallback
 import us.huseli.soundboard_kotlin.interfaces.StartDragListenerInterface
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
+import us.huseli.soundboard_kotlin.viewmodels.SoundListViewModel
+import us.huseli.soundboard_kotlin.viewmodels.SoundListViewModelFactory
 
 class CategoryListFragment : Fragment(), StartDragListenerInterface {
+    // TODO: Debugging test stuff below
+    val soundListViewModel by viewModels<SoundListViewModel> { SoundListViewModelFactory(null) }
+
     private val appViewModel by activityViewModels<AppViewModel>()
     private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
 
@@ -36,17 +42,19 @@ class CategoryListFragment : Fragment(), StartDragListenerInterface {
         Log.d(GlobalApplication.LOG_TAG, "CategoryListFragment ${this.hashCode()} onViewCreated")
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = CategoryAdapter(this, categoryListViewModel, appViewModel)
+        val categoryAdapter = CategoryAdapter(this, categoryListViewModel, appViewModel)
+        itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback(categoryAdapter))
 
-        itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback(adapter))
-        itemTouchHelper.attachToRecyclerView(binding.categoryList)
-
-        binding.categoryList.adapter = adapter
-        binding.categoryList.layoutManager = LinearLayoutManager(requireContext())
+        binding.categoryList.apply {
+            itemTouchHelper.attachToRecyclerView(this)
+            adapter = categoryAdapter
+            layoutManager = LinearLayoutManager(requireContext())
+            itemAnimator = null
+        }
 
         categoryListViewModel.categories.observe(viewLifecycleOwner, {
             Log.i(GlobalApplication.LOG_TAG, "CategoryListFragment: categoryListViewModel.categoryViewModels changed: $it")
-            adapter.submitList(it.toMutableList())
+            categoryAdapter.submitList(it)
         })
     }
 

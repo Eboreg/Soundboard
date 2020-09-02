@@ -14,18 +14,18 @@ import kotlinx.android.synthetic.main.fragment_edit_category.*
 import us.huseli.soundboard_kotlin.R
 import us.huseli.soundboard_kotlin.databinding.FragmentEditCategoryBinding
 import us.huseli.soundboard_kotlin.helpers.ColorHelper
-import us.huseli.soundboard_kotlin.viewmodels.CategoryEditViewModel
+import us.huseli.soundboard_kotlin.viewmodels.BaseCategoryEditViewModel
 
 abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogListener {
     private val colorHelper by lazy { ColorHelper(requireContext()) }
     private val dialogId by lazy { requireArguments().getInt(ARG_DIALOG_ID) }
     private lateinit var binding: FragmentEditCategoryBinding
 
-    internal abstract var viewModel: CategoryEditViewModel
+    internal abstract var viewModel: BaseCategoryEditViewModel
     internal abstract val title: Int
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        savedInstanceState?.getString(ARG_NAME)?.let { viewModel.name = it }
+        savedInstanceState?.getString(ARG_NAME)?.let { viewModel.setName(it) }
 
         val inflater = LayoutInflater.from(requireContext())
         binding = FragmentEditCategoryBinding.inflate(inflater, edit_sound_category_fragment, false)
@@ -39,7 +39,7 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
                 if (catName.isEmpty())
                     Toast.makeText(requireContext(), R.string.name_cannot_be_empty, Toast.LENGTH_SHORT).show()
                 else
-                    viewModel.name = catName
+                    viewModel.setName(catName)
                 viewModel.save()
             }
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
@@ -80,7 +80,6 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
 
     companion object {
         const val ARG_ID = "id"
-        const val ARG_ORDER = "order"
         const val ARG_DIALOG_ID = "dialogId"  // for ColorPickerDialog
         // For restoring instance state on recreate
         const val ARG_NAME = "name"

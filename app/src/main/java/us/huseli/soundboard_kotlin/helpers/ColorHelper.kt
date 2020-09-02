@@ -10,9 +10,7 @@ class ColorHelper(private val context: Context) {
             R.color.brown_500, R.color.cyan_500, R.color.deep_orange_500, R.color.deep_purple_500, R.color.green_500, R.color.grey_500,
             R.color.indigo_500, R.color.light_blue_500, R.color.light_green_500, R.color.lime_500, R.color.orange_500, R.color.pink_500,
             R.color.purple_500, R.color.red_500, R.color.teal_500, R.color.white, R.color.yellow_500)
-    //val colors = ArrayList(colorResources.map { ResourcesCompat.getColor(context.resources, it, null) }).toIntArray()
     val colors = colorResources.map { ResourcesCompat.getColor(context.resources, it, null) }.sorted()
-    // val colorStrings = ArrayList(colorResources.map { context.resources.getString(it) })
 
     private fun getLuminance(color: Int): Float {
         return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {

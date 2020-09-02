@@ -9,25 +9,18 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import kotlinx.android.synthetic.main.fragment_edit_sound.*
 import kotlinx.android.synthetic.main.fragment_edit_sound.view.*
 import us.huseli.soundboard_kotlin.R
-import us.huseli.soundboard_kotlin.data.CategoryWithSounds
-import us.huseli.soundboard_kotlin.data.Sound
+import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.databinding.FragmentEditSoundBinding
 import us.huseli.soundboard_kotlin.viewmodels.BaseSoundEditViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
-import us.huseli.soundboard_kotlin.viewmodels.SoundListViewModel
-import us.huseli.soundboard_kotlin.viewmodels.SoundListViewModelFactory
 
 abstract class BaseSoundDialogFragment<VM: BaseSoundEditViewModel> : DialogFragment() {
     private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
-    private var categoryId: Int? = null
-    private val soundListViewModel by viewModels<SoundListViewModel> { SoundListViewModelFactory(categoryId) }
     private lateinit var binding: FragmentEditSoundBinding
 
-    internal lateinit var sounds: List<Sound>
     internal abstract var viewModel: VM
     internal abstract val title: Int
 
@@ -37,11 +30,6 @@ abstract class BaseSoundDialogFragment<VM: BaseSoundEditViewModel> : DialogFragm
             viewModel.categoryIndex = state.getInt(ARG_CATEGORY_INDEX)
             viewModel.setVolume(state.getInt(ARG_VOLUME))
         }
-
-        viewModel.categoryId.observe(this, {
-            categoryId = it
-            soundListViewModel.sounds.observe(this, { list -> sounds = list })
-        })
 
         val inflater = LayoutInflater.from(requireContext())
         binding = FragmentEditSoundBinding.inflate(inflater, edit_sound_fragment, false)
@@ -58,7 +46,7 @@ abstract class BaseSoundDialogFragment<VM: BaseSoundEditViewModel> : DialogFragm
                 } else {
                     viewModel.setVolume(binding.volume.progress)
                     viewModel.setName(soundName)
-                    viewModel.setCategoryId((binding.category.selectedItem as CategoryWithSounds).id!!)
+                    viewModel.setCategoryId((binding.category.selectedItem as Category).id!!)
                     save()
                     dismiss()
                 }

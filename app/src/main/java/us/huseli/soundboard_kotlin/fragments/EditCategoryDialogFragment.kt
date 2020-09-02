@@ -5,19 +5,19 @@ import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.activityViewModels
 import us.huseli.soundboard_kotlin.R
-import us.huseli.soundboard_kotlin.viewmodels.CategoryEditViewModel
+import us.huseli.soundboard_kotlin.viewmodels.BaseCategoryEditViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 
 class EditCategoryDialogFragment : BaseCategoryDialogFragment() {
     private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
     private val categoryId by lazy { requireArguments().getInt(ARG_ID) }
 
-    override lateinit var viewModel: CategoryEditViewModel
+    override lateinit var viewModel: BaseCategoryEditViewModel
     override val title = R.string.edit_category
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return try {
-            viewModel = categoryListViewModel.getCategoryEditViewModel(categoryId)!!
+            viewModel = categoryListViewModel.getCategoryEditViewModel(categoryId)
             super.onCreateDialog(savedInstanceState)
         } catch (e: NullPointerException) {
             AlertDialog.Builder(requireContext()).run {

@@ -9,9 +9,7 @@ import us.huseli.soundboard_kotlin.data.Sound
 class SoundAddViewModel(private val sound: Sound) : BaseSoundEditViewModel() {
     override val name = liveData { emit(sound.name) }
     override val volume = liveData { emit(sound.volume) }
-    override val categoryId = liveData<Int?> { null }
-
-    private var order: Int = 0
+    override val categoryId = liveData<Int?> { }
 
     override fun setName(value: String) {
         sound.name = value
@@ -25,11 +23,7 @@ class SoundAddViewModel(private val sound: Sound) : BaseSoundEditViewModel() {
         sound.categoryId = value
     }
 
-    fun setOrder(value: Int) {
-        order = value
-    }
-
     override fun save() = viewModelScope.launch(Dispatchers.IO) {
-        repository.insert(sound, order)
+        repository.insert(sound)
     }
 }

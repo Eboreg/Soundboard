@@ -21,7 +21,7 @@ class DeleteCategoryFragment : DialogFragment() {
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
             when(soundCount) {
                 0 -> setMessage(resources.getString(R.string.delete_category_with_name, name))
-                else -> setMessage(resources.getQuantityString(R.plurals.delete_category_with_name_and_sounds, soundCount, soundCount))
+                else -> setMessage(resources.getQuantityString(R.plurals.delete_category_with_name_and_sounds, soundCount, name, soundCount))
             }
             setPositiveButton(R.string.ok) { _, _ -> categoryListViewModel.delete(id) }
             create()
