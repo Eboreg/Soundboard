@@ -8,7 +8,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
@@ -24,12 +23,13 @@ import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.databinding.ItemCategoryBinding
 import us.huseli.soundboard_kotlin.fragments.CategoryListFragment
 import us.huseli.soundboard_kotlin.helpers.SoundItemDragHelperCallback
-import us.huseli.soundboard_kotlin.interfaces.*
-import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
-import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
+import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
+import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
+import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
 import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
+import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
 
-class CategoryAdapter(private val fragment: Fragment, private val categoryListViewModel: CategoryListViewModel, private val appViewModel: AppViewModel) :
+class CategoryAdapter(private val fragment: CategoryListFragment) :
         DataBoundListAdapter<Category, CategoryAdapter.ViewHolder, ItemCategoryBinding>(Companion),
         ItemDragHelperAdapter<Category> {
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 20) }
@@ -37,7 +37,7 @@ class CategoryAdapter(private val fragment: Fragment, private val categoryListVi
     companion object : DiffUtil.ItemCallback<Category>() {
         override fun areItemsTheSame(oldItem: Category, newItem: Category) = oldItem.id == newItem.id
         override fun areContentsTheSame(oldItem: Category, newItem: Category) =
-                oldItem.name == newItem.name && oldItem.backgroundColor == newItem.backgroundColor && oldItem.order == newItem.order
+                oldItem.name == newItem.name && oldItem.backgroundColor == newItem.backgroundColor //&& oldItem.order == newItem.order
     }
 
     override fun createBinding(parent: ViewGroup, viewType: Int) =
@@ -47,9 +47,8 @@ class CategoryAdapter(private val fragment: Fragment, private val categoryListVi
 
     @SuppressLint("ClickableViewAccessibility")
     override fun bind(holder: ViewHolder, item: Category) {
-        Log.d(GlobalApplication.LOG_TAG, "CategoryAdapter ${this.hashCode()}, bind holder ${holder.hashCode()} with viewmodel ${item.hashCode()}")
         holder.binding.categoryMoveButton.setOnTouchListener { _, motionEvent ->
-            if (motionEvent.action == MotionEvent.ACTION_DOWN) (fragment as StartDragListenerInterface).onStartDrag(holder)
+            if (motionEvent.action == MotionEvent.ACTION_DOWN) fragment.onStartDrag(holder)
             return@setOnTouchListener false
         }
         holder.bind(item)
@@ -60,7 +59,7 @@ class CategoryAdapter(private val fragment: Fragment, private val categoryListVi
     }
 
     override fun onItemsReordered(newList: MutableList<Category>) {
-        categoryListViewModel.updateOrder(newList)
+        fragment.categoryListViewModel.updateOrder(newList)
     }
 
     override fun getMutableList(): MutableList<Category> = currentList.toMutableList()
@@ -85,22 +84,24 @@ class CategoryAdapter(private val fragment: Fragment, private val categoryListVi
         init {
             binding.categoryEditButton.setOnClickListener(this)
             binding.categoryDeleteButton.setOnClickListener(this)
-            binding.categoryMoveButton.setOnClickListener(this)
+            //binding.categoryMoveButton.setOnClickListener(this)
         }
 
         fun bind(category: Category) {
-            Log.d(GlobalApplication.LOG_TAG, "CategoryAdapter.ViewHolder ${hashCode()} bind Category ${category.hashCode()}")
-
             categoryViewModel = CategoryViewModel(category)
             binding.categoryViewModel = categoryViewModel
 
+            Log.i(GlobalApplication.LOG_TAG, "CategoryAdapter.bind: ${this@CategoryAdapter.hashCode()} ViewHolder ${hashCode()} " +
+                    "bind Category ${category.name} (${category.hashCode()}), categoryViewModel ${categoryViewModel.hashCode()}")
+
             // TODO: Debugging test stuff below
             //val soundListViewModel = SoundListViewModel(category.id)
-            val soundListViewModel = (fragment as CategoryListFragment).soundListViewModel
+            val soundListViewModel = fragment.soundListViewModel
 
             // Create "sub-adapter" SoundAdapter and do various bindings
-            val soundAdapter = SoundAdapter(fragment.requireActivity() as EditSoundInterface, appViewModel, soundListViewModel)
-            soundItemTouchHelper = ItemTouchHelper(SoundItemDragHelperCallback(soundAdapter))
+            //val soundAdapter = SoundAdapter(fragment.requireActivity() as EditSoundInterface, fragment.appViewModel, soundListViewModel)
+            val soundAdapter = SoundAdapter(fragment)
+            soundItemTouchHelper = ItemTouchHelper(SoundItemDragHelperCallback())
 
             binding.soundList.apply {
                 adapter = soundAdapter
@@ -109,17 +110,20 @@ class CategoryAdapter(private val fragment: Fragment, private val categoryListVi
                 setRecycledViewPool(soundViewPool)
             }
 
-            soundListViewModel.sounds.observe(this, {
+            soundListViewModel.getSoundsByCategory(category.id!!).observe(this, { sounds ->
                 Log.i(GlobalApplication.LOG_TAG,
-                        "CategoryAdapter ${this@CategoryAdapter.hashCode()}, Category ${category.id} ${category.name}: " +
-                        "SoundListViewModel ${soundListViewModel.hashCode()} sounds changed: $it, sending to SoundAdapter ${soundAdapter.hashCode()}")
-                soundCount = it.count()
-                soundAdapter.submitList(it)
+                        "CategoryAdapter ${this@CategoryAdapter.hashCode()}: viewholder ${hashCode()}, " +
+                                "recyclerView ${binding.soundList.hashCode()}, " +
+                                "SoundAdapter ${soundAdapter.hashCode()}, " +
+                                "Category ${category.id} ${category.name}, " +
+                                "sounds changed: $sounds")
+                soundCount = sounds.count()
+                soundAdapter.submitList(sounds.map { sound -> SoundViewModel(sound) })
             })
 
             // Observe changes in zoomLevel and reorderEnabled
-            appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
-            appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
+            fragment.appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
+            fragment.appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
         }
 
         override fun onClick(v: View?) {

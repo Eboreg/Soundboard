@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
+import androidx.fragment.app.Fragment
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import kotlinx.android.synthetic.main.actionbar.*
 import us.huseli.soundboard_kotlin.data.Category
@@ -119,59 +120,35 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         }
     }
 
-    override fun showCategoryDeleteDialog(id: Int, name: String, soundCount: Int) {
+    private fun showDialogFragment(fragment: Fragment, tag: String?) {
         supportFragmentManager.beginTransaction().apply {
-            val fragment = DeleteCategoryFragment.newInstance(id, name, soundCount)
-            add(0, fragment)
+            add(fragment, tag)
             show(fragment)
             commit()
         }
+    }
+
+    override fun showCategoryDeleteDialog(id: Int, name: String, soundCount: Int) {
+        showDialogFragment(DeleteCategoryFragment.newInstance(id, name, soundCount), null)
     }
 
     override fun showCategoryAddDialog() {
-        supportFragmentManager.beginTransaction().apply {
-            val fragment = AddCategoryDialogFragment.newInstance(DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG))
-            add(fragment, CATEGORY_ADD_DIALOG_TAG)
-            show(fragment)
-            commit()
-        }
+        showDialogFragment(AddCategoryDialogFragment.newInstance(DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG)), CATEGORY_ADD_DIALOG_TAG)
     }
 
     override fun showCategoryEditDialog(categoryId: Int) {
-        supportFragmentManager.beginTransaction().apply {
-            val fragment = EditCategoryDialogFragment.newInstance(categoryId, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG))
-            add(fragment, CATEGORY_EDIT_DIALOG_TAG)
-            show(fragment)
-            commit()
-        }
+        showDialogFragment(EditCategoryDialogFragment.newInstance(categoryId, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)), CATEGORY_EDIT_DIALOG_TAG)
     }
 
-    private fun showSoundAddDialog(sound: Sound) {
-        supportFragmentManager.beginTransaction().apply {
-            val fragment = AddSoundDialogFragment(sound)
-            add(fragment, null)
-            show(fragment)
-            commit()
-        }
-    }
+    private fun showSoundAddDialog(sound: Sound) = showDialogFragment(AddSoundDialogFragment(sound), null)
 
     override fun showSoundEditDialog(soundId: Int, categoryId: Int) {
         val categoryIndex = categories.map { it.id }.indexOf(categoryId)
-        supportFragmentManager.beginTransaction().apply {
-            val fragment = EditSoundDialogFragment.newInstance(soundId, categoryIndex)
-            add(fragment, null)
-            show(fragment)
-            commit()
-        }
+        showDialogFragment(EditSoundDialogFragment.newInstance(soundId, categoryIndex), null)
     }
 
     override fun showSoundDeleteDialog(soundId: Int, soundName: String) {
-        supportFragmentManager.beginTransaction().apply {
-            val fragment = DeleteSoundFragment.newInstance(soundId, soundName)
-            add(fragment, null)
-            show(fragment)
-            commit()
-        }
+        showDialogFragment(DeleteSoundFragment.newInstance(soundId, soundName), null)
     }
 
     override fun onReorderEnabledChange(value: Boolean) {

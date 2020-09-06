@@ -22,11 +22,9 @@ import us.huseli.soundboard_kotlin.viewmodels.SoundListViewModel
 import us.huseli.soundboard_kotlin.viewmodels.SoundListViewModelFactory
 
 class CategoryListFragment : Fragment(), StartDragListenerInterface {
-    // TODO: Debugging test stuff below
+    val appViewModel by activityViewModels<AppViewModel>()
+    val categoryListViewModel by activityViewModels<CategoryListViewModel>()
     val soundListViewModel by viewModels<SoundListViewModel> { SoundListViewModelFactory(null) }
-
-    private val appViewModel by activityViewModels<AppViewModel>()
-    private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
 
     private lateinit var binding: FragmentCategoryListBinding
     private lateinit var itemTouchHelper: ItemTouchHelper
@@ -42,8 +40,8 @@ class CategoryListFragment : Fragment(), StartDragListenerInterface {
         Log.d(GlobalApplication.LOG_TAG, "CategoryListFragment ${this.hashCode()} onViewCreated")
         super.onViewCreated(view, savedInstanceState)
 
-        val categoryAdapter = CategoryAdapter(this, categoryListViewModel, appViewModel)
-        itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback(categoryAdapter))
+        val categoryAdapter = CategoryAdapter(this)
+        itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
 
         binding.categoryList.apply {
             itemTouchHelper.attachToRecyclerView(this)
@@ -53,7 +51,10 @@ class CategoryListFragment : Fragment(), StartDragListenerInterface {
         }
 
         categoryListViewModel.categories.observe(viewLifecycleOwner, {
-            Log.i(GlobalApplication.LOG_TAG, "CategoryListFragment: categoryListViewModel.categoryViewModels changed: $it")
+            Log.d(GlobalApplication.LOG_TAG,
+                    "CategoryListFragment: categoryListViewModel.categories changed: $it, " +
+                            "recyclerView ${binding.categoryList.hashCode()}, " +
+                            "sending to CategoryAdapter ${categoryAdapter.hashCode()}")
             categoryAdapter.submitList(it)
         })
     }

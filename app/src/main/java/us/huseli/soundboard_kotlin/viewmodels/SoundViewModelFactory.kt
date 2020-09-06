@@ -1,8 +1,6 @@
 package us.huseli.soundboard_kotlin.viewmodels
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-
+/*
 @Suppress("UNCHECKED_CAST")
 class SoundViewModelFactory(private val soundId: Int) : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
@@ -11,3 +9,4 @@ class SoundViewModelFactory(private val soundId: Int) : ViewModelProvider.Factor
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
+*/

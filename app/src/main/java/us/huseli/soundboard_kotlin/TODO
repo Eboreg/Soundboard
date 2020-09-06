@@ -1,3 +1,12 @@
+BUG:
+1. Switch places for category 1 & 2
+2. Switch place for sound A & B in category 1
+3. ItemDragHelperCallback.clearView logs trying to switch places between sounds in category 2
+   instead
+
+Scrap the nested recyclerviews and implement getItemViewType?
+https://www.raywenderlich.com/272-intermediate-recyclerview-tutorial-with-kotlin
+
 Shit fucks up with colours, names etc when adding new sound :((((((
 
 Trash CategoryViewModel?
