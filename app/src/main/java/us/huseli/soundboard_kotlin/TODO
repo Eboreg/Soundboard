@@ -1,8 +1,8 @@
-BUG:
-1. Switch places for category 1 & 2
-2. Switch place for sound A & B in category 1
-3. ItemDragHelperCallback.clearView logs trying to switch places between sounds in category 2
-   instead
+Try using ordinary adapter instead https://medium.com/tech-carnot/making-recyclerview-efficient-using-list-adapter-with-diffutil-4a06d4583ea4
+
+When add new category, updated order of old categories resets
+
+Playing-icon sometimes doesn't turn off on sound end
 
 Scrap the nested recyclerviews and implement getItemViewType?
 https://www.raywenderlich.com/272-intermediate-recyclerview-tutorial-with-kotlin

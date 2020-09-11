@@ -22,7 +22,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_normal"
-            android:background="@{categoryViewModel.backgroundColor}"
             android:orientation="horizontal"
             android:padding="@dimen/margin_normal"
             tools:background="@android:color/black">

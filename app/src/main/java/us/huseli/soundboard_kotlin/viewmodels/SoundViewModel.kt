@@ -31,7 +31,7 @@ class SoundViewModel(val sound: Sound) : ViewModel(), OrderableItem {
     val categoryId = sound.categoryId
     val name = sound.name
     val uri = sound.uri
-    override val order = sound.order
+    override var order = sound.order
     val backgroundColor = categoryId?.let { repository.getBackgroundColor(it) } ?: liveData { Color.DKGRAY }
     val textColor = backgroundColor.map { colorHelper.getTextColorForBackgroundColor(it) }
     val volume = sound.volume

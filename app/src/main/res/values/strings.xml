@@ -28,6 +28,7 @@
     <string name="move_category">Move category</string>
     <string name="delete_sound">Delete sound</string>
     <string name="not_initialized_yet">Not initialized yet!</string>
+    <string name="default_category">Default</string>
     <plurals name="delete_category_with_name_and_sounds">
         <item quantity="one">Delete category %1s and one sound?</item>
         <item quantity="other">Delete category %1s and %2d sounds?</item>

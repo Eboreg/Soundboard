@@ -51,7 +51,7 @@ class CategoryListFragment : Fragment(), StartDragListenerInterface {
         }
 
         categoryListViewModel.categories.observe(viewLifecycleOwner, {
-            Log.d(GlobalApplication.LOG_TAG,
+            Log.i(GlobalApplication.LOG_TAG,
                     "CategoryListFragment: categoryListViewModel.categories changed: $it, " +
                             "recyclerView ${binding.categoryList.hashCode()}, " +
                             "sending to CategoryAdapter ${categoryAdapter.hashCode()}")

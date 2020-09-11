@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.GlobalApplication
 
-class SoundEditViewModel(soundId: Int) : BaseSoundEditViewModel() {
+class SoundEditViewModel(private val soundId: Int) : BaseSoundEditViewModel() {
     private val sound = repository.get(soundId)
 
     override val name = sound.map { it?.name ?: "" }
@@ -33,4 +33,6 @@ class SoundEditViewModel(soundId: Int) : BaseSoundEditViewModel() {
     override fun save() = viewModelScope.launch(Dispatchers.IO) {
         sound.value?.let { sound -> repository.update(sound) }
     }
+
+    fun delete() = viewModelScope.launch(Dispatchers.IO) { repository.delete(soundId) }
 }

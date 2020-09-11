@@ -16,5 +16,7 @@ class SoundRepository(private val soundDao: SoundDao) {
 
     fun get(soundId: Int) = soundDao.get(soundId)
 
+    fun getByCategory(categoryId: Int?) = soundDao.getAll().map { list -> list.filter { it.categoryId == categoryId } }
+
     fun getBackgroundColor(categoryId: Int) = soundDao.getBackgroundColor(categoryId).map { it ?: Color.DKGRAY }
 }

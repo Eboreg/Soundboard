@@ -59,7 +59,10 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         preferences.getInt("zoomLevel", 0).let { if (it != 0) appViewModel.setZoomLevel(it) }
 
         // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment
-        categoryListViewModel.categories.observe(this, { categories = it })
+        categoryListViewModel.categories.observe(this, {
+            categories = it
+            if (categories.isEmpty()) categoryListViewModel.create(getString(R.string.default_category))
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

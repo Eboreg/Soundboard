@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 
 abstract class DataBoundListAdapter<T, VH: DataBoundViewHolder<B>, B: ViewDataBinding>(diffCallback: DiffUtil.ItemCallback<T>) : ListAdapter<T, VH>(diffCallback) {
+//abstract class DataBoundListAdapter<T, VH: DataBoundViewHolder<B>, B: ViewDataBinding>(config: AsyncDifferConfig<T>) : ListAdapter<T, VH>(config) {
     private val viewHolders = mutableListOf<VH>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -25,10 +26,13 @@ abstract class DataBoundListAdapter<T, VH: DataBoundViewHolder<B>, B: ViewDataBi
     protected abstract fun createBinding(parent: ViewGroup, viewType: Int): B
 
     override fun onBindViewHolder(holder: VH, position: Int) {
+        bind(holder, getItem(position))
+/*
         if (position < itemCount) {
             bind(holder, getItem(position))
             holder.binding.executePendingBindings()
         }
+*/
     }
 
     protected abstract fun bind(holder: VH, item: T)

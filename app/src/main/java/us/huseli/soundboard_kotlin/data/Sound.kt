@@ -16,7 +16,7 @@ data class Sound(
         var categoryId: Int?,
         var name: String,
         val uri: Uri,
-        override val order: Int,
+        override var order: Int,
         var volume: Int
 ) : OrderableItem {
     @Ignore constructor(name: String, uri: Uri): this(null, null, name, uri, 0, 100)

@@ -10,7 +10,7 @@ data class Category(
         @PrimaryKey(autoGenerate = true) var id: Int? = null,
         var name: String,
         var backgroundColor: Int,
-        override val order: Int
+        override var order: Int
 ) : OrderableItem {
     constructor(name: String, backgroundColor: Int, order: Int): this(null, name, backgroundColor, order)
     @Ignore constructor(name: String, backgroundColor: Int): this(name, backgroundColor, 0)

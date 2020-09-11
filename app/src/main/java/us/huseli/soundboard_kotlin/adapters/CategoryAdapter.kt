@@ -35,10 +35,34 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 20) }
 
     companion object : DiffUtil.ItemCallback<Category>() {
-        override fun areItemsTheSame(oldItem: Category, newItem: Category) = oldItem.id == newItem.id
-        override fun areContentsTheSame(oldItem: Category, newItem: Category) =
-                oldItem.name == newItem.name && oldItem.backgroundColor == newItem.backgroundColor //&& oldItem.order == newItem.order
+        override fun areItemsTheSame(oldItem: Category, newItem: Category): Boolean {
+            return oldItem.id == newItem.id
+        }
+        //override fun areItemsTheSame(oldItem: Category, newItem: Category) = oldItem.id == newItem.id && oldItem.order == newItem.order
+        override fun areContentsTheSame(oldItem: Category, newItem: Category): Boolean {
+            return oldItem == newItem
+            //return oldItem.name == newItem.name && oldItem.backgroundColor == newItem.backgroundColor //&& oldItem.order == newItem.order
+        }
+
+        override fun getChangePayload(oldItem: Category, newItem: Category): Any? {
+            return super.getChangePayload(oldItem, newItem)
+        }
     }
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+    }
+
+    override fun onCurrentListChanged(previousList: MutableList<Category>, currentList: MutableList<Category>) {
+        super.onCurrentListChanged(previousList, currentList)
+    }
+
+/*
+    override fun submitList(list: List<Category>?) {
+        if (list != null && currentList.size != list.size)
+            super.submitList(list)
+    }
+*/
 
     override fun createBinding(parent: ViewGroup, viewType: Int) =
             ItemCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -55,15 +79,15 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
     }
 
     override fun onItemMove(fromPosition: Int, toPosition: Int) {
+        Log.i(GlobalApplication.LOG_TAG, "CategoryAdapter:onItemMove from $fromPosition to $toPosition")
         notifyItemMoved(fromPosition, toPosition)
     }
 
-    override fun onItemsReordered(newList: MutableList<Category>) {
-        fragment.categoryListViewModel.updateOrder(newList)
+    override fun onItemsReordered() {
+        fragment.categoryListViewModel.saveOrder(currentList)
     }
 
     override fun getMutableList(): MutableList<Category> = currentList.toMutableList()
-
 
     /**
      * Represents one individual category with its sound list.
@@ -74,10 +98,12 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
             View.OnClickListener,
             AppViewModelListenerInterface,
             ViewModelStoreOwner {
-        private lateinit var soundItemTouchHelper: ItemTouchHelper
-        private lateinit var categoryViewModel: CategoryViewModel
-        private var soundCount: Int? = null
+        private val soundItemTouchHelper = ItemTouchHelper(SoundItemDragHelperCallback())
+        private val categoryViewModel = CategoryViewModel()
         private val viewModelStore = ViewModelStore()
+        private val soundAdapter = SoundAdapter(fragment)
+        private lateinit var category: Category
+        private var soundCount: Int? = null
 
         override val lifecycleRegistry = LifecycleRegistry(this)
 
@@ -85,32 +111,13 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
             binding.categoryEditButton.setOnClickListener(this)
             binding.categoryDeleteButton.setOnClickListener(this)
             //binding.categoryMoveButton.setOnClickListener(this)
-        }
-
-        fun bind(category: Category) {
-            categoryViewModel = CategoryViewModel(category)
-            binding.categoryViewModel = categoryViewModel
-
-            Log.i(GlobalApplication.LOG_TAG, "CategoryAdapter.bind: ${this@CategoryAdapter.hashCode()} ViewHolder ${hashCode()} " +
-                    "bind Category ${category.name} (${category.hashCode()}), categoryViewModel ${categoryViewModel.hashCode()}")
-
-            // TODO: Debugging test stuff below
-            //val soundListViewModel = SoundListViewModel(category.id)
-            val soundListViewModel = fragment.soundListViewModel
-
-            // Create "sub-adapter" SoundAdapter and do various bindings
-            //val soundAdapter = SoundAdapter(fragment.requireActivity() as EditSoundInterface, fragment.appViewModel, soundListViewModel)
-            val soundAdapter = SoundAdapter(fragment)
-            soundItemTouchHelper = ItemTouchHelper(SoundItemDragHelperCallback())
-
             binding.soundList.apply {
                 adapter = soundAdapter
                 layoutManager = GridLayoutManager(context, zoomLevelToSpanCount(0))
                 itemAnimator = null
                 setRecycledViewPool(soundViewPool)
             }
-
-            soundListViewModel.getSoundsByCategory(category.id!!).observe(this, { sounds ->
+            categoryViewModel.sounds.observe(this, { sounds ->
                 Log.i(GlobalApplication.LOG_TAG,
                         "CategoryAdapter ${this@CategoryAdapter.hashCode()}: viewholder ${hashCode()}, " +
                                 "recyclerView ${binding.soundList.hashCode()}, " +
@@ -118,27 +125,35 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
                                 "Category ${category.id} ${category.name}, " +
                                 "sounds changed: $sounds")
                 soundCount = sounds.count()
-                soundAdapter.submitList(sounds.map { sound -> SoundViewModel(sound) })
+                soundAdapter.submitList(sounds.map { sound -> SoundViewModel(sound) }.toMutableList())
             })
-
+            categoryViewModel.backgroundColor.observe(this, { color -> binding.categoryHeader.setBackgroundColor(color) })
             // Observe changes in zoomLevel and reorderEnabled
             fragment.appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
             fragment.appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
         }
 
+        fun bind(category: Category) {
+            Log.i(GlobalApplication.LOG_TAG, "CategoryAdapter.bind: ${this@CategoryAdapter.hashCode()} ViewHolder ${hashCode()} " +
+                    "bind Category ${category.name} (${category.hashCode()}), categoryViewModel ${categoryViewModel.hashCode()}")
+
+            this.category = category
+
+            categoryViewModel.setCategory(category)
+            binding.categoryViewModel = categoryViewModel
+        }
+
         override fun onClick(v: View?) {
             // When icons in the category header are clicked
             val activity = binding.root.context as EditCategoryInterface
-            val categoryId = categoryViewModel.id!!
-            when (v) {
-                binding.categoryEditButton -> activity.showCategoryEditDialog(categoryId)
-                binding.categoryDeleteButton -> {
-                    soundCount?.let {
-                        activity.showCategoryDeleteDialog(categoryId, categoryViewModel.name, it)
-                    } ?: run {
-                        Toast.makeText(fragment.requireContext(), R.string.not_initialized_yet, Toast.LENGTH_SHORT).show()
-                    }
+            try {
+                val categoryId = category.id!!
+                when (v) {
+                    binding.categoryEditButton -> activity.showCategoryEditDialog(categoryId)
+                    binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(categoryId, category.name, soundCount!!)
                 }
+            } catch (e: Exception) {
+                Toast.makeText(fragment.requireContext(), R.string.not_initialized_yet, Toast.LENGTH_SHORT).show()
             }
         }
 

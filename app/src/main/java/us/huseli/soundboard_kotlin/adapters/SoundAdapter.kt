@@ -54,7 +54,7 @@ class SoundAdapter(val fragment: CategoryListFragment) :
 
     override fun onItemMove(fromPosition: Int, toPosition: Int) = notifyItemMoved(fromPosition, toPosition)
 
-    override fun onItemsReordered(newList: MutableList<SoundViewModel>): Any = fragment.soundListViewModel.updateOrder(newList)
+    override fun onItemsReordered() = fragment.soundListViewModel.updateOrder(currentList)
 
     override fun getMutableList(): MutableList<SoundViewModel> = currentList.toMutableList()
 

@@ -27,6 +27,7 @@ class CategoryAddViewModel : BaseCategoryEditViewModel() {
         _backgroundColor.value = value
     }
 
+    // Used by AddCategoryDialogFrament & EditCategoryDialogFrament when saving
     override fun save() = viewModelScope.launch(Dispatchers.IO) {
         val category = Category(_name.value!!, _backgroundColor.value!!)
         repository.insert(category)

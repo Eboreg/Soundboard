@@ -38,4 +38,8 @@ interface CategoryDao {
 
     @Query("DELETE FROM SoundCategory WHERE id = :id")
     fun delete(id: Int)
+
+    @Transaction
+    fun saveOrder(categories: List<Category>) =
+            categories.forEach { category -> updateOrder(category.id!!, category.order) }
 }
