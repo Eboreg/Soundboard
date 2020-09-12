@@ -6,15 +6,20 @@ import androidx.recyclerview.widget.RecyclerView
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
 import us.huseli.soundboard_kotlin.interfaces.OrderableItem
+import java.util.*
 
 open class ItemDragHelperCallback(dragDirs: Int) : ItemTouchHelper.SimpleCallback(dragDirs, 0) {
-    private var dragFrom: Int? = null
-    private var dragTo: Int? = null
 
+    /**
+     * Order of events:
+     * 1. User drags item from pos x to pos y
+     * 2. We update currentList and notify listeners
+     * 3. User releases item at pos z
+     * 4. We save new position data via onItemsReordered
+     * 5. Room LiveData observer sends us new list, but it's already identical to currentList, so
+     *    thanks to DiffUtil UI does not need to be updated!
+     */
     override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-        if (dragFrom == null) dragFrom = viewHolder.adapterPosition
-        dragTo = target.adapterPosition
-
         Log.d(GlobalApplication.LOG_TAG,
                 "ItemDragHelperCallback ${this.hashCode()} onMove: " +
                         "viewHolder ${viewHolder.hashCode()}, target ${target.hashCode()}, " +
@@ -25,41 +30,26 @@ open class ItemDragHelperCallback(dragDirs: Int) : ItemTouchHelper.SimpleCallbac
             @Suppress("UNCHECKED_CAST") val adapter = it as ItemDragHelperAdapter<OrderableItem>
             val fromPosition = viewHolder.adapterPosition
             val toPosition = target.adapterPosition
-            val list = adapter.getCurrentList().sortedBy { item -> item.order }
 
-            list.forEachIndexed { index, item ->
-                if (index == fromPosition) item.order = toPosition
-                else if (fromPosition > toPosition && index >= toPosition && index < fromPosition) item.order++
-                else if (fromPosition < toPosition && index > fromPosition && index <= toPosition) item.order--
-                else item.order = index
-            }
-
-/*
             if (fromPosition < toPosition)
-                for (i in (fromPosition + 1)..toPosition) list[i].order--
+                for (i in fromPosition until toPosition) Collections.swap(adapter.currentList, i, i + 1)
             else
-                for (i in toPosition until fromPosition) list[i].order++
-*/
-            //list[fromPosition].order = toPosition
+                for (i in fromPosition downTo toPosition + 1) Collections.swap(adapter.currentList, i, i - 1)
+
             adapter.notifyItemMoved(fromPosition, toPosition)
         }
-
-/*
-        recyclerView.adapter?.let { adapter ->
-            if (adapter is ItemDragHelperAdapter<*>)
-                adapter.onItemMove(viewHolder.adapterPosition, target.adapterPosition)
-        }
-*/
         return true
     }
 
     override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
         super.clearView(recyclerView, viewHolder)
-        val dragFromFinal = dragFrom
-        val dragToFinal = dragTo
-        dragFrom = null
-        dragTo = null
-        (recyclerView.adapter as ItemDragHelperAdapter<*>).onItemsReordered()
+
+        // By the time we get here, the list should be in the correct (new) order
+        recyclerView.adapter?.let {
+            @Suppress("UNCHECKED_CAST") val adapter = it as ItemDragHelperAdapter<OrderableItem>
+            adapter.currentList.forEachIndexed { index, item -> item.order = index }
+            adapter.onItemsReordered()
+        }
 /*
         recyclerView.adapter?.let {
             @Suppress("UNCHECKED_CAST") val adapter = it as ItemDragHelperAdapter<OrderableItem>

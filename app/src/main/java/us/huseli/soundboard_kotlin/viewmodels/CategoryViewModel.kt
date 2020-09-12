@@ -4,14 +4,13 @@ import android.graphics.Color
 import androidx.lifecycle.*
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.Category
-import us.huseli.soundboard_kotlin.data.CategoryRepository
 import us.huseli.soundboard_kotlin.data.SoundRepository
 import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 import us.huseli.soundboard_kotlin.helpers.ColorHelper
 
 class CategoryViewModel : ViewModel() {
     private val database = SoundboardDatabase.getInstance(GlobalApplication.application, viewModelScope)
-    private val repository = CategoryRepository(database.categoryDao())
+    //private val repository = CategoryRepository(database.categoryDao())
     private val soundRepository = SoundRepository(database.soundDao())
 
     private val _category = MutableLiveData<Category?>(null)
@@ -33,7 +32,7 @@ class CategoryViewModel : ViewModel() {
     val backgroundColor = _category.map { it?.backgroundColor ?: Color.DKGRAY }
     //val backgroundColor = _category.value?.backgroundColor ?: Color.DKGRAY
 
-    val textColor = backgroundColor.map { bgc -> bgc?.let { colorHelper.getTextColorForBackgroundColor(it) } }
+    val textColor = backgroundColor.map { bgc -> colorHelper.getTextColorForBackgroundColor(bgc) }
     //val textColor = colorHelper.getTextColorForBackgroundColor(backgroundColor)
 
     val sounds = id.switchMap { soundRepository.getByCategory(it) }

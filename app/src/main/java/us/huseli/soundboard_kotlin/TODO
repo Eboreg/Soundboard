@@ -1,6 +1,4 @@
-Try using ordinary adapter instead https://medium.com/tech-carnot/making-recyclerview-efficient-using-list-adapter-with-diffutil-4a06d4583ea4
-
-When add new category, updated order of old categories resets
+When moving sound to another category, its order should be set so it's the last
 
 Playing-icon sometimes doesn't turn off on sound end
 

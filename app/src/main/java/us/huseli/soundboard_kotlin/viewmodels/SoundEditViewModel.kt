@@ -8,6 +8,7 @@ import us.huseli.soundboard_kotlin.GlobalApplication
 
 class SoundEditViewModel(private val soundId: Int) : BaseSoundEditViewModel() {
     private val sound = repository.get(soundId)
+    private var originalCategoryId: Int? = null
 
     override val name = sound.map { it?.name ?: "" }
     override fun setName(value: String) {
@@ -27,11 +28,16 @@ class SoundEditViewModel(private val soundId: Int) : BaseSoundEditViewModel() {
 
     override val categoryId = sound.map { it?.categoryId }
     override fun setCategoryId(value: Int) {
+        if (originalCategoryId == null) originalCategoryId = sound.value?.categoryId
         sound.value?.categoryId = value
     }
 
     override fun save() = viewModelScope.launch(Dispatchers.IO) {
-        sound.value?.let { sound -> repository.update(sound) }
+        sound.value?.let { sound ->
+            if (originalCategoryId != null && originalCategoryId != sound.categoryId)
+                sound.order = repository.getMaxOrder(sound.categoryId!!)
+            repository.update(sound)
+        }
     }
 
     fun delete() = viewModelScope.launch(Dispatchers.IO) { repository.delete(soundId) }

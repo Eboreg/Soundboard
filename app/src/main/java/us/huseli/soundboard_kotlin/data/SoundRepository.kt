@@ -1,10 +1,11 @@
 package us.huseli.soundboard_kotlin.data
 
 import android.graphics.Color
+import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 
 class SoundRepository(private val soundDao: SoundDao) {
-    val sounds= soundDao.getAll()
+    //val sounds= soundDao.getAll()
 
     fun insert(sound: Sound) = soundDao.insert(sound)
 
@@ -18,5 +19,12 @@ class SoundRepository(private val soundDao: SoundDao) {
 
     fun getByCategory(categoryId: Int?) = soundDao.getAll().map { list -> list.filter { it.categoryId == categoryId } }
 
-    fun getBackgroundColor(categoryId: Int) = soundDao.getBackgroundColor(categoryId).map { it ?: Color.DKGRAY }
+    fun getBackgroundColor(categoryId: Int?)
+            = categoryId?.let { soundDao.getBackgroundColor(categoryId).map { it ?: Color.DKGRAY } } ?: liveData { Color.DKGRAY }
+
+    fun getCategoryId(sound: Sound) = soundDao.getCategoryId(sound.id)
+
+    fun getMaxOrder(categoryId: Int) = soundDao.getMaxOrder(categoryId) ?: 0
+
+    //fun getBackgroundColor(sound: Sound)
 }

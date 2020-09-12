@@ -1,6 +1,5 @@
 package us.huseli.soundboard_kotlin.viewmodels
 
-import android.graphics.Color
 import androidx.lifecycle.*
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.Sound
@@ -17,6 +16,7 @@ class SoundViewModel(val sound: Sound) : ViewModel(), OrderableItem {
         setOnCompletionListener { this@SoundViewModel.pause() }
     }
     private val _isPlaying = MutableLiveData(player.isPlaying)
+    private val _categoryId = repository.getCategoryId(sound)
 
     override fun toString() = sound.name
 
@@ -28,11 +28,12 @@ class SoundViewModel(val sound: Sound) : ViewModel(), OrderableItem {
 
     /** Model fields */
     val id = sound.id
-    val categoryId = sound.categoryId
+    val categoryId = repository.getCategoryId(sound)
     val name = sound.name
     val uri = sound.uri
     override var order = sound.order
-    val backgroundColor = categoryId?.let { repository.getBackgroundColor(it) } ?: liveData { Color.DKGRAY }
+    val backgroundColor = _categoryId.switchMap { repository.getBackgroundColor(it) }
+    //val backgroundColor = categoryId?.let { repository.getBackgroundColor(it) } ?: liveData { Color.DKGRAY }
     val textColor = backgroundColor.map { colorHelper.getTextColorForBackgroundColor(it) }
     val volume = sound.volume
 
@@ -46,15 +47,4 @@ class SoundViewModel(val sound: Sound) : ViewModel(), OrderableItem {
         player.play()
         _isPlaying.value = true
     }
-
-/*
-    val id = sound.map { it?.id }
-    val categoryId = sound.map { it?.categoryId }
-    val name = sound.map { it?.name ?: "" }
-    val backgroundColor = categoryId.switchMap { catId ->
-        catId?.let { id -> repository.getBackgroundColor(id) } ?: liveData { Color.DKGRAY }
-    }
-    val textColor = backgroundColor.map { colorHelper.getTextColorForBackgroundColor(it) }
-    val volume = sound.map { it?.volume ?: 100 }
-*/
 }

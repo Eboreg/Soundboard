@@ -10,11 +10,12 @@ interface SoundDao {
     fun _insert(sound: Sound)
 
     @Query("SELECT MAX(`order`) FROM Sound WHERE categoryId = :categoryId")
-    fun _getMaxOrder(categoryId: Int): Int?
+    fun getMaxOrder(categoryId: Int): Int?
 
     fun insert(sound: Sound) {
-        val maxOrder = _getMaxOrder(sound.categoryId!!) ?: -1
-        _insert(Sound(sound, maxOrder + 1))
+        val maxOrder = getMaxOrder(sound.categoryId!!) ?: -1
+        sound.order = maxOrder + 1
+        _insert(sound)
     }
 
     @Update
@@ -41,4 +42,7 @@ interface SoundDao {
 
     @Query("SELECT backgroundColor FROM SoundCategory WHERE id = :categoryId")
     fun getBackgroundColor(categoryId: Int): LiveData<Int?>
+
+    @Query("SELECT categoryId FROM Sound WHERE id = :soundId")
+    fun getCategoryId(soundId: Int?): LiveData<Int?>
 }

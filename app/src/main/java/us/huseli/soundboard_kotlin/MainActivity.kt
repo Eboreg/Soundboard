@@ -145,8 +145,9 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
 
     private fun showSoundAddDialog(sound: Sound) = showDialogFragment(AddSoundDialogFragment(sound), null)
 
-    override fun showSoundEditDialog(soundId: Int, categoryId: Int) {
-        val categoryIndex = categories.map { it.id }.indexOf(categoryId)
+    override fun showSoundEditDialog(soundId: Int, categoryId: Int?) {
+        var categoryIndex = categories.map { it.id }.indexOf(categoryId)
+        if (categoryIndex == -1) categoryIndex = 0
         showDialogFragment(EditSoundDialogFragment.newInstance(soundId, categoryIndex), null)
     }
 

@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.R
-import us.huseli.soundboard_kotlin.adapters.common.DataBoundListAdapter
+import us.huseli.soundboard_kotlin.adapters.common.DataBoundAdapter
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundViewHolder
 import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.databinding.ItemCategoryBinding
@@ -27,42 +27,12 @@ import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
 import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
 import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
-import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
 
 class CategoryAdapter(private val fragment: CategoryListFragment) :
-        DataBoundListAdapter<Category, CategoryAdapter.ViewHolder, ItemCategoryBinding>(Companion),
+        DataBoundAdapter<Category, CategoryAdapter.ViewHolder, ItemCategoryBinding>(),
         ItemDragHelperAdapter<Category> {
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 20) }
-
-    companion object : DiffUtil.ItemCallback<Category>() {
-        override fun areItemsTheSame(oldItem: Category, newItem: Category): Boolean {
-            return oldItem.id == newItem.id
-        }
-        //override fun areItemsTheSame(oldItem: Category, newItem: Category) = oldItem.id == newItem.id && oldItem.order == newItem.order
-        override fun areContentsTheSame(oldItem: Category, newItem: Category): Boolean {
-            return oldItem == newItem
-            //return oldItem.name == newItem.name && oldItem.backgroundColor == newItem.backgroundColor //&& oldItem.order == newItem.order
-        }
-
-        override fun getChangePayload(oldItem: Category, newItem: Category): Any? {
-            return super.getChangePayload(oldItem, newItem)
-        }
-    }
-
-    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
-        super.onAttachedToRecyclerView(recyclerView)
-    }
-
-    override fun onCurrentListChanged(previousList: MutableList<Category>, currentList: MutableList<Category>) {
-        super.onCurrentListChanged(previousList, currentList)
-    }
-
-/*
-    override fun submitList(list: List<Category>?) {
-        if (list != null && currentList.size != list.size)
-            super.submitList(list)
-    }
-*/
+    override val currentList = mutableListOf<Category>()
 
     override fun createBinding(parent: ViewGroup, viewType: Int) =
             ItemCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -78,16 +48,20 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
         holder.bind(item)
     }
 
-    override fun onItemMove(fromPosition: Int, toPosition: Int) {
-        Log.i(GlobalApplication.LOG_TAG, "CategoryAdapter:onItemMove from $fromPosition to $toPosition")
-        notifyItemMoved(fromPosition, toPosition)
-    }
+    override fun onItemsReordered() = fragment.categoryListViewModel.saveOrder(currentList)
 
-    override fun onItemsReordered() {
-        fragment.categoryListViewModel.saveOrder(currentList)
-    }
+    override fun calculateDiff(list: List<Category>)
+            = DiffUtil.calculateDiff(DiffCallback(list, currentList), true).dispatchUpdatesTo(this)
 
-    override fun getMutableList(): MutableList<Category> = currentList.toMutableList()
+
+    inner class DiffCallback(newRows: List<Category>, oldRows: List<Category>) :
+            DataBoundAdapter<Category, ViewHolder, ItemCategoryBinding>.DiffCallback(newRows, oldRows) {
+
+        override fun areItemsTheSame(oldItem: Category, newItem: Category) = oldItem.id == newItem.id
+
+        override fun areContentsTheSame(oldItem: Category, newItem: Category)
+                = oldItem.name == newItem.name && oldItem.backgroundColor == newItem.backgroundColor
+    }
 
     /**
      * Represents one individual category with its sound list.
@@ -125,7 +99,7 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
                                 "Category ${category.id} ${category.name}, " +
                                 "sounds changed: $sounds")
                 soundCount = sounds.count()
-                soundAdapter.submitList(sounds.map { sound -> SoundViewModel(sound) }.toMutableList())
+                soundAdapter.submitList(sounds.toMutableList())
             })
             categoryViewModel.backgroundColor.observe(this, { color -> binding.categoryHeader.setBackgroundColor(color) })
             // Observe changes in zoomLevel and reorderEnabled

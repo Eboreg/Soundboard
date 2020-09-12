@@ -19,12 +19,11 @@ import us.huseli.soundboard_kotlin.interfaces.StartDragListenerInterface
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 import us.huseli.soundboard_kotlin.viewmodels.SoundListViewModel
-import us.huseli.soundboard_kotlin.viewmodels.SoundListViewModelFactory
 
 class CategoryListFragment : Fragment(), StartDragListenerInterface {
     val appViewModel by activityViewModels<AppViewModel>()
     val categoryListViewModel by activityViewModels<CategoryListViewModel>()
-    val soundListViewModel by viewModels<SoundListViewModel> { SoundListViewModelFactory(null) }
+    val soundListViewModel by viewModels<SoundListViewModel>()
 
     private lateinit var binding: FragmentCategoryListBinding
     private lateinit var itemTouchHelper: ItemTouchHelper

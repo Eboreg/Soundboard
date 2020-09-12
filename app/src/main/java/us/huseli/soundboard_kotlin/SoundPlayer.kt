@@ -35,7 +35,8 @@ class SoundPlayer(context: Context, uri: Uri, volume: Int) {
 
     fun setVolume(value: Int) = mediaPlayer.setVolume(value.toFloat() / 100, value.toFloat() / 100)
 
-    fun setOnCompletionListener(function: () -> Unit) {
-        mediaPlayer.setOnCompletionListener { function() }
+    fun setOnCompletionListener(function: (MediaPlayer) -> Unit) {
+        //mediaPlayer.setOnCompletionListener { function() }
+        mediaPlayer.setOnCompletionListener(function)
     }
 }
