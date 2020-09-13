@@ -21,16 +21,10 @@ abstract class BaseSoundDialogFragment<VM: BaseSoundEditViewModel> : DialogFragm
     internal val categoryListViewModel by activityViewModels<CategoryListViewModel>()
     internal lateinit var binding: FragmentEditSoundBinding
 
-    internal abstract var viewModel: VM
+    internal abstract val viewModel: VM
     internal abstract val title: Int
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        savedInstanceState?.let { state ->
-            state.getString(ARG_NAME)?.let { viewModel.setName(it) }
-            viewModel.categoryIndex = state.getInt(ARG_CATEGORY_INDEX)
-            viewModel.setVolume(state.getInt(ARG_VOLUME))
-        }
-
         val inflater = LayoutInflater.from(requireContext())
         binding = FragmentEditSoundBinding.inflate(inflater, edit_sound_fragment, false)
         binding.viewModel = viewModel
@@ -43,6 +37,17 @@ abstract class BaseSoundDialogFragment<VM: BaseSoundEditViewModel> : DialogFragm
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
             create()
         }
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        savedInstanceState?.let { recreateFromSavedInstanceState(it) }
+        super.onViewStateRestored(savedInstanceState)
+    }
+
+    internal open fun recreateFromSavedInstanceState(state: Bundle) {
+        state.getString(ARG_NAME)?.let { viewModel.setName(it) }
+        viewModel.categoryIndex = state.getInt(ARG_CATEGORY_INDEX)
+        viewModel.setVolume(state.getInt(ARG_VOLUME))
     }
 
     internal open fun onPositiveButtonClick() {

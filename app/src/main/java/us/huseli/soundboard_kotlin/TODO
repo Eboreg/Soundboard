@@ -1,7 +1,8 @@
-Does AddSoundDialogFragment work when rotating screen?
+Does AddSoundDialogFragment work when rotating screen? -- No
+Viewmodels persist during config changes so we can use those. Just make sure there is a way for
+the fragments to pick up after being restarted
 
-Add several sounds at once
-Maybe even edit several? (have to implement 'select' funcionality)
+Maybe edit several sounds at once? (have to implement 'select' funcionality)
 Pinch to zoom
 
 Impose limits on zoomLevel (can't zoom in further when spanCount is already 1).

@@ -1,22 +1,19 @@
 package us.huseli.soundboard_kotlin.fragments
 
-import android.app.Dialog
 import android.os.Bundle
+import android.view.View
+import androidx.fragment.app.activityViewModels
 import us.huseli.soundboard_kotlin.R
 import us.huseli.soundboard_kotlin.data.Category
-import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.viewmodels.SoundAddMultipleViewModel
 
-class AddMultipleSoundDialogFragment(private val sounds: List<Sound>) : BaseSoundDialogFragment<SoundAddMultipleViewModel>() {
-    //override var viewModel = SoundAddMultipleViewModel(sounds, requireContext())
-    override lateinit var viewModel: SoundAddMultipleViewModel
+class AddMultipleSoundDialogFragment : BaseSoundDialogFragment<SoundAddMultipleViewModel>() {
+    override val viewModel by activityViewModels<SoundAddMultipleViewModel>()
     override val title = R.string.add_sounds
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        viewModel = SoundAddMultipleViewModel(sounds, requireContext())
-        val dialog = super.onCreateDialog(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         binding.soundName.isEnabled = false
-        return dialog
     }
 
     override fun onPositiveButtonClick() {
@@ -24,5 +21,11 @@ class AddMultipleSoundDialogFragment(private val sounds: List<Sound>) : BaseSoun
         viewModel.setCategoryId((binding.category.selectedItem as Category).id!!)
         save()
         dismiss()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        viewModel.setVolume(binding.volume.progress)
+        viewModel.setCategoryId((binding.category.selectedItem as Category).id!!)
     }
 }

@@ -26,6 +26,8 @@ import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
 import us.huseli.soundboard_kotlin.interfaces.EditSoundInterface
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
+import us.huseli.soundboard_kotlin.viewmodels.SoundAddMultipleViewModel
+import us.huseli.soundboard_kotlin.viewmodels.SoundAddViewModel
 
 class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterface, AppViewModelListenerInterface, ColorPickerDialogListener {
     companion object {
@@ -40,6 +42,8 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
     private val preferences: SharedPreferences by lazy { getPreferences(Context.MODE_PRIVATE) }
     private val categoryListViewModel by viewModels<CategoryListViewModel>()
     private val appViewModel by viewModels<AppViewModel>()
+    private val soundAddViewModel by viewModels<SoundAddViewModel>()
+    private val soundAddMultipleViewModel by viewModels<SoundAddMultipleViewModel>()
 
     // These are just to know whether a toast should be shown on value change
     private var zoomLevel: Int? = null
@@ -111,19 +115,21 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
                     for (i in 0 until clipData.itemCount) {
                         sounds.add(makeSoundFromUri(clipData.getItemAt(i).uri, data.flags))
                     }
-                    showMultipleSoundAddDialog(sounds)
+                    soundAddMultipleViewModel.setup(sounds, getString(R.string.multiple_sounds_selected))
+                    showMultipleSoundAddDialog()
                 }
             } else {
                 // One item selected; data.data is a Uri
                 data.data?.let { uri ->
                     val sound = makeSoundFromUri(uri, data.flags)
-                    showSoundAddDialog(sound)
+                    soundAddViewModel.setup(sound)
+                    showSoundAddDialog()
                 }
             }
         }
     }
 
-    private fun showMultipleSoundAddDialog(sounds: List<Sound>) = showDialogFragment(AddMultipleSoundDialogFragment(sounds), null)
+    private fun showMultipleSoundAddDialog() = showDialogFragment(AddMultipleSoundDialogFragment(), null)
 
     private fun makeSoundFromUri(uri: Uri, flags: Int): Sound {
         val soundName: String
@@ -164,7 +170,7 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         showDialogFragment(EditCategoryDialogFragment.newInstance(categoryId, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)), CATEGORY_EDIT_DIALOG_TAG)
     }
 
-    private fun showSoundAddDialog(sound: Sound) = showDialogFragment(AddSoundDialogFragment(sound), null)
+    private fun showSoundAddDialog() = showDialogFragment(AddSoundDialogFragment(), null)
 
     override fun showSoundEditDialog(soundId: Int, categoryId: Int?) {
         var categoryIndex = categories.map { it.id }.indexOf(categoryId)
