@@ -18,8 +18,8 @@ import us.huseli.soundboard_kotlin.viewmodels.BaseSoundEditViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 
 abstract class BaseSoundDialogFragment<VM: BaseSoundEditViewModel> : DialogFragment() {
-    private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
-    private lateinit var binding: FragmentEditSoundBinding
+    internal val categoryListViewModel by activityViewModels<CategoryListViewModel>()
+    internal lateinit var binding: FragmentEditSoundBinding
 
     internal abstract var viewModel: VM
     internal abstract val title: Int
@@ -39,20 +39,22 @@ abstract class BaseSoundDialogFragment<VM: BaseSoundEditViewModel> : DialogFragm
         return AlertDialog.Builder(requireContext()).run {
             setTitle(title)
             setView(binding.root)
-            setPositiveButton(R.string.save) { _, _ ->
-                val soundName = binding.soundName.text.toString().trim()
-                if (soundName.isEmpty()) {
-                    Toast.makeText(requireContext(), R.string.name_cannot_be_empty, Toast.LENGTH_SHORT).show()
-                } else {
-                    viewModel.setVolume(binding.volume.progress)
-                    viewModel.setName(soundName)
-                    viewModel.setCategoryId((binding.category.selectedItem as Category).id!!)
-                    save()
-                    dismiss()
-                }
-            }
+            setPositiveButton(R.string.save) { _, _ -> onPositiveButtonClick() }
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
             create()
+        }
+    }
+
+    internal open fun onPositiveButtonClick() {
+        val soundName = binding.soundName.text.toString().trim()
+        if (soundName.isEmpty()) {
+            Toast.makeText(requireContext(), R.string.name_cannot_be_empty, Toast.LENGTH_SHORT).show()
+        } else {
+            viewModel.setVolume(binding.volume.progress)
+            viewModel.setName(soundName)
+            viewModel.setCategoryId((binding.category.selectedItem as Category).id!!)
+            save()
+            dismiss()
         }
     }
 

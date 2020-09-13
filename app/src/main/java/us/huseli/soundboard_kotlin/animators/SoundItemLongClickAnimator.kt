@@ -5,7 +5,7 @@ import android.animation.ObjectAnimator
 import android.graphics.Color
 import androidx.cardview.widget.CardView
 
-class SoundItemLongClickAnimator(view: CardView, private val originalColor: Int) {
+class SoundItemLongClickAnimator(view: CardView, originalColor: Int) {
     private val animateIn: ObjectAnimator?
     private val animateOut: ObjectAnimator?
 

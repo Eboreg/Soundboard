@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
@@ -94,33 +95,53 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         intent.type = "audio/*"
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
         if (intent.resolveActivity(packageManager) != null) startActivityForResult(intent, REQUEST_SOUND_GET)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        // We have returned from file chooser dialog and data.data is a URI
-        if (requestCode == REQUEST_SOUND_GET && resultCode == Activity.RESULT_OK) {
-            data?.data?.let { uri ->
-                val soundName: String
-                // FLAG_GRANT_READ_URI_PERMISSION is not one of the permissions we are requesting
-                // here, so bitwise-AND it away
-                contentResolver.takePersistableUriPermission(uri, data.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                when (val cursor = contentResolver.query(uri, null, null, null, null)) {
-                    null -> soundName = ""
-                    else -> {
-                        cursor.moveToFirst()
-                        var filename = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                        if (filename.contains("."))
-                            filename = filename.substring(0, filename.lastIndexOf("."))
-                        soundName = filename
-                        cursor.close()
+        // We have returned from file chooser dialog
+        if (requestCode == REQUEST_SOUND_GET && resultCode == Activity.RESULT_OK && data != null) {
+            if (data.clipData != null) {
+                // Multiple items selected; from data.clipData we get Uri:s
+                data.clipData?.let { clipData ->
+                    val sounds = mutableListOf<Sound>()
+                    for (i in 0 until clipData.itemCount) {
+                        sounds.add(makeSoundFromUri(clipData.getItemAt(i).uri, data.flags))
                     }
+                    showMultipleSoundAddDialog(sounds)
                 }
-                showSoundAddDialog(Sound(soundName, uri))
+            } else {
+                // One item selected; data.data is a Uri
+                data.data?.let { uri ->
+                    val sound = makeSoundFromUri(uri, data.flags)
+                    showSoundAddDialog(sound)
+                }
             }
         }
+    }
+
+    private fun showMultipleSoundAddDialog(sounds: List<Sound>) = showDialogFragment(AddMultipleSoundDialogFragment(sounds), null)
+
+    private fun makeSoundFromUri(uri: Uri, flags: Int): Sound {
+        val soundName: String
+        // FLAG_GRANT_READ_URI_PERMISSION is not one of the permissions we are requesting
+        // here, so bitwise-AND it away
+        contentResolver.takePersistableUriPermission(uri, flags and Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        when (val cursor = contentResolver.query(uri, null, null, null, null)) {
+            null -> soundName = ""
+            else -> {
+                cursor.moveToFirst()
+                var filename = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                if (filename.contains("."))
+                    filename = filename.substring(0, filename.lastIndexOf("."))
+                soundName = filename
+                cursor.close()
+            }
+        }
+        return Sound(soundName, uri)
     }
 
     private fun showDialogFragment(fragment: Fragment, tag: String?) {

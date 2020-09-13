@@ -1,3 +1,14 @@
+intent.flags i slutet av startaddsoundactivity: 193
+
+
+Lägger till 3 ljud:
+data.clipData.itemCount = 3
+data.clipData.getItemAt(0..2).uri = Uri
+data.data = null
+
+Lägger till 1 ljud:
+data.clipData = null
+
 SoundViewModel
 =================
 
