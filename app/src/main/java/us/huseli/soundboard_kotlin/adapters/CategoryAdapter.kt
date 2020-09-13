@@ -19,6 +19,7 @@ import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.R
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundAdapter
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundViewHolder
+import us.huseli.soundboard_kotlin.animators.CollapseButtonAnimator
 import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.databinding.ItemCategoryBinding
 import us.huseli.soundboard_kotlin.fragments.CategoryListFragment
@@ -75,6 +76,7 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
         private val soundAdapter = SoundAdapter(fragment).apply {
             setOnItemsReordered { sounds -> categoryViewModel.updateSoundOrder(sounds) }
         }
+        private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
         private lateinit var category: Category
         private var soundCount: Int? = null
 
@@ -83,10 +85,10 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
         init {
             binding.categoryEditButton.setOnClickListener(this)
             binding.categoryDeleteButton.setOnClickListener(this)
+            binding.categoryCollapseButton.setOnClickListener(this)
             binding.soundList.apply {
                 adapter = soundAdapter
                 layoutManager = GridLayoutManager(context, zoomLevelToSpanCount(0))
-                itemAnimator = null
                 setRecycledViewPool(soundViewPool)
             }
             categoryViewModel.sounds.observe(this, { sounds ->
@@ -100,6 +102,10 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
                 soundAdapter.submitList(sounds.toMutableList())
             })
             categoryViewModel.backgroundColor.observe(this, { color -> binding.categoryHeader.setBackgroundColor(color) })
+            categoryViewModel.collapsed.observe(this, { collapsed ->
+                collapseButtonAnimator.animate(collapsed)
+                binding.soundList.visibility = if (collapsed) View.GONE else View.VISIBLE
+            })
             fragment.appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
             fragment.appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
         }
@@ -120,9 +126,9 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
             try {
                 val categoryId = category.id!!
                 when (v) {
+                    binding.categoryCollapseButton -> categoryViewModel.toggleCollapsed()
                     binding.categoryEditButton -> activity.showCategoryEditDialog(categoryId)
-                    binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(categoryId, category.name, soundCount
-                            ?: 0)
+                    binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(categoryId, category.name, soundCount ?: 0)
                 }
             } catch (e: Exception) {
                 Toast.makeText(fragment.requireContext(), R.string.not_initialized_yet, Toast.LENGTH_SHORT).show()

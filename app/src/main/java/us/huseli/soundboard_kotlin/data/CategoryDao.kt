@@ -36,4 +36,7 @@ interface CategoryDao {
     @Transaction
     fun saveOrder(categories: List<Category>) =
             categories.forEach { category -> category.id?.let { categoryId -> updateOrder(categoryId, category.order) } }
+
+    @Query("UPDATE SoundCategory SET collapsed = :value WHERE id = :id")
+    fun setCollapsed(id: Int, value: Int)
 }

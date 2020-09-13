@@ -30,13 +30,6 @@ import us.huseli.soundboard_kotlin.viewmodels.SoundAddMultipleViewModel
 import us.huseli.soundboard_kotlin.viewmodels.SoundAddViewModel
 
 class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterface, AppViewModelListenerInterface, ColorPickerDialogListener {
-    companion object {
-        const val REQUEST_SOUND_GET = 1
-        const val CATEGORY_ADD_DIALOG_TAG = "categoryAddDialog"
-        const val CATEGORY_EDIT_DIALOG_TAG = "categoryEditDialog"
-        val DIALOG_TAGS = listOf(CATEGORY_ADD_DIALOG_TAG, CATEGORY_EDIT_DIALOG_TAG)
-    }
-
     private var categories = emptyList<Category>()
 
     private val preferences: SharedPreferences by lazy { getPreferences(Context.MODE_PRIVATE) }
@@ -209,4 +202,11 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
     }
 
     override fun onDialogDismissed(dialogId: Int) = Unit
+
+    companion object {
+        const val REQUEST_SOUND_GET = 1
+        const val CATEGORY_ADD_DIALOG_TAG = "categoryAddDialog"
+        const val CATEGORY_EDIT_DIALOG_TAG = "categoryEditDialog"
+        val DIALOG_TAGS = listOf(CATEGORY_ADD_DIALOG_TAG, CATEGORY_EDIT_DIALOG_TAG)
+    }
 }

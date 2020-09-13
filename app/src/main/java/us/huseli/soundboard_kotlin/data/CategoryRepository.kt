@@ -15,4 +15,6 @@ class CategoryRepository(private val categoryDao: CategoryDao) {
 
     // Save .order of all categories as set right now
     fun saveOrder(categories: List<Category>) = categoryDao.saveOrder(categories)
+
+    fun setCollapsed(categoryId: Int, value: Boolean) = categoryDao.setCollapsed(categoryId, if (value) 1 else 0)
 }

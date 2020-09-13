@@ -45,10 +45,7 @@ class SoundAdapter(val fragment: CategoryListFragment) :
         holder.bind(item)
     }
 
-    override fun onItemsReordered() {
-        onItemsReorderedCallback?.invoke(currentList)
-        //fragment.soundListViewModel.updateOrder(currentList)
-    }
+    override fun onItemsReordered() = onItemsReorderedCallback?.invoke(currentList)
 
     override fun calculateDiff(list: List<Sound>)
             = DiffUtil.calculateDiff(DiffCallback(list, currentList), true).dispatchUpdatesTo(this)
@@ -131,15 +128,6 @@ class SoundAdapter(val fragment: CategoryListFragment) :
         override fun onClick(view: View?) {
             if (!viewModel.isValid) showErrorToast() else viewModel.playOrPause()
             clickAnimator.start()
-
-/*
-            view?.let {
-                (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
-                    setTarget(view)
-                    start()
-                }
-            }
-*/
         }
 
         fun onItemSelected() = longClickAnimator.start()

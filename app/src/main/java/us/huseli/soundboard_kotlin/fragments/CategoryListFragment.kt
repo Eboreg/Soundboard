@@ -43,7 +43,6 @@ class CategoryListFragment : Fragment(), StartDragListenerInterface {
             itemTouchHelper.attachToRecyclerView(this)
             adapter = categoryAdapter
             layoutManager = LinearLayoutManager(requireContext())
-            itemAnimator = null
         }
 
         categoryListViewModel.categories.observe(viewLifecycleOwner, {

@@ -10,9 +10,10 @@ data class Category(
         @PrimaryKey(autoGenerate = true) var id: Int? = null,
         var name: String,
         var backgroundColor: Int,
-        override var order: Int
+        override var order: Int,
+        var collapsed: Boolean = false
 ) : OrderableItem {
-    constructor(name: String, backgroundColor: Int, order: Int): this(null, name, backgroundColor, order)
+    constructor(name: String, backgroundColor: Int, order: Int): this(null, name, backgroundColor, order, false)
     @Ignore constructor(name: String, backgroundColor: Int): this(name, backgroundColor, 0)
 
     override fun toString() = name

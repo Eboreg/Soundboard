@@ -14,7 +14,8 @@
         android:id="@+id/category_item"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:animateLayoutChanges="true">
 
         <!--suppress Annotator -->
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -23,8 +24,20 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_normal"
             android:orientation="horizontal"
-            android:padding="@dimen/margin_normal"
             tools:background="@android:color/black">
+
+            <ImageButton
+                android:id="@+id/category_collapse_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/margin_normal"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:drawableColor="@{categoryViewModel.textColor}"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:srcCompat="@drawable/ic_caret_down"
+                android:contentDescription="@string/collapse_expand_category" />
 
             <TextView
                 android:id="@+id/category_name"
@@ -32,8 +45,9 @@
                 android:layout_height="wrap_content"
                 android:text="@{categoryViewModel.name}"
                 android:textColor="@{categoryViewModel.textColor}"
+                android:layout_margin="@dimen/margin_normal"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toEndOf="@id/category_collapse_button"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Category name"
                 tools:textColor="@android:color/white" />
@@ -42,7 +56,7 @@
                 android:id="@+id/category_edit_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/margin_normal"
+                android:padding="@dimen/margin_normal"
                 android:contentDescription="@string/edit_category"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 app:drawableColor="@{categoryViewModel.textColor}"
@@ -55,7 +69,7 @@
                 android:id="@+id/category_delete_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/margin_normal"
+                android:padding="@dimen/margin_normal"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 app:drawableColor="@{categoryViewModel.textColor}"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -68,7 +82,7 @@
                 android:id="@+id/category_move_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/margin_normal"
+                android:padding="@dimen/margin_normal"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 app:drawableColor="@{categoryViewModel.textColor}"
                 app:layout_constraintBottom_toBottomOf="parent"
