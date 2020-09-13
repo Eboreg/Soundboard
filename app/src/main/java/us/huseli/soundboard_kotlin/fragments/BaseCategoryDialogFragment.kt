@@ -25,8 +25,6 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
     internal abstract val title: Int
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        savedInstanceState?.getString(ARG_NAME)?.let { viewModel.setName(it) }
-
         val inflater = LayoutInflater.from(requireContext())
         binding = FragmentEditCategoryBinding.inflate(inflater, edit_sound_category_fragment, false)
         binding.viewModel = viewModel
@@ -48,8 +46,17 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
         }
     }
 
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        savedInstanceState?.let { state ->
+            state.getString(ARG_NAME)?.let { viewModel.setName(it) }
+            viewModel.setBackgroundColor(state.getInt(ARG_BACKGROUND_COLOR))
+        }
+        super.onViewStateRestored(savedInstanceState)
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(ARG_NAME, binding.categoryName.text.toString())
+        viewModel.backgroundColor.value?.let { outState.putInt(ARG_BACKGROUND_COLOR, it) }
         super.onSaveInstanceState(outState)
     }
 
@@ -83,5 +90,6 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
         const val ARG_DIALOG_ID = "dialogId"  // for ColorPickerDialog
         // For restoring instance state on recreate
         const val ARG_NAME = "name"
+        const val ARG_BACKGROUND_COLOR = "backgroundColor"
     }
 }
