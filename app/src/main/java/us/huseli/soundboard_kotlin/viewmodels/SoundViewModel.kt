@@ -8,15 +8,15 @@ import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 import us.huseli.soundboard_kotlin.helpers.ColorHelper
 import us.huseli.soundboard_kotlin.interfaces.OrderableItem
 
-//class SoundViewModel(soundId: Int) : ViewModel() {
 class SoundViewModel(val sound: Sound) : ViewModel(), OrderableItem {
     private val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application, viewModelScope).soundDao())
     private val colorHelper = ColorHelper(GlobalApplication.application)
+    // This seems kinda roundabout, but I guess it works?
+    private val _sound = repository.get(sound.id)
     private val player = GlobalApplication.application.getPlayer(sound).apply {
         setOnCompletionListener { this@SoundViewModel.pause() }
     }
     private val _isPlaying = MutableLiveData(player.isPlaying)
-    private val _categoryId = repository.getCategoryId(sound)
 
     override fun toString() = sound.name
 
@@ -26,16 +26,14 @@ class SoundViewModel(val sound: Sound) : ViewModel(), OrderableItem {
     val isPlaying: LiveData<Boolean>
         get() = _isPlaying
 
+    val backgroundColor = _sound.switchMap { repository.getBackgroundColor(it?.categoryId) }
+    val textColor = backgroundColor.map { colorHelper.getTextColorForBackgroundColor(it) }
+
     /** Model fields */
     val id = sound.id
-    val categoryId = repository.getCategoryId(sound)
-    val name = sound.name
-    val uri = sound.uri
+    val categoryId = _sound.map { it?.categoryId }
+    val name = _sound.map { it?.name ?: "" }
     override var order = sound.order
-    val backgroundColor = _categoryId.switchMap { repository.getBackgroundColor(it) }
-    //val backgroundColor = categoryId?.let { repository.getBackgroundColor(it) } ?: liveData { Color.DKGRAY }
-    val textColor = backgroundColor.map { colorHelper.getTextColorForBackgroundColor(it) }
-    val volume = sound.volume
 
     fun playOrPause() = if (player.isPlaying) pause() else play()
 

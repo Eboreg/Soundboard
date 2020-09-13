@@ -1,38 +1,20 @@
-When moving sound to another category, its order should be set so it's the last
+Add several sounds at once
+Maybe even edit several? (have to implement 'select' funcionality)
+Pinch to zoom
 
-Playing-icon sometimes doesn't turn off on sound end
+Impose limits on zoomLevel (can't zoom in further when spanCount is already 1).
+Would have to be re-checked on each config change/screen rotation etc.
+
 
 Scrap the nested recyclerviews and implement getItemViewType?
 https://www.raywenderlich.com/272-intermediate-recyclerview-tutorial-with-kotlin
 
-Shit fucks up with colours, names etc when adding new sound :((((((
-
 Trash CategoryViewModel?
-
-SoundListViewModelFactory not used
-
-Don't redraw the whole thing for each little change
-Perhaps use lists of sounds and categories in MainActivity, which are populated from their
-respective list viewmodels, make MainActivity wrap them in item viewmodels, and pass those to
-fragments, adapters and viewholders?
-Or pass around only id's (categoryId, SoundId) and let fragments produce their own viewmodels
-via viewModels{}, instead of using the activity's viewmodels, just via id's, so everything gets
-decoupled?
-
-Maybe the ideal is to have a separate observer for each item. So each piece of the UI holds full
-responsibility for its containing item and only reacts to relevant changes to it:
-* CategoryListFragment reacts to category addition, deletion, and change in order
-* CategoryAdapter.ViewHolder reacts to changes in category name and colour
-* CategoryAdapter.ViewHolder also observes its category's sound list, and so reacts to changes in
-  order within it
-* SoundAdapter.ViewHolder reacts to sound name and volume changes
 
 Drag sounds between categories? Is it even possible?
 
 Does title in topmenu have to take so much space?
 A: https://stackoverflow.com/q/15917973
-
-Check "!!" calls for NullPointerException
 
 Trash CategoryListFragment, put it all in MainActivity?
 

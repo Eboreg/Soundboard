@@ -50,6 +50,7 @@ abstract class DataBoundAdapter<T, VH: DataBoundViewHolder<B>, B: ViewDataBindin
     }
 
     fun setLifecycleDestroyed() {
+        // TODO: Doesn't seem to be used. Find the page that introduced this architecture and check
         viewHolders.forEach {
             it.markDestroyed()
         }

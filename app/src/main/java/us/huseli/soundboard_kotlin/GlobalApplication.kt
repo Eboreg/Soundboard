@@ -12,11 +12,16 @@ class GlobalApplication : Application() {
         application = this
     }
 
-    private fun getPlayer(soundId: Int, soundUri: Uri, soundVolume: Int): SoundPlayer {
-        return players[soundId] ?: SoundPlayer(this, soundUri, soundVolume).apply { players[soundId] = this }
+    private fun getPlayer(soundId: Int?, soundUri: Uri, soundVolume: Int): SoundPlayer {
+        return players[soundId] ?: SoundPlayer(this, soundUri, soundVolume).apply {
+            if (soundId != null)
+                players[soundId] = this
+        }
     }
 
-    fun getPlayer(sound: Sound) = getPlayer(sound.id!!, sound.uri, sound.volume)
+    fun getPlayer(sound: Sound) = getPlayer(sound.id, sound.uri, sound.volume)
+
+    fun setPlayerVolume(sound: Sound, volume: Int) = players[sound.id]?.setVolume(volume)
 
     companion object {
         const val LOG_TAG = "sgrumf"

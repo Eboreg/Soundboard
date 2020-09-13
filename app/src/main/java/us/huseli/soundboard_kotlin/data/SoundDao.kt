@@ -13,7 +13,7 @@ interface SoundDao {
     fun getMaxOrder(categoryId: Int): Int?
 
     fun insert(sound: Sound) {
-        val maxOrder = getMaxOrder(sound.categoryId!!) ?: -1
+        val maxOrder = sound.categoryId?.let { categoryId -> getMaxOrder(categoryId) } ?: -1
         sound.order = maxOrder + 1
         _insert(sound)
     }
@@ -22,14 +22,7 @@ interface SoundDao {
     fun update(sound: Sound)
 
     @Transaction
-    fun updateOrder(sounds: List<Sound>) {
-        sounds.forEachIndexed { index, sound ->
-            if (sound.order != index) updateOrder(sound.id!!, index)
-        }
-    }
-
-    @Query("UPDATE Sound SET `order` = :order WHERE id = :soundId")
-    fun updateOrder(soundId: Int, order: Int)
+    fun update(sounds: List<Sound>) = sounds.forEach { sound -> update(sound) }
 
     @Query("SELECT * FROM Sound ORDER BY `order`")
     fun getAll(): LiveData<List<Sound>>
@@ -42,7 +35,4 @@ interface SoundDao {
 
     @Query("SELECT backgroundColor FROM SoundCategory WHERE id = :categoryId")
     fun getBackgroundColor(categoryId: Int): LiveData<Int?>
-
-    @Query("SELECT categoryId FROM Sound WHERE id = :soundId")
-    fun getCategoryId(soundId: Int?): LiveData<Int?>
 }

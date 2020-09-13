@@ -18,7 +18,6 @@ abstract class BaseSoundEditViewModel : ViewModel() {
 
     abstract val name: LiveData<String>
     abstract val volume: LiveData<Int>
-    abstract val categoryId: LiveData<Int?>
 
     var categoryIndex: Int? = null
 }

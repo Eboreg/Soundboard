@@ -10,9 +10,6 @@ class CategoryRepository(private val categoryDao: CategoryDao) {
 
     fun update(category: Category) = categoryDao.update(category)
 
-    // Used by CategoryListViewModel.updateOrder()
-    fun updateOrder(categories: List<Category>) = categoryDao.updateOrder(categories)
-
     // Used by CategoryListViewModel.delete()
     fun delete(id: Int) = categoryDao.delete(id)
 

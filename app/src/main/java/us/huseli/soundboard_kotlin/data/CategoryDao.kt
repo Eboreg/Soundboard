@@ -14,18 +14,12 @@ interface CategoryDao {
 
     fun insert(category: Category) {
         val maxOrder = _getMaxOrder() ?: -1
-        _insert(Category(category, maxOrder + 1))
+        category.order = maxOrder
+        _insert(category)
     }
 
     @Update
     fun update(category: Category)
-
-    @Transaction
-    fun updateOrder(categories: List<Category>) {
-        categories.forEachIndexed { index, category ->
-            if (category.order != index) updateOrder(category.id!!, index)
-        }
-    }
 
     @Query("UPDATE SoundCategory SET `order` = :order WHERE id = :id")
     fun updateOrder(id: Int, order: Int)
@@ -41,5 +35,5 @@ interface CategoryDao {
 
     @Transaction
     fun saveOrder(categories: List<Category>) =
-            categories.forEach { category -> updateOrder(category.id!!, category.order) }
+            categories.forEach { category -> category.id?.let { categoryId -> updateOrder(categoryId, category.order) } }
 }

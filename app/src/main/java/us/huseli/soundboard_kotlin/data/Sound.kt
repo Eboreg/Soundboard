@@ -20,5 +20,4 @@ data class Sound(
         var volume: Int
 ) : OrderableItem {
     @Ignore constructor(name: String, uri: Uri): this(null, null, name, uri, 0, 100)
-    @Ignore constructor(sound: Sound, order: Int): this(sound.id, sound.categoryId, sound.name, sound.uri, order, sound.volume)
 }

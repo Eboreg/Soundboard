@@ -4,7 +4,6 @@ import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-//class CategoryEditViewModel(private val category: CategoryWithSounds?, private val order: Int?) : ViewModel() {
 class CategoryEditViewModel(categoryId: Int) : BaseCategoryEditViewModel() {
     private val category = repository.get(categoryId)
     private val _newBackgroundColor = MutableLiveData<Int>()

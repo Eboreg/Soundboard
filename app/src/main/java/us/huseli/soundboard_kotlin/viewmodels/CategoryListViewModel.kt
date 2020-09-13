@@ -15,11 +15,6 @@ class CategoryListViewModel : ViewModel() {
     private val colorHelper = ColorHelper(GlobalApplication.application)
     val categories = repository.categories
 
-    fun updateOrder(categories: List<Category>) = viewModelScope.launch(Dispatchers.IO) {
-        // Set category.order according to the order in the received list
-        repository.updateOrder(categories)
-    }
-
     fun saveOrder(categories: List<Category>) = viewModelScope.launch(Dispatchers.IO) {
         repository.saveOrder(categories)
     }

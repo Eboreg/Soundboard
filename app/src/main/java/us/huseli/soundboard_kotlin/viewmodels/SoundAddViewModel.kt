@@ -9,7 +9,6 @@ import us.huseli.soundboard_kotlin.data.Sound
 class SoundAddViewModel(private val sound: Sound) : BaseSoundEditViewModel() {
     override val name = liveData { emit(sound.name) }
     override val volume = liveData { emit(sound.volume) }
-    override val categoryId = liveData<Int?> { }
 
     override fun setName(value: String) {
         sound.name = value

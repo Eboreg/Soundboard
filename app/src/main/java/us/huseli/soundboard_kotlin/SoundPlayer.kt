@@ -3,6 +3,7 @@ package us.huseli.soundboard_kotlin
 import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
+import kotlin.math.pow
 
 class SoundPlayer(context: Context, uri: Uri, volume: Int) {
     private val mediaPlayer = MediaPlayer()
@@ -33,10 +34,13 @@ class SoundPlayer(context: Context, uri: Uri, volume: Int) {
         isPlaying = true
     }
 
-    fun setVolume(value: Int) = mediaPlayer.setVolume(value.toFloat() / 100, value.toFloat() / 100)
+    fun setVolume(value: Int) {
+        // MediaPlayer works with log values for some reason
+        val volume = (100.0.pow(value / 100.0) / 100).toFloat()
+        mediaPlayer.setVolume(volume, volume)
+    }
 
     fun setOnCompletionListener(function: (MediaPlayer) -> Unit) {
-        //mediaPlayer.setOnCompletionListener { function() }
         mediaPlayer.setOnCompletionListener(function)
     }
 }

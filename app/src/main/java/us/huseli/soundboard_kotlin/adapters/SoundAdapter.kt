@@ -10,7 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
-import androidx.cardview.widget.CardView
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DiffUtil
@@ -31,10 +30,9 @@ import us.huseli.soundboard_kotlin.viewmodels.SoundViewModelFactory
 
 class SoundAdapter(val fragment: CategoryListFragment) :
         DataBoundAdapter<Sound, SoundAdapter.ViewHolder, ItemSoundBinding>(),
-        ItemDragHelperAdapter<Sound>/*,
-        ViewModelStoreOwner*/ {
-    //private val viewModelStore = ViewModelStore()
+        ItemDragHelperAdapter<Sound> {
     private val activity by lazy { fragment.requireActivity() as EditSoundInterface }
+    private var onItemsReorderedCallback: ((sounds: List<Sound>) -> Unit)? = null
     override val currentList = mutableListOf<Sound>()
 
     override fun createViewHolder(binding: ItemSoundBinding, parent: ViewGroup) = ViewHolder(binding, parent.context)
@@ -47,12 +45,17 @@ class SoundAdapter(val fragment: CategoryListFragment) :
         holder.bind(item)
     }
 
-    override fun onItemsReordered() = fragment.soundListViewModel.updateOrder(currentList)
-
-    //override fun getViewModelStore() = viewModelStore
+    override fun onItemsReordered() {
+        onItemsReorderedCallback?.invoke(currentList)
+        //fragment.soundListViewModel.updateOrder(currentList)
+    }
 
     override fun calculateDiff(list: List<Sound>)
             = DiffUtil.calculateDiff(DiffCallback(list, currentList), true).dispatchUpdatesTo(this)
+
+    fun setOnItemsReordered(function: (sounds: List<Sound>) -> Unit) {
+        onItemsReorderedCallback = function
+    }
 
 
     inner class DiffCallback(newRows: List<Sound>, oldRows: List<Sound>) :
@@ -70,6 +73,9 @@ class SoundAdapter(val fragment: CategoryListFragment) :
             View.OnLongClickListener,
             PopupMenu.OnMenuItemClickListener,
             AppViewModelListenerInterface {
+        private val clickAnimator
+                = (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply { setTarget(binding.soundCard) }
+        private lateinit var longClickAnimator: SoundItemLongClickAnimator
         private lateinit var viewModel: SoundViewModel
         private var categoryId: Int? = null
         override val lifecycleRegistry = LifecycleRegistry(this)
@@ -92,6 +98,9 @@ class SoundAdapter(val fragment: CategoryListFragment) :
             if (!viewModel.isValid)
                 binding.failIcon.visibility = View.VISIBLE
 
+            viewModel.backgroundColor.observe(this, { color ->
+                longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
+            })
             viewModel.isPlaying.observe(this, { onIsPlayingChange(it) })
             viewModel.categoryId.observe(this, { categoryId = it })
             fragment.appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
@@ -114,24 +123,26 @@ class SoundAdapter(val fragment: CategoryListFragment) :
                     setOnMenuItemClickListener(this@ViewHolder)
                     show()
                 }
+                longClickAnimator.start()
             }
-            if (v is CardView)
-                SoundItemLongClickAnimator(v).start()
             return true
         }
 
         override fun onClick(view: View?) {
             if (!viewModel.isValid) showErrorToast() else viewModel.playOrPause()
+            clickAnimator.start()
 
+/*
             view?.let {
                 (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
                     setTarget(view)
                     start()
                 }
             }
+*/
         }
 
-        fun onItemSelected() = SoundItemLongClickAnimator(binding.soundCard).start()
+        fun onItemSelected() = longClickAnimator.start()
 
         override fun toString() = super.toString() + " '" + binding.soundName.text + "'"
 
@@ -141,7 +152,7 @@ class SoundAdapter(val fragment: CategoryListFragment) :
                     R.id.sound_context_menu_edit ->
                         activity.showSoundEditDialog(viewModel.id!!, categoryId)
                     R.id.sound_context_menu_delete ->
-                        activity.showSoundDeleteDialog(viewModel.id!!, viewModel.name)
+                        activity.showSoundDeleteDialog(viewModel.id!!, viewModel.name.value)
                 }
             } catch (e: NullPointerException) {
                 Toast.makeText(context, R.string.data_not_fetched_yet, Toast.LENGTH_SHORT).show()

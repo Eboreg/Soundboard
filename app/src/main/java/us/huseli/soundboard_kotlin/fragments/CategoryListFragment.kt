@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,12 +17,10 @@ import us.huseli.soundboard_kotlin.helpers.CategoryItemDragHelperCallback
 import us.huseli.soundboard_kotlin.interfaces.StartDragListenerInterface
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
-import us.huseli.soundboard_kotlin.viewmodels.SoundListViewModel
 
 class CategoryListFragment : Fragment(), StartDragListenerInterface {
     val appViewModel by activityViewModels<AppViewModel>()
     val categoryListViewModel by activityViewModels<CategoryListViewModel>()
-    val soundListViewModel by viewModels<SoundListViewModel>()
 
     private lateinit var binding: FragmentCategoryListBinding
     private lateinit var itemTouchHelper: ItemTouchHelper

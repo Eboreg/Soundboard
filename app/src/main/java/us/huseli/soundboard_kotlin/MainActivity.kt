@@ -151,8 +151,8 @@ class MainActivity : AppCompatActivity(), EditSoundInterface, EditCategoryInterf
         showDialogFragment(EditSoundDialogFragment.newInstance(soundId, categoryIndex), null)
     }
 
-    override fun showSoundDeleteDialog(soundId: Int, soundName: String) {
-        showDialogFragment(DeleteSoundFragment.newInstance(soundId, soundName), null)
+    override fun showSoundDeleteDialog(soundId: Int, soundName: String?) {
+        showDialogFragment(DeleteSoundFragment.newInstance(soundId, soundName ?: ""), null)
     }
 
     override fun onReorderEnabledChange(value: Boolean) {

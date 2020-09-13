@@ -50,32 +50,6 @@ open class ItemDragHelperCallback(dragDirs: Int) : ItemTouchHelper.SimpleCallbac
             adapter.currentList.forEachIndexed { index, item -> item.order = index }
             adapter.onItemsReordered()
         }
-/*
-        recyclerView.adapter?.let {
-            @Suppress("UNCHECKED_CAST") val adapter = it as ItemDragHelperAdapter<OrderableItem>
-            if (dragFromFinal != null && dragToFinal != null && dragFromFinal != dragToFinal) {
-                //val list = adapter.getMutableList()
-                val list = adapter.getCurrentList()
-                Log.i(GlobalApplication.LOG_TAG,
-                        "ItemDragHelperCallback ${this.hashCode()} clearView: drag from $dragFromFinal to $dragToFinal, list = $list, " +
-                                "recyclerView ${recyclerView.hashCode()}, adapter ${adapter.hashCode()}, viewHolder ${viewHolder.hashCode()}")
-                try {
-                    list[dragFromFinal].order = dragToFinal
-                    if (dragFromFinal < dragToFinal)
-                        //for (i in dragFromFinal until dragToFinal) Collections.swap(list, i, i + 1)
-                        for (i in (dragFromFinal + 1)..dragToFinal) list[i].order--
-                    else
-                        //for (i in dragFromFinal downTo dragToFinal + 1) Collections.swap(list, i, i - 1)
-                        for (i in dragToFinal until dragFromFinal) list[i].order++
-                    //list.forEachIndexed { index, item -> item.order = index }
-                    //adapter.submitList(list) { adapter.onItemsReordered() }
-                    adapter.onItemsReordered()
-                } catch (e: IndexOutOfBoundsException) {
-                    Log.e(GlobalApplication.LOG_TAG, e.toString())
-                }
-            }
-        }
-*/
     }
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}

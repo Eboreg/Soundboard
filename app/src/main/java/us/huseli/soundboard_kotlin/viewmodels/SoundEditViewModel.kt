@@ -19,14 +19,12 @@ class SoundEditViewModel(private val soundId: Int) : BaseSoundEditViewModel() {
     override fun setVolume(value: Int) {
         sound.value?.let {
             if (it.volume != value) {
-                val player = GlobalApplication.application.getPlayer(it)
-                player.setVolume(value)
+                GlobalApplication.application.setPlayerVolume(it, value)
                 it.volume = value
             }
         }
     }
 
-    override val categoryId = sound.map { it?.categoryId }
     override fun setCategoryId(value: Int) {
         if (originalCategoryId == null) originalCategoryId = sound.value?.categoryId
         sound.value?.categoryId = value
@@ -34,8 +32,10 @@ class SoundEditViewModel(private val soundId: Int) : BaseSoundEditViewModel() {
 
     override fun save() = viewModelScope.launch(Dispatchers.IO) {
         sound.value?.let { sound ->
-            if (originalCategoryId != null && originalCategoryId != sound.categoryId)
-                sound.order = repository.getMaxOrder(sound.categoryId!!)
+            sound.categoryId?.let { categoryId ->
+                if (originalCategoryId != null && originalCategoryId != categoryId)
+                    sound.order = repository.getMaxOrder(categoryId) + 1
+            }
             repository.update(sound)
         }
     }

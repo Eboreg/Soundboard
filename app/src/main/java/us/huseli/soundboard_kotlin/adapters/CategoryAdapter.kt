@@ -50,17 +50,14 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
 
     override fun onItemsReordered() = fragment.categoryListViewModel.saveOrder(currentList)
 
-    override fun calculateDiff(list: List<Category>)
-            = DiffUtil.calculateDiff(DiffCallback(list, currentList), true).dispatchUpdatesTo(this)
+    override fun calculateDiff(list: List<Category>) = DiffUtil.calculateDiff(DiffCallback(list, currentList), true).dispatchUpdatesTo(this)
 
 
     inner class DiffCallback(newRows: List<Category>, oldRows: List<Category>) :
             DataBoundAdapter<Category, ViewHolder, ItemCategoryBinding>.DiffCallback(newRows, oldRows) {
-
         override fun areItemsTheSame(oldItem: Category, newItem: Category) = oldItem.id == newItem.id
 
-        override fun areContentsTheSame(oldItem: Category, newItem: Category)
-                = oldItem.name == newItem.name && oldItem.backgroundColor == newItem.backgroundColor
+        override fun areContentsTheSame(oldItem: Category, newItem: Category) = oldItem.name == newItem.name && oldItem.backgroundColor == newItem.backgroundColor
     }
 
     /**
@@ -75,7 +72,9 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
         private val soundItemTouchHelper = ItemTouchHelper(SoundItemDragHelperCallback())
         private val categoryViewModel = CategoryViewModel()
         private val viewModelStore = ViewModelStore()
-        private val soundAdapter = SoundAdapter(fragment)
+        private val soundAdapter = SoundAdapter(fragment).apply {
+            setOnItemsReordered { sounds -> categoryViewModel.updateSoundOrder(sounds) }
+        }
         private lateinit var category: Category
         private var soundCount: Int? = null
 
@@ -84,7 +83,6 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
         init {
             binding.categoryEditButton.setOnClickListener(this)
             binding.categoryDeleteButton.setOnClickListener(this)
-            //binding.categoryMoveButton.setOnClickListener(this)
             binding.soundList.apply {
                 adapter = soundAdapter
                 layoutManager = GridLayoutManager(context, zoomLevelToSpanCount(0))
@@ -102,7 +100,6 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
                 soundAdapter.submitList(sounds.toMutableList())
             })
             categoryViewModel.backgroundColor.observe(this, { color -> binding.categoryHeader.setBackgroundColor(color) })
-            // Observe changes in zoomLevel and reorderEnabled
             fragment.appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
             fragment.appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
         }
@@ -124,7 +121,8 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
                 val categoryId = category.id!!
                 when (v) {
                     binding.categoryEditButton -> activity.showCategoryEditDialog(categoryId)
-                    binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(categoryId, category.name, soundCount!!)
+                    binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(categoryId, category.name, soundCount
+                            ?: 0)
                 }
             } catch (e: Exception) {
                 Toast.makeText(fragment.requireContext(), R.string.not_initialized_yet, Toast.LENGTH_SHORT).show()
