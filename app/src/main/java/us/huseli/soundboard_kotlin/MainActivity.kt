@@ -53,7 +53,6 @@ class MainActivity :
     private var reorderEnabled: Boolean? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d(GlobalApplication.LOG_TAG, "MainActivity ${this.hashCode()} onCreate")
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
@@ -78,8 +77,26 @@ class MainActivity :
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.appbar_menu, menu)
         // This has to be done here, because the callback requires the menu to exist
-        appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
+        appViewModel.reorderEnabled.observe(this, { onReorderEnabledChange(it) })
+        appViewModel.zoomInPossible.observe(this, { onZoomInPossibleChange(it) })
         return true
+    }
+
+    override fun onReorderEnabledChange(value: Boolean) {
+        val item = toolbar.menu.findItem(R.id.action_toggle_reorder)
+        if (value) {
+            if (reorderEnabled != null) showToast(R.string.reordering_enabled)
+            item.icon.alpha = 255
+        } else {
+            if (reorderEnabled != null) showToast(R.string.reordering_disabled)
+            item.icon.alpha = 127
+        }
+        reorderEnabled = value
+    }
+
+    private fun onZoomInPossibleChange(value: Boolean) {
+        val item = toolbar.menu.findItem(R.id.action_zoom_in)
+        item.icon.alpha = if (value) 255 else 127
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -185,18 +202,6 @@ class MainActivity :
 
     override fun showSoundDeleteDialog(soundId: Int, soundName: String?) {
         showDialogFragment(DeleteSoundFragment.newInstance(soundId, soundName ?: ""), null)
-    }
-
-    override fun onReorderEnabledChange(value: Boolean) {
-        val item = toolbar.menu.findItem(R.id.action_toggle_reorder)
-        if (value) {
-            if (reorderEnabled != null) showToast(R.string.reordering_enabled)
-            item.icon.alpha = 255
-        } else {
-            if (reorderEnabled != null) showToast(R.string.reordering_disabled)
-            item.icon.alpha = 127
-        }
-        reorderEnabled = value
     }
 
     override fun onZoomLevelChange(value: Int) {

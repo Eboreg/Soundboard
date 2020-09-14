@@ -27,7 +27,6 @@ class CategoryListFragment : Fragment(), StartDragListenerInterface, View.OnTouc
     private lateinit var itemTouchHelper: ItemTouchHelper
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        Log.d(GlobalApplication.LOG_TAG, "CategoryListFragment ${this.hashCode()} onCreateView")
         binding = FragmentCategoryListBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
         return binding.root
@@ -35,7 +34,6 @@ class CategoryListFragment : Fragment(), StartDragListenerInterface, View.OnTouc
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        Log.d(GlobalApplication.LOG_TAG, "CategoryListFragment ${this.hashCode()} onViewCreated")
         super.onViewCreated(view, savedInstanceState)
 
         val categoryAdapter = CategoryAdapter(this)
@@ -61,7 +59,6 @@ class CategoryListFragment : Fragment(), StartDragListenerInterface, View.OnTouc
     override fun onStartDrag(viewHolder: RecyclerView.ViewHolder) = itemTouchHelper.startDrag(viewHolder)
 
     override fun onTouch(view: View?, event: MotionEvent?): Boolean {
-        Log.i(GlobalApplication.LOG_TAG, "onTouch event: $event")
         when (event?.actionMasked) {
             MotionEvent.ACTION_UP -> {
                 view?.performClick()

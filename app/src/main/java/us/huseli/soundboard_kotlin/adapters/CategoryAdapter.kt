@@ -139,8 +139,10 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
                 if (value) soundItemTouchHelper.attachToRecyclerView(binding.soundList) else soundItemTouchHelper.attachToRecyclerView(null)
 
         override fun onZoomLevelChange(value: Int) {
-            Log.d(GlobalApplication.LOG_TAG, "CategoryAdapter.ViewHolder ${hashCode()} onZoomLevelChange: $value")
-            (binding.soundList.layoutManager as GridLayoutManager).apply { spanCount = zoomLevelToSpanCount(value) }
+            (binding.soundList.layoutManager as GridLayoutManager).apply {
+                spanCount = zoomLevelToSpanCount(value)
+                fragment.appViewModel.setZoomInPossible(spanCount > 1)
+            }
         }
 
         private fun zoomLevelToSpanCount(zoomLevel: Int): Int {

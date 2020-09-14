@@ -40,10 +40,7 @@ class SoundAdapter(val fragment: CategoryListFragment) :
     override fun createBinding(parent: ViewGroup, viewType: Int) =
             ItemSoundBinding.inflate(LayoutInflater.from(parent.context), parent, false)
 
-    override fun bind(holder: ViewHolder, item: Sound) {
-        Log.d(GlobalApplication.LOG_TAG, "SoundAdapter ${this.hashCode()}, bind holder ${holder.hashCode()} with viewmodel ${item.hashCode()}")
-        holder.bind(item)
-    }
+    override fun bind(holder: ViewHolder, item: Sound) = holder.bind(item)
 
     override fun onItemsReordered() = onItemsReorderedCallback?.invoke(currentList)
 
