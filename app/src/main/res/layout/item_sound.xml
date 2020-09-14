@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+
         <variable
             name="viewModel"
             type="us.huseli.soundboard_kotlin.viewmodels.SoundViewModel" />
@@ -32,37 +33,68 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:cardBackgroundColor="@color/deep_purple_500">
 
-            <TextView
-                android:id="@+id/sound_name"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_margin="@dimen/margin_small"
-                android:gravity="center_horizontal|center_vertical"
-                android:text="@{viewModel.name}"
-                android:textAlignment="center"
-                android:textColor="@{viewModel.textColor}"
-                tools:text="Sound name" />
+                android:layout_height="match_parent">
 
-            <ImageView
-                android:id="@+id/play_icon"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:contentDescription=""
-                android:visibility="invisible"
-                app:drawableColor="@{viewModel.textColor}"
-                app:srcCompat="@drawable/ic_playing"
-                tools:ignore="ContentDescription" />
+                <TextView
+                    android:id="@+id/sound_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="@dimen/margin_small"
+                    android:gravity="center_horizontal|center_vertical"
+                    android:text="@{viewModel.name}"
+                    android:textAlignment="center"
+                    android:textColor="@{viewModel.textColor}"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="Sound name" />
 
-            <ImageView
-                android:id="@+id/fail_icon"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:contentDescription=""
-                android:visibility="invisible"
-                app:drawableColor="@{viewModel.textColor}"
-                app:srcCompat="@drawable/ic_fail"
-                tools:ignore="ContentDescription" />
+                <ImageView
+                    android:id="@+id/play_icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription=""
+                    android:visibility="invisible"
+                    app:drawableColor="@{viewModel.textColor}"
+                    app:layout_constraintBottom_toTopOf="@+id/volume_bar"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/ic_playing"
+                    tools:ignore="ContentDescription" />
 
+                <ImageView
+                    android:id="@+id/fail_icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription=""
+                    android:visibility="invisible"
+                    app:drawableColor="@{viewModel.textColor}"
+                    app:layout_constraintBottom_toTopOf="@+id/volume_bar"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/ic_fail"
+                    tools:ignore="ContentDescription" />
+
+                <ProgressBar
+                    android:id="@+id/volume_bar"
+                    style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:max="100"
+                    android:min="0"
+                    android:progress="@{viewModel.volume}"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/sound_name"
+                    tools:ignore="UnusedAttribute"
+                    tools:progress="50" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

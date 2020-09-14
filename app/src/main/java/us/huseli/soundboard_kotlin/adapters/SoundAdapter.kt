@@ -3,6 +3,8 @@ package us.huseli.soundboard_kotlin.adapters
 import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
 import android.content.Context
+import android.graphics.BlendMode
+import android.graphics.BlendModeColorFilter
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -21,6 +23,7 @@ import us.huseli.soundboard_kotlin.animators.SoundItemLongClickAnimator
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.databinding.ItemSoundBinding
 import us.huseli.soundboard_kotlin.fragments.CategoryListFragment
+import us.huseli.soundboard_kotlin.helpers.ColorHelper
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditSoundInterface
 import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
@@ -31,6 +34,7 @@ import us.huseli.soundboard_kotlin.viewmodels.SoundViewModelFactory
 class SoundAdapter(val fragment: CategoryListFragment) :
         DataBoundAdapter<Sound, SoundAdapter.ViewHolder, ItemSoundBinding>(),
         ItemDragHelperAdapter<Sound> {
+
     private val activity by lazy { fragment.requireActivity() as EditSoundInterface }
     private var onItemsReorderedCallback: ((sounds: List<Sound>) -> Unit)? = null
     override val currentList = mutableListOf<Sound>()
@@ -44,8 +48,7 @@ class SoundAdapter(val fragment: CategoryListFragment) :
 
     override fun onItemsReordered() = onItemsReorderedCallback?.invoke(currentList)
 
-    override fun calculateDiff(list: List<Sound>)
-            = DiffUtil.calculateDiff(DiffCallback(list, currentList), true).dispatchUpdatesTo(this)
+    override fun calculateDiff(list: List<Sound>) = DiffUtil.calculateDiff(DiffCallback(list, currentList), true).dispatchUpdatesTo(this)
 
     fun setOnItemsReordered(function: (sounds: List<Sound>) -> Unit) {
         onItemsReorderedCallback = function
@@ -56,8 +59,7 @@ class SoundAdapter(val fragment: CategoryListFragment) :
             DataBoundAdapter<Sound, SoundAdapter.ViewHolder, ItemSoundBinding>.DiffCallback(newRows, oldRows) {
         override fun areItemsTheSame(oldItem: Sound, newItem: Sound) = oldItem.id == newItem.id
 
-        override fun areContentsTheSame(oldItem: Sound, newItem: Sound)
-                = oldItem.name == newItem.name && oldItem.uri == newItem.uri
+        override fun areContentsTheSame(oldItem: Sound, newItem: Sound) = oldItem.name == newItem.name && oldItem.uri == newItem.uri
     }
 
 
@@ -67,8 +69,8 @@ class SoundAdapter(val fragment: CategoryListFragment) :
             View.OnLongClickListener,
             PopupMenu.OnMenuItemClickListener,
             AppViewModelListenerInterface {
-        private val clickAnimator
-                = (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply { setTarget(binding.soundCard) }
+        private val clickAnimator = (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply { setTarget(binding.soundCard) }
+        private val colorHelper = ColorHelper(context)
         private lateinit var longClickAnimator: SoundItemLongClickAnimator
         private lateinit var viewModel: SoundViewModel
         private var categoryId: Int? = null
@@ -94,6 +96,13 @@ class SoundAdapter(val fragment: CategoryListFragment) :
 
             viewModel.backgroundColor.observe(this, { color ->
                 longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    if (colorHelper.getLuminance(color) >= 0.6)
+                        binding.volumeBar.progressDrawable.alpha = 255
+                    else
+                        binding.volumeBar.progressDrawable.alpha = 127
+                    binding.volumeBar.progressDrawable.colorFilter = BlendModeColorFilter(color, BlendMode.HUE)
+                }
             })
             viewModel.isPlaying.observe(this, { onIsPlayingChange(it) })
             viewModel.categoryId.observe(this, { categoryId = it })

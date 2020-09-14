@@ -28,6 +28,7 @@ class SoundViewModel(val sound: Sound) : ViewModel(), OrderableItem {
 
     val backgroundColor = _sound.switchMap { repository.getBackgroundColor(it?.categoryId) }
     val textColor = backgroundColor.map { colorHelper.getTextColorForBackgroundColor(it) }
+    val volume = _sound.map { it?.volume ?: 100 }
 
     /** Model fields */
     val id = sound.id

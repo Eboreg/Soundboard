@@ -12,7 +12,7 @@ class ColorHelper(private val context: Context) {
             R.color.purple_500, R.color.red_500, R.color.teal_500, R.color.white, R.color.yellow_500)
     val colors = colorResources.map { ResourcesCompat.getColor(context.resources, it, null) }.sorted()
 
-    private fun getLuminance(color: Int): Float {
+    fun getLuminance(color: Int): Float {
         return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
             Color.luminance(color)
         } else {
