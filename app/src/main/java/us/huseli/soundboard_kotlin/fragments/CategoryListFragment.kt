@@ -1,10 +1,9 @@
 package us.huseli.soundboard_kotlin.fragments
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -18,9 +17,11 @@ import us.huseli.soundboard_kotlin.interfaces.StartDragListenerInterface
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 
-class CategoryListFragment : Fragment(), StartDragListenerInterface {
+class CategoryListFragment : Fragment(), StartDragListenerInterface, View.OnTouchListener {
     val appViewModel by activityViewModels<AppViewModel>()
     val categoryListViewModel by activityViewModels<CategoryListViewModel>()
+
+    private val scaleGestureDetector by lazy { ScaleGestureDetector(requireContext(), ScaleListener()) }
 
     private lateinit var binding: FragmentCategoryListBinding
     private lateinit var itemTouchHelper: ItemTouchHelper
@@ -32,6 +33,7 @@ class CategoryListFragment : Fragment(), StartDragListenerInterface {
         return binding.root
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         Log.d(GlobalApplication.LOG_TAG, "CategoryListFragment ${this.hashCode()} onViewCreated")
         super.onViewCreated(view, savedInstanceState)
@@ -45,6 +47,8 @@ class CategoryListFragment : Fragment(), StartDragListenerInterface {
             layoutManager = LinearLayoutManager(requireContext())
         }
 
+        binding.categoryList.setOnTouchListener(this)
+
         categoryListViewModel.categories.observe(viewLifecycleOwner, {
             Log.i(GlobalApplication.LOG_TAG,
                     "CategoryListFragment: categoryListViewModel.categories changed: $it, " +
@@ -55,4 +59,34 @@ class CategoryListFragment : Fragment(), StartDragListenerInterface {
     }
 
     override fun onStartDrag(viewHolder: RecyclerView.ViewHolder) = itemTouchHelper.startDrag(viewHolder)
+
+    override fun onTouch(view: View?, event: MotionEvent?): Boolean {
+        Log.i(GlobalApplication.LOG_TAG, "onTouch event: $event")
+        when (event?.actionMasked) {
+            MotionEvent.ACTION_UP -> {
+                view?.performClick()
+                return false
+            }
+            MotionEvent.ACTION_MOVE -> {
+                if (event.pointerCount == 1) return false
+            }
+        }
+        return scaleGestureDetector.onTouchEvent(event)
+    }
+
+
+    private inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        override fun onScale(detector: ScaleGestureDetector?): Boolean {
+            detector?.scaleFactor?.let { scaleFactor ->
+                if (scaleFactor <= 0.75) {
+                    appViewModel.zoomOut()
+                    return true
+                } else if (scaleFactor >= 1.5) {
+                    appViewModel.zoomIn()
+                    return true
+                }
+            }
+            return super.onScale(detector)
+        }
+    }
 }

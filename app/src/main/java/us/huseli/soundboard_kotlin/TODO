@@ -1,7 +1,5 @@
-Make categories collapsible
-
 Maybe edit several sounds at once? (have to implement 'select' funcionality)
-Pinch to zoom
+
 
 Impose limits on zoomLevel (can't zoom in further when spanCount is already 1).
 Would have to be re-checked on each config change/screen rotation etc.
