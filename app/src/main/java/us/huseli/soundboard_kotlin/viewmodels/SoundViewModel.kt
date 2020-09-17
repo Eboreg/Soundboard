@@ -17,8 +17,7 @@ class SoundViewModel(val sound: Sound) : ViewModel(), OrderableItem {
         setOnCompletionListener { this@SoundViewModel.pause() }
     }
     private val _isPlaying = MutableLiveData(player.isPlaying)
-
-    override fun toString() = sound.name
+    private val _isSelected = MutableLiveData(false)
 
     val errorMessage = player.errorMessage
     val isValid = player.isValid
@@ -26,15 +25,32 @@ class SoundViewModel(val sound: Sound) : ViewModel(), OrderableItem {
     val isPlaying: LiveData<Boolean>
         get() = _isPlaying
 
+    val isSelected: LiveData<Boolean>
+        get() = _isSelected
+
     val backgroundColor = _sound.switchMap { repository.getBackgroundColor(it?.categoryId) }
     val textColor = backgroundColor.map { colorHelper.getTextColorForBackgroundColor(it) }
-    val volume = _sound.map { it?.volume ?: 100 }
 
     /** Model fields */
     val id = sound.id
     val categoryId = _sound.map { it?.categoryId }
     val name = _sound.map { it?.name ?: "" }
+    val volume = _sound.map { it?.volume ?: 100 }
     override var order = sound.order
+
+    override fun toString() = sound.name
+
+    fun toggleSelected() {
+        _isSelected.value = !_isSelected.value!!
+    }
+
+    fun select() {
+        _isSelected.value = true
+    }
+
+    fun unselect() {
+        _isSelected.value = false
+    }
 
     fun playOrPause() = if (player.isPlaying) pause() else play()
 

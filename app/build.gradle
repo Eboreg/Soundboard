@@ -82,23 +82,9 @@ dependencies {
 
     // Colorpicker
     implementation 'com.jaredrummler:colorpicker:1.1.0'
-    // implementation 'petrov.kristiyan:colorpicker-library:1.1.10'
 
-    // ViewPager2 (for FragmentStateAdapter)
-    // implementation "androidx.viewpager2:viewpager2:$viewpager2_version"
-
-    // Dagger
-    // implementation "com.google.dagger:dagger:$dagger_version"
-    // kapt "com.google.dagger:dagger-compiler:$dagger_version"
-
-    // Navigation
-    // implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
-    // implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
-
-    // implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    // testImplementation 'junit:junit:4.13'
-    // androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    // androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    // Font Awesome
+    //implementation 'info.androidhive:fontawesome:0.0.5'
 }
 repositories {
     mavenCentral()

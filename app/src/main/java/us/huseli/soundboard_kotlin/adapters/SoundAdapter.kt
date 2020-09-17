@@ -27,16 +27,19 @@ import us.huseli.soundboard_kotlin.helpers.ColorHelper
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditSoundInterface
 import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
+import us.huseli.soundboard_kotlin.interfaces.MultiSelectAdapter
 import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
 import us.huseli.soundboard_kotlin.viewmodels.SoundViewModelFactory
 
 
 class SoundAdapter(val fragment: CategoryListFragment) :
         DataBoundAdapter<Sound, SoundAdapter.ViewHolder, ItemSoundBinding>(),
-        ItemDragHelperAdapter<Sound> {
+        ItemDragHelperAdapter<Sound>,
+        MultiSelectAdapter<Sound> {
 
     private val activity by lazy { fragment.requireActivity() as EditSoundInterface }
     private var onItemsReorderedCallback: ((sounds: List<Sound>) -> Unit)? = null
+    private val soundViewModels = mutableSetOf<SoundViewModel>()
     override val currentList = mutableListOf<Sound>()
 
     override fun createViewHolder(binding: ItemSoundBinding, parent: ViewGroup) = ViewHolder(binding, parent.context)
@@ -44,7 +47,12 @@ class SoundAdapter(val fragment: CategoryListFragment) :
     override fun createBinding(parent: ViewGroup, viewType: Int) =
             ItemSoundBinding.inflate(LayoutInflater.from(parent.context), parent, false)
 
-    override fun bind(holder: ViewHolder, item: Sound) = holder.bind(item)
+    override fun bind(holder: ViewHolder, item: Sound) {
+        val viewModelFactory = SoundViewModelFactory(item)
+        val viewModel = ViewModelProvider(fragment, viewModelFactory).get(item.id.toString(), SoundViewModel::class.java)
+        soundViewModels.add(viewModel)
+        holder.bind(viewModel)
+    }
 
     override fun onItemsReordered() = onItemsReorderedCallback?.invoke(currentList)
 
@@ -53,6 +61,16 @@ class SoundAdapter(val fragment: CategoryListFragment) :
     fun setOnItemsReordered(function: (sounds: List<Sound>) -> Unit) {
         onItemsReorderedCallback = function
     }
+
+    override fun toggleSelection(position: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearSelections() = soundViewModels.forEach { it.unselect() }
+
+    override fun getSelectedItemCount() = soundViewModels.filter { it.isSelected.value == true }.size
+
+    override fun getSelectedItems() = soundViewModels.filter { it.isSelected.value == true }.map { it.sound }
 
 
     inner class DiffCallback(newRows: List<Sound>, oldRows: List<Sound>) :
@@ -74,6 +92,7 @@ class SoundAdapter(val fragment: CategoryListFragment) :
         private lateinit var longClickAnimator: SoundItemLongClickAnimator
         private lateinit var viewModel: SoundViewModel
         private var categoryId: Int? = null
+        private var selectEnabled = false
         override val lifecycleRegistry = LifecycleRegistry(this)
 
         init {
@@ -81,14 +100,12 @@ class SoundAdapter(val fragment: CategoryListFragment) :
             binding.soundCard.setOnLongClickListener(this)
         }
 
-        fun bind(item: Sound) {
+        fun bind(viewModel: SoundViewModel) {
             Log.i(GlobalApplication.LOG_TAG,
                     "SoundAdapter.ViewHolder.bind: adapter ${this@SoundAdapter.hashCode()}, " +
-                            "viewHolder ${hashCode()}, SoundViewModel $item")
+                            "viewHolder ${hashCode()}, SoundViewModel $viewModel")
 
-            val viewModelFactory = SoundViewModelFactory(item)
-            viewModel = ViewModelProvider(fragment, viewModelFactory).get(item.id.toString(), SoundViewModel::class.java)
-
+            this.viewModel = viewModel
             binding.viewModel = viewModel
 
             if (!viewModel.isValid)
@@ -100,39 +117,54 @@ class SoundAdapter(val fragment: CategoryListFragment) :
                     if (colorHelper.getLuminance(color) >= 0.6)
                         binding.volumeBar.progressDrawable.alpha = 255
                     else
-                        binding.volumeBar.progressDrawable.alpha = 127
+                        binding.volumeBar.progressDrawable.alpha = 150
                     binding.volumeBar.progressDrawable.colorFilter = BlendModeColorFilter(color, BlendMode.HUE)
                 }
             })
             viewModel.isPlaying.observe(this, { onIsPlayingChange(it) })
+            viewModel.isSelected.observe(this, { onIsSelectedChange(it) })
             viewModel.categoryId.observe(this, { categoryId = it })
             fragment.appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
+            fragment.appViewModel.selectEnabled.observe(this, { selectEnabled = it })
+        }
+
+        private fun onIsSelectedChange(value: Boolean) {
+            if (value) {
+                binding.selectedIcon.visibility = View.VISIBLE
+                fragment.appViewModel.increaseSelectedCount()
+            } else {
+                binding.selectedIcon.visibility = View.INVISIBLE
+                fragment.appViewModel.decreaseSelectedCount()
+            }
         }
 
         private fun onIsPlayingChange(value: Boolean) {
             binding.playIcon.visibility = if (value) View.VISIBLE else View.INVISIBLE
         }
 
-        override fun onReorderEnabledChange(value: Boolean) {
-            if (value) binding.soundCard.setOnLongClickListener(null) else binding.soundCard.setOnLongClickListener(this)
-        }
+        override fun onReorderEnabledChange(value: Boolean) =
+                if (value) binding.soundCard.setOnLongClickListener(null) else binding.soundCard.setOnLongClickListener(this)
 
         override fun onZoomLevelChange(value: Int) = Unit
 
-        override fun onLongClick(v: View?): Boolean {
-            v?.let {
-                PopupMenu(v.context, v).apply {
-                    menuInflater.inflate(R.menu.sound_context_menu, menu)
-                    setOnMenuItemClickListener(this@ViewHolder)
-                    show()
-                }
-                longClickAnimator.start()
+        override fun onLongClick(v: View): Boolean {
+/*
+            PopupMenu(v.context, v).apply {
+                menuInflater.inflate(R.menu.sound_context_menu, menu)
+                setOnMenuItemClickListener(this@ViewHolder)
+                show()
             }
+*/
+            fragment.appViewModel.enableSelect()
+            viewModel.select()
+            longClickAnimator.start()
             return true
         }
 
         override fun onClick(view: View?) {
-            if (!viewModel.isValid) showErrorToast() else viewModel.playOrPause()
+            if (selectEnabled) viewModel.toggleSelected()
+            else if (!viewModel.isValid) showErrorToast()
+            else viewModel.playOrPause()
             clickAnimator.start()
         }
 

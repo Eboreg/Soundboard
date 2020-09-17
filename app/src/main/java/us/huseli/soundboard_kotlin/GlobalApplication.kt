@@ -3,6 +3,7 @@ package us.huseli.soundboard_kotlin
 import android.app.Application
 import android.net.Uri
 import us.huseli.soundboard_kotlin.data.Sound
+import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 
 class GlobalApplication : Application() {
     private val players = HashMap<Int, SoundPlayer>()

@@ -32,6 +32,7 @@
     <string name="add_sounds">Add sounds</string>
     <string name="multiple_sounds_selected">(Multiple sounds selected)</string>
     <string name="collapse_expand_category">Collapse/expand category</string>
+    <string name="move">Move</string>
     <plurals name="delete_category_with_name_and_sounds">
         <item quantity="one">Delete category %1s and one sound?</item>
         <item quantity="other">Delete category %1s and %2d sounds?</item>

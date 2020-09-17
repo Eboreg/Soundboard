@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <androidx.appcompat.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/actionbar_height"
+        android:background="?attr/colorPrimary"
+        android:padding="2dp">
+
+    </androidx.appcompat.widget.Toolbar>
+</layout>
