@@ -8,6 +8,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
@@ -22,17 +23,20 @@ import us.huseli.soundboard_kotlin.adapters.common.DataBoundViewHolder
 import us.huseli.soundboard_kotlin.animators.CollapseButtonAnimator
 import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.databinding.ItemCategoryBinding
-import us.huseli.soundboard_kotlin.fragments.CategoryListFragment
+import us.huseli.soundboard_kotlin.helpers.CategoryItemDragHelperCallback
 import us.huseli.soundboard_kotlin.helpers.SoundItemDragHelperCallback
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
 import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
+import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
+import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
 
-class CategoryAdapter(private val fragment: CategoryListFragment) :
+class CategoryAdapter(private val activity: FragmentActivity, private val categoryListViewModel: CategoryListViewModel, private val appViewModel: AppViewModel) :
         DataBoundAdapter<Category, CategoryAdapter.ViewHolder, ItemCategoryBinding>(),
         ItemDragHelperAdapter<Category> {
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 20) }
+    internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
     override val currentList = mutableListOf<Category>()
 
     override fun createBinding(parent: ViewGroup, viewType: Int) =
@@ -43,13 +47,13 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
     @SuppressLint("ClickableViewAccessibility")
     override fun bind(holder: ViewHolder, item: Category) {
         holder.binding.categoryMoveButton.setOnTouchListener { _, motionEvent ->
-            if (motionEvent.action == MotionEvent.ACTION_DOWN) fragment.onStartDrag(holder)
+            if (motionEvent.action == MotionEvent.ACTION_DOWN) itemTouchHelper.startDrag(holder)
             return@setOnTouchListener false
         }
         holder.bind(item)
     }
 
-    override fun onItemsReordered() = fragment.categoryListViewModel.saveOrder(currentList)
+    override fun onItemsReordered() = categoryListViewModel.saveOrder(currentList)
 
     override fun calculateDiff(list: List<Category>) = DiffUtil.calculateDiff(DiffCallback(list, currentList), true).dispatchUpdatesTo(this)
 
@@ -73,7 +77,7 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
         private val soundItemTouchHelper = ItemTouchHelper(SoundItemDragHelperCallback())
         private val categoryViewModel = CategoryViewModel()
         private val viewModelStore = ViewModelStore()
-        private val soundAdapter = SoundAdapter(fragment).apply {
+        private val soundAdapter = SoundAdapter(activity, appViewModel).apply {
             setOnItemsReordered { sounds -> categoryViewModel.updateSoundOrder(sounds) }
         }
         private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
@@ -106,8 +110,8 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
                 collapseButtonAnimator.animate(collapsed)
                 binding.soundList.visibility = if (collapsed) View.GONE else View.VISIBLE
             })
-            fragment.appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
-            fragment.appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
+            appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
+            appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
         }
 
         fun bind(category: Category) {
@@ -131,7 +135,7 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
                     binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(categoryId, category.name, soundCount ?: 0)
                 }
             } catch (e: Exception) {
-                Toast.makeText(fragment.requireContext(), R.string.not_initialized_yet, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@CategoryAdapter.activity, R.string.not_initialized_yet, Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -141,7 +145,7 @@ class CategoryAdapter(private val fragment: CategoryListFragment) :
         override fun onZoomLevelChange(value: Int) {
             (binding.soundList.layoutManager as GridLayoutManager).apply {
                 spanCount = zoomLevelToSpanCount(value)
-                fragment.appViewModel.setZoomInPossible(spanCount > 1)
+                appViewModel.setZoomInPossible(spanCount > 1)
             }
         }
 

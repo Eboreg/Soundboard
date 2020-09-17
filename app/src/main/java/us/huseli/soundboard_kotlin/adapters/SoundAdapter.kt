@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DiffUtil
@@ -22,22 +23,21 @@ import us.huseli.soundboard_kotlin.adapters.common.DataBoundViewHolder
 import us.huseli.soundboard_kotlin.animators.SoundItemLongClickAnimator
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.databinding.ItemSoundBinding
-import us.huseli.soundboard_kotlin.fragments.CategoryListFragment
 import us.huseli.soundboard_kotlin.helpers.ColorHelper
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditSoundInterface
 import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
 import us.huseli.soundboard_kotlin.interfaces.MultiSelectAdapter
+import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
 import us.huseli.soundboard_kotlin.viewmodels.SoundViewModelFactory
 
 
-class SoundAdapter(val fragment: CategoryListFragment) :
+class SoundAdapter(private val activity: FragmentActivity, private val appViewModel: AppViewModel) :
         DataBoundAdapter<Sound, SoundAdapter.ViewHolder, ItemSoundBinding>(),
         ItemDragHelperAdapter<Sound>,
         MultiSelectAdapter<Sound> {
 
-    private val activity by lazy { fragment.requireActivity() as EditSoundInterface }
     private var onItemsReorderedCallback: ((sounds: List<Sound>) -> Unit)? = null
     private val soundViewModels = mutableSetOf<SoundViewModel>()
     override val currentList = mutableListOf<Sound>()
@@ -49,7 +49,7 @@ class SoundAdapter(val fragment: CategoryListFragment) :
 
     override fun bind(holder: ViewHolder, item: Sound) {
         val viewModelFactory = SoundViewModelFactory(item)
-        val viewModel = ViewModelProvider(fragment, viewModelFactory).get(item.id.toString(), SoundViewModel::class.java)
+        val viewModel = ViewModelProvider(activity, viewModelFactory).get(item.id.toString(), SoundViewModel::class.java)
         soundViewModels.add(viewModel)
         holder.bind(viewModel)
     }
@@ -124,17 +124,17 @@ class SoundAdapter(val fragment: CategoryListFragment) :
             viewModel.isPlaying.observe(this, { onIsPlayingChange(it) })
             viewModel.isSelected.observe(this, { onIsSelectedChange(it) })
             viewModel.categoryId.observe(this, { categoryId = it })
-            fragment.appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
-            fragment.appViewModel.selectEnabled.observe(this, { selectEnabled = it })
+            appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
+            appViewModel.selectEnabled.observe(this, { selectEnabled = it })
         }
 
         private fun onIsSelectedChange(value: Boolean) {
             if (value) {
                 binding.selectedIcon.visibility = View.VISIBLE
-                fragment.appViewModel.increaseSelectedCount()
+                appViewModel.increaseSelectedCount()
             } else {
                 binding.selectedIcon.visibility = View.INVISIBLE
-                fragment.appViewModel.decreaseSelectedCount()
+                appViewModel.decreaseSelectedCount()
             }
         }
 
@@ -155,7 +155,7 @@ class SoundAdapter(val fragment: CategoryListFragment) :
                 show()
             }
 */
-            fragment.appViewModel.enableSelect()
+            appViewModel.enableSelect()
             viewModel.select()
             longClickAnimator.start()
             return true
@@ -176,9 +176,9 @@ class SoundAdapter(val fragment: CategoryListFragment) :
             try {
                 when (item?.itemId) {
                     R.id.sound_context_menu_edit ->
-                        activity.showSoundEditDialog(viewModel.id!!, categoryId)
+                        (activity as EditSoundInterface).showSoundEditDialog(viewModel.id!!, categoryId)
                     R.id.sound_context_menu_delete ->
-                        activity.showSoundDeleteDialog(viewModel.id!!, viewModel.name.value)
+                        (activity as EditSoundInterface).showSoundDeleteDialog(viewModel.id!!, viewModel.name.value)
                 }
             } catch (e: NullPointerException) {
                 Toast.makeText(context, R.string.data_not_fetched_yet, Toast.LENGTH_SHORT).show()

@@ -6,25 +6,20 @@ import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.adapters.CategoryAdapter
 import us.huseli.soundboard_kotlin.databinding.FragmentCategoryListBinding
-import us.huseli.soundboard_kotlin.helpers.CategoryItemDragHelperCallback
-import us.huseli.soundboard_kotlin.interfaces.StartDragListenerInterface
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 
-class CategoryListFragment : Fragment(), StartDragListenerInterface, View.OnTouchListener, ActionMode.Callback {
+class CategoryListFragment : Fragment(), View.OnTouchListener, ActionMode.Callback {
     val appViewModel by activityViewModels<AppViewModel>()
     val categoryListViewModel by activityViewModels<CategoryListViewModel>()
 
     private val scaleGestureDetector by lazy { ScaleGestureDetector(requireContext(), ScaleListener()) }
 
     private lateinit var binding: FragmentCategoryListBinding
-    private lateinit var itemTouchHelper: ItemTouchHelper
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentCategoryListBinding.inflate(inflater, container, false)
@@ -36,11 +31,10 @@ class CategoryListFragment : Fragment(), StartDragListenerInterface, View.OnTouc
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val categoryAdapter = CategoryAdapter(this)
-        itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
+        val categoryAdapter = CategoryAdapter(requireActivity(), categoryListViewModel, appViewModel)
 
         binding.categoryList.apply {
-            itemTouchHelper.attachToRecyclerView(this)
+            categoryAdapter.itemTouchHelper.attachToRecyclerView(this)
             adapter = categoryAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
@@ -56,7 +50,7 @@ class CategoryListFragment : Fragment(), StartDragListenerInterface, View.OnTouc
         })
     }
 
-    override fun onStartDrag(viewHolder: RecyclerView.ViewHolder) = itemTouchHelper.startDrag(viewHolder)
+    //override fun onStartDrag(viewHolder: RecyclerView.ViewHolder) = itemTouchHelper.startDrag(viewHolder)
 
     override fun onTouch(view: View?, event: MotionEvent?): Boolean {
         when (event?.actionMasked) {
