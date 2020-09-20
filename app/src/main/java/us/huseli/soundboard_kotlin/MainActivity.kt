@@ -11,13 +11,14 @@ import android.provider.OpenableColumns
 import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
-import kotlinx.android.synthetic.main.topbar.*
+import kotlinx.android.synthetic.main.actionbar.*
 import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.databinding.ActivityMainBinding
@@ -59,7 +60,7 @@ class MainActivity :
 
         binding = ActivityMainBinding.inflate(layoutInflater)
 
-        setSupportActionBar(toolbar)
+        setSupportActionBar(actionbar_toolbar)
         supportActionBar?.apply {
             setDisplayShowTitleEnabled(false)
         }
@@ -84,7 +85,7 @@ class MainActivity :
     }
 
     override fun onReorderEnabledChange(value: Boolean) {
-        val item = toolbar.menu.findItem(R.id.action_toggle_reorder)
+        val item = actionbar_toolbar.menu.findItem(R.id.action_toggle_reorder)
         if (value) {
             if (reorderEnabled != null) showToast(R.string.reordering_enabled)
             item.icon.alpha = 255
@@ -96,7 +97,7 @@ class MainActivity :
     }
 
     private fun onZoomInPossibleChange(value: Boolean) {
-        val item = toolbar.menu.findItem(R.id.action_zoom_in)
+        val item = actionbar_toolbar.menu.findItem(R.id.action_zoom_in)
         item.icon.alpha = if (value) 255 else 127
     }
 
@@ -236,14 +237,15 @@ class MainActivity :
     override fun onDialogDismissed(dialogId: Int) = Unit
 
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-        mode.menuInflater.inflate(R.menu.bottom_menu, menu)
+        mode.menuInflater.inflate(R.menu.actionmode_menu, menu)
+        actionbar_toolbar.visibility = View.GONE
         return true
     }
 
-    override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?) = true
+    override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?) = false
 
     override fun onActionItemClicked(mode: ActionMode?, item: MenuItem): Boolean {
-        when (item.itemId) {
+        return when (item.itemId) {
             R.id.edit_sounds -> {
                 appViewModel.getSelectedSounds().let { sounds ->
                     when (sounds.size) {
@@ -251,13 +253,17 @@ class MainActivity :
                         else -> showMultipleSoundEditDialog(sounds.map { it.id!! })
                     }
                 }
+                true
             }
-            R.id.delete_sounds -> {}
+            R.id.delete_sounds -> { true }
+            else -> false
         }
-        return true
     }
 
-    override fun onDestroyActionMode(mode: ActionMode?) = appViewModel.disableSelect()
+    override fun onDestroyActionMode(mode: ActionMode?) {
+        appViewModel.disableSelect()
+        actionbar_toolbar.visibility = View.VISIBLE
+    }
 
     private fun showToast(text: CharSequence) {
         toast?.cancel()

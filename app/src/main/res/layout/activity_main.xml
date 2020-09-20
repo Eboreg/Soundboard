@@ -11,13 +11,29 @@
         tools:context=".MainActivity">
 
         <include
-            android:id="@+id/topbar"
-            layout="@layout/topbar"
+            android:id="@+id/actionbar"
+            layout="@layout/actionbar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+<!--
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/actionbar_toolbar"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/actionbar_height"
+            android:minHeight="?attr/actionBarSize"
+            android:theme="?attr/actionBarTheme"
+            app:titleMarginBottom="@dimen/margin_small"
+            app:titleMarginTop="@dimen/margin_small"
+            app:logo="@mipmap/ic_launcher_round"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+        </androidx.appcompat.widget.Toolbar>
+-->
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/category_list_container"
@@ -27,19 +43,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/topbar"
+            app:layout_constraintTop_toBottomOf="@id/actionbar"
             tools:layout="@layout/fragment_category_list" />
-
-<!--
-        <include
-            android:id="@+id/bottombar"
-            layout="@layout/bottombar"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
--->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
