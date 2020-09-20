@@ -75,6 +75,7 @@ class SoundAdapter(private val activity: FragmentActivity, private val appViewMo
         private val colorHelper = ColorHelper(context)
         private lateinit var longClickAnimator: SoundItemLongClickAnimator
         private lateinit var viewModel: SoundViewModel
+        private lateinit var sound: Sound
         private var categoryId: Int? = null
         private var selectEnabled = false
         private var reorderEnabled = false
@@ -96,6 +97,7 @@ class SoundAdapter(private val activity: FragmentActivity, private val appViewMo
             if (!viewModel.isValid)
                 binding.failIcon.visibility = View.VISIBLE
 
+            viewModel.sound.observe(this, { this.sound = it!! })
             viewModel.backgroundColor.observe(this, { color ->
                 longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
@@ -120,13 +122,15 @@ class SoundAdapter(private val activity: FragmentActivity, private val appViewMo
         }
 
         private fun onIsSelectedChange(value: Boolean) {
-            if (value) {
-                binding.selectedIcon.visibility = View.VISIBLE
-                appViewModel.selectSound(viewModel.sound)
-            } else {
-                binding.selectedIcon.visibility = View.INVISIBLE
-                appViewModel.deselectSound(viewModel.sound)
-            }
+            try {
+                if (value) {
+                    binding.selectedIcon.visibility = View.VISIBLE
+                    appViewModel.selectSound(sound)
+                } else {
+                    binding.selectedIcon.visibility = View.INVISIBLE
+                    appViewModel.deselectSound(sound)
+                }
+            } catch (e: UninitializedPropertyAccessException) {}
         }
 
         override fun onReorderEnabledChange(value: Boolean) {

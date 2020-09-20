@@ -154,8 +154,8 @@ class MainActivity :
 
     private fun showMultipleSoundAddDialog() = showDialogFragment(AddMultipleSoundDialogFragment(), null)
 
-    override fun showMultipleSoundEditDialog(sounds: List<Sound>) {
-        soundEditMultipleViewModel.setup(sounds, getString(R.string.multiple_sounds_selected))
+    override fun showMultipleSoundEditDialog(soundIds: List<Int>) {
+        soundEditMultipleViewModel.setup(soundIds, getString(R.string.multiple_sounds_selected))
         showDialogFragment(EditMultipleSoundDialogFragment(), null)
     }
 
@@ -248,7 +248,7 @@ class MainActivity :
                 appViewModel.getSelectedSounds().let { sounds ->
                     when (sounds.size) {
                         1 -> showSoundEditDialog(sounds.first())
-                        else -> showMultipleSoundEditDialog(sounds)
+                        else -> showMultipleSoundEditDialog(sounds.map { it.id!! })
                     }
                 }
             }

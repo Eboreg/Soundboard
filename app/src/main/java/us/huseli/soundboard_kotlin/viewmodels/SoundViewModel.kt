@@ -8,16 +8,22 @@ import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 import us.huseli.soundboard_kotlin.helpers.ColorHelper
 import us.huseli.soundboard_kotlin.interfaces.OrderableItem
 
-class SoundViewModel(val sound: Sound) : ViewModel(), OrderableItem {
+class SoundViewModel(private val _sound: Sound) : ViewModel(), OrderableItem {
     private val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application, viewModelScope).soundDao())
     private val colorHelper = ColorHelper(GlobalApplication.application)
-    // This seems kinda roundabout, but I guess it works?
-    private val _sound = repository.get(sound.id)
-    private val player = GlobalApplication.application.getPlayer(sound).apply {
+    private val player = GlobalApplication.application.getPlayer(_sound).apply {
         setOnCompletionListener { this@SoundViewModel.pause() }
     }
     private val _isPlaying = MutableLiveData(player.isPlaying)
     private val _isSelected = MutableLiveData(false)
+
+    /**
+     * Reasoning behind having a LiveData Sound _and_ a Sound as an initializer parameter:
+     * We want an observable Sound object, that gets updated as the backend data updates.
+     * We also want to, without any unnecessary delays or hassle, be able to init a SoundPlayer
+     * and set those parameters that don't change once a Sound is saved (id, uri)
+     */
+    val sound = repository.get(_sound.id)
 
     val errorMessage = player.errorMessage
     val isValid = player.isValid
@@ -28,17 +34,17 @@ class SoundViewModel(val sound: Sound) : ViewModel(), OrderableItem {
     val isSelected: LiveData<Boolean>
         get() = _isSelected
 
-    val backgroundColor = _sound.switchMap { repository.getBackgroundColor(it?.categoryId) }
+    val backgroundColor = sound.switchMap { repository.getBackgroundColor(it?.categoryId) }
     val textColor = backgroundColor.map { colorHelper.getTextColorForBackgroundColor(it) }
 
     /** Model fields */
-    val id = sound.id
-    val categoryId = _sound.map { it?.categoryId }
-    val name = _sound.map { it?.name ?: "" }
-    val volume = _sound.map { it?.volume ?: 100 }
-    override var order = sound.order
+    val id = _sound.id
+    val categoryId = sound.map { it?.categoryId }
+    val name = sound.map { it?.name ?: "" }
+    val volume = sound.map { it?.volume ?: 100 }
+    override var order = _sound.order
 
-    override fun toString() = sound.name
+    override fun toString() = _sound.name
 
     fun toggleSelected() {
         _isSelected.value = !_isSelected.value!!

@@ -22,4 +22,6 @@ class SoundRepository(private val soundDao: SoundDao) {
 
     fun getMaxOrder(categoryId: Int) = soundDao.getMaxOrder(categoryId) ?: 0
 
+    fun get(soundIds: List<Int>) = soundDao.get(soundIds)
+
 }

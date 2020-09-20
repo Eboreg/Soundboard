@@ -35,4 +35,7 @@ interface SoundDao {
 
     @Query("SELECT backgroundColor FROM SoundCategory WHERE id = :categoryId")
     fun getBackgroundColor(categoryId: Int): LiveData<Int?>
+
+    @Query("SELECT * FROM Sound WHERE id IN (:soundIds)")
+    fun get(soundIds: List<Int>): List<Sound>
 }
