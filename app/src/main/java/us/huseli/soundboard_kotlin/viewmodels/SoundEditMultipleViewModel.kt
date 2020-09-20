@@ -7,23 +7,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.data.Sound
 
-class SoundAddMultipleViewModel : BaseSoundEditViewModel() {
+class SoundEditMultipleViewModel : BaseSoundEditViewModel() {
     private val _sounds = mutableListOf<Sound>()
     private val _name = MutableLiveData("")
     private val _volume = MutableLiveData(100)
+    private val _originalCategoryIds = mutableMapOf<Sound, Int?>()
+    private var _newCategoryId: Int? = null
 
     // Will really only be a placeholder string like 'multiple sounds selected'
     override val name: LiveData<String>
         get() = _name
     override val volume: LiveData<Int>
         get() = _volume
-
-    fun setup(sounds: List<Sound>, name: String) {
-        _sounds.clear()
-        _sounds.addAll(sounds)
-        setName(name)
-        setVolume(100)
-    }
 
     override fun setName(value: String) {
         _name.value = value
@@ -34,9 +29,29 @@ class SoundAddMultipleViewModel : BaseSoundEditViewModel() {
         _sounds.forEach { it.volume = value }
     }
 
-    override fun setCategoryId(value: Int) = _sounds.forEach { it.categoryId = value }
+    override fun setCategoryId(value: Int) {
+        _newCategoryId = value
+    }
 
     override fun save() = viewModelScope.launch(Dispatchers.IO) {
-        _sounds.forEach { repository.insert(it) }
+        _newCategoryId?.let { categoryId ->
+            var order = repository.getMaxOrder(categoryId)
+            _sounds.forEach { sound ->
+                if (_originalCategoryIds[sound] != categoryId) {
+                    sound.categoryId = categoryId
+                    sound.order = ++order
+                }
+            }
+        }
+        repository.update(_sounds)
+    }
+
+    fun setup(sounds: List<Sound>, name: String) {
+        _sounds.clear()
+        _sounds.addAll(sounds)
+        _originalCategoryIds.clear()
+        sounds.forEach { _originalCategoryIds[it] = it.categoryId }
+        setName(name)
+        setVolume(100)
     }
 }

@@ -13,7 +13,7 @@ import us.huseli.soundboard_kotlin.databinding.FragmentCategoryListBinding
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 
-class CategoryListFragment : Fragment(), View.OnTouchListener, ActionMode.Callback {
+class CategoryListFragment : Fragment(), View.OnTouchListener {
     val appViewModel by activityViewModels<AppViewModel>()
     val categoryListViewModel by activityViewModels<CategoryListViewModel>()
 
@@ -63,22 +63,6 @@ class CategoryListFragment : Fragment(), View.OnTouchListener, ActionMode.Callba
             }
         }
         return scaleGestureDetector.onTouchEvent(event)
-    }
-
-    override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun onDestroyActionMode(mode: ActionMode?) {
-        TODO("Not yet implemented")
     }
 
 

@@ -1,6 +1,7 @@
 package us.huseli.soundboard_kotlin.viewmodels
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -14,6 +15,7 @@ class CategoryListViewModel : ViewModel() {
     private val repository = CategoryRepository(SoundboardDatabase.getInstance(GlobalApplication.application, viewModelScope).categoryDao())
     private val colorHelper = ColorHelper(GlobalApplication.application)
     val categories = repository.categories
+    val categoriesWithEmpty = categories.map { listOf(Category("(Unchanged)")) + it }
 
     fun saveOrder(categories: List<Category>) = viewModelScope.launch(Dispatchers.IO) {
         repository.saveOrder(categories)

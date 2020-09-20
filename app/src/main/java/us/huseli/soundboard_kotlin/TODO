@@ -1,5 +1,13 @@
-Maybe edit several sounds at once? (have to implement 'select' funcionality)
+Generalize sound multiple edit viewmodels/fragments
 
+Encapsulate the whole topbar.xml in a Toolbar so we can set it in MainActivity.setSupportActionBar
+and hopefully it gets visually replaced by actionmode bar
+
+When changing category to multiple sounds, make sure they maintain the same internal order
+
+this is fffuuucked.... appviewmodel._selectedsounds contains outdated categoryids because it gets
+it from soundadapter.onisselectedchange which sends a static Sound object from when its viewmodel
+was initialized .... ://///////// :P.PPpPppP
 
 Scrap the nested recyclerviews and implement getItemViewType?
 https://www.raywenderlich.com/272-intermediate-recyclerview-tutorial-with-kotlin

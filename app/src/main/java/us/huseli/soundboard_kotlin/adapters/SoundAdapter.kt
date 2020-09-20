@@ -7,10 +7,8 @@ import android.graphics.BlendMode
 import android.graphics.BlendModeColorFilter
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleRegistry
@@ -25,9 +23,7 @@ import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.databinding.ItemSoundBinding
 import us.huseli.soundboard_kotlin.helpers.ColorHelper
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
-import us.huseli.soundboard_kotlin.interfaces.EditSoundInterface
 import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
-import us.huseli.soundboard_kotlin.interfaces.MultiSelectAdapter
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
 import us.huseli.soundboard_kotlin.viewmodels.SoundViewModelFactory
@@ -35,11 +31,9 @@ import us.huseli.soundboard_kotlin.viewmodels.SoundViewModelFactory
 
 class SoundAdapter(private val activity: FragmentActivity, private val appViewModel: AppViewModel) :
         DataBoundAdapter<Sound, SoundAdapter.ViewHolder, ItemSoundBinding>(),
-        ItemDragHelperAdapter<Sound>,
-        MultiSelectAdapter<Sound> {
+        ItemDragHelperAdapter<Sound> {
 
     private var onItemsReorderedCallback: ((sounds: List<Sound>) -> Unit)? = null
-    private val soundViewModels = mutableSetOf<SoundViewModel>()
     override val currentList = mutableListOf<Sound>()
 
     override fun createViewHolder(binding: ItemSoundBinding, parent: ViewGroup) = ViewHolder(binding, parent.context)
@@ -50,7 +44,6 @@ class SoundAdapter(private val activity: FragmentActivity, private val appViewMo
     override fun bind(holder: ViewHolder, item: Sound) {
         val viewModelFactory = SoundViewModelFactory(item)
         val viewModel = ViewModelProvider(activity, viewModelFactory).get(item.id.toString(), SoundViewModel::class.java)
-        soundViewModels.add(viewModel)
         holder.bind(viewModel)
     }
 
@@ -61,16 +54,6 @@ class SoundAdapter(private val activity: FragmentActivity, private val appViewMo
     fun setOnItemsReordered(function: (sounds: List<Sound>) -> Unit) {
         onItemsReorderedCallback = function
     }
-
-    override fun toggleSelection(position: Int) {
-        TODO("Not yet implemented")
-    }
-
-    override fun clearSelections() = soundViewModels.forEach { it.unselect() }
-
-    override fun getSelectedItemCount() = soundViewModels.filter { it.isSelected.value == true }.size
-
-    override fun getSelectedItems() = soundViewModels.filter { it.isSelected.value == true }.map { it.sound }
 
 
     inner class DiffCallback(newRows: List<Sound>, oldRows: List<Sound>) :
@@ -85,14 +68,16 @@ class SoundAdapter(private val activity: FragmentActivity, private val appViewMo
             DataBoundViewHolder<ItemSoundBinding>(binding),
             View.OnClickListener,
             View.OnLongClickListener,
-            PopupMenu.OnMenuItemClickListener,
             AppViewModelListenerInterface {
-        private val clickAnimator = (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply { setTarget(binding.soundCard) }
+        private val clickAnimator = (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
+            setTarget(binding.soundCard)
+        }
         private val colorHelper = ColorHelper(context)
         private lateinit var longClickAnimator: SoundItemLongClickAnimator
         private lateinit var viewModel: SoundViewModel
         private var categoryId: Int? = null
         private var selectEnabled = false
+        private var reorderEnabled = false
         override val lifecycleRegistry = LifecycleRegistry(this)
 
         init {
@@ -121,44 +106,43 @@ class SoundAdapter(private val activity: FragmentActivity, private val appViewMo
                     binding.volumeBar.progressDrawable.colorFilter = BlendModeColorFilter(color, BlendMode.HUE)
                 }
             })
-            viewModel.isPlaying.observe(this, { onIsPlayingChange(it) })
+            viewModel.isPlaying.observe(this, { binding.playIcon.visibility = if (it) View.VISIBLE else View.INVISIBLE })
             viewModel.isSelected.observe(this, { onIsSelectedChange(it) })
             viewModel.categoryId.observe(this, { categoryId = it })
             appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
-            appViewModel.selectEnabled.observe(this, { selectEnabled = it })
+            appViewModel.selectEnabled.observe(this, { onSelectEnabledChange(it) })
+        }
+
+        override fun onSelectEnabledChange(value: Boolean) {
+            selectEnabled = value
+            if (!value)
+                viewModel.unselect()
         }
 
         private fun onIsSelectedChange(value: Boolean) {
             if (value) {
                 binding.selectedIcon.visibility = View.VISIBLE
-                appViewModel.increaseSelectedCount()
+                appViewModel.selectSound(viewModel.sound)
             } else {
                 binding.selectedIcon.visibility = View.INVISIBLE
-                appViewModel.decreaseSelectedCount()
+                appViewModel.deselectSound(viewModel.sound)
             }
         }
 
-        private fun onIsPlayingChange(value: Boolean) {
-            binding.playIcon.visibility = if (value) View.VISIBLE else View.INVISIBLE
+        override fun onReorderEnabledChange(value: Boolean) {
+            reorderEnabled = value
+            //if (value) binding.soundCard.setOnLongClickListener(null) else binding.soundCard.setOnLongClickListener(this)
         }
-
-        override fun onReorderEnabledChange(value: Boolean) =
-                if (value) binding.soundCard.setOnLongClickListener(null) else binding.soundCard.setOnLongClickListener(this)
 
         override fun onZoomLevelChange(value: Int) = Unit
 
         override fun onLongClick(v: View): Boolean {
-/*
-            PopupMenu(v.context, v).apply {
-                menuInflater.inflate(R.menu.sound_context_menu, menu)
-                setOnMenuItemClickListener(this@ViewHolder)
-                show()
-            }
-*/
-            appViewModel.enableSelect()
-            viewModel.select()
             longClickAnimator.start()
-            return true
+            return if (reorderEnabled) false
+            else {
+                viewModel.select()
+                true
+            }
         }
 
         override fun onClick(view: View?) {
@@ -168,23 +152,9 @@ class SoundAdapter(private val activity: FragmentActivity, private val appViewMo
             clickAnimator.start()
         }
 
-        fun onItemSelected() = longClickAnimator.start()
+        //fun onItemSelected() = longClickAnimator.start()
 
         override fun toString() = super.toString() + " '" + binding.soundName.text + "'"
-
-        override fun onMenuItemClick(item: MenuItem?): Boolean {
-            try {
-                when (item?.itemId) {
-                    R.id.sound_context_menu_edit ->
-                        (activity as EditSoundInterface).showSoundEditDialog(viewModel.id!!, categoryId)
-                    R.id.sound_context_menu_delete ->
-                        (activity as EditSoundInterface).showSoundDeleteDialog(viewModel.id!!, viewModel.name.value)
-                }
-            } catch (e: NullPointerException) {
-                Toast.makeText(context, R.string.data_not_fetched_yet, Toast.LENGTH_SHORT).show()
-            }
-            return true
-        }
 
         private fun showErrorToast() = Toast.makeText(context, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
     }

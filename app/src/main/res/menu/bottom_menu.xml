@@ -6,11 +6,6 @@
         android:title="@string/edit" />
 
     <item
-        android:id="@+id/move_sounds"
-        android:icon="@drawable/ic_move"
-        android:title="@string/move" />
-
-    <item
         android:id="@+id/delete_sounds"
         android:icon="@drawable/ic_delete"
         android:title="@string/delete" />

@@ -149,6 +149,8 @@ class CategoryAdapter(private val activity: FragmentActivity, private val catego
             }
         }
 
+        override fun onSelectEnabledChange(value: Boolean) {}
+
         private fun zoomLevelToSpanCount(zoomLevel: Int): Int {
             val config = binding.root.resources.configuration
             if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {

@@ -13,8 +13,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        tools:menu="@menu/sound_context_menu">
+        android:orientation="vertical">
 
         <!--suppress Annotator -->
         <androidx.cardview.widget.CardView

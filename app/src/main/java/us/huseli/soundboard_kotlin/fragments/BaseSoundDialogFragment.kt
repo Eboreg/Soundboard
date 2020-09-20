@@ -19,7 +19,7 @@ import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 
 abstract class BaseSoundDialogFragment<VM: BaseSoundEditViewModel> : DialogFragment() {
     internal val categoryListViewModel by activityViewModels<CategoryListViewModel>()
-    internal lateinit var binding: FragmentEditSoundBinding
+    internal open lateinit var binding: FragmentEditSoundBinding
 
     internal abstract val viewModel: VM
     internal abstract val title: Int

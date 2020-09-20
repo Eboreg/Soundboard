@@ -8,10 +8,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
-import android.view.ContextMenu
+import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -26,17 +25,15 @@ import us.huseli.soundboard_kotlin.fragments.*
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
 import us.huseli.soundboard_kotlin.interfaces.EditSoundInterface
-import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
-import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
-import us.huseli.soundboard_kotlin.viewmodels.SoundAddMultipleViewModel
-import us.huseli.soundboard_kotlin.viewmodels.SoundAddViewModel
+import us.huseli.soundboard_kotlin.viewmodels.*
 
 class MainActivity :
         AppCompatActivity(),
         EditSoundInterface,
         EditCategoryInterface,
         AppViewModelListenerInterface,
-        ColorPickerDialogListener {
+        ColorPickerDialogListener,
+        ActionMode.Callback {
     private var categories = emptyList<Category>()
 
     private val preferences: SharedPreferences by lazy { getPreferences(Context.MODE_PRIVATE) }
@@ -44,9 +41,11 @@ class MainActivity :
     private val appViewModel by viewModels<AppViewModel>()
     private val soundAddViewModel by viewModels<SoundAddViewModel>()
     private val soundAddMultipleViewModel by viewModels<SoundAddMultipleViewModel>()
+    private val soundEditMultipleViewModel by viewModels<SoundEditMultipleViewModel>()
     private var toast: Toast? = null
 
     private lateinit var binding: ActivityMainBinding
+    private var actionMode: ActionMode? = null
 
     // These are just to know whether a toast should be shown on value change
     private var zoomLevel: Int? = null
@@ -66,6 +65,7 @@ class MainActivity :
         }
 
         appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
+        appViewModel.selectEnabled.observe(this, { onSelectEnabledChange(it) })
         preferences.getInt("zoomLevel", 0).let { if (it != 0) appViewModel.setZoomLevel(it) }
 
         // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment
@@ -73,11 +73,6 @@ class MainActivity :
             categories = it
             if (categories.isEmpty()) categoryListViewModel.create(getString(R.string.default_category))
         })
-    }
-
-    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo)
-        menuInflater.inflate(R.menu.bottom_menu, menu)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -159,6 +154,11 @@ class MainActivity :
 
     private fun showMultipleSoundAddDialog() = showDialogFragment(AddMultipleSoundDialogFragment(), null)
 
+    override fun showMultipleSoundEditDialog(sounds: List<Sound>) {
+        soundEditMultipleViewModel.setup(sounds, getString(R.string.multiple_sounds_selected))
+        showDialogFragment(EditMultipleSoundDialogFragment(), null)
+    }
+
     private fun makeSoundFromUri(uri: Uri, flags: Int): Sound {
         val soundName: String
         // FLAG_GRANT_READ_URI_PERMISSION is not one of the permissions we are requesting
@@ -200,10 +200,10 @@ class MainActivity :
 
     private fun showSoundAddDialog() = showDialogFragment(AddSoundDialogFragment(), null)
 
-    override fun showSoundEditDialog(soundId: Int, categoryId: Int?) {
-        var categoryIndex = categories.map { it.id }.indexOf(categoryId)
+    override fun showSoundEditDialog(sound: Sound) {
+        var categoryIndex = categories.map { it.id }.indexOf(sound.categoryId)
         if (categoryIndex == -1) categoryIndex = 0
-        showDialogFragment(EditSoundDialogFragment.newInstance(soundId, categoryIndex), null)
+        showDialogFragment(EditSoundDialogFragment.newInstance(sound.id!!, categoryIndex), null)
     }
 
     override fun showSoundDeleteDialog(soundId: Int, soundName: String?) {
@@ -219,12 +219,45 @@ class MainActivity :
         }
     }
 
+    override fun onSelectEnabledChange(value: Boolean) {
+        actionMode = if (value)
+            startActionMode(this)
+        else {
+            actionMode?.finish()
+            null
+        }
+    }
+
     override fun onColorSelected(dialogId: Int, color: Int) {
         // Have to do this just because ColorPickerDialog won't accept a Fragment as context :/
         (supportFragmentManager.findFragmentByTag(DIALOG_TAGS[dialogId]) as ColorPickerDialogListener).onColorSelected(dialogId, color)
     }
 
     override fun onDialogDismissed(dialogId: Int) = Unit
+
+    override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+        mode.menuInflater.inflate(R.menu.bottom_menu, menu)
+        return true
+    }
+
+    override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?) = true
+
+    override fun onActionItemClicked(mode: ActionMode?, item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.edit_sounds -> {
+                appViewModel.getSelectedSounds().let { sounds ->
+                    when (sounds.size) {
+                        1 -> showSoundEditDialog(sounds.first())
+                        else -> showMultipleSoundEditDialog(sounds)
+                    }
+                }
+            }
+            R.id.delete_sounds -> {}
+        }
+        return true
+    }
+
+    override fun onDestroyActionMode(mode: ActionMode?) = appViewModel.disableSelect()
 
     private fun showToast(text: CharSequence) {
         toast?.cancel()

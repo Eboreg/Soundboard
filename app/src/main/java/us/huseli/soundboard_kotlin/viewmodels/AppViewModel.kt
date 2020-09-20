@@ -3,13 +3,14 @@ package us.huseli.soundboard_kotlin.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import us.huseli.soundboard_kotlin.data.Sound
 
 class AppViewModel : ViewModel() {
     private val _zoomLevel = MutableLiveData(0)
     private val _reorderEnabled: MutableLiveData<Boolean> = MutableLiveData(false)
     private val _zoomInPossible = MutableLiveData(true)
     private val _selectEnabled = MutableLiveData(false)
-    private var _selectedCount = 0
+    private val _selectedSounds = mutableListOf<Sound>()
 
     val selectEnabled: LiveData<Boolean>
         get() = _selectEnabled
@@ -23,22 +24,22 @@ class AppViewModel : ViewModel() {
     val reorderEnabled: LiveData<Boolean>
         get() = _reorderEnabled
 
-    fun enableSelect() {
-        _selectEnabled.value = true
+    fun getSelectedSounds() = _selectedSounds.toList()
+
+    fun selectSound(sound: Sound) {
+        if (_selectEnabled.value != true) _selectEnabled.value = true
+        if (!_selectedSounds.contains(sound)) _selectedSounds.add(sound)
+    }
+
+    fun deselectSound(sound: Sound) {
+        _selectedSounds.remove(sound)
+        if (_selectedSounds.size == 0)
+            disableSelect()
     }
 
     fun disableSelect() {
-        _selectEnabled.value = false
-        _selectedCount = 0
-    }
-
-    fun increaseSelectedCount() {
-        _selectedCount++
-    }
-
-    fun decreaseSelectedCount() {
-        _selectedCount--
-        if (_selectedCount <= 0) disableSelect()
+        if (_selectEnabled.value != false) _selectEnabled.value = false
+        _selectedSounds.clear()
     }
 
     fun zoomIn() {

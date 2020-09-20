@@ -24,12 +24,13 @@
             android:name="us.huseli.soundboard_kotlin.fragments.CategoryListFragment"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:layout_constraintBottom_toTopOf="@id/bottombar"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/topbar"
             tools:layout="@layout/fragment_category_list" />
 
+<!--
         <include
             android:id="@+id/bottombar"
             layout="@layout/bottombar"
@@ -38,6 +39,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+-->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

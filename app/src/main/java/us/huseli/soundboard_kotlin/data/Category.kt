@@ -1,5 +1,6 @@
 package us.huseli.soundboard_kotlin.data
 
+import android.graphics.Color
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
@@ -15,6 +16,7 @@ data class Category(
 ) : OrderableItem {
     constructor(name: String, backgroundColor: Int, order: Int): this(null, name, backgroundColor, order, false)
     @Ignore constructor(name: String, backgroundColor: Int): this(name, backgroundColor, 0)
+    @Ignore constructor(name: String): this(name, Color.DKGRAY)
 
     override fun toString() = name
 }
