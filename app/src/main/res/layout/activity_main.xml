@@ -19,26 +19,10 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-<!--
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/actionbar_toolbar"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/actionbar_height"
-            android:minHeight="?attr/actionBarSize"
-            android:theme="?attr/actionBarTheme"
-            app:titleMarginBottom="@dimen/margin_small"
-            app:titleMarginTop="@dimen/margin_small"
-            app:logo="@mipmap/ic_launcher_round"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-        </androidx.appcompat.widget.Toolbar>
--->
-
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/category_list_container"
             android:name="us.huseli.soundboard_kotlin.fragments.CategoryListFragment"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

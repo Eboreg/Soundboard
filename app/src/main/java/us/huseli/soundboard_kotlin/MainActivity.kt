@@ -8,13 +8,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
-import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ActionMode
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
@@ -61,9 +60,7 @@ class MainActivity :
         binding = ActivityMainBinding.inflate(layoutInflater)
 
         setSupportActionBar(actionbar_toolbar)
-        supportActionBar?.apply {
-            setDisplayShowTitleEnabled(false)
-        }
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
         appViewModel.selectEnabled.observe(this, { onSelectEnabledChange(it) })
@@ -85,20 +82,20 @@ class MainActivity :
     }
 
     override fun onReorderEnabledChange(value: Boolean) {
-        val item = actionbar_toolbar.menu.findItem(R.id.action_toggle_reorder)
+        val item = actionbar_toolbar?.menu?.findItem(R.id.action_toggle_reorder)
         if (value) {
             if (reorderEnabled != null) showToast(R.string.reordering_enabled)
-            item.icon.alpha = 255
+            item?.icon?.alpha = 255
         } else {
             if (reorderEnabled != null) showToast(R.string.reordering_disabled)
-            item.icon.alpha = 127
+            item?.icon?.alpha = 127
         }
         reorderEnabled = value
     }
 
     private fun onZoomInPossibleChange(value: Boolean) {
-        val item = actionbar_toolbar.menu.findItem(R.id.action_zoom_in)
-        item.icon.alpha = if (value) 255 else 127
+        val item = actionbar_toolbar?.menu?.findItem(R.id.action_zoom_in)
+        item?.icon?.alpha = if (value) 255 else 127
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -222,7 +219,7 @@ class MainActivity :
 
     override fun onSelectEnabledChange(value: Boolean) {
         actionMode = if (value)
-            startActionMode(this)
+            startSupportActionMode(this)
         else {
             actionMode?.finish()
             null
@@ -238,7 +235,6 @@ class MainActivity :
 
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
         mode.menuInflater.inflate(R.menu.actionmode_menu, menu)
-        actionbar_toolbar.visibility = View.GONE
         return true
     }
 
@@ -262,7 +258,6 @@ class MainActivity :
 
     override fun onDestroyActionMode(mode: ActionMode?) {
         appViewModel.disableSelect()
-        actionbar_toolbar.visibility = View.VISIBLE
     }
 
     private fun showToast(text: CharSequence) {

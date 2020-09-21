@@ -31,6 +31,7 @@ import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
+import kotlin.math.roundToInt
 
 class CategoryAdapter(private val activity: FragmentActivity, private val categoryListViewModel: CategoryListViewModel, private val appViewModel: AppViewModel) :
         DataBoundAdapter<Category, CategoryAdapter.ViewHolder, ItemCategoryBinding>(),
@@ -159,7 +160,7 @@ class CategoryAdapter(private val activity: FragmentActivity, private val catego
                 return 4 - zoomLevel
             } else {
                 // Zoomlevel 0 in landscape mode = this number of columns:
-                val zoomLevel0SpanCount: Int = 3 * (config.screenWidthDp / config.screenHeightDp)
+                val zoomLevel0SpanCount: Int = (2.5 * (config.screenWidthDp / config.screenHeightDp)).roundToInt()
                 if (zoomLevel >= (zoomLevel0SpanCount - 1)) return 1
                 return zoomLevel0SpanCount - zoomLevel
             }
