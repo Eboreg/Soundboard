@@ -1,7 +1,6 @@
 package us.huseli.soundboard_kotlin.adapters
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -31,9 +30,10 @@ import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
-import kotlin.math.roundToInt
 
-class CategoryAdapter(private val activity: FragmentActivity, private val categoryListViewModel: CategoryListViewModel, private val appViewModel: AppViewModel) :
+class CategoryAdapter(
+        private val activity: FragmentActivity, private val categoryListViewModel: CategoryListViewModel,
+        private val appViewModel: AppViewModel, private val initialSpanCount: Int) :
         DataBoundAdapter<Category, CategoryAdapter.ViewHolder, ItemCategoryBinding>(),
         ItemDragHelperAdapter<Category> {
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 20) }
@@ -93,7 +93,9 @@ class CategoryAdapter(private val activity: FragmentActivity, private val catego
             binding.categoryCollapseButton.setOnClickListener(this)
             binding.soundList.apply {
                 adapter = soundAdapter
-                layoutManager = GridLayoutManager(context, zoomLevelToSpanCount(0))
+                layoutManager = GridLayoutManager(context, initialSpanCount).also { lm ->
+                    appViewModel.spanCount.observe(this@ViewHolder, { lm.spanCount = it })
+                }
                 setRecycledViewPool(soundViewPool)
             }
             categoryViewModel.sounds.observe(this, { sounds ->
@@ -111,7 +113,7 @@ class CategoryAdapter(private val activity: FragmentActivity, private val catego
                 collapseButtonAnimator.animate(collapsed)
                 binding.soundList.visibility = if (collapsed) View.GONE else View.VISIBLE
             })
-            appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
+
             appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
         }
 
@@ -143,28 +145,7 @@ class CategoryAdapter(private val activity: FragmentActivity, private val catego
         override fun onReorderEnabledChange(value: Boolean) =
                 if (value) soundItemTouchHelper.attachToRecyclerView(binding.soundList) else soundItemTouchHelper.attachToRecyclerView(null)
 
-        override fun onZoomLevelChange(value: Int) {
-            (binding.soundList.layoutManager as GridLayoutManager).apply {
-                spanCount = zoomLevelToSpanCount(value)
-                appViewModel.setZoomInPossible(spanCount > 1)
-            }
-        }
-
         override fun onSelectEnabledChange(value: Boolean) {}
-
-        private fun zoomLevelToSpanCount(zoomLevel: Int): Int {
-            val config = binding.root.resources.configuration
-            if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                // Zoomlevel 0 in portrait mode = 4 columns, which means max zoom = zoomlevel 3
-                if (zoomLevel >= 3) return 1
-                return 4 - zoomLevel
-            } else {
-                // Zoomlevel 0 in landscape mode = this number of columns:
-                val zoomLevel0SpanCount: Int = (2.5 * (config.screenWidthDp / config.screenHeightDp)).roundToInt()
-                if (zoomLevel >= (zoomLevel0SpanCount - 1)) return 1
-                return zoomLevel0SpanCount - zoomLevel
-            }
-        }
 
         override fun getViewModelStore() = viewModelStore
     }

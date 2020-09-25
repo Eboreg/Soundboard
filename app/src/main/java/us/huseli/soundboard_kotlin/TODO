@@ -1,6 +1,3 @@
-Generalize the landscape mode CategoryAdapter.zoomLevelToSpanCount so it's universally
-reasonable somehow
-
 Generalize sound multiple edit viewmodels/fragments
 
 Scrap the nested recyclerviews and implement getItemViewType?

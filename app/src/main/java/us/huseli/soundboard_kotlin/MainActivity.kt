@@ -1,9 +1,7 @@
 package us.huseli.soundboard_kotlin
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -14,7 +12,6 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
-import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import kotlinx.android.synthetic.main.actionbar.*
@@ -22,9 +19,7 @@ import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.databinding.ActivityMainBinding
 import us.huseli.soundboard_kotlin.fragments.*
-import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
-import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
-import us.huseli.soundboard_kotlin.interfaces.EditSoundInterface
+import us.huseli.soundboard_kotlin.interfaces.*
 import us.huseli.soundboard_kotlin.viewmodels.*
 
 class MainActivity :
@@ -33,10 +28,11 @@ class MainActivity :
         EditCategoryInterface,
         AppViewModelListenerInterface,
         ColorPickerDialogListener,
+        ToastInterface,
+        ZoomInterface,
         ActionMode.Callback {
     private var categories = emptyList<Category>()
 
-    private val preferences: SharedPreferences by lazy { getPreferences(Context.MODE_PRIVATE) }
     private val categoryListViewModel by viewModels<CategoryListViewModel>()
     private val appViewModel by viewModels<AppViewModel>()
     private val soundAddViewModel by viewModels<SoundAddViewModel>()
@@ -47,9 +43,7 @@ class MainActivity :
     private lateinit var binding: ActivityMainBinding
     private var actionMode: ActionMode? = null
 
-    // These are just to know whether a toast should be shown on value change
-    private var zoomLevel: Int? = null
-
+    // Just to know whether a toast should be shown on value change
     private var reorderEnabled: Boolean? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,9 +56,7 @@ class MainActivity :
         setSupportActionBar(actionbar_toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        appViewModel.zoomLevel.observe(this, { value -> onZoomLevelChange(value) })
         appViewModel.selectEnabled.observe(this, { onSelectEnabledChange(it) })
-        preferences.getInt("zoomLevel", 0).let { if (it != 0) appViewModel.setZoomLevel(it) }
 
         // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment
         categoryListViewModel.categories.observe(this, {
@@ -85,25 +77,26 @@ class MainActivity :
         val item = actionbar_toolbar?.menu?.findItem(R.id.action_toggle_reorder)
         if (value) {
             if (reorderEnabled != null) showToast(R.string.reordering_enabled)
-            item?.icon?.alpha = 255
+            item?.icon?.alpha = 204
         } else {
             if (reorderEnabled != null) showToast(R.string.reordering_disabled)
-            item?.icon?.alpha = 127
+            item?.icon?.alpha = 102
         }
         reorderEnabled = value
     }
 
     private fun onZoomInPossibleChange(value: Boolean) {
         val item = actionbar_toolbar?.menu?.findItem(R.id.action_zoom_in)
-        item?.icon?.alpha = if (value) 255 else 127
+        item?.isEnabled = value
+        item?.icon?.alpha = if (value) 204 else 102
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_add_sound -> startAddSoundActivity()
             R.id.action_toggle_reorder -> appViewModel.toggleReorderEnabled()
-            R.id.action_zoom_in -> appViewModel.zoomIn()
-            R.id.action_zoom_out -> appViewModel.zoomOut()
+            R.id.action_zoom_in -> zoomIn()
+            R.id.action_zoom_out -> zoomOut()
             R.id.action_add_category -> showCategoryAddDialog()
         }
         return true
@@ -208,15 +201,6 @@ class MainActivity :
         showDialogFragment(DeleteSoundFragment.newInstance(soundId, soundName ?: ""), null)
     }
 
-    override fun onZoomLevelChange(value: Int) {
-        if (zoomLevel != null) showToast(getString(R.string.zoom_level_colon) + value)
-        zoomLevel = value
-        preferences.edit {
-            putInt("zoomLevel", value)
-            apply()
-        }
-    }
-
     override fun onSelectEnabledChange(value: Boolean) {
         actionMode = if (value)
             startSupportActionMode(this)
@@ -260,12 +244,19 @@ class MainActivity :
         appViewModel.disableSelect()
     }
 
-    private fun showToast(text: CharSequence) {
+    override fun showToast(text: CharSequence) {
         toast?.cancel()
         toast = Toast.makeText(this, text, Toast.LENGTH_SHORT).apply { show() }
     }
 
-    private fun showToast(textResource: Int) = showToast(getText(textResource))
+    override fun showToast(textResource: Int) = showToast(getText(textResource))
+
+    override fun zoomOut() =
+        appViewModel.zoomOut()?.let { showToast(getString(R.string.zoom_level_percent, it)) }
+
+    override fun zoomIn() =
+        appViewModel.zoomIn()?.let { showToast(getString(R.string.zoom_level_percent, it)) }
+
 
     companion object {
         const val REQUEST_SOUND_GET = 1

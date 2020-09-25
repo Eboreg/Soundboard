@@ -135,10 +135,7 @@ class SoundAdapter(private val activity: FragmentActivity, private val appViewMo
 
         override fun onReorderEnabledChange(value: Boolean) {
             reorderEnabled = value
-            //if (value) binding.soundCard.setOnLongClickListener(null) else binding.soundCard.setOnLongClickListener(this)
         }
-
-        override fun onZoomLevelChange(value: Int) = Unit
 
         override fun onLongClick(v: View): Boolean {
             longClickAnimator.start()
@@ -155,8 +152,6 @@ class SoundAdapter(private val activity: FragmentActivity, private val appViewMo
             else viewModel.playOrPause()
             clickAnimator.start()
         }
-
-        //fun onItemSelected() = longClickAnimator.start()
 
         override fun toString() = super.toString() + " '" + binding.soundName.text + "'"
 
