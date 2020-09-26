@@ -10,9 +10,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.recyclerview.widget.DiffUtil
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.R
@@ -29,7 +29,7 @@ import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
 import us.huseli.soundboard_kotlin.viewmodels.SoundViewModelFactory
 
 
-class SoundAdapter(private val activity: FragmentActivity, private val appViewModel: AppViewModel) :
+class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private val appViewModel: AppViewModel) :
         DataBoundAdapter<Sound, SoundAdapter.ViewHolder, ItemSoundBinding>(),
         ItemDragHelperAdapter<Sound> {
 
@@ -43,7 +43,7 @@ class SoundAdapter(private val activity: FragmentActivity, private val appViewMo
 
     override fun bind(holder: ViewHolder, item: Sound) {
         val viewModelFactory = SoundViewModelFactory(item)
-        val viewModel = ViewModelProvider(activity, viewModelFactory).get(item.id.toString(), SoundViewModel::class.java)
+        val viewModel = ViewModelProvider(viewModelStoreOwner, viewModelFactory).get(item.id.toString(), SoundViewModel::class.java)
         holder.bind(viewModel)
     }
 
@@ -73,12 +73,12 @@ class SoundAdapter(private val activity: FragmentActivity, private val appViewMo
             setTarget(binding.soundCard)
         }
         private val colorHelper = ColorHelper(context)
-        private lateinit var longClickAnimator: SoundItemLongClickAnimator
-        private lateinit var viewModel: SoundViewModel
-        private lateinit var sound: Sound
         private var categoryId: Int? = null
         private var selectEnabled = false
         private var reorderEnabled = false
+        private lateinit var longClickAnimator: SoundItemLongClickAnimator
+        private lateinit var viewModel: SoundViewModel
+        private lateinit var sound: Sound
         override val lifecycleRegistry = LifecycleRegistry(this)
 
         init {

@@ -1,14 +1,9 @@
-Generalize sound multiple edit viewmodels/fragments
+Implement MainActivity.onActionClicked -> delete sounds (reuse DeleteSoundFragment, now unused)
 
 Scrap the nested recyclerviews and implement getItemViewType?
 https://www.raywenderlich.com/272-intermediate-recyclerview-tutorial-with-kotlin
 
-Trash CategoryViewModel?
-
 Drag sounds between categories? Is it even possible?
-
-Does title in topmenu have to take so much space?
-A: https://stackoverflow.com/q/15917973
 
 Trash CategoryListFragment, put it all in MainActivity?
 

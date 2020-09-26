@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
@@ -27,6 +26,7 @@ import us.huseli.soundboard_kotlin.helpers.SoundItemDragHelperCallback
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
 import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
+import us.huseli.soundboard_kotlin.interfaces.ToastInterface
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
@@ -65,6 +65,7 @@ class CategoryAdapter(
 
         override fun areContentsTheSame(oldItem: Category, newItem: Category) = oldItem.name == newItem.name && oldItem.backgroundColor == newItem.backgroundColor
     }
+
 
     /**
      * Represents one individual category with its sound list.
@@ -138,7 +139,7 @@ class CategoryAdapter(
                     binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(categoryId, category.name, soundCount ?: 0)
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@CategoryAdapter.activity, R.string.not_initialized_yet, Toast.LENGTH_SHORT).show()
+                (activity as ToastInterface).showToast(R.string.not_initialized_yet)
             }
         }
 

@@ -1,8 +1,11 @@
 package us.huseli.soundboard_kotlin.data
 
+import android.content.ContentResolver
+import android.content.Intent
 import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
+import android.provider.OpenableColumns
 import androidx.room.*
 import us.huseli.soundboard_kotlin.interfaces.OrderableItem
 
@@ -31,6 +34,23 @@ data class Sound(
             parcel.readInt())
 
     @Ignore constructor(name: String, uri: Uri): this(null, null, name, uri, 0, 100)
+
+    @Ignore constructor(uri: Uri, flags: Int, contentResolver: ContentResolver): this("", uri) {
+        // FLAG_GRANT_READ_URI_PERMISSION is not one of the permissions we are requesting
+        // here, so bitwise-AND it away
+        contentResolver.takePersistableUriPermission(uri, flags and Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        when (val cursor = contentResolver.query(uri, null, null, null, null)) {
+            null -> name = ""
+            else -> {
+                cursor.moveToFirst()
+                var filename = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                if (filename.contains("."))
+                    filename = filename.substring(0, filename.lastIndexOf("."))
+                name = filename
+                cursor.close()
+            }
+        }
+    }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeValue(id)

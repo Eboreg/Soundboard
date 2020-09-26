@@ -15,7 +15,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!--suppress Annotator -->
         <androidx.cardview.widget.CardView
             android:id="@+id/sound_card"
             android:layout_width="0dp"
@@ -54,44 +53,41 @@
                     android:id="@+id/play_icon"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:contentDescription=""
+                    android:contentDescription="@string/playing"
                     android:visibility="invisible"
                     app:drawableColor="@{viewModel.textColor}"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/ic_playing"
-                    tools:ignore="ContentDescription" />
+                    app:srcCompat="@drawable/ic_playing" />
 
                 <ImageView
                     android:id="@+id/fail_icon"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:contentDescription=""
+                    android:contentDescription="@string/load_failed"
                     android:visibility="invisible"
                     app:drawableColor="@{viewModel.textColor}"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/ic_fail"
-                    tools:ignore="ContentDescription" />
+                    app:srcCompat="@drawable/ic_fail" />
 
                 <ImageView
                     android:id="@+id/selected_icon"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="#80B2EBF2"
-                    android:contentDescription=""
+                    android:contentDescription="@string/selected"
                     android:visibility="invisible"
                     app:drawableColor="@{viewModel.textColor}"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/ic_check"
-                    tools:ignore="ContentDescription" />
+                    app:srcCompat="@drawable/ic_check" />
 
                 <ProgressBar
                     android:id="@+id/volume_bar"

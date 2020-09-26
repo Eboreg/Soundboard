@@ -36,9 +36,10 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
                 val catName = binding.categoryName.text.toString().trim()
                 if (catName.isEmpty())
                     Toast.makeText(requireContext(), R.string.name_cannot_be_empty, Toast.LENGTH_SHORT).show()
-                else
+                else {
                     viewModel.setName(catName)
-                viewModel.save()
+                    viewModel.save()
+                }
             }
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
             binding.selectColourButton.setOnClickListener { onSelectColourClick() }

@@ -2,9 +2,9 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="?attr/colorPrimary"
     android:layout_width="match_parent"
     android:layout_height="@dimen/actionbar_height"
+    android:background="?attr/colorPrimary"
     android:padding="2dp"
     tools:ignore="Overdraw">
 
@@ -13,9 +13,9 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:contentDescription="@string/app_name"
+        android:paddingVertical="4dp"
         android:paddingStart="4dp"
         android:paddingEnd="0dp"
-        android:paddingVertical="4dp"
         android:scaleType="centerInside"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintDimensionRatio="1:1"

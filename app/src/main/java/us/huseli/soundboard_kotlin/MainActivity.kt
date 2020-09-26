@@ -2,10 +2,8 @@ package us.huseli.soundboard_kotlin
 
 import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.OpenableColumns
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -19,12 +17,14 @@ import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.databinding.ActivityMainBinding
 import us.huseli.soundboard_kotlin.fragments.*
-import us.huseli.soundboard_kotlin.interfaces.*
+import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
+import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
+import us.huseli.soundboard_kotlin.interfaces.ToastInterface
+import us.huseli.soundboard_kotlin.interfaces.ZoomInterface
 import us.huseli.soundboard_kotlin.viewmodels.*
 
 class MainActivity :
         AppCompatActivity(),
-        EditSoundInterface,
         EditCategoryInterface,
         AppViewModelListenerInterface,
         ColorPickerDialogListener,
@@ -46,6 +46,9 @@ class MainActivity :
     // Just to know whether a toast should be shown on value change
     private var reorderEnabled: Boolean? = null
 
+
+    /** Overridden Android methods */
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -61,7 +64,7 @@ class MainActivity :
         // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment
         categoryListViewModel.categories.observe(this, {
             categories = it
-            if (categories.isEmpty()) categoryListViewModel.create(getString(R.string.default_category))
+            if (it.isEmpty()) categoryListViewModel.create(getString(R.string.default_category))
         })
     }
 
@@ -72,6 +75,87 @@ class MainActivity :
         appViewModel.zoomInPossible.observe(this, { onZoomInPossibleChange(it) })
         return true
     }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_add_sound -> startAddSoundActivity()
+            R.id.action_toggle_reorder -> appViewModel.toggleReorderEnabled()
+            R.id.action_zoom_in -> zoomIn()
+            R.id.action_zoom_out -> zoomOut()
+            R.id.action_add_category -> showDialogFragment(
+                    AddCategoryDialogFragment.newInstance(DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG)), CATEGORY_ADD_DIALOG_TAG)
+        }
+        return true
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        // We have returned from file chooser dialog
+        if (requestCode == REQUEST_SOUND_GET && resultCode == Activity.RESULT_OK && data != null) {
+            if (data.clipData != null) {
+                // Multiple items selected; from data.clipData we get Uri:s
+                data.clipData?.let { clipData ->
+                    val sounds = mutableListOf<Sound>()
+                    for (i in 0 until clipData.itemCount) {
+                        sounds.add(Sound(clipData.getItemAt(i).uri, data.flags, contentResolver))
+                    }
+                    soundAddMultipleViewModel.setup(sounds, getString(R.string.multiple_sounds_selected))
+                    showDialogFragment(AddMultipleSoundDialogFragment(), null)
+                }
+            } else {
+                // One item selected; data.data is a Uri
+                data.data?.let { uri ->
+                    val sound = Sound(uri, data.flags, contentResolver)
+                    soundAddViewModel.setup(sound)
+                    showDialogFragment(AddSoundDialogFragment(), null)
+                }
+            }
+        }
+    }
+
+    override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+        mode.menuInflater.inflate(R.menu.actionmode_menu, menu)
+        return true
+    }
+
+    override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?) = false
+
+    override fun onActionItemClicked(mode: ActionMode?, item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.edit_sounds -> {
+                appViewModel.getSelectedSounds().let { sounds ->
+                    when (sounds.size) {
+                        1 -> showSoundEditDialog(sounds.first())
+                        else -> {
+                            soundEditMultipleViewModel.setup(sounds.map { it.id!! }, getString(R.string.multiple_sounds_selected))
+                            showDialogFragment(EditMultipleSoundDialogFragment(), null)
+                        }
+                    }
+                }
+                true
+            }
+            R.id.delete_sounds -> {
+                true
+            }
+            else -> false
+        }
+    }
+
+    override fun onDestroyActionMode(mode: ActionMode?) = appViewModel.disableSelect()
+
+
+    /** Overridden 3rd party methods */
+
+    override fun onColorSelected(dialogId: Int, color: Int) {
+        // Have to do this just because ColorPickerDialog won't accept a Fragment as context :/
+        (supportFragmentManager.findFragmentByTag(DIALOG_TAGS[dialogId]) as ColorPickerDialogListener).onColorSelected(dialogId, color)
+    }
+
+    override fun onDialogDismissed(dialogId: Int) = Unit
+
+
+    /** Overridden own methods */
 
     override fun onReorderEnabledChange(value: Boolean) {
         val item = actionbar_toolbar?.menu?.findItem(R.id.action_toggle_reorder)
@@ -85,21 +169,41 @@ class MainActivity :
         reorderEnabled = value
     }
 
+    override fun showCategoryDeleteDialog(id: Int, name: String, soundCount: Int) =
+            showDialogFragment(DeleteCategoryFragment.newInstance(id, name, soundCount), null)
+
+    override fun showCategoryEditDialog(categoryId: Int) =
+            showDialogFragment(EditCategoryDialogFragment.newInstance(categoryId, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)), CATEGORY_EDIT_DIALOG_TAG)
+
+    override fun onSelectEnabledChange(value: Boolean) {
+        actionMode = if (value)
+            startSupportActionMode(this)
+        else {
+            actionMode?.finish()
+            null
+        }
+    }
+
+    override fun showToast(text: CharSequence) {
+        toast?.cancel()
+        toast = Toast.makeText(this, text, Toast.LENGTH_SHORT).apply { show() }
+    }
+
+    override fun showToast(textResource: Int) = showToast(getText(textResource))
+
+    override fun zoomOut() =
+            appViewModel.zoomOut()?.let { showToast(getString(R.string.zoom_level_percent, it)) }
+
+    override fun zoomIn() =
+            appViewModel.zoomIn()?.let { showToast(getString(R.string.zoom_level_percent, it)) }
+
+
+    /** Own methods */
+
     private fun onZoomInPossibleChange(value: Boolean) {
         val item = actionbar_toolbar?.menu?.findItem(R.id.action_zoom_in)
         item?.isEnabled = value
         item?.icon?.alpha = if (value) 204 else 102
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_add_sound -> startAddSoundActivity()
-            R.id.action_toggle_reorder -> appViewModel.toggleReorderEnabled()
-            R.id.action_zoom_in -> zoomIn()
-            R.id.action_zoom_out -> zoomOut()
-            R.id.action_add_category -> showCategoryAddDialog()
-        }
-        return true
     }
 
     private fun startAddSoundActivity() {
@@ -117,58 +221,6 @@ class MainActivity :
         if (intent.resolveActivity(packageManager) != null) startActivityForResult(intent, REQUEST_SOUND_GET)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        // We have returned from file chooser dialog
-        if (requestCode == REQUEST_SOUND_GET && resultCode == Activity.RESULT_OK && data != null) {
-            if (data.clipData != null) {
-                // Multiple items selected; from data.clipData we get Uri:s
-                data.clipData?.let { clipData ->
-                    val sounds = mutableListOf<Sound>()
-                    for (i in 0 until clipData.itemCount) {
-                        sounds.add(makeSoundFromUri(clipData.getItemAt(i).uri, data.flags))
-                    }
-                    soundAddMultipleViewModel.setup(sounds, getString(R.string.multiple_sounds_selected))
-                    showMultipleSoundAddDialog()
-                }
-            } else {
-                // One item selected; data.data is a Uri
-                data.data?.let { uri ->
-                    val sound = makeSoundFromUri(uri, data.flags)
-                    soundAddViewModel.setup(sound)
-                    showSoundAddDialog()
-                }
-            }
-        }
-    }
-
-    private fun showMultipleSoundAddDialog() = showDialogFragment(AddMultipleSoundDialogFragment(), null)
-
-    override fun showMultipleSoundEditDialog(soundIds: List<Int>) {
-        soundEditMultipleViewModel.setup(soundIds, getString(R.string.multiple_sounds_selected))
-        showDialogFragment(EditMultipleSoundDialogFragment(), null)
-    }
-
-    private fun makeSoundFromUri(uri: Uri, flags: Int): Sound {
-        val soundName: String
-        // FLAG_GRANT_READ_URI_PERMISSION is not one of the permissions we are requesting
-        // here, so bitwise-AND it away
-        contentResolver.takePersistableUriPermission(uri, flags and Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        when (val cursor = contentResolver.query(uri, null, null, null, null)) {
-            null -> soundName = ""
-            else -> {
-                cursor.moveToFirst()
-                var filename = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                if (filename.contains("."))
-                    filename = filename.substring(0, filename.lastIndexOf("."))
-                soundName = filename
-                cursor.close()
-            }
-        }
-        return Sound(soundName, uri)
-    }
-
     private fun showDialogFragment(fragment: Fragment, tag: String?) {
         supportFragmentManager.beginTransaction().apply {
             add(fragment, tag)
@@ -177,85 +229,11 @@ class MainActivity :
         }
     }
 
-    override fun showCategoryDeleteDialog(id: Int, name: String, soundCount: Int) {
-        showDialogFragment(DeleteCategoryFragment.newInstance(id, name, soundCount), null)
-    }
-
-    override fun showCategoryAddDialog() {
-        showDialogFragment(AddCategoryDialogFragment.newInstance(DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG)), CATEGORY_ADD_DIALOG_TAG)
-    }
-
-    override fun showCategoryEditDialog(categoryId: Int) {
-        showDialogFragment(EditCategoryDialogFragment.newInstance(categoryId, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)), CATEGORY_EDIT_DIALOG_TAG)
-    }
-
-    private fun showSoundAddDialog() = showDialogFragment(AddSoundDialogFragment(), null)
-
-    override fun showSoundEditDialog(sound: Sound) {
+    private fun showSoundEditDialog(sound: Sound) {
         var categoryIndex = categories.map { it.id }.indexOf(sound.categoryId)
         if (categoryIndex == -1) categoryIndex = 0
         showDialogFragment(EditSoundDialogFragment.newInstance(sound.id!!, categoryIndex), null)
     }
-
-    override fun showSoundDeleteDialog(soundId: Int, soundName: String?) {
-        showDialogFragment(DeleteSoundFragment.newInstance(soundId, soundName ?: ""), null)
-    }
-
-    override fun onSelectEnabledChange(value: Boolean) {
-        actionMode = if (value)
-            startSupportActionMode(this)
-        else {
-            actionMode?.finish()
-            null
-        }
-    }
-
-    override fun onColorSelected(dialogId: Int, color: Int) {
-        // Have to do this just because ColorPickerDialog won't accept a Fragment as context :/
-        (supportFragmentManager.findFragmentByTag(DIALOG_TAGS[dialogId]) as ColorPickerDialogListener).onColorSelected(dialogId, color)
-    }
-
-    override fun onDialogDismissed(dialogId: Int) = Unit
-
-    override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-        mode.menuInflater.inflate(R.menu.actionmode_menu, menu)
-        return true
-    }
-
-    override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?) = false
-
-    override fun onActionItemClicked(mode: ActionMode?, item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.edit_sounds -> {
-                appViewModel.getSelectedSounds().let { sounds ->
-                    when (sounds.size) {
-                        1 -> showSoundEditDialog(sounds.first())
-                        else -> showMultipleSoundEditDialog(sounds.map { it.id!! })
-                    }
-                }
-                true
-            }
-            R.id.delete_sounds -> { true }
-            else -> false
-        }
-    }
-
-    override fun onDestroyActionMode(mode: ActionMode?) {
-        appViewModel.disableSelect()
-    }
-
-    override fun showToast(text: CharSequence) {
-        toast?.cancel()
-        toast = Toast.makeText(this, text, Toast.LENGTH_SHORT).apply { show() }
-    }
-
-    override fun showToast(textResource: Int) = showToast(getText(textResource))
-
-    override fun zoomOut() =
-        appViewModel.zoomOut()?.let { showToast(getString(R.string.zoom_level_percent, it)) }
-
-    override fun zoomIn() =
-        appViewModel.zoomIn()?.let { showToast(getString(R.string.zoom_level_percent, it)) }
 
 
     companion object {

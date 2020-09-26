@@ -36,7 +36,7 @@ class SoundPlayer(context: Context, uri: Uri, volume: Int) {
 
     fun setVolume(value: Int) {
         // MediaPlayer works with log values for some reason
-        val volume = (100.0.pow(value / 100.0) / 100).toFloat()
+        val volume = (100.0.pow((if(value <= 100) value else 100) / 100.0) / 100).toFloat()
         mediaPlayer.setVolume(volume, volume)
     }
 
