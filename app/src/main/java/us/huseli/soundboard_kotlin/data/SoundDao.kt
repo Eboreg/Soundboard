@@ -30,6 +30,11 @@ interface SoundDao {
     @Query("DELETE FROM Sound WHERE id = :soundId")
     fun delete(soundId: Int)
 
+    @Transaction
+    fun delete(soundIds: List<Int>) {
+        soundIds.forEach { delete(it) }
+    }
+
     @Query("SELECT * FROM Sound WHERE id = :soundId")
     fun get(soundId: Int): LiveData<Sound?>
 
@@ -38,4 +43,5 @@ interface SoundDao {
 
     @Query("SELECT * FROM Sound WHERE id IN (:soundIds)")
     fun get(soundIds: List<Int>): List<Sound>
+
 }

@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Söun̈dböard</string>
     <string name="add_sound">Add sound</string>
     <string name="delete">Delete</string>
@@ -28,6 +28,8 @@
     <string name="edit_category">Edit category</string>
     <string name="move_category">Move category</string>
     <string name="delete_sound">Delete sound</string>
+    <string name="delete_sound_name">Delete sound %1$s?</string>
+    <string name="delete_sounds_count" tools:ignore="PluralsCandidate">Delete %1$d sounds?</string>
     <string name="not_initialized_yet">Not initialized yet!</string>
     <string name="default_category">Default</string>
     <string name="add_sounds">Add sounds</string>
@@ -36,6 +38,7 @@
     <string name="playing">Playing</string>
     <string name="load_failed">Load failed</string>
     <string name="selected">Selected</string>
+    <string name="delete_sounds">Delete sounds</string>
     <plurals name="delete_category_with_name_and_sounds">
         <item quantity="one">Delete category %1s and one sound?</item>
         <item quantity="other">Delete category %1s and %2d sounds?</item>

@@ -1,4 +1,4 @@
-Implement MainActivity.onActionClicked -> delete sounds (reuse DeleteSoundFragment, now unused)
+Add a little badge for sound length in the cards
 
 Scrap the nested recyclerviews and implement getItemViewType?
 https://www.raywenderlich.com/272-intermediate-recyclerview-tutorial-with-kotlin

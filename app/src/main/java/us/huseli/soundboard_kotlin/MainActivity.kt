@@ -101,14 +101,14 @@ class MainActivity :
                         sounds.add(Sound(clipData.getItemAt(i).uri, data.flags, contentResolver))
                     }
                     soundAddMultipleViewModel.setup(sounds, getString(R.string.multiple_sounds_selected))
-                    showDialogFragment(AddMultipleSoundDialogFragment(), null)
+                    showDialogFragment(AddMultipleSoundDialogFragment())
                 }
             } else {
                 // One item selected; data.data is a Uri
                 data.data?.let { uri ->
                     val sound = Sound(uri, data.flags, contentResolver)
                     soundAddViewModel.setup(sound)
-                    showDialogFragment(AddSoundDialogFragment(), null)
+                    showDialogFragment(AddSoundDialogFragment())
                 }
             }
         }
@@ -126,16 +126,27 @@ class MainActivity :
             R.id.edit_sounds -> {
                 appViewModel.getSelectedSounds().let { sounds ->
                     when (sounds.size) {
-                        1 -> showSoundEditDialog(sounds.first())
+                        1 -> {
+                            val sound = sounds.first()
+                            var categoryIndex = categories.map { it.id }.indexOf(sound.categoryId)
+                            if (categoryIndex == -1) categoryIndex = 0
+                            showDialogFragment(EditSoundDialogFragment.newInstance(sound.id!!, categoryIndex))
+                        }
                         else -> {
                             soundEditMultipleViewModel.setup(sounds.map { it.id!! }, getString(R.string.multiple_sounds_selected))
-                            showDialogFragment(EditMultipleSoundDialogFragment(), null)
+                            showDialogFragment(EditMultipleSoundDialogFragment())
                         }
                     }
                 }
                 true
             }
             R.id.delete_sounds -> {
+                appViewModel.getSelectedSounds().let { sounds ->
+                    when (sounds.size) {
+                        1 -> sounds.first().let { sound -> showDialogFragment(DeleteSoundFragment.newInstance(sound.id!!, sound.name)) }
+                        else -> showDialogFragment(DeleteSoundFragment.newInstance(sounds.map { it.id }))
+                    }
+                }
                 true
             }
             else -> false
@@ -170,7 +181,7 @@ class MainActivity :
     }
 
     override fun showCategoryDeleteDialog(id: Int, name: String, soundCount: Int) =
-            showDialogFragment(DeleteCategoryFragment.newInstance(id, name, soundCount), null)
+            showDialogFragment(DeleteCategoryFragment.newInstance(id, name, soundCount))
 
     override fun showCategoryEditDialog(categoryId: Int) =
             showDialogFragment(EditCategoryDialogFragment.newInstance(categoryId, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)), CATEGORY_EDIT_DIALOG_TAG)
@@ -229,11 +240,7 @@ class MainActivity :
         }
     }
 
-    private fun showSoundEditDialog(sound: Sound) {
-        var categoryIndex = categories.map { it.id }.indexOf(sound.categoryId)
-        if (categoryIndex == -1) categoryIndex = 0
-        showDialogFragment(EditSoundDialogFragment.newInstance(sound.id!!, categoryIndex), null)
-    }
+    private fun showDialogFragment(fragment: Fragment) = showDialogFragment(fragment, null)
 
 
     companion object {

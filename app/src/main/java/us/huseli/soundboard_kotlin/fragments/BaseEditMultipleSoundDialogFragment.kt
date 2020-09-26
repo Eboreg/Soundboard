@@ -5,7 +5,7 @@ import android.view.View
 import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.viewmodels.BaseSoundEditViewModel
 
-abstract class BaseMultipleSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSoundDialogFragment<VM>() {
+abstract class BaseEditMultipleSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseEditSoundDialogFragment<VM>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.soundName.isEnabled = false
@@ -16,6 +16,7 @@ abstract class BaseMultipleSoundDialogFragment<VM: BaseSoundEditViewModel> : Bas
         (binding.category.selectedItem as Category).id?.let { viewModel.setCategoryId(it) }
         save()
         dismiss()
+        appViewModel.disableSelect()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

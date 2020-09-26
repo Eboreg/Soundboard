@@ -78,7 +78,7 @@ class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private
         private var reorderEnabled = false
         private lateinit var longClickAnimator: SoundItemLongClickAnimator
         private lateinit var viewModel: SoundViewModel
-        private lateinit var sound: Sound
+        private var sound: Sound? = null
         override val lifecycleRegistry = LifecycleRegistry(this)
 
         init {
@@ -97,7 +97,7 @@ class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private
             if (!viewModel.isValid)
                 binding.failIcon.visibility = View.VISIBLE
 
-            viewModel.sound.observe(this, { this.sound = it!! })
+            viewModel.sound.observe(this, { this.sound = it })
             viewModel.backgroundColor.observe(this, { color ->
                 longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
@@ -125,12 +125,12 @@ class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private
             try {
                 if (value) {
                     binding.selectedIcon.visibility = View.VISIBLE
-                    appViewModel.selectSound(sound)
+                    appViewModel.selectSound(sound!!)
                 } else {
                     binding.selectedIcon.visibility = View.INVISIBLE
-                    appViewModel.deselectSound(sound)
+                    appViewModel.deselectSound(sound!!)
                 }
-            } catch (e: UninitializedPropertyAccessException) {}
+            } catch (e: NullPointerException) {}
         }
 
         override fun onReorderEnabledChange(value: Boolean) {

@@ -24,4 +24,8 @@ class SoundRepository(private val soundDao: SoundDao) {
 
     fun get(soundIds: List<Int>) = soundDao.get(soundIds)
 
+    fun delete(soundIds: List<Int>?) {
+        if (soundIds != null) soundDao.delete(soundIds)
+    }
+
 }
