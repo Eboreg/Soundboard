@@ -3,13 +3,13 @@ package us.huseli.soundboard_kotlin.adapters
 import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
 import android.content.Context
-import android.graphics.BlendMode
-import android.graphics.BlendModeColorFilter
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.graphics.BlendModeColorFilterCompat
+import androidx.core.graphics.BlendModeCompat
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
@@ -105,7 +105,9 @@ class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private
                         binding.volumeBar.progressDrawable.alpha = 255
                     else
                         binding.volumeBar.progressDrawable.alpha = 150
-                    binding.volumeBar.progressDrawable.colorFilter = BlendModeColorFilter(color, BlendMode.HUE)
+                    //binding.volumeBar.progressDrawable.colorFilter = BlendModeColorFilter(color, BlendMode.HUE)
+                    binding.volumeBar.progressDrawable.colorFilter =
+                            BlendModeColorFilterCompat.createBlendModeColorFilterCompat(color, BlendModeCompat.SCREEN)
                 }
             })
             viewModel.isPlaying.observe(this, { binding.playIcon.visibility = if (it) View.VISIBLE else View.INVISIBLE })
@@ -130,7 +132,8 @@ class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private
                     binding.selectedIcon.visibility = View.INVISIBLE
                     appViewModel.deselectSound(sound!!)
                 }
-            } catch (e: NullPointerException) {}
+            } catch (e: NullPointerException) {
+            }
         }
 
         override fun onReorderEnabledChange(value: Boolean) {

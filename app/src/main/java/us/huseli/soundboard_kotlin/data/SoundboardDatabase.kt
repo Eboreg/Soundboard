@@ -1,7 +1,6 @@
 package us.huseli.soundboard_kotlin.data
 
 import android.app.Application
-import android.graphics.Color
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -9,7 +8,6 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 @Database(entities = [Sound::class, Category::class], version = 10, exportSchema = false)
 @TypeConverters(Converters::class)
@@ -140,21 +138,7 @@ abstract class SoundboardDatabase : RoomDatabase() {
                     .addMigrations(MIGRATION_8_9)
                     .addMigrations(MIGRATION_9_10)
                     .fallbackToDestructiveMigration()
-                    .addCallback(SoundDatabaseCallback(scope))
                     .build()
-        }
-    }
-
-    private class SoundDatabaseCallback(private val scope: CoroutineScope) : RoomDatabase.Callback() {
-        override fun onCreate(db: SupportSQLiteDatabase) {
-            super.onCreate(db)
-            instance?.let {
-                scope.launch { addDefaultCategory(it.categoryDao()) }
-            }
-        }
-
-        fun addDefaultCategory(dao: CategoryDao) {
-            dao.insert(Category("Default", Color.DKGRAY))
         }
     }
 }
