@@ -27,6 +27,7 @@ class SoundViewModel(private val _sound: Sound) : ViewModel(), OrderableItem {
 
     val errorMessage = player.errorMessage
     val isValid = player.isValid
+    val duration = "${player.duration}s"
 
     val isPlaying: LiveData<Boolean>
         get() = _isPlaying

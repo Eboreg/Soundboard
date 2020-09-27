@@ -4,10 +4,12 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import kotlin.math.pow
+import kotlin.math.roundToInt
 
 class SoundPlayer(context: Context, uri: Uri, volume: Int) {
     private val mediaPlayer = MediaPlayer()
 
+    var duration: Int  // In seconds
     var isPlaying = false
     var isValid = true
     var errorMessage = ""
@@ -16,9 +18,11 @@ class SoundPlayer(context: Context, uri: Uri, volume: Int) {
         try {
             mediaPlayer.setDataSource(context, uri)
             mediaPlayer.prepare()
+            duration = (mediaPlayer.duration.toDouble() / 1000).roundToInt()
             setVolume(volume)
         } catch (e: Exception) {
             isValid = false
+            duration = -1
             errorMessage = if (e.cause != null) e.cause.toString() else e.toString()
         }
     }

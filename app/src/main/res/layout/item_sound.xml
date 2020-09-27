@@ -104,6 +104,26 @@
                     tools:ignore="UnusedAttribute"
                     tools:progress="50" />
 
+                <androidx.cardview.widget.CardView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/black"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:id="@+id/duration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@{viewModel.duration}"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/small_text"
+                        android:paddingHorizontal="@dimen/margin_small"
+                        tools:ignore="SmallSp"
+                        tools:text="2s" />
+
+                </androidx.cardview.widget.CardView>
+
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
 
