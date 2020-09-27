@@ -7,7 +7,6 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import kotlinx.coroutines.CoroutineScope
 
 @Database(entities = [Sound::class, Category::class], version = 10, exportSchema = false)
 @TypeConverters(Converters::class)
@@ -123,13 +122,13 @@ abstract class SoundboardDatabase : RoomDatabase() {
             }
         }
 
-        fun getInstance(application: Application, scope: CoroutineScope): SoundboardDatabase {
+        fun getInstance(application: Application): SoundboardDatabase {
             return instance ?: synchronized(this) {
-                instance ?: buildDatabase(application, scope).also { instance = it }
+                instance ?: buildDatabase(application).also { instance = it }
             }
         }
 
-        private fun buildDatabase(application: Application, scope: CoroutineScope): SoundboardDatabase {
+        private fun buildDatabase(application: Application): SoundboardDatabase {
             return Room.databaseBuilder(application, SoundboardDatabase::class.java, "sound_database")
                     .addMigrations(MIGRATION_4_5)
                     .addMigrations(MIGRATION_5_6)

@@ -9,7 +9,7 @@ import us.huseli.soundboard_kotlin.helpers.ColorHelper
 import us.huseli.soundboard_kotlin.interfaces.OrderableItem
 
 class SoundViewModel(private val _sound: Sound) : ViewModel(), OrderableItem {
-    private val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application, viewModelScope).soundDao())
+    private val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application).soundDao())
     private val colorHelper = ColorHelper(GlobalApplication.application)
     private val player = GlobalApplication.application.getPlayer(_sound).apply {
         setOnCompletionListener { this@SoundViewModel.pause() }

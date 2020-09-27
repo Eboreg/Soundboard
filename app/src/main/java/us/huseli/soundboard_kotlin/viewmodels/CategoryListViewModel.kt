@@ -12,7 +12,7 @@ import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 import us.huseli.soundboard_kotlin.helpers.ColorHelper
 
 class CategoryListViewModel : ViewModel() {
-    private val repository = CategoryRepository(SoundboardDatabase.getInstance(GlobalApplication.application, viewModelScope).categoryDao())
+    private val repository = CategoryRepository(SoundboardDatabase.getInstance(GlobalApplication.application).categoryDao())
     private val colorHelper = ColorHelper(GlobalApplication.application)
     private val emptyCategory = Category("(Unchanged)")
 

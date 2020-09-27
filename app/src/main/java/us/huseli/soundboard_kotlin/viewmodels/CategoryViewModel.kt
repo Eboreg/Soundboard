@@ -9,7 +9,7 @@ import us.huseli.soundboard_kotlin.data.*
 import us.huseli.soundboard_kotlin.helpers.ColorHelper
 
 class CategoryViewModel : ViewModel() {
-    private val database = SoundboardDatabase.getInstance(GlobalApplication.application, viewModelScope)
+    private val database = SoundboardDatabase.getInstance(GlobalApplication.application)
     private val repository = CategoryRepository(database.categoryDao())
     private val soundRepository = SoundRepository(database.soundDao())
 

@@ -1,21 +1,3 @@
-    Expected:
-TableInfo{name='SoundCategory', columns={
-    name=Column{name='name', type='TEXT', affinity='2', notNull=true, primaryKeyPosition=0, defaultValue='null'},
-    backgroundColor=Column{name='backgroundColor', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'},
-    id=Column{name='id', type='INTEGER', affinity='3', notNull=false, primaryKeyPosition=1, defaultValue='null'},
-    collapsed=Column{name='collapsed', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'},
-    order=Column{name='order', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'}
-}, foreignKeys=[], indices=[]}
-
-     Found:
-TableInfo{name='SoundCategory', columns={
-    name=Column{name='name', type='TEXT', affinity='2', notNull=true, primaryKeyPosition=0, defaultValue='null'},
-    backgroundColor=Column{name='backgroundColor', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'},
-    id=Column{name='id', type='INTEGER', affinity='3', notNull=false, primaryKeyPosition=1, defaultValue='null'},
-    collapsed=Column{name='collapsed', type='INTEGER', affinity='3', notNull=false, primaryKeyPosition=0, defaultValue='0'},
-    order=Column{name='order', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'}
-}, foreignKeys=[], indices=[]}
-
 intent.flags i slutet av startaddsoundactivity: 193
 
 

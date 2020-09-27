@@ -3,13 +3,14 @@ package us.huseli.soundboard_kotlin.adapters
 import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.PorterDuff
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.graphics.BlendModeColorFilterCompat
-import androidx.core.graphics.BlendModeCompat
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
@@ -98,18 +99,17 @@ class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private
                 binding.failIcon.visibility = View.VISIBLE
 
             viewModel.sound.observe(this, { this.sound = it })
-            viewModel.backgroundColor.observe(this, { color ->
-                longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                    if (colorHelper.getLuminance(color) >= 0.6)
-                        binding.volumeBar.progressDrawable.alpha = 255
-                    else
-                        binding.volumeBar.progressDrawable.alpha = 150
-                    //binding.volumeBar.progressDrawable.colorFilter = BlendModeColorFilter(color, BlendMode.HUE)
-                    binding.volumeBar.progressDrawable.colorFilter =
-                            BlendModeColorFilterCompat.createBlendModeColorFilterCompat(color, BlendModeCompat.SCREEN)
-                }
-            })
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                viewModel.backgroundColor.observe(this, { color ->
+                    longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
+                    binding.volumeBar.progressDrawable.alpha = 150
+                    binding.volumeBar.progressTintMode = PorterDuff.Mode.OVERLAY
+                    binding.volumeBar.progressTintList =
+                            if (colorHelper.getLuminance(color) >= 0.6) ColorStateList.valueOf(Color.BLACK) else ColorStateList.valueOf(Color.WHITE)
+                })
+            }
+
             viewModel.isPlaying.observe(this, { binding.playIcon.visibility = if (it) View.VISIBLE else View.INVISIBLE })
             viewModel.isSelected.observe(this, { onIsSelectedChange(it) })
             viewModel.categoryId.observe(this, { categoryId = it })
