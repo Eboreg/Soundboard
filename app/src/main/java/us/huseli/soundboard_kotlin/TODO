@@ -1,3 +1,5 @@
+Individual background & text colour for category spinner items
+
 Scrap the nested recyclerviews and implement getItemViewType?
 https://www.raywenderlich.com/272-intermediate-recyclerview-tutorial-with-kotlin
 

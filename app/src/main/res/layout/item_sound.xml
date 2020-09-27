@@ -46,7 +46,7 @@
                     android:textColor="@{viewModel.textColor}"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/duration_card"
                     tools:text="Sound name" />
 
                 <ImageView
@@ -105,6 +105,7 @@
                     tools:progress="50" />
 
                 <androidx.cardview.widget.CardView
+                    android:id="@+id/duration_card"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@color/black"
@@ -115,10 +116,10 @@
                         android:id="@+id/duration"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:paddingHorizontal="@dimen/margin_small"
                         android:text="@{viewModel.duration}"
                         android:textColor="@color/white"
                         android:textSize="@dimen/small_text"
-                        android:paddingHorizontal="@dimen/margin_small"
                         tools:ignore="SmallSp"
                         tools:text="2s" />
 
