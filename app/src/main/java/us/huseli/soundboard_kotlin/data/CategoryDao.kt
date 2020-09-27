@@ -30,6 +30,9 @@ interface CategoryDao {
     @Query("SELECT * FROM SoundCategory WHERE id = :id")
     fun get(id: Int): LiveData<Category>
 
+    @Query("SELECT backgroundColor FROM SoundCategory")
+    fun getUsedColors(): List<Int>
+
     @Query("DELETE FROM SoundCategory WHERE id = :id")
     fun delete(id: Int)
 

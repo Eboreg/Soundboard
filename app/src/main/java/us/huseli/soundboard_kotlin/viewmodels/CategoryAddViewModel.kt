@@ -11,8 +11,14 @@ import us.huseli.soundboard_kotlin.helpers.ColorHelper
 
 class CategoryAddViewModel : BaseCategoryEditViewModel() {
     private val colorHelper = ColorHelper(GlobalApplication.application)
-    private val _backgroundColor = MutableLiveData(colorHelper.colors.random())
+    private val _backgroundColor = MutableLiveData<Int>()
     private val _name = MutableLiveData("")
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            _backgroundColor.postValue(colorHelper.randomColor(repository.getUsedColors()))
+        }
+    }
 
     override val backgroundColor: LiveData<Int>
         get() = _backgroundColor
@@ -29,9 +35,8 @@ class CategoryAddViewModel : BaseCategoryEditViewModel() {
 
     // Used by AddCategoryDialogFrament & EditCategoryDialogFrament when saving
     override fun save() = viewModelScope.launch(Dispatchers.IO) {
-        // We checked for empty category name in BaseCategoryDialogFragment, so we know it exists
-        // and is not empty
-        // And background colour was initialized from the beginning, so we know it's set
+        // Background colour was initialized from the beginning, so we know it's set
+        // And we check for name in BaseCategoryDialogFragment (and set it at init)
         val category = Category(_name.value!!, _backgroundColor.value!!)
         repository.insert(category)
     }

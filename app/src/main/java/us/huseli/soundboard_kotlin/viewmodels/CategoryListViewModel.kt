@@ -23,7 +23,9 @@ class CategoryListViewModel : ViewModel() {
         repository.saveOrder(categories)
     }
 
-    fun create(name: String) = viewModelScope.launch(Dispatchers.IO) { repository.insert(Category(name, colorHelper.colors.random())) }
+    fun create(name: String) = viewModelScope.launch(Dispatchers.IO) {
+        repository.insert(Category(name, colorHelper.randomColor(repository.getUsedColors())))
+    }
 
     // Used by DeleteCategoryFragment
     fun delete(id: Int) = viewModelScope.launch(Dispatchers.IO) { repository.delete(id) }

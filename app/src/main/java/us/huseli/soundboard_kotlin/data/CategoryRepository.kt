@@ -10,6 +10,8 @@ class CategoryRepository(private val categoryDao: CategoryDao) {
 
     fun update(category: Category) = categoryDao.update(category)
 
+    fun getUsedColors() = categoryDao.getUsedColors()
+
     // Used by CategoryListViewModel.delete()
     fun delete(id: Int) = categoryDao.delete(id)
 

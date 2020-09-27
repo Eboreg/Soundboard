@@ -1,5 +1,3 @@
-Exclude already used colours when generating random background colour
-
 Individual background & text colour for category spinner items
 
 Scrap the nested recyclerviews and implement getItemViewType?
