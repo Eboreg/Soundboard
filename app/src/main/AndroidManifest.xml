@@ -24,6 +24,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <meta-data android:name="io.sentry.dsn" android:value="https://4f67be61f466443fb90839fe1b41ded4@o453550.ingest.sentry.io/5442443" />
     </application>
 
 </manifest>

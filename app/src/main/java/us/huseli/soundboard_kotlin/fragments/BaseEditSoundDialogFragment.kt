@@ -69,9 +69,7 @@ abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSou
         binding.lifecycleOwner = viewLifecycleOwner
     }
 
-    internal open fun save() {
-        viewModel.save()
-    }
+    internal open fun save() = viewModel.save()
 
     override fun onResume() {
         /**
