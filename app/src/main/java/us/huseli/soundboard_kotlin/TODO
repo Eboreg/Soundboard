@@ -1,4 +1,11 @@
-Individual background & text colour for category spinner items
+Make category dropdown look nicer, background color only in some corner or as a dot
+
+BUG: Sounds change categories even when i chose unchanged
+
+BUG: Select sounds, do change, then start select again - all previously selected sounds are
+selected again? At least after above bug has occurred. Seems is mixes them totegher somehow
+
+Put colorhelper in globalapplication
 
 Scrap the nested recyclerviews and implement getItemViewType?
 https://www.raywenderlich.com/272-intermediate-recyclerview-tutorial-with-kotlin
