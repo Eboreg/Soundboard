@@ -14,12 +14,10 @@ import us.huseli.soundboard_kotlin.R
 import us.huseli.soundboard_kotlin.adapters.CategorySpinnerAdapter
 import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.databinding.FragmentEditSoundBinding
-import us.huseli.soundboard_kotlin.helpers.ColorHelper
 import us.huseli.soundboard_kotlin.viewmodels.BaseSoundEditViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 
 abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSoundDialogFragment() {
-    private val colorHelper by lazy { ColorHelper(requireContext()) }
     internal val categoryListViewModel by activityViewModels<CategoryListViewModel>()
     internal open lateinit var binding: FragmentEditSoundBinding
     internal abstract val viewModel: VM
@@ -71,7 +69,7 @@ abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSou
         // This has to be done here, otherwise: "Can't access the Fragment View's LifecycleOwner
         // when getView() is null i.e., before onCreateView() or after onDestroyView()"
         binding.lifecycleOwner = viewLifecycleOwner
-        getCategories().observe(viewLifecycleOwner, { binding.category.adapter = CategorySpinnerAdapter(requireContext(), it, colorHelper) })
+        getCategories().observe(viewLifecycleOwner, { binding.category.adapter = CategorySpinnerAdapter(requireContext(), it) })
     }
 
     internal open fun save() = viewModel.save()

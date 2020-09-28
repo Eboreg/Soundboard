@@ -42,7 +42,7 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
                 }
             }
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
-            binding.selectColourButton.setOnClickListener { onSelectColourClick() }
+            binding.selectColorButton.setOnClickListener { onSelectColourClick() }
             create()
         }
     }

@@ -18,8 +18,7 @@ import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 
 class CategoryListFragment : Fragment(), View.OnTouchListener {
-    val categoryListViewModel by activityViewModels<CategoryListViewModel>()
-
+    private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
     private val appViewModel by activityViewModels<AppViewModel>()
     private val preferences: SharedPreferences by lazy { requireActivity().getPreferences(Context.MODE_PRIVATE) }
     private val scaleGestureDetector by lazy { ScaleGestureDetector(requireContext(), ScaleListener()) }

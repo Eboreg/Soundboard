@@ -42,7 +42,7 @@
             app:layout_constraintTop_toBottomOf="@+id/category_name_label" />
 
         <TextView
-            android:id="@+id/category_colour_label"
+            android:id="@+id/category_color_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_normal"
@@ -58,19 +58,19 @@
             android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/category_colour_label">
+            app:layout_constraintTop_toBottomOf="@+id/category_color_label">
 
             <ImageView
-                android:id="@+id/current_colour"
+                android:id="@+id/current_color"
                 android:layout_width="@dimen/action_button_height"
                 android:layout_height="@dimen/action_button_height"
                 android:layout_marginEnd="@dimen/margin_normal"
-                android:src="@drawable/colour_circle"
+                android:src="@drawable/color_circle"
                 app:drawableColor="@{viewModel.backgroundColor}"
                 tools:ignore="ContentDescription" />
 
             <Button
-                android:id="@+id/select_colour_button"
+                android:id="@+id/select_color_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/select_colour" />
