@@ -1,5 +1,3 @@
-Make category dropdown look nicer, background color only in some corner or as a dot
-
 BUG: Sounds change categories even when i chose unchanged
 
 BUG: Select sounds, do change, then start select again - all previously selected sounds are
@@ -19,6 +17,3 @@ Trash CategoryListFragment, put it all in MainActivity?
 Try setting AudioAttributes: https://developer.android.com/reference/kotlin/android/media/AudioAttributes
 - FLAG_LOW_LATENCY (Deprecated: Use AudioTrack.Builder#setPerformanceMode(int) with AudioTrack#PERFORMANCE_MODE_LOW_LATENCY to control performance.)
 - USAGE_MEDIA
-
-Maybe not use LiveData for SoundViewModel and CategoryViewModel attributes at all, but rely on them
-updating when their respective ListViewModel updates?

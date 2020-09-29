@@ -29,7 +29,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:cardBackgroundColor="@color/deep_purple_500">
+            tools:cardBackgroundColor="@color/white">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -44,7 +44,7 @@
                     android:text="@{viewModel.name}"
                     android:textAlignment="center"
                     android:textColor="@{viewModel.textColor}"
-                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
@@ -94,16 +94,18 @@
                     android:id="@+id/volume_bar"
                     style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                     android:layout_width="0dp"
-                    android:layout_height="1dp"
+                    android:layout_height="2dp"
                     android:max="100"
                     android:min="0"
                     android:progress="@{viewModel.volume}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/sound_name"
+                    tools:alpha="150"
                     tools:ignore="UnusedAttribute"
-                    tools:progress="50" />
+                    tools:progress="50"
+                    tools:progressTint="@color/black"
+                    tools:progressTintMode="screen" />
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/duration_card"
