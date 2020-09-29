@@ -9,11 +9,9 @@ import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.data.CategoryRepository
 import us.huseli.soundboard_kotlin.data.SoundboardDatabase
-import us.huseli.soundboard_kotlin.helpers.ColorHelper
 
 class CategoryListViewModel : ViewModel() {
     private val repository = CategoryRepository(SoundboardDatabase.getInstance(GlobalApplication.application).categoryDao())
-    private val colorHelper = ColorHelper(GlobalApplication.application)
     private val emptyCategory = Category("(Unchanged)")
 
     val categories = repository.categories
@@ -24,7 +22,7 @@ class CategoryListViewModel : ViewModel() {
     }
 
     fun create(name: String) = viewModelScope.launch(Dispatchers.IO) {
-        repository.insert(Category(name, colorHelper.randomColor(repository.getUsedColors())))
+        repository.insert(Category(name, GlobalApplication.colorHelper.randomColor(repository.getUsedColors())))
     }
 
     // Used by DeleteCategoryFragment

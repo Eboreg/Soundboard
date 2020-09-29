@@ -5,12 +5,10 @@ import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.data.SoundRepository
 import us.huseli.soundboard_kotlin.data.SoundboardDatabase
-import us.huseli.soundboard_kotlin.helpers.ColorHelper
 import us.huseli.soundboard_kotlin.interfaces.OrderableItem
 
 class SoundViewModel(private val _sound: Sound) : ViewModel(), OrderableItem {
     private val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application).soundDao())
-    private val colorHelper = ColorHelper(GlobalApplication.application)
     private val player = GlobalApplication.application.getPlayer(_sound).apply {
         setOnCompletionListener { this@SoundViewModel.pause() }
     }
@@ -36,7 +34,7 @@ class SoundViewModel(private val _sound: Sound) : ViewModel(), OrderableItem {
         get() = _isSelected
 
     val backgroundColor = sound.switchMap { repository.getBackgroundColor(it?.categoryId) }
-    val textColor = backgroundColor.map { colorHelper.getTextColorForBackgroundColor(it) }
+    val textColor = backgroundColor.map { GlobalApplication.colorHelper.getTextColorForBackgroundColor(it) }
 
     /** Model fields */
     val id = _sound.id

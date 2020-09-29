@@ -22,7 +22,6 @@ import us.huseli.soundboard_kotlin.adapters.common.DataBoundViewHolder
 import us.huseli.soundboard_kotlin.animators.SoundItemLongClickAnimator
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.databinding.ItemSoundBinding
-import us.huseli.soundboard_kotlin.helpers.ColorHelper
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
@@ -73,7 +72,6 @@ class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private
         private val clickAnimator = (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
             setTarget(binding.soundCard)
         }
-        private val colorHelper = ColorHelper(context)
         private var categoryId: Int? = null
         private var selectEnabled = false
         private var reorderEnabled = false
@@ -106,7 +104,8 @@ class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private
                     binding.volumeBar.progressDrawable.alpha = 150
                     binding.volumeBar.progressTintMode = PorterDuff.Mode.OVERLAY
                     binding.volumeBar.progressTintList =
-                            if (colorHelper.getLuminance(color) >= 0.6) ColorStateList.valueOf(Color.BLACK) else ColorStateList.valueOf(Color.WHITE)
+                            if (GlobalApplication.colorHelper.getLuminance(color) >= 0.6) ColorStateList.valueOf(Color.BLACK)
+                            else ColorStateList.valueOf(Color.WHITE)
                 })
             }
 

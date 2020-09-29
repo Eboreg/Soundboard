@@ -6,14 +6,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.*
-import us.huseli.soundboard_kotlin.helpers.ColorHelper
 
 class CategoryViewModel : ViewModel() {
     private val database = SoundboardDatabase.getInstance(GlobalApplication.application)
     private val repository = CategoryRepository(database.categoryDao())
     private val soundRepository = SoundRepository(database.soundDao())
 
-    private val colorHelper = ColorHelper(GlobalApplication.application)
     private val _category = MutableLiveData<Category?>(null)
     private val _collapsed = MutableLiveData(false)
 
@@ -21,7 +19,7 @@ class CategoryViewModel : ViewModel() {
 
     val backgroundColor = _category.map { it?.backgroundColor ?: Color.DKGRAY }
 
-    val textColor = backgroundColor.map { bgc -> colorHelper.getTextColorForBackgroundColor(bgc) }
+    val textColor = backgroundColor.map { bgc -> GlobalApplication.colorHelper.getTextColorForBackgroundColor(bgc) }
 
     val collapsed: LiveData<Boolean>
         get() = _collapsed

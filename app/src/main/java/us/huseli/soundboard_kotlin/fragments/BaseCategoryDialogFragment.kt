@@ -11,13 +11,12 @@ import androidx.fragment.app.DialogFragment
 import com.jaredrummler.android.colorpicker.ColorPickerDialog
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import kotlinx.android.synthetic.main.fragment_edit_category.*
+import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.R
 import us.huseli.soundboard_kotlin.databinding.FragmentEditCategoryBinding
-import us.huseli.soundboard_kotlin.helpers.ColorHelper
 import us.huseli.soundboard_kotlin.viewmodels.BaseCategoryEditViewModel
 
 abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogListener {
-    private val colorHelper by lazy { ColorHelper(requireContext()) }
     private val dialogId by lazy { requireArguments().getInt(ARG_DIALOG_ID) }
     private lateinit var binding: FragmentEditCategoryBinding
 
@@ -78,7 +77,7 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
 
     private fun onSelectColourClick() {
         ColorPickerDialog.newBuilder().apply {
-            setPresets(colorHelper.colors.toIntArray())
+            setPresets(GlobalApplication.colorHelper.colors.toIntArray())
             setDialogTitle(R.string.select_background_colour)
             viewModel.backgroundColor.value?.let { setColor(it) }
             setDialogId(dialogId)

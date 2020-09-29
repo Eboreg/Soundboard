@@ -7,16 +7,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.Category
-import us.huseli.soundboard_kotlin.helpers.ColorHelper
 
 class CategoryAddViewModel : BaseCategoryEditViewModel() {
-    private val colorHelper = ColorHelper(GlobalApplication.application)
     private val _backgroundColor = MutableLiveData<Int>()
     private val _name = MutableLiveData("")
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            _backgroundColor.postValue(colorHelper.randomColor(repository.getUsedColors()))
+            _backgroundColor.postValue(GlobalApplication.colorHelper.randomColor(repository.getUsedColors()))
         }
     }
 
