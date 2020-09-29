@@ -125,11 +125,11 @@ class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private
         private fun onIsSelectedChange(value: Boolean) {
             try {
                 if (value) {
-                    binding.selectedIcon.visibility = View.VISIBLE
                     appViewModel.selectSound(sound!!)
+                    binding.selectedIcon.visibility = View.VISIBLE
                 } else {
-                    binding.selectedIcon.visibility = View.INVISIBLE
                     appViewModel.deselectSound(sound!!)
+                    binding.selectedIcon.visibility = View.INVISIBLE
                 }
             } catch (e: NullPointerException) {
             }

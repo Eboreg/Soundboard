@@ -1,9 +1,7 @@
-Put colorhelper in globalapplication
+Drag sounds between categories? Is it even possible?
 
 Scrap the nested recyclerviews and implement getItemViewType?
 https://www.raywenderlich.com/272-intermediate-recyclerview-tutorial-with-kotlin
-
-Drag sounds between categories? Is it even possible?
 
 Trash CategoryListFragment, put it all in MainActivity?
 
