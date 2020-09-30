@@ -1,7 +1,11 @@
+Share sounds from other apps to this one -- seems like it's not possible to do this and get
+persistable permissions to the URI? :(
+
 Drag sounds between categories? Is it even possible?
 
 Scrap the nested recyclerviews and implement getItemViewType?
 https://www.raywenderlich.com/272-intermediate-recyclerview-tutorial-with-kotlin
+(See branch one-recyclerview for maybe futile attempts at this)
 
 Trash CategoryListFragment, put it all in MainActivity?
 
