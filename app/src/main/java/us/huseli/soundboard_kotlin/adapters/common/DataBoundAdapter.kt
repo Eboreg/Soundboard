@@ -25,13 +25,13 @@ abstract class DataBoundAdapter<T, VH: DataBoundViewHolder<B>, B: ViewDataBindin
 
     protected abstract fun createBinding(parent: ViewGroup, viewType: Int): B
 
-    protected abstract fun bind(holder: VH, item: T)
+    protected abstract fun bind(holder: VH, item: T, position: Int)
 
     protected abstract fun calculateDiff(list: List<T>): Any
 
     override fun getItemCount() = currentList.size
 
-    override fun onBindViewHolder(holder: VH, position: Int) = bind(holder, currentList[position])
+    override fun onBindViewHolder(holder: VH, position: Int) = bind(holder, currentList[position], position)
 
     override fun onViewDetachedFromWindow(holder: VH) {
         super.onViewDetachedFromWindow(holder)
@@ -55,6 +55,8 @@ abstract class DataBoundAdapter<T, VH: DataBoundViewHolder<B>, B: ViewDataBindin
             it.markDestroyed()
         }
     }
+
+    fun getViewHolder(position: Int) = viewHolders[position]
 
 
     abstract inner class DiffCallback(private val newRows: List<T>, private val oldRows: List<T>) : DiffUtil.Callback() {
