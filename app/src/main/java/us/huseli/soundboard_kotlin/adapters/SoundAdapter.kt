@@ -2,6 +2,7 @@ package us.huseli.soundboard_kotlin.adapters
 
 import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
+import android.content.ClipData
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -15,6 +16,7 @@ import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ItemTouchHelper
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.R
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundAdapter
@@ -22,6 +24,8 @@ import us.huseli.soundboard_kotlin.adapters.common.DataBoundViewHolder
 import us.huseli.soundboard_kotlin.animators.SoundItemLongClickAnimator
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.databinding.ItemSoundBinding
+import us.huseli.soundboard_kotlin.helpers.SoundDragListener
+import us.huseli.soundboard_kotlin.helpers.SoundItemDragHelperCallback
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.ItemDragHelperAdapter
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
@@ -33,6 +37,7 @@ class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private
         DataBoundAdapter<Sound, SoundAdapter.ViewHolder, ItemSoundBinding>(),
         ItemDragHelperAdapter<Sound> {
 
+    val soundItemTouchHelper = ItemTouchHelper(SoundItemDragHelperCallback())
     private var onItemsReorderedCallback: ((sounds: List<Sound>) -> Unit)? = null
     override val currentList = mutableListOf<Sound>()
 
@@ -41,9 +46,10 @@ class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private
     override fun createBinding(parent: ViewGroup, viewType: Int) =
             ItemSoundBinding.inflate(LayoutInflater.from(parent.context), parent, false)
 
-    override fun bind(holder: ViewHolder, item: Sound) {
+    override fun bind(holder: ViewHolder, item: Sound, position: Int) {
         val viewModelFactory = SoundViewModelFactory(item)
         val viewModel = ViewModelProvider(viewModelStoreOwner, viewModelFactory).get(item.id.toString(), SoundViewModel::class.java)
+        holder.binding.soundContainer.tag = position
         holder.bind(viewModel)
     }
 
@@ -53,6 +59,12 @@ class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private
 
     fun setOnItemsReordered(function: (sounds: List<Sound>) -> Unit) {
         onItemsReorderedCallback = function
+    }
+
+    fun getDragInstance() = SoundDragListener()
+
+    fun insertItem(item: Sound, position: Int) {
+
     }
 
 
@@ -77,12 +89,14 @@ class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private
         private var reorderEnabled = false
         private lateinit var longClickAnimator: SoundItemLongClickAnimator
         private lateinit var viewModel: SoundViewModel
-        private var sound: Sound? = null
+        var sound: Sound? = null
+        val adapter = this@SoundAdapter
         override val lifecycleRegistry = LifecycleRegistry(this)
 
         init {
-            binding.soundCard.setOnClickListener(this)
-            binding.soundCard.setOnLongClickListener(this)
+            binding.soundContainer.setOnClickListener(this)
+            binding.soundContainer.setOnLongClickListener(this)
+            binding.soundContainer.setOnDragListener(getDragInstance())
         }
 
         fun bind(viewModel: SoundViewModel) {
@@ -141,11 +155,15 @@ class SoundAdapter(private val viewModelStoreOwner: ViewModelStoreOwner, private
 
         override fun onLongClick(v: View): Boolean {
             longClickAnimator.start()
-            return if (reorderEnabled) false
-            else {
-                viewModel.select()
-                true
-            }
+            if (reorderEnabled) {
+                val data = ClipData.newPlainText("", "")
+                val shadowBuilder = View.DragShadowBuilder(v)
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
+                    v.startDragAndDrop(data, shadowBuilder, v, 0)
+                else
+                    v.startDrag(data, shadowBuilder, v, 0)
+            } else viewModel.select()
+            return true
         }
 
         override fun onClick(view: View?) {

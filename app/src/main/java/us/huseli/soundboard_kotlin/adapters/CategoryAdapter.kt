@@ -46,7 +46,7 @@ class CategoryAdapter(
     override fun createViewHolder(binding: ItemCategoryBinding, parent: ViewGroup) = ViewHolder(binding)
 
     @SuppressLint("ClickableViewAccessibility")
-    override fun bind(holder: ViewHolder, item: Category) {
+    override fun bind(holder: ViewHolder, item: Category, position: Int) {
         holder.binding.categoryMoveButton.setOnTouchListener { _, motionEvent ->
             if (motionEvent.action == MotionEvent.ACTION_DOWN) itemTouchHelper.startDrag(holder)
             return@setOnTouchListener false
@@ -143,8 +143,9 @@ class CategoryAdapter(
             }
         }
 
-        override fun onReorderEnabledChange(value: Boolean) =
-                if (value) soundItemTouchHelper.attachToRecyclerView(binding.soundList) else soundItemTouchHelper.attachToRecyclerView(null)
+        override fun onReorderEnabledChange(value: Boolean) {
+            //if (value) soundItemTouchHelper.attachToRecyclerView(binding.soundList) else soundItemTouchHelper.attachToRecyclerView(null)
+        }
 
         override fun onSelectEnabledChange(value: Boolean) {}
 
