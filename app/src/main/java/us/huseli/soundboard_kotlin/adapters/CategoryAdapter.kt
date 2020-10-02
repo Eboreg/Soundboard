@@ -150,5 +150,12 @@ class CategoryAdapter(
         override fun onSelectEnabledChange(value: Boolean) {}
 
         override fun getViewModelStore() = viewModelStore
+
+        override fun markDestroyed() {
+            // Fragment calls adapter.setLifecycleDestroyed(), which calls this
+            // We need to pass it on to soundAdapter
+            super.markDestroyed()
+            soundAdapter.setLifecycleDestroyed()
+        }
     }
 }

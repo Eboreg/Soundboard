@@ -4,9 +4,8 @@ import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.RecyclerView
 
-abstract class DataBoundAdapter<T, VH: DataBoundViewHolder<B>, B: ViewDataBinding> : RecyclerView.Adapter<VH>() {
+abstract class DataBoundAdapter<T, VH: DataBoundViewHolder<B>, B: ViewDataBinding> : LifecycleAdapter<VH>() {
     private val viewHolders = mutableListOf<VH>()
     internal open val currentList = mutableListOf<T>()
 
@@ -47,13 +46,6 @@ abstract class DataBoundAdapter<T, VH: DataBoundViewHolder<B>, B: ViewDataBindin
         calculateDiff(list)
         currentList.clear()
         currentList.addAll(list)
-    }
-
-    fun setLifecycleDestroyed() {
-        // TODO: Doesn't seem to be used. Find the page that introduced this architecture and check
-        viewHolders.forEach {
-            it.markDestroyed()
-        }
     }
 
     fun getViewHolder(position: Int) = viewHolders[position]

@@ -23,6 +23,7 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
     private val preferences: SharedPreferences by lazy { requireActivity().getPreferences(Context.MODE_PRIVATE) }
     private val scaleGestureDetector by lazy { ScaleGestureDetector(requireContext(), ScaleListener()) }
 
+    private lateinit var categoryAdapter: CategoryAdapter
     private lateinit var binding: FragmentCategoryListBinding
     private var initialSpanCount: Int? = null
 
@@ -45,7 +46,7 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val categoryAdapter = CategoryAdapter(requireActivity(), categoryListViewModel, appViewModel, initialSpanCount!!)
+        categoryAdapter = CategoryAdapter(requireActivity(), categoryListViewModel, appViewModel, initialSpanCount!!)
 
         binding.categoryList.apply {
             categoryAdapter.itemTouchHelper.attachToRecyclerView(this)
@@ -79,6 +80,10 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
         return scaleGestureDetector.onTouchEvent(event)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        categoryAdapter.setLifecycleDestroyed()
+    }
 
     private inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector?): Boolean {
