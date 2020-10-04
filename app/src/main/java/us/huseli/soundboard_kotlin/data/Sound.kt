@@ -52,6 +52,8 @@ data class Sound(
         }
     }
 
+    override fun toString() = "<Sound id=$id, name=$name, categoryId=$categoryId>"
+
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeValue(id)
         parcel.writeValue(categoryId)

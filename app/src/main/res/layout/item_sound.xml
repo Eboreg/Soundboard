@@ -30,7 +30,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:cardBackgroundColor="@color/white">
+            tools:cardBackgroundColor="@color/purple_500">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -49,7 +49,8 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    tools:text="Sound name" />
+                    tools:text="Sound name"
+                    tools:textColor="@color/white" />
 
                 <ImageView
                     android:id="@+id/play_icon"
@@ -90,6 +91,23 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:srcCompat="@drawable/ic_check" />
+
+                <ImageView
+                    android:id="@+id/reorder_icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="@dimen/margin_normal"
+                    android:alpha="0.5"
+                    android:contentDescription="@string/reorder"
+                    android:visibility="invisible"
+                    app:drawableColor="@{viewModel.textColor}"
+                    app:layout_constraintBottom_toTopOf="@+id/volume_bar"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/ic_reorder"
+                    tools:drawableColor="@color/white"
+                    tools:visibility="visible" />
 
                 <ProgressBar
                     android:id="@+id/volume_bar"

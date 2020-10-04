@@ -41,7 +41,7 @@ class AppViewModel : ViewModel() {
     fun getSelectedSounds() = _selectedSounds.toList()
 
     fun selectSound(sound: Sound) {
-        if (_selectEnabled.value != true) _selectEnabled.value = true
+        enableSelect()
         if (!_selectedSounds.contains(sound)) _selectedSounds.add(sound)
     }
 
@@ -49,6 +49,11 @@ class AppViewModel : ViewModel() {
         _selectedSounds.remove(sound)
         if (_selectedSounds.size == 0)
             disableSelect()
+    }
+
+    private fun enableSelect() {
+        if (_selectEnabled.value != true) _selectEnabled.value = true
+        if (_reorderEnabled.value != false) _reorderEnabled.value = false
     }
 
     fun disableSelect() {

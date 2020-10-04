@@ -22,6 +22,7 @@ import us.huseli.soundboard_kotlin.animators.CollapseButtonAnimator
 import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.databinding.ItemCategoryBinding
 import us.huseli.soundboard_kotlin.helpers.CategoryItemDragHelperCallback
+import us.huseli.soundboard_kotlin.helpers.SoundDragListener
 import us.huseli.soundboard_kotlin.helpers.SoundItemDragHelperCallback
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
@@ -37,6 +38,7 @@ class CategoryAdapter(
         DataBoundAdapter<Category, CategoryAdapter.ViewHolder, ItemCategoryBinding>(),
         ItemDragHelperAdapter<Category> {
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 20) }
+    private val soundDragListener = SoundDragListener()
     internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
     override val currentList = mutableListOf<Category>()
 
@@ -46,7 +48,7 @@ class CategoryAdapter(
     override fun createViewHolder(binding: ItemCategoryBinding, parent: ViewGroup) = ViewHolder(binding)
 
     @SuppressLint("ClickableViewAccessibility")
-    override fun bind(holder: ViewHolder, item: Category, position: Int) {
+    override fun bind(holder: ViewHolder, item: Category) {
         holder.binding.categoryMoveButton.setOnTouchListener { _, motionEvent ->
             if (motionEvent.action == MotionEvent.ACTION_DOWN) itemTouchHelper.startDrag(holder)
             return@setOnTouchListener false
@@ -79,9 +81,7 @@ class CategoryAdapter(
         private val soundItemTouchHelper = ItemTouchHelper(SoundItemDragHelperCallback())
         private val categoryViewModel = CategoryViewModel()
         private val viewModelStore = ViewModelStore()
-        private val soundAdapter = SoundAdapter(activity, appViewModel).apply {
-            setOnItemsReordered { sounds -> categoryViewModel.updateSoundOrder(sounds) }
-        }
+        private val soundAdapter = SoundAdapter(activity, appViewModel, categoryViewModel, soundDragListener)
         private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
         private lateinit var category: Category
         private var soundCount: Int? = null

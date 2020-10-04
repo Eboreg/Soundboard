@@ -18,7 +18,7 @@
 
     <item
         android:id="@+id/action_toggle_reorder"
-        android:icon="@drawable/ic_enable_move"
+        android:icon="@drawable/ic_reorder"
         android:title="@string/reorder"
         android:orderInCategory="1"
         app:showAsAction="ifRoom" />

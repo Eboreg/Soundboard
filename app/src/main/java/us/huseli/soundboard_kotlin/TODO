@@ -1,3 +1,14 @@
+Desired logic for soundviewholders:
+On click:
+    If reorder enabled: start drag & drop
+    Else if select enabled: toggle select
+    Else: play/pause (or show error toast)
+On long click:
+    (If reorder enabled: start drag & drop (same as on click))
+    Else if select enabled: do nothing
+    Else: Enable select, select item
+
+
 Drag sounds between categories? Is it even possible?
 https://github.com/jkozh/DragDropTwoRecyclerViews
 

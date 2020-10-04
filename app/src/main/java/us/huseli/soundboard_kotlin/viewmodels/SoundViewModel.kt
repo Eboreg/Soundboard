@@ -14,6 +14,7 @@ class SoundViewModel(private val _sound: Sound) : ViewModel(), OrderableItem {
     }
     private val _isPlaying = MutableLiveData(player.isPlaying)
     private val _isSelected = MutableLiveData(false)
+    private val _categoryId = MutableLiveData(_sound.categoryId)
 
     /**
      * Reasoning behind having a LiveData Sound _and_ a Sound as an initializer parameter:
@@ -33,17 +34,24 @@ class SoundViewModel(private val _sound: Sound) : ViewModel(), OrderableItem {
     val isSelected: LiveData<Boolean>
         get() = _isSelected
 
-    val backgroundColor = sound.switchMap { repository.getBackgroundColor(it?.categoryId) }
+    val backgroundColor = _categoryId.switchMap { repository.getBackgroundColor(it) }
     val textColor = backgroundColor.map { GlobalApplication.colorHelper.getTextColorForBackgroundColor(it) }
 
     /** Model fields */
     val id = _sound.id
-    val categoryId = sound.map { it?.categoryId }
+    //val categoryId = sound.map { it?.categoryId }
+    val categoryId: LiveData<Int?>
+        get() = _categoryId
     val name = sound.map { it?.name ?: "" }
     val volume = sound.map { it?.volume ?: 100 }
     override var order = _sound.order
 
-    override fun toString() = _sound.name
+    override fun toString() = "<SoundViewModel name=${_sound.name}, id=${_sound.id}, categoryId=${_categoryId.value}>"
+
+    // Does not update anything permanently, just for graphic purposes
+    fun setCategoryId(value: Int) {
+        _categoryId.value = value
+    }
 
     fun toggleSelected() {
         _isSelected.value = !_isSelected.value!!

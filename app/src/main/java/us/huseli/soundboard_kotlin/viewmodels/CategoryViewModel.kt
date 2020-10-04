@@ -11,6 +11,7 @@ class CategoryViewModel : ViewModel() {
     private val database = SoundboardDatabase.getInstance(GlobalApplication.application)
     private val repository = CategoryRepository(database.categoryDao())
     private val soundRepository = SoundRepository(database.soundDao())
+    private var categoryId: Int? = null
 
     private val _category = MutableLiveData<Category?>(null)
     private val _collapsed = MutableLiveData(false)
@@ -27,6 +28,7 @@ class CategoryViewModel : ViewModel() {
     val sounds = _category.switchMap { soundRepository.getByCategory(it?.id) }
 
     fun setCategory(category: Category) {
+        categoryId = category.id
         _category.value = category
         _collapsed.value = category.collapsed
     }
@@ -39,7 +41,11 @@ class CategoryViewModel : ViewModel() {
         }
     }
 
-    fun updateSoundOrder(sounds: List<Sound>) = viewModelScope.launch(Dispatchers.IO) {
+    fun updateSounds(sounds: List<Sound>) = viewModelScope.launch(Dispatchers.IO) {
+        sounds.forEachIndexed { index, sound ->
+            sound.order = index
+            sound.categoryId = categoryId
+        }
         soundRepository.update(sounds)
     }
 
