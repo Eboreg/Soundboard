@@ -1,491 +1,106 @@
-intent.flags i slutet av startaddsoundactivity: 193
-
-
-Lägger till 3 ljud:
-data.clipData.itemCount = 3
-data.clipData.getItemAt(0..2).uri = Uri
-data.data = null
-
-Lägger till 1 ljud:
-data.clipData = null
-
-SoundViewModel
-=================
-
-KRAVSPEC:
-Name ska vara livedata och uppdateras med repositoryt
-Ny viewmodel ska bara skapas när ett nytt ljud läggs till
-Jag vill att denna viewmodel ska hålla en Player och uppdatera den när Sound-data ändras i
-repository. MEN jag vill också att SoundAdapter ska kunna ta emot en lista av Sound-objekt.
-
-PROBLEM:
-Varje gång config ändras, skärm vrids etc, kommer SoundAdapter att skapa alla sina
-viewmodels på nytt. Detta vill jag ej.
-
-LÖSNING?
-Kanske inte ha detalj-viewmodel alls, utan bara en samlad SoundViewModel som håller reda
-på hela listan och spottar ur sig Sound-objekt? Men hur få den att också spotta ur sig
-Players?
-
-KRAVSPEC 2:
-Jag vill att detta ska ske:
-1. App startar
-2. Fragment/viewholder/whatever får viewmodel att hämta Sounds
-3. En Player för varje observerad Sound skapas
-4. Denna Player kvarstår oavsett konfig-ändringar, skärmvridning, ändring av irrelevanta
-   data (namn, färg, kategori)
-5. Player dödas bara när resten av appen gör det ELLER Sound tas bort från DB
-
-Det objekt som håller reda på Players får alltså inte vara något med en lifecycle som kommer
-och går. Dvs ej ett Fragment eller Activity.
-
-LÖSNING?
-Samlad SoundViewModel enligt ovan (för alla Sounds), som dels implementerar "hämta Sounds
-efter kategori" men också håller en lista över Players, eller snarare ngt slags dict/map
-där Players är indexerade efter Sound-id (vi tillåter ändå inte ändring av Uri på existerande
-Sounds).
-Eller så ska rentav GlobalApplication hålla koll på Players.
-Vem som än gör det, får ha en metod getPlayer() som returnerar existerande Player om den
-finns, annars skapar en ny och lägger den till "listan".
-
-https://developer.android.com/topic/libraries/architecture/viewmodel
-"You usually request a ViewModel the first time the system calls an activity object's
-onCreate() method. The system may call onCreate() several times throughout the life of an
-activity, such as when a device screen is rotated. The ViewModel exists from when you first
-request a ViewModel until the activity is finished and destroyed."
-
-Verkar som om varje anrop till activityViewModels() returnerar samma viewmodel-instans
-oavsett varifrån det görs. Men behöver aktiviteten inte alls ha med denna viewmodel att göra?
-Inte referera till den, observera den etc?
-
-https://proandroiddev.com/optimizing-viewmodel-with-lifecycle-2-2-0-a2895b5c01fd sez:
-"Use by activityViewModels in fragments, when the fragment is sharing data/communicating
-with another activity/fragment."
-Men också: "activityViewModels is an extension function applied to a fragment that returns a
-fragment’s parent’s activity’s VM."
-Betyder detta att aktiviteten på något sätt måste "ha" denna viewmodel för att det ska funka?
-
-https://developer.android.com/reference/kotlin/androidx/fragment/app/package-summary#activityviewmodels sez:
-"Returns a property delegate to access parent activity's ViewModel, if factoryProducer is 
-specified then ViewModelProvider.Factory returned by it will be used to create ViewModel 
-first time. Otherwise, the activity's 
-androidx.activity.ComponentActivity.getDefaultViewModelProviderFactory will be used."
-
-Verkar som om viewmodelen måste refereras i activity med viewModels(). Men det kanske är allt som
-behövs?
-
-============================================
-activity_main
-	toolbar
-	category_list_container
-	    category_list
-	        category_header
-	            category_name
-	            category_delete_button
-	            category_edit_button
-	        sound_list_container
-	            sound_list
-	                sound_name
-	                play_icon
-	                
-	                
-fragment_category_list innehåller RecyclerView.category_list
-CategoryListFragment attachar CategoryAdapter till den
-CategoryAdapter skapar lista av item_category
-CategoryAdapter SKA skapa SoundListFragments och lägga till dem i item_category.sound_list_container
-
-
-
-result = {SoundAdapter@11239} 
- categoryViewModel = {CategoryViewModel@11250} "aba"
- currentSoundId = null
- viewHolders = {ArrayList@11251}  size = 2
- mDiffer = {AsyncListDiffer@11252} 
- mListener = {ListAdapter$1@11253} 
- mHasStableIds = false
- mObservable = {RecyclerView$AdapterDataObservable@11254} 
- shadow$_klass_ = {Class@11076} "class us.huseli.soundboard_kotlin.adapters.SoundAdapter"
- shadow$_monitor_ = 0
- 
- 
- 
-binding.soundList.layoutManager:
-result = {GridLayoutManager@11331} 
- mCachedBorders = {int[5]@11431} 
- mDecorInsets = {Rect@11432} "Rect(0, 0 - 0, 0)"
- mPendingSpanCountChange = false
- mPreLayoutSpanIndexCache = {SparseIntArray@11433} "{}"
- mPreLayoutSpanSizeCache = {SparseIntArray@11434} "{}"
- 
-
-((binding.root as RecyclerView).parent.parent.parent as RecyclerView).layoutManager:
-result = {LinearLayoutManager@11846} 
- mAnchorInfo = {LinearLayoutManager$AnchorInfo@12086} "AnchorInfo{mPosition=-1, mCoordinate=-2147483648, mLayoutFromEnd=false, mValid=false}"
- mInitialPrefetchItemCount = 2
- mLastStackFromEnd = false
- mLayoutChunkResult = {LinearLayoutManager$LayoutChunkResult@12087} 
- mLayoutState = {LinearLayoutManager$LayoutState@12088} 
- mOrientation = 1
- 
-
-################################################
-
-MainActivity 51446711 onCreate
-CategoryListFragment 48310770 onAttach
-CategoryListFragment 48310770 onCreate
-MainActivity 51446711 onStart
-CategoryListFragment 48310770 onCreateView
-CategoryListFragment 48310770 onViewCreated
-CategoryListFragment 48310770 onActivityCreated
-CategoryListFragment 48310770 onStart
-MainActivity 51446711 onResume
-CategoryListFragment 48310770 onResume
-CategoryAdapter 267180050, bind holder 26848227 with viewmodel 90147296
-CategoryAdapter 267180050 ensureFragment: fragment NOT found
-CategoryAdapter 267180050, bind holder 20015691 with viewmodel 24071208
-CategoryAdapter 267180050 ensureFragment: fragment NOT found
-SoundListFragment 51052039 onAttach
-SoundListFragment 51052039 onCreate
-SoundListFragment 51052039 onCreateView
-SoundListFragment 51052039 onViewCreated
-SoundListFragment 51052039 onActivityCreated
-SoundListFragment 51052039 onStart
-SoundListFragment 51052039 onResume
-SoundListFragment 60585933 onAttach
-SoundListFragment 60585933 onCreate
-SoundListFragment 60585933 onCreateView
-SoundListFragment 60585933 onViewCreated
-SoundListFragment 60585933 onActivityCreated
-SoundListFragment 60585933 onStart
-SoundListFragment 60585933 onResume
-SoundAdapter 168440121 submitList: [us.huseli.soundboard_kotlin.viewmodels.SoundViewModel@c6c837e]
-SoundAdapter 79649787 submitList: [us.huseli.soundboard_kotlin.viewmodels.SoundViewModel@2a2d418, us.huseli.soundboard_kotlin.viewmodels.SoundViewModel@e83ce71]
-SoundAdapter 168440121, bind holder 87265250 with viewmodel 208438142
-SoundAdapter 79649787, bind holder 87904029 with viewmodel 44225560
-SoundAdapter 79649787, bind holder 159864204 with viewmodel 243519089
-
-(Vänd skärm)
-
-MainActivity 51446711 onPause
-SoundListFragment 51052039 onPause
-SoundListFragment 60585933 onPause
-CategoryListFragment 48310770 onPause
-MainActivity 51446711 onStop
-SoundListFragment 51052039 onStop
-SoundListFragment 60585933 onStop
-CategoryListFragment 48310770 onStop
-MainActivity 51446711 onDestroy
-SoundListFragment 51052039 onDestroyView
-SoundListFragment 60585933 onDestroyView
-CategoryListFragment 48310770 onDestroyView
-SoundListFragment 51052039 onDestroy
-SoundListFragment 51052039 onDetach
-SoundListFragment 60585933 onDestroy
-SoundListFragment 60585933 onDetach
-CategoryListFragment 48310770 onDestroy
-CategoryListFragment 48310770 onDetach
-MainActivity 63290189 onCreate
-CategoryListFragment 53805692 onAttach
-CategoryListFragment 53805692 onCreate
-SoundListFragment 186034982 onAttach
-SoundListFragment 186034982 onCreate
-SoundListFragment 119148291 onAttach
-SoundListFragment 119148291 onCreate
-MainActivity 63290189 onStart
-CategoryListFragment 53805692 onCreateView
-CategoryListFragment 53805692 onViewCreated
-CategoryListFragment 53805692 onActivityCreated
-SoundListFragment 186034982 onCreateView
-SoundListFragment 186034982 onViewCreated
-SoundListFragment 186034982 onActivityCreated
-SoundListFragment 119148291 onCreateView
-SoundListFragment 119148291 onViewCreated
-SoundListFragment 119148291 onActivityCreated
-CategoryListFragment 53805692 onStart
-SoundListFragment 186034982 onStart
-SoundAdapter 49341649 submitList: [us.huseli.soundboard_kotlin.viewmodels.SoundViewModel@c6c837e]
-SoundListFragment 119148291 onStart
-SoundAdapter 46969555 submitList: [us.huseli.soundboard_kotlin.viewmodels.SoundViewModel@2a2d418, us.huseli.soundboard_kotlin.viewmodels.SoundViewModel@e83ce71]
-MainActivity 63290189 onResume
-CategoryListFragment 53805692 onResume
-SoundListFragment 186034982 onResume
-SoundListFragment 119148291 onResume
-CategoryAdapter 124087754, bind holder 31423291 with viewmodel 90147296
-CategoryAdapter 124087754 ensureFragment: fragment 186034982 found
-CategoryAdapter 124087754, bind holder 72238173 with viewmodel 24071208
-CategoryAdapter 124087754 ensureFragment: fragment 119148291 found
-
-
-nr 1 holder.binding.soundListContainer.hashCode() före generateId: 201841502
-Efter: 201841502
-Nr 2: 254950100
-
-Efter vändning: nr 1 207873058, id 2131230917
-Nr 2 38441258, id 2131230917
-
-
-SoundAdapter 260176982, bind holder 96392407 with viewmodel 207901124
-SoundAdapter 218669511, bind holder 81900532 with viewmodel 195438365
-SoundAdapter 218669511, bind holder 261852556 with viewmodel 10755285
-
-
-Vid resume: onBindViewHolder körs för CategoryAdapter, men ej för SoundAdapter
-CategoryAdapter skapas i CategoryListFragment.onViewCreated
-SoundAdapter skapas i SoundListFragment.onViewCreated
-Bägge körs vid resume
-Även SoundAdapter.submitList körs varje resume
-
-
-
-FELSÖK REORDER
-========================
-Start:
-id 4: clög: bobbo viking
-id 2: bbuuu: ba dum tss, ah music, donovan, bens radio
-id 5: bsbsbdd: cool britannia
-
-CategoryAdapter: recyclerView 62331338, SoundAdapter 118807944, Category 2 bbuuu, sounds changed: [Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=0, volume=100), Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=3, volume=100)]
-CategoryAdapter: recyclerView 93752343, SoundAdapter 93572562, Category 5 bsbsbdd, sounds changed: [Sound(id=5, categoryId=5, name=Cool Britanniaäö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, order=1, volume=100)]
-CategoryAdapter: recyclerView 23556208, SoundAdapter 40429327, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 40429327, viewHolder 147160597, SoundViewModel Bobbo Viking
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 80432346, SoundViewModel ba dum tss!
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 24550706, SoundViewModel Ah, Musicjdjdjdj
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 41984138, SoundViewModel Donovan starfish
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 231157467, SoundViewModel Ben's Radioö
-SoundAdapter.ViewHolder.bind: adapter 93572562, viewHolder 179143883, SoundViewModel Cool Britanniaäö
-
-Flyttar bbuuu från pos 1 till position 0:
-
-ItemDragHelperCallback 158680235 clearView: drag from 1 to 0, list = [clög, bbuuu, bsbsbdd], recyclerView 11283093, adapter 42317738, viewHolder 128234025
-CategoryAdapter: recyclerView 62331338, SoundAdapter 169328245, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 24550706, SoundViewModel Bobbo Viking
-CategoryAdapter: recyclerView 23556208, SoundAdapter 4183137, Category 2 bbuuu, sounds changed: [Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=0, volume=100), Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=3, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 40429327, viewHolder 147160597, SoundViewModel ba dum tss!
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 80432346, SoundViewModel Ah, Musicjdjdjdj
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 41984138, SoundViewModel Donovan starfish
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 231157467, SoundViewModel Ben's Radioö
-
-recyclerView 62331338 har fått ny soundAdapter (169328245) och ny kategori (från cat 2 till cat 4)
-recyclerView 23556208 har fått ny soundAdapter (4183137) (från cat 4 till cat 2)
-Ingen äger längre soundAdapter 40429327 (skapades av categoryadapter för recyclerview 23556208), men den observerar fortfarande ljud
-Samma med soundAdapter 118807944 (skapades för recyclerview 62331338)
-
-
-Flyttar ah music från pos 1 till 0:
-
-ItemDragHelperCallback 70156257 clearView: drag from 1 to 0, list = [ba dum tss!, Ah, Musicjdjdjdj, Donovan starfish, Ben's Radioö], recyclerView 23556208, adapter 4183137, viewHolder 80432346
-CategoryAdapter: recyclerView 23556208, SoundAdapter 40429327, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 118807944, Category 2 bbuuu, sounds changed: [Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=0, volume=100), Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=3, volume=100)]
-CategoryAdapter: recyclerView 93752343, SoundAdapter 93572562, Category 5 bsbsbdd, sounds changed: [Sound(id=5, categoryId=5, name=Cool Britanniaäö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, order=1, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 169328245, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-CategoryAdapter: recyclerView 23556208, SoundAdapter 4183137, Category 2 bbuuu, sounds changed: [Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=0, volume=100), Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=3, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 40429327, viewHolder 147160597, SoundViewModel Ah, Musicjdjdjdj
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 80432346, SoundViewModel ba dum tss!
-
-clearView: korrekt category, uppdaterade recyclerview och adapter
-Ljud skickas felaktigt till gamla soundadapters: 40429327, 118807944
-Men också till de uppdaterade soundadaptersarna
-SoundAdapter.ViewHolder.bind körs bara för de gamla adaptrarna
-
-PROBLEM: När en soundadapter byts ut, måste den gamla kastas och även observern som skickar ljud till den
----------------------------------------------------------------------------------------------------------
-När byts den ut? - När man byter plats på kategorier.
-Men exakt när?
-    - itemdraghelpercallback kör categoryadapter.onitemsreordred med den nya (omsorterade) listan
-    - onitemsreordered kör fragment.categoryListViewModel.updateOrder(newList) (fragment = categorylistframent)
-    - viewmodelens categories-livedata är nu uppdaterad, observeras av categorylistframent
-    - fragment kör categoryadapter.submitlist med nya listan
-    - categoryadapter har kvar samma viewholders, i samma ordning, men skickar nya Category-objekt till dem!
-    - categoryadapter.viewholder.bind (samma viewholder-objekt) körs med detta category-id, skapar ny categoryviremodel
-    - categoryadapter.viewholder.bind lägger observator på soundListViewModel.getSoundsByCategory(category.id!!)
-        - MEN har fortfarande kvar observator på sounds-lista för förra kategorin!
-
-LÖSNING
-1. Kan själva category-viewholdersarna byta plats i categoryadapters lista, snarare än att objekten har samma position men får nya data?
-   Det kanske inte funkar så.
-2. När categoryadapter får nya data och kör bind på dem, se då till att de gamla observatorerna och soundadaptersarna dödas
-    2a. Skapa inte soundadapter i categoryadapter.viewholder.bind utan en gång för alla i viewholderns konstruktur, så den ej skapas på nytt när categoryid byts ut
-    2b. Gör om categoryviewmodel till att inte ta argument men ha en setCategory() som sätter en mutablelivedata, som övriga properties beror på? Plus en property 'sounds' som
-        matar ut en livedata med Sound för denna kategori? Initiera sedan denna viewmodel en gång för alla i categoryadapter.viewholders konstruktor
-
-
-
-Flyttar tillbaka bbuuu från pos 0 till 1:
-
-ItemDragHelperCallback 158680235 clearView: drag from 0 to 1, list = [bbuuu, clög, bsbsbdd], recyclerView 11283093, adapter 42317738, viewHolder 257840744
-CategoryAdapter: recyclerView 62331338, SoundAdapter 236606406, Category 2 bbuuu, sounds changed: [Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=0, volume=100), Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=3, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 24550706, SoundViewModel Ah, Musicjdjdjdj
-SoundAdapter.ViewHolder.bind: adapter 236606406, viewHolder 84637845, SoundViewModel ba dum tss!
-SoundAdapter.ViewHolder.bind: adapter 236606406, viewHolder 88286541, SoundViewModel Donovan starfish
-SoundAdapter.ViewHolder.bind: adapter 236606406, viewHolder 57369585, SoundViewModel Ben's Radioö
-CategoryAdapter: recyclerView 23556208, SoundAdapter 105803099, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 80432346, SoundViewModel Bobbo Viking
-
-Flyttar ba dum tss från pos 1 till 0:
-BUGG: uppdaterades ej som det ska under onMove, såg dock ut som sig bör efteråt!
-ItemDragHelperCallback 262171159 clearView: drag from 1 to 0, list = [Ah, Musicjdjdjdj, ba dum tss!, Donovan starfish, Ben's Radioö], recyclerView 62331338, adapter 236606406, viewHolder 84637845
-CategoryAdapter: recyclerView 23556208, SoundAdapter 40429327, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 118807944, Category 2 bbuuu, sounds changed: [Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=0, volume=100), Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=3, volume=100)]
-CategoryAdapter: recyclerView 93752343, SoundAdapter 93572562, Category 5 bsbsbdd, sounds changed: [Sound(id=5, categoryId=5, name=Cool Britanniaäö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, order=1, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 169328245, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-CategoryAdapter: recyclerView 23556208, SoundAdapter 4183137, Category 2 bbuuu, sounds changed: [Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=0, volume=100), Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=3, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 236606406, Category 2 bbuuu, sounds changed: [Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=0, volume=100), Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=3, volume=100)]
-CategoryAdapter: recyclerView 23556208, SoundAdapter 105803099, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 24550706, SoundViewModel ba dum tss!
-SoundAdapter.ViewHolder.bind: adapter 236606406, viewHolder 84637845, SoundViewModel Ah, Musicjdjdjdj
-
-Flyttar ah music från pos 1 till 0:
-SAMMA BUGG
-ItemDragHelperCallback 262171159 clearView: drag from 1 to 0, list = [ba dum tss!, Ah, Musicjdjdjdj, Donovan starfish, Ben's Radioö], recyclerView 62331338, adapter 236606406, viewHolder 84637845
-CategoryAdapter: recyclerView 23556208, SoundAdapter 40429327, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 118807944, Category 2 bbuuu, sounds changed: [Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=0, volume=100), Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=3, volume=100)]
-CategoryAdapter: recyclerView 93752343, SoundAdapter 93572562, Category 5 bsbsbdd, sounds changed: [Sound(id=5, categoryId=5, name=Cool Britanniaäö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, order=1, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 169328245, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-CategoryAdapter: recyclerView 23556208, SoundAdapter 4183137, Category 2 bbuuu, sounds changed: [Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=0, volume=100), Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=3, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 236606406, Category 2 bbuuu, sounds changed: [Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=0, volume=100), Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=3, volume=100)]
-CategoryAdapter: recyclerView 23556208, SoundAdapter 105803099, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 24550706, SoundViewModel Ah, Musicjdjdjdj
-SoundAdapter.ViewHolder.bind: adapter 236606406, viewHolder 84637845, SoundViewModel ba dum tss!
-
-Flyttar bbuuu från pos 1 till 2
-ItemDragHelperCallback 158680235 clearView: drag from 1 to 2, list = [clög, bbuuu, bsbsbdd], recyclerView 11283093, adapter 42317738, viewHolder 128234025
-CategoryAdapter: recyclerView 62331338, SoundAdapter 136451881, Category 5 bsbsbdd, sounds changed: [Sound(id=5, categoryId=5, name=Cool Britanniaäö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, order=1, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 236606406, viewHolder 88286541, SoundViewModel Cool Britanniaäö
-CategoryAdapter: recyclerView 93752343, SoundAdapter 243776524, Category 2 bbuuu, sounds changed: [Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=0, volume=100), Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=3, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 93572562, viewHolder 179143883, SoundViewModel Ah, Musicjdjdjdj
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 24550706, SoundViewModel ba dum tss!
-SoundAdapter.ViewHolder.bind: adapter 236606406, viewHolder 57369585, SoundViewModel Donovan starfish
-SoundAdapter.ViewHolder.bind: adapter 40429327, viewHolder 147160597, SoundViewModel Ben's Radioö
-
-Flyttar bens radio från 3 till 2:
-SAMMA GRAFISKA BUGG
-ItemDragHelperCallback 36148778 clearView: drag from 3 to 2, list = [Ah, Musicjdjdjdj, ba dum tss!, Donovan starfish, Ben's Radioö], recyclerView 93752343, adapter 243776524, viewHolder 147160597
-CategoryAdapter: recyclerView 23556208, SoundAdapter 40429327, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 118807944, Category 2 bbuuu, sounds changed: [Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=0, volume=100), Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=1, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=2, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=3, volume=100)]
-CategoryAdapter: recyclerView 93752343, SoundAdapter 93572562, Category 5 bsbsbdd, sounds changed: [Sound(id=5, categoryId=5, name=Cool Britanniaäö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, order=1, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 169328245, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-CategoryAdapter: recyclerView 23556208, SoundAdapter 4183137, Category 2 bbuuu, sounds changed: [Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=0, volume=100), Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=1, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=2, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=3, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 236606406, Category 2 bbuuu, sounds changed: [Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=0, volume=100), Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=1, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=2, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=3, volume=100)]
-CategoryAdapter: recyclerView 23556208, SoundAdapter 105803099, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 136451881, Category 5 bsbsbdd, sounds changed: [Sound(id=5, categoryId=5, name=Cool Britanniaäö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, order=1, volume=100)]
-CategoryAdapter: recyclerView 93752343, SoundAdapter 243776524, Category 2 bbuuu, sounds changed: [Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=0, volume=100), Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=1, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=2, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=3, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 236606406, viewHolder 57369585, SoundViewModel Ben's Radioö
-SoundAdapter.ViewHolder.bind: adapter 40429327, viewHolder 147160597, SoundViewModel Donovan starfish
-
-Flyttar ah music från 0 till 3
-Resultat: 0 donovan, 1 bens radio, 2 tomt!, 3 ah music
-ItemDragHelperCallback 101011770 clearView: drag from 0 to 3, list = [Ah, Musicjdjdjdj, ba dum tss!, Ben's Radioö, Donovan starfish], recyclerView 93752343, adapter 243776524, viewHolder 179143883
-CategoryAdapter: recyclerView 23556208, SoundAdapter 40429327, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 118807944, Category 2 bbuuu, sounds changed: [Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=0, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=3, volume=100)]
-CategoryAdapter: recyclerView 93752343, SoundAdapter 93572562, Category 5 bsbsbdd, sounds changed: [Sound(id=5, categoryId=5, name=Cool Britanniaäö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, order=1, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 169328245, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-CategoryAdapter: recyclerView 23556208, SoundAdapter 4183137, Category 2 bbuuu, sounds changed: [Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=0, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=3, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 236606406, Category 2 bbuuu, sounds changed: [Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=0, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=3, volume=100)]
-CategoryAdapter: recyclerView 23556208, SoundAdapter 105803099, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-CategoryAdapter: recyclerView 62331338, SoundAdapter 136451881, Category 5 bsbsbdd, sounds changed: [Sound(id=5, categoryId=5, name=Cool Britanniaäö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, order=1, volume=100)]
-CategoryAdapter: recyclerView 93752343, SoundAdapter 243776524, Category 2 bbuuu, sounds changed: [Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=0, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=1, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=2, volume=100), Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=3, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 24550706, SoundViewModel Ah, Musicjdjdjdj
-SoundAdapter.ViewHolder.bind: adapter 93572562, viewHolder 179143883, SoundViewModel Donovan starfish
-SoundAdapter.ViewHolder.bind: adapter 40429327, viewHolder 147160597, SoundViewModel Ben's Radioö
-SoundAdapter.ViewHolder.bind: adapter 236606406, viewHolder 57369585, SoundViewModel ba dum tss!
-
-Iakttagelse:
-Det verkar hållas kvar vid gamla ....
-
-
-Vad behöver jag veta?
-- Varje gång ett ljud flyttas: recyclerView, adapter, viewHolder
-- Varje gång ljud ritas ut: samma
-
-
-Hierarki:
-categoryadapter -> category viewholder -> categoryviewmodel
-categoryadapter -> category viewholder -> sound recyclerview
-categoryadapter -> category viewholder -> soundadapter -> sound viewholder -> soundviewmodel
-
-START
-CategoryAdapter.bind: 42317738 ViewHolder 257840744 bind Category clög (-1717693946), categoryViewModel 99527297
-CategoryAdapter.bind: 42317738 ViewHolder 128234025 bind Category bsbsbdd (1938457753), categoryViewModel 69110190
-CategoryAdapter.bind: 42317738 ViewHolder 1056362 bind Category bbuuu (-301750982), categoryViewModel 1929051
-CategoryAdapter 42317738: viewholder 257840744, recyclerView 23556208, SoundAdapter 40429327, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-CategoryAdapter 42317738: viewholder 128234025, recyclerView 62331338, SoundAdapter 118807944, Category 5 bsbsbdd, sounds changed: [Sound(id=5, categoryId=5, name=Cool Britanniaäö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, order=1, volume=100)]
-CategoryAdapter 42317738: viewholder 1056362, recyclerView 93752343, SoundAdapter 115124487, Category 2 bbuuu, sounds changed: [Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=0, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=1, volume=100), Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=2, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=3, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 40429327, viewHolder 29312298, SoundViewModel Bobbo Viking
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 110515467, SoundViewModel Cool Britanniaäö
-SoundAdapter.ViewHolder.bind: adapter 115124487, viewHolder 109376280, SoundViewModel ba dum tss!
-SoundAdapter.ViewHolder.bind: adapter 115124487, viewHolder 129699120, SoundViewModel Ben's Radioö
-SoundAdapter.ViewHolder.bind: adapter 115124487, viewHolder 254235208, SoundViewModel Ah, Musicjdjdjdj
-SoundAdapter.ViewHolder.bind: adapter 115124487, viewHolder 173642920, SoundViewModel Donovan starfish
-
-FLYTTA CAT bbuuu (2) FRÅN POS 2 TILL 1
-ItemDragHelperCallback 152864520 clearView: drag from 2 to 1, list = [clög, bsbsbdd, bbuuu], recyclerView 11283093, adapter 42317738, viewHolder 1056362
-CategoryAdapter.bind: 42317738 ViewHolder 128234025 bind Category bbuuu (-301750983), categoryViewModel 102552137
-CategoryAdapter 42317738: viewholder 128234025, recyclerView 62331338, SoundAdapter 23962150, Category 2 bbuuu, sounds changed: [Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=0, volume=100), Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=1, volume=100), Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=2, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=3, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 110515467, SoundViewModel ba dum tss!
-SoundAdapter.ViewHolder.bind: adapter 23962150, viewHolder 205009324, SoundViewModel Ben's Radioö
-SoundAdapter.ViewHolder.bind: adapter 23962150, viewHolder 152898116, SoundViewModel Ah, Musicjdjdjdj
-SoundAdapter.ViewHolder.bind: adapter 23962150, viewHolder 224552696, SoundViewModel Donovan starfish
-CategoryAdapter.bind: 42317738 ViewHolder 1056362 bind Category bsbsbdd (1938457754), categoryViewModel 62574874
-CategoryAdapter 42317738: viewholder 1056362, recyclerView 93752343, SoundAdapter 48649110, Category 5 bsbsbdd, sounds changed: [Sound(id=5, categoryId=5, name=Cool Britanniaäö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, order=1, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 115124487, viewHolder 129699120, SoundViewModel Cool Britanniaäö
-
-Category viewholder 128234025 hade cat 5, har nu cat 2; har samma recyclerview; hade SoundAdapter 118807944, har nu 23962150
-Category viewholder 1056362 hade cat 2, har nu cat 5; har samma recyclerview; hade SoundAdapter 115124487, har nu 48649110
-BUGG: soundviewmodel ba dum tss binds till soundadapter 118807944 (gammal) men de andra i samma kategori till adapter 23962150 (ny)!
-BUGG: soundviewmodel cool britannia binds till soundadapter 115124487 (gammal)
-Ingen "har" längre soundadapter 115124487 och 118807944
-
-FLYTTA LJUD 1 (bens radio) TILL POS 0 (ba dum tss) I CAT bbuuu (2)
-ItemDragHelperCallback 266307096 clearView: drag from 1 to 0, list = [ba dum tss!, Ben's Radioö, Ah, Musicjdjdjdj, Donovan starfish], recyclerView 62331338, adapter 23962150, viewHolder 205009324
-CategoryAdapter 42317738: viewholder 257840744, recyclerView 23556208, SoundAdapter 40429327, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-CategoryAdapter 42317738: viewholder 128234025, recyclerView 62331338, SoundAdapter 118807944, Category 5 bsbsbdd, sounds changed: [Sound(id=5, categoryId=5, name=Cool Britanniaäö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, order=1, volume=100)]
-CategoryAdapter 42317738: viewholder 1056362, recyclerView 93752343, SoundAdapter 115124487, Category 2 bbuuu, sounds changed: [Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=0, volume=100), Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=1, volume=100), Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=2, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=3, volume=100)]
-CategoryAdapter 42317738: viewholder 128234025, recyclerView 62331338, SoundAdapter 23962150, Category 2 bbuuu, sounds changed: [Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=0, volume=100), Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=1, volume=100), Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=2, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=3, volume=100)]
-CategoryAdapter 42317738: viewholder 1056362, recyclerView 93752343, SoundAdapter 48649110, Category 5 bsbsbdd, sounds changed: [Sound(id=5, categoryId=5, name=Cool Britanniaäö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, order=1, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 118807944, viewHolder 110515467, SoundViewModel Ben's Radioö
-SoundAdapter.ViewHolder.bind: adapter 23962150, viewHolder 205009324, SoundViewModel ba dum tss!
-
-BUGG: category viewholder 1056362 och 128234025 observerar nu två sounds-livedata vardera (de observerar fortfarande sina gamla kategorier)
-BUGG: Soundviewmodel bens radio hamnar i soundadapter 118807944, antagligen för att ba dum tss hade den förut och de nu bytt plats
-
-
-VÄNDER PÅ SKÄRMEN:
-CategoryAdapter.bind: 91149624 ViewHolder 103081333 bind Category clög (-1717693946), categoryViewModel 152930570
-CategoryAdapter 91149624: viewholder 103081333, recyclerView 213995053, SoundAdapter 133050210, Category 4 clög, sounds changed: [Sound(id=4, categoryId=4, name=Bobbo Viking, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, order=0, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 133050210, viewHolder 206548704, SoundViewModel Bobbo Viking
-CategoryAdapter.bind: 91149624 ViewHolder 133064457 bind Category bbuuu (-301750983), categoryViewModel 232574222
-CategoryAdapter 91149624: viewholder 133064457, recyclerView 140439105, SoundAdapter 71921638, Category 2 bbuuu, sounds changed: [Sound(id=3, categoryId=2, name=Ben's Radioö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, order=0, volume=100), Sound(id=2, categoryId=2, name=ba dum tss!, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, order=1, volume=100), Sound(id=1, categoryId=2, name=Ah, Musicjdjdjdj, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, order=2, volume=100), Sound(id=6, categoryId=2, name=Donovan starfish, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, order=3, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 71921638, viewHolder 245295537, SoundViewModel Ben's Radioö
-SoundAdapter.ViewHolder.bind: adapter 71921638, viewHolder 167255529, SoundViewModel ba dum tss!
-SoundAdapter.ViewHolder.bind: adapter 71921638, viewHolder 21799201, SoundViewModel Ah, Musicjdjdjdj
-SoundAdapter.ViewHolder.bind: adapter 71921638, viewHolder 14111577, SoundViewModel Donovan starfish
-CategoryAdapter.bind: 91149624 ViewHolder 195964785 bind Category bsbsbdd (1938457754), categoryViewModel 235196758
-CategoryAdapter 91149624: viewholder 195964785, recyclerView 225598377, SoundAdapter 257209646, Category 5 bsbsbdd, sounds changed: [Sound(id=5, categoryId=5, name=Cool Britanniaäö, uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, order=1, volume=100)]
-SoundAdapter.ViewHolder.bind: adapter 257209646, viewHolder 20742425, SoundViewModel Cool Britanniaäö
-
-(Allt skapas på nytt och blir som det ska vara)
-
-
-
-
-
-
-
-2020-10-04 02:40:41.589 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: Start drag: adapter <SoundAdapter 252715509 currentList=[<Sound id=7, name=Den ariske mannens skor Edit 1 Export 2, categoryId=5>, <Sound id=9, name=Donovan starfish, categoryId=5>, <Sound id=4, name=Bobbo Viking, categoryId=5>, <Sound id=11, name=egolE, categoryId=5>, <Sound id=6, name=Cool Britannia, categoryId=5>, <Sound id=1, name=Ah, Music, categoryId=5>, <Sound id=5, name=Boing Boom Tschak, categoryId=5>, <Sound id=12, name=Eloge, categoryId=5>, <Sound id=3, name=Ben's Radio, categoryId=5>]>, position 0, viewModel <SoundViewModel name=Den ariske mannens skor Edit 1 Export 2, id=7, categoryId=5>
-2020-10-04 02:40:41.688 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_ENTERED: <SoundViewModel name=Den ariske mannens skor Edit 1 Export 2, id=7, categoryId=5> entered view for viewModel=<SoundViewModel name=Den ariske mannens skor Edit 1 Export 2, id=7, categoryId=5>, adapter=<SoundAdapter 252715509 currentList=[<Sound id=7, name=Den ariske mannens skor Edit 1 Export 2, categoryId=5>, <Sound id=9, name=Donovan starfish, categoryId=5>, <Sound id=4, name=Bobbo Viking, categoryId=5>, <Sound id=11, name=egolE, categoryId=5>, <Sound id=6, name=Cool Britannia, categoryId=5>, <Sound id=1, name=Ah, Music, categoryId=5>, <Sound id=5, name=Boing Boom Tschak, categoryId=5>, <Sound id=12, name=Eloge, categoryId=5>, <Sound id=3, name=Ben's Radio, categoryId=5>]>
-2020-10-04 02:40:41.689 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_ENTERED: Making androidx.constraintlayout.widget.ConstraintLayout{bfc43d1 VFE...CL. ........ 0,0-270,209 #7f08010e app:id/sound_container} invisible
-2020-10-04 02:40:42.323 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_EXITED: <SoundViewModel name=Den ariske mannens skor Edit 1 Export 2, id=7, categoryId=5> exited androidx.constraintlayout.widget.ConstraintLayout{bfc43d1 IFE...CL. .......D 0,0-270,209 #7f08010e app:id/sound_container} (<SoundViewModel name=Den ariske mannens skor Edit 1 Export 2, id=7, categoryId=5>)
-2020-10-04 02:40:42.613 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_ENTERED: <SoundViewModel name=Den ariske mannens skor Edit 1 Export 2, id=7, categoryId=5> entered view for viewModel=<SoundViewModel name=ba dum tss, id=2, categoryId=4>, adapter=<SoundAdapter 194186041 currentList=[<Sound id=2, name=ba dum tss, categoryId=4>, <Sound id=10, name=Ed Sanders, categoryId=4>, <Sound id=8, name=Det svaga röda vinet, categoryId=4>]>
-2020-10-04 02:40:42.614 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_ENTERED: Making androidx.constraintlayout.widget.ConstraintLayout{d016786 VFE...CL. ........ 0,0-270,209 #7f08010e app:id/sound_container} invisible
-2020-10-04 02:40:42.621 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: move(): Move <Sound id=7, name=Den ariske mannens skor Edit 1 Export 2, categoryId=5> from <SoundAdapter 252715509 currentList=[<Sound id=7, name=Den ariske mannens skor Edit 1 Export 2, categoryId=5>, <Sound id=9, name=Donovan starfish, categoryId=5>, <Sound id=4, name=Bobbo Viking, categoryId=5>, <Sound id=11, name=egolE, categoryId=5>, <Sound id=6, name=Cool Britannia, categoryId=5>, <Sound id=1, name=Ah, Music, categoryId=5>, <Sound id=5, name=Boing Boom Tschak, categoryId=5>, <Sound id=12, name=Eloge, categoryId=5>, <Sound id=3, name=Ben's Radio, categoryId=5>]>, position 0 to <SoundAdapter 194186041 currentList=[<Sound id=2, name=ba dum tss, categoryId=4>, <Sound id=10, name=Ed Sanders, categoryId=4>, <Sound id=8, name=Det svaga röda vinet, categoryId=4>]>, position 0
-2020-10-04 02:40:42.622 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: move(): Run notifyItemRemoved(0) on <SoundAdapter 252715509 currentList=[<Sound id=9, name=Donovan starfish, categoryId=5>, <Sound id=4, name=Bobbo Viking, categoryId=5>, <Sound id=11, name=egolE, categoryId=5>, <Sound id=6, name=Cool Britannia, categoryId=5>, <Sound id=1, name=Ah, Music, categoryId=5>, <Sound id=5, name=Boing Boom Tschak, categoryId=5>, <Sound id=12, name=Eloge, categoryId=5>, <Sound id=3, name=Ben's Radio, categoryId=5>]>
-2020-10-04 02:40:42.623 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: move(): Run notifyItemInserted(0) on <SoundAdapter 194186041 currentList=[<Sound id=7, name=Den ariske mannens skor Edit 1 Export 2, categoryId=5>, <Sound id=2, name=ba dum tss, categoryId=4>, <Sound id=10, name=Ed Sanders, categoryId=4>, <Sound id=8, name=Det svaga röda vinet, categoryId=4>]>
-2020-10-04 02:40:43.110 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_EXITED: <SoundViewModel name=Den ariske mannens skor Edit 1 Export 2, id=7, categoryId=4> exited androidx.constraintlayout.widget.ConstraintLayout{d016786 IFE...CL. ......I. 270,0-540,209 #7f08010e app:id/sound_container} (<SoundViewModel name=ba dum tss, id=2, categoryId=4>)
-2020-10-04 02:40:43.110 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_EXITED: Making androidx.constraintlayout.widget.ConstraintLayout{d016786 IFE...CL. ......I. 270,0-540,209 #7f08010e app:id/sound_container} visible
-2020-10-04 02:40:43.113 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_ENTERED: <SoundViewModel name=Den ariske mannens skor Edit 1 Export 2, id=7, categoryId=4> entered view for viewModel=<SoundViewModel name=Den ariske mannens skor Edit 1 Export 2, id=7, categoryId=4>, adapter=<SoundAdapter 194186041 currentList=[<Sound id=7, name=Den ariske mannens skor Edit 1 Export 2, categoryId=5>, <Sound id=2, name=ba dum tss, categoryId=4>, <Sound id=10, name=Ed Sanders, categoryId=4>, <Sound id=8, name=Det svaga röda vinet, categoryId=4>]>
-2020-10-04 02:40:43.113 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_ENTERED: Making androidx.constraintlayout.widget.ConstraintLayout{394b4a5 VFE...CL. ........ 0,0-270,209 #7f08010e app:id/sound_container} invisible
-2020-10-04 02:40:44.476 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DROP: adapter <SoundAdapter 194186041 currentList=[<Sound id=7, name=Den ariske mannens skor Edit 1 Export 2, categoryId=5>, <Sound id=2, name=ba dum tss, categoryId=4>, <Sound id=10, name=Ed Sanders, categoryId=4>, <Sound id=8, name=Det svaga röda vinet, categoryId=4>]>, position 0, viewModel <SoundViewModel name=Den ariske mannens skor Edit 1 Export 2, id=7, categoryId=4>, target viewModel <SoundViewModel name=Den ariske mannens skor Edit 1 Export 2, id=7, categoryId=4>
-2020-10-04 02:40:44.477 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DROP: Making androidx.constraintlayout.widget.ConstraintLayout{394b4a5 IFE...CL. .......D 0,0-270,209 #7f08010e app:id/sound_container} visible, running updateDb() on currentAdapter=<SoundAdapter 194186041 currentList=[<Sound id=7, name=Den ariske mannens skor Edit 1 Export 2, categoryId=5>, <Sound id=2, name=ba dum tss, categoryId=4>, <Sound id=10, name=Ed Sanders, categoryId=4>, <Sound id=8, name=Det svaga röda vinet, categoryId=4>]>
-2020-10-04 02:40:44.573 29423-29423/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DROP: Running updateDb() on originalAdapter=<SoundAdapter 252715509 currentList=[<Sound id=9, name=Donovan starfish, categoryId=5>, <Sound id=4, name=Bobbo Viking, categoryId=5>, <Sound id=11, name=egolE, categoryId=5>, <Sound id=6, name=Cool Britannia, categoryId=5>, <Sound id=1, name=Ah, Music, categoryId=5>, <Sound id=5, name=Boing Boom Tschak, categoryId=5>, <Sound id=12, name=Eloge, categoryId=5>, <Sound id=3, name=Ben's Radio, categoryId=5>]>
-
+surface vid flytt nr 1:
+result = {Surface@10404} "Surface(name=null)/@0x3e4fe4b"
+ mCanvas = {Surface$CompatibleCanvas@10430}
+ mCloseGuard = {CloseGuard@10898}
+ mCompatibleMatrix = null
+ mGenerationId = 1
+ mHwuiContext = null
+ mIsAutoRefreshEnabled = false
+ mIsSharedBufferModeEnabled = false
+ mIsSingleBuffered = false
+ mLock = {Object@10899}
+ mLockedObject = 0
+ mName = null
+ mNativeObject = 3401881600
+ shadow$_klass_ = {Class@4862} "class android.view.Surface"
+ shadow$_monitor_ = -2082144693
+
+
+startDragAndDrop körs 2 ggr?
+Gång 1:
+this = {ConstraintLayout@10265} "androidx.constraintlayout.widget.ConstraintLayout{7b39a09 VFE...CL. ........ 0,0-360,278 #7f08010f app:id/sound_container}"
+data = {ClipData@11770} "ClipData { text/plain "" {T:} }"
+shadowBuilder = {View$DragShadowBuilder@11771}
+myLocalState = {DraggedSoundViewModel@11772}
+flags = 0
+shadowSize = {Point@11806} "Point(150, 609)"
+shadowTouchPoint = {Point@11807} "Point(180, 139)"
+root = {ViewRootImpl@10290}
+session = {SurfaceSession@11808}
+surfaceControl = {SurfaceControl@11809} "Surface(name=drag surface)/@0x4092d1c"
+surface = {Surface@11810} "Surface(name=null)/@0x34eed25"
+token = null
+canvas = {Surface$CompatibleCanvas@11811}
+mAttachInfo.mSession = {IWindowSession$Stub$Proxy@10483}
+shadowSize.y = 609
+shadowSize.x = 150
+mAttachInfo = {View$AttachInfo@10289}
+shadowTouchPoint.y = 139
+mAttachInfo.mWindow = {ViewRootImpl$W@10484}
+shadowTouchPoint.x = 180
+
+Gång 2:
+this = {ConstraintLayout@10265} "androidx.constraintlayout.widget.ConstraintLayout{7b39a09 VFE...CL. ........ 0,0-360,278 #7f08010f app:id/sound_container}"
+data = {ClipData@11770} "ClipData { text/plain "" {T:} }"
+shadowBuilder = {View$DragShadowBuilder@11771}
+myLocalState = {DraggedSoundViewModel@11772}
+flags = 0
+shadowSize = {Point@11806} "Point(150, 609)"
+shadowTouchPoint = {Point@11807} "Point(180, 139)"
+root = {ViewRootImpl@10290}
+session = {SurfaceSession@11808}
+surfaceControl = {SurfaceControl@11809} "Surface(name=drag surface)/@0x4092d1c"
+surface = {Surface@11810} "Surface(name=null)/@0x34eed25"
+token = null
+canvas = {Surface$CompatibleCanvas@11811}
+mAttachInfo.mSession = {IWindowSession$Stub$Proxy@10483}
+shadowSize.y = 609
+shadowSize.x = 150
+mAttachInfo = {View$AttachInfo@10289}
+shadowTouchPoint.y = 139
+mAttachInfo.mWindow = {ViewRootImpl$W@10484}
+shadowTouchPoint.x = 180
+
+Flytta ba dum tss från 2 till default
+2020-10-10 03:55:39.459 11687-11687/us.huseli.soundboard_kotlin I/SoundAdapter: viewHolder=<SoundAdapter.ViewHolder adapterPosition=0, sound=<Sound id=2, name=ba dum tss, categoryId=3>>, isDragged=true
+2020-10-10 03:55:39.522 11687-11687/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_LOCATION: viewHolder <SoundAdapter.ViewHolder adapterPosition=0, sound=<Sound id=2, name=ba dum tss, categoryId=3>> != currentViewHolder null
+2020-10-10 03:55:39.808 11687-11687/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_LOCATION: viewHolder <SoundAdapter.ViewHolder adapterPosition=0, sound=<Sound id=5, name=Boing Boom Tschak, categoryId=2>> != currentViewHolder null
+2020-10-10 03:55:39.809 11687-11687/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_LOCATION: Moving <Sound id=2, name=ba dum tss, categoryId=3> to position 0 in ViewHolder{9b4c8da position=0 id=-1, oldPos=-1, pLpos:-1}
+2020-10-10 03:55:39.810 11687-11687/us.huseli.soundboard_kotlin I/SoundDragListener: Adding <Sound id=2, name=ba dum tss, categoryId=3> to ViewHolder{9b4c8da position=0 id=-1, oldPos=-1, pLpos:-1} on position 0
+2020-10-10 03:55:39.813 11687-11687/us.huseli.soundboard_kotlin I/DataBoundAdapter: removeItem: removed item <Sound id=2, name=ba dum tss, categoryId=3> from position 0 on <SoundAdapter 224711517 currentList=[<Sound id=1, name=Ah, Music, categoryId=3>, <Sound id=8, name=Det svaga röda vinet, categoryId=3>, <Sound id=11, name=egolE, categoryId=3>]>
+2020-10-10 03:55:39.814 11687-11687/us.huseli.soundboard_kotlin I/DataBoundAdapter: addItem: added item <Sound id=2, name=ba dum tss, categoryId=3> to position 0 on <SoundAdapter 119535137 currentList=[<Sound id=2, name=ba dum tss, categoryId=3>, <Sound id=5, name=Boing Boom Tschak, categoryId=2>]>
+2020-10-10 03:55:39.959 11687-11687/us.huseli.soundboard_kotlin I/DataBoundAdapter: onBindViewHolder: bind <Sound id=2, name=ba dum tss, categoryId=3> to holder=<SoundAdapter.ViewHolder adapterPosition=0, sound=null> on position=0
+2020-10-10 03:55:39.959 11687-11687/us.huseli.soundboard_kotlin I/SoundAdapter: ViewHolder.bind: adapter=<SoundAdapter 119535137 currentList=[<Sound id=2, name=ba dum tss, categoryId=3>, <Sound id=5, name=Boing Boom Tschak, categoryId=2>]>, viewHolder=<SoundAdapter.ViewHolder adapterPosition=0, sound=null>, SoundViewModel=<SoundViewModel name=ba dum tss, id=2, categoryId=3>
+2020-10-10 03:55:39.979 11687-11687/us.huseli.soundboard_kotlin I/SoundAdapter: viewHolder=<SoundAdapter.ViewHolder adapterPosition=0, sound=<Sound id=2, name=ba dum tss, categoryId=3>>, isDragged=true
+2020-10-10 03:55:40.261 11687-11687/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_LOCATION: viewHolder <SoundAdapter.ViewHolder adapterPosition=0, sound=<Sound id=2, name=ba dum tss, categoryId=3>> != currentViewHolder <SoundAdapter.ViewHolder adapterPosition=1, sound=<Sound id=5, name=Boing Boom Tschak, categoryId=2>>
+2020-10-10 03:55:40.701 11687-11687/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DROP: <Sound id=2, name=ba dum tss, categoryId=3> dropped over view=android.widget.LinearLayout{bad87c2 V.E...... ........ 0,0-1080,353 #7f080065 app:id/category_item}, callback=ViewHolder{9b4c8da position=0 id=-1, oldPos=-1, pLpos:-1}
+2020-10-10 03:55:40.809 11687-11687/us.huseli.soundboard_kotlin I/SoundAdapter: viewHolder=<SoundAdapter.ViewHolder adapterPosition=0, sound=<Sound id=2, name=ba dum tss, categoryId=2>>, isDragged=false
+2020-10-10 03:55:40.813 11687-11687/us.huseli.soundboard_kotlin I/ViewRootImpl@3454496[MainActivity]: Reporting drop result: true
+2020-10-10 03:55:40.830 11687-11687/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_ENDED: isDragged=true; no drop occurred?
+2020-10-10 03:55:40.879 11687-11687/us.huseli.soundboard_kotlin I/chatty: uid=10407(us.huseli.soundboard_kotlin) identical 2 lines
+2020-10-10 03:55:40.913 11687-11687/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_ENDED: isDragged=true; no drop occurred?
+2020-10-10 03:55:40.982 11687-11687/us.huseli.soundboard_kotlin I/soundboard: CategoryAdapter 237267477: viewholder 162842842, recyclerView 102139500, SoundAdapter 119535137, Category 2 Default, sounds changed: [<Sound id=2, name=ba dum tss, categoryId=2>, <Sound id=5, name=Boing Boom Tschak, categoryId=2>]
+2020-10-10 03:55:40.996 11687-11687/us.huseli.soundboard_kotlin I/soundboard: CategoryAdapter 237267477: viewholder 169916792, recyclerView 51316503, SoundAdapter 224711517, Category 3 2, sounds changed: [<Sound id=1, name=Ah, Music, categoryId=3>, <Sound id=8, name=Det svaga röda vinet, categoryId=3>, <Sound id=11, name=egolE, categoryId=3>]
+2020-10-10 03:55:41.008 11687-11687/us.huseli.soundboard_kotlin I/soundboard: CategoryAdapter 237267477: viewholder 101145231, recyclerView 137907482, SoundAdapter 153110617, Category 4 3, sounds changed: [<Sound id=10, name=Ed Sanders, categoryId=4>]
+2020-10-10 03:55:41.022 11687-11687/us.huseli.soundboard_kotlin I/soundboard: CategoryAdapter 237267477: viewholder 193274045, recyclerView 220746365, SoundAdapter 92541205, Category 5 4, sounds changed: [<Sound id=9, name=Donovan starfish, categoryId=5>, <Sound id=7, name=Den ariske mannens skor Edit 1 Export 2, categoryId=5>, <Sound id=3, name=Ben's Radio, categoryId=5>, <Sound id=4, name=Bobbo Viking, categoryId=5>, <Sound id=12, name=Eloge, categoryId=5>, <Sound id=6, name=Cool Britannia, categoryId=5>]
+2020-10-10 03:55:41.122 11687-11687/us.huseli.soundboard_kotlin I/soundboard: CategoryAdapter 237267477: viewholder 169916792, recyclerView 51316503, SoundAdapter 224711517, Category 3 2, sounds changed: [<Sound id=1, name=Ah, Music, categoryId=3>, <Sound id=8, name=Det svaga röda vinet, categoryId=3>, <Sound id=11, name=egolE, categoryId=3>]
+2020-10-10 03:55:41.140 11687-11687/us.huseli.soundboard_kotlin I/soundboard: CategoryAdapter 237267477: viewholder 162842842, recyclerView 102139500, SoundAdapter 119535137, Category 2 Default, sounds changed: [<Sound id=2, name=ba dum tss, categoryId=2>, <Sound id=5, name=Boing Boom Tschak, categoryId=2>]
+2020-10-10 03:55:41.158 11687-11687/us.huseli.soundboard_kotlin I/soundboard: CategoryAdapter 237267477: viewholder 101145231, recyclerView 137907482, SoundAdapter 153110617, Category 4 3, sounds changed: [<Sound id=10, name=Ed Sanders, categoryId=4>]
+2020-10-10 03:55:41.174 11687-11687/us.huseli.soundboard_kotlin I/soundboard: CategoryAdapter 237267477: viewholder 193274045, recyclerView 220746365, SoundAdapter 92541205, Category 5 4, sounds changed: [<Sound id=9, name=Donovan starfish, categoryId=5>, <Sound id=7, name=Den ariske mannens skor Edit 1 Export 2, categoryId=5>, <Sound id=3, name=Ben's Radio, categoryId=5>, <Sound id=4, name=Bobbo Viking, categoryId=5>, <Sound id=12, name=Eloge, categoryId=5>, <Sound id=6, name=Cool Britannia, categoryId=5>]
+2020-10-10 03:55:41.213 11687-11687/us.huseli.soundboard_kotlin I/soundboard: CategoryAdapter 237267477: viewholder 162842842, recyclerView 102139500, SoundAdapter 119535137, Category 2 Default, sounds changed: [<Sound id=2, name=ba dum tss, categoryId=2>, <Sound id=5, name=Boing Boom Tschak, categoryId=2>]
+2020-10-10 03:55:41.215 11687-11687/us.huseli.soundboard_kotlin I/soundboard: CategoryAdapter 237267477: viewholder 169916792, recyclerView 51316503, SoundAdapter 224711517, Category 3 2, sounds changed: [<Sound id=1, name=Ah, Music, categoryId=3>, <Sound id=8, name=Det svaga röda vinet, categoryId=3>, <Sound id=11, name=egolE, categoryId=3>]
+2020-10-10 03:55:41.275 11687-11687/us.huseli.soundboard_kotlin I/soundboard: CategoryAdapter 237267477: viewholder 101145231, recyclerView 137907482, SoundAdapter 153110617, Category 4 3, sounds changed: [<Sound id=10, name=Ed Sanders, categoryId=4>]
+
+
+Flytta ba dum tss från default VIA 2 till 3:
+2020-10-10 03:56:05.646 11687-11687/us.huseli.soundboard_kotlin I/SoundAdapter: viewHolder=<SoundAdapter.ViewHolder adapterPosition=0, sound=<Sound id=2, name=ba dum tss, categoryId=2>>, isDragged=true
+2020-10-10 03:56:05.901 11687-11687/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_LOCATION: viewHolder <SoundAdapter.ViewHolder adapterPosition=0, sound=<Sound id=1, name=Ah, Music, categoryId=3>> != currentViewHolder <SoundAdapter.ViewHolder adapterPosition=-1, sound=<Sound id=2, name=ba dum tss, categoryId=2>>
+2020-10-10 03:56:05.902 11687-11687/us.huseli.soundboard_kotlin I/SoundDragListener: ACTION_DRAG_LOCATION: Moving <Sound id=2, name=ba dum tss, categoryId=2> to position 0 in ViewHolder{a20b978 position=1 id=-1, oldPos=-1, pLpos:-1}
+2020-10-10 03:56:05.903 11687-11687/us.huseli.soundboard_kotlin I/SoundDragListener: Adding <Sound id=2, name=ba dum tss, categoryId=2> to ViewHolder{a20b978 position=1 id=-1, oldPos=-1, pLpos:-1} on position 0
+2020-10-10 03:56:05.906 11687-11687/us.huseli.soundboard_kotlin I/DataBoundAdapter: removeItem: removed item <Sound id=2, name=ba dum tss, categoryId=2> from position 0 on <SoundAdapter 119535137 currentList=[<Sound id=5, name=Boing Boom Tschak, categoryId=2>]>
+2020-10-10 03:56:05.907 11687-11687/us.huseli.soundboard_kotlin I/DataBoundAdapter: addItem: added item <Sound id=2, name=ba dum tss, categoryId=2> to position 0 on <SoundAdapter 224711517 currentList=[<Sound id=2, name=ba dum tss, categoryId=2>, <Sound id=1, name=Ah, Music, categoryId=3>, <Sound id=8, name=Det svaga röda vinet, categoryId=3>, <Sound id=11, name=egolE, categoryId=3>]>
+2020-10-10 03:56:10.231 11687-11700/us.huseli.soundboard_kotlin I/undboard_kotli: Background young concurrent copying GC freed 19446(1528KB) AllocSpace objects, 0(0B) LOS objects, 9% free, 9468KB/10MB, paused 51us total 121.414ms
+2020-10-10 03:56:10.247 11687-11703/us.huseli.soundboard_kotlin W/System: A resource failed to call release.
+2020-10-10 03:56:10.324 11687-11703/us.huseli.soundboard_kotlin W/System: A resource failed to call release.
+2020-10-10 03:56:11.621 11687-11700/us.huseli.soundboard_kotlin I/undboard_kotli: Background concurrent copying GC freed 67985(1918KB) AllocSpace objects, 0(0B) LOS objects, 49% free, 8510KB/16MB, paused 125us total 101.118ms
 

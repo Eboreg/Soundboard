@@ -15,7 +15,6 @@ class AppViewModel : ViewModel() {
     private val _screenRatio = MutableLiveData<Double>()  // (width / height) in portrait mode
     private val _spanCountLandscape = MutableLiveData<Int>()
     private val _spanCountPortrait = MutableLiveData<Int>()
-
     private val _reorderEnabled: MutableLiveData<Boolean> = MutableLiveData(false)
     private val _selectEnabled = MutableLiveData(false)
     private val _selectedSounds = mutableListOf<Sound>()

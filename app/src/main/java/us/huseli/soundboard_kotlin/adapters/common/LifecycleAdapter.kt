@@ -4,7 +4,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
 
 abstract class LifecycleAdapter<VH: LifecycleViewHolder> : RecyclerView.Adapter<VH>() {
-    private val viewHolders = mutableListOf<VH>()
+    protected val viewHolders = mutableListOf<VH>()
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         holder.lifecycleRegistry.currentState = Lifecycle.State.INITIALIZED

@@ -26,31 +26,44 @@
             android:orientation="horizontal"
             tools:background="@android:color/black">
 
-            <ImageButton
-                android:id="@+id/category_collapse_button"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/category_collapse"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/collapse_expand_category"
-                android:padding="@dimen/margin_normal"
-                app:drawableColor="@{categoryViewModel.textColor}"
+                android:layout_height="0dp"
+                android:onClick="@{() -> categoryViewModel.toggleCollapsed()}"
+                android:orientation="horizontal"
+                android:paddingEnd="@dimen/margin_normal"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_caret_down" />
+                tools:ignore="RtlSymmetry">
 
-            <TextView
-                android:id="@+id/category_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/margin_normal"
-                android:text="@{categoryViewModel.name}"
-                android:textColor="@{categoryViewModel.textColor}"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/category_collapse_button"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="Category name"
-                tools:textColor="@android:color/white" />
+                <ImageView
+                    android:id="@+id/category_collapse_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/collapse_expand_category"
+                    android:padding="@dimen/margin_normal"
+                    app:drawableColor="@{categoryViewModel.textColor}"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/ic_caret_down" />
+
+                <TextView
+                    android:id="@+id/category_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_normal"
+                    android:text="@{categoryViewModel.name}"
+                    android:textColor="@{categoryViewModel.textColor}"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/category_collapse_button"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="Category name"
+                    tools:textColor="@android:color/white" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <ImageButton
                 android:id="@+id/category_edit_button"
@@ -89,7 +102,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_drag_handle" />
+                app:srcCompat="@drawable/ic_drag_indicator" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

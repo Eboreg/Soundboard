@@ -5,16 +5,15 @@ import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.data.SoundRepository
 import us.huseli.soundboard_kotlin.data.SoundboardDatabase
-import us.huseli.soundboard_kotlin.interfaces.OrderableItem
 
-class SoundViewModel(private val _sound: Sound) : ViewModel(), OrderableItem {
+class SoundViewModel(private val _sound: Sound) : ViewModel() {
     private val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application).soundDao())
     private val player = GlobalApplication.application.getPlayer(_sound).apply {
         setOnCompletionListener { this@SoundViewModel.pause() }
     }
     private val _isPlaying = MutableLiveData(player.isPlaying)
     private val _isSelected = MutableLiveData(false)
-    private val _categoryId = MutableLiveData(_sound.categoryId)
+    private val _isDragged = MutableLiveData(false)
 
     /**
      * Reasoning behind having a LiveData Sound _and_ a Sound as an initializer parameter:
@@ -28,29 +27,36 @@ class SoundViewModel(private val _sound: Sound) : ViewModel(), OrderableItem {
     val isValid = player.isValid
     val duration = "${player.duration}s"
 
+    val isDragged: LiveData<Boolean>
+        get() = _isDragged
+
     val isPlaying: LiveData<Boolean>
         get() = _isPlaying
 
     val isSelected: LiveData<Boolean>
         get() = _isSelected
 
-    val backgroundColor = _categoryId.switchMap { repository.getBackgroundColor(it) }
+    val backgroundColor: LiveData<Int> = sound.switchMap { repository.getBackgroundColor(it?.categoryId) }
+
     val textColor = backgroundColor.map { GlobalApplication.colorHelper.getTextColorForBackgroundColor(it) }
+
 
     /** Model fields */
     val id = _sound.id
-    //val categoryId = sound.map { it?.categoryId }
-    val categoryId: LiveData<Int?>
-        get() = _categoryId
     val name = sound.map { it?.name ?: "" }
     val volume = sound.map { it?.volume ?: 100 }
-    override var order = _sound.order
+    var order: Int = _sound.order
 
-    override fun toString() = "<SoundViewModel name=${_sound.name}, id=${_sound.id}, categoryId=${_categoryId.value}>"
 
-    // Does not update anything permanently, just for graphic purposes
-    fun setCategoryId(value: Int) {
-        _categoryId.value = value
+    /** Public methods */
+    override fun toString() = "<SoundViewModel name=${_sound.name}, id=${_sound.id}, categoryId=${_sound.categoryId}>"
+
+    fun startDrag() {
+        if (_isDragged.value != true) _isDragged.value = true
+    }
+
+    fun stopDrag() {
+        if (_isDragged.value != false) _isDragged.value = false
     }
 
     fun toggleSelected() {
@@ -67,10 +73,13 @@ class SoundViewModel(private val _sound: Sound) : ViewModel(), OrderableItem {
 
     fun playOrPause() = if (player.isPlaying) pause() else play()
 
+
+    /** Private methods */
     private fun pause() {
         player.pause()
         _isPlaying.value = false
     }
+
     private fun play() {
         player.play()
         _isPlaying.value = true

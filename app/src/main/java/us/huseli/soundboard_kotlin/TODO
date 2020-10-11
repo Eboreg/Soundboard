@@ -1,3 +1,5 @@
+Sounds don't change colour on category change
+
 Desired logic for soundviewholders:
 On click:
     If reorder enabled: start drag & drop

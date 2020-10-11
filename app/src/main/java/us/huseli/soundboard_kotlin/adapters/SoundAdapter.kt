@@ -2,19 +2,24 @@ package us.huseli.soundboard_kotlin.adapters
 
 import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
+import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.R
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundAdapter
@@ -22,33 +27,28 @@ import us.huseli.soundboard_kotlin.adapters.common.DataBoundViewHolder
 import us.huseli.soundboard_kotlin.animators.SoundItemLongClickAnimator
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.databinding.ItemSoundBinding
-import us.huseli.soundboard_kotlin.helpers.SoundDragListener
-import us.huseli.soundboard_kotlin.helpers.SoundItemDragHelperCallback
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
-import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
-import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
-import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
-import us.huseli.soundboard_kotlin.viewmodels.SoundViewModelFactory
+import us.huseli.soundboard_kotlin.viewmodels.*
 
 
 class SoundAdapter(
         private val viewModelStoreOwner: ViewModelStoreOwner,
         private val appViewModel: AppViewModel,
-        private val categoryViewModel: CategoryViewModel,
-        private val soundDragListener: SoundDragListener) :
+        private val categoryViewModel: CategoryViewModel) :
         DataBoundAdapter<Sound, SoundAdapter.ViewHolder, ItemSoundBinding>() {
-
-    val soundItemTouchHelper = ItemTouchHelper(SoundItemDragHelperCallback())
-    override val currentList = mutableListOf<Sound>()
+    var recyclerView: RecyclerView? = null
 
     override fun toString() = "<SoundAdapter ${this.hashCode()} currentList=$currentList>"
 
-    override fun createViewHolder(binding: ItemSoundBinding, parent: ViewGroup) = ViewHolder(binding, parent.context)
+    override fun createViewHolder(binding: ItemSoundBinding, parent: ViewGroup): ViewHolder {
+        if (parent is RecyclerView) recyclerView = parent
+        return ViewHolder(binding, parent.context)
+    }
 
     override fun createBinding(parent: ViewGroup, viewType: Int) =
             ItemSoundBinding.inflate(LayoutInflater.from(parent.context), parent, false)
 
-    override fun bind(holder: ViewHolder, item: Sound) {
+    override fun bind(holder: ViewHolder, item: Sound, position: Int) {
         val viewModelFactory = SoundViewModelFactory(item)
         val viewModel = ViewModelProvider(viewModelStoreOwner, viewModelFactory).get(item.id.toString(), SoundViewModel::class.java)
         holder.bind(viewModel)
@@ -68,21 +68,22 @@ class SoundAdapter(
             DataBoundAdapter<Sound, SoundAdapter.ViewHolder, ItemSoundBinding>.DiffCallback(newRows, oldRows) {
         override fun areItemsTheSame(oldItem: Sound, newItem: Sound) = oldItem.id == newItem.id
 
-        override fun areContentsTheSame(oldItem: Sound, newItem: Sound) = oldItem.name == newItem.name && oldItem.uri == newItem.uri
+        override fun areContentsTheSame(oldItem: Sound, newItem: Sound) =
+                oldItem.name == newItem.name && oldItem.uri == newItem.uri && oldItem.categoryId == newItem.categoryId
     }
 
 
+    @SuppressLint("ClickableViewAccessibility")
     inner class ViewHolder(binding: ItemSoundBinding, private val context: Context) :
-            DataBoundViewHolder<ItemSoundBinding>(binding),
+            DataBoundViewHolder<ItemSoundBinding, Sound>(binding),
             View.OnClickListener,
             View.OnLongClickListener,
-            View.OnDragListener,
             View.OnTouchListener,
             AppViewModelListenerInterface {
         private val clickAnimator = (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
             setTarget(binding.soundCard)
         }
-        private var categoryId: Int? = null
+        private val originalBackgroundDrawable = binding.soundCard.background.current
         private var selectEnabled = false
         private var reorderEnabled = false
         private lateinit var longClickAnimator: SoundItemLongClickAnimator
@@ -93,14 +94,11 @@ class SoundAdapter(
         init {
             binding.soundContainer.setOnClickListener(this)
             binding.soundContainer.setOnLongClickListener(this)
-            binding.soundContainer.setOnDragListener(this)
             binding.soundContainer.setOnTouchListener(this)
         }
 
         fun bind(viewModel: SoundViewModel) {
-            Log.i(GlobalApplication.LOG_TAG,
-                    "SoundAdapter.ViewHolder.bind: adapter ${this@SoundAdapter.hashCode()}, " +
-                            "viewHolder ${hashCode()}, SoundViewModel $viewModel")
+            Log.i(LOG_TAG, "ViewHolder.bind: adapter=${this@SoundAdapter}, viewHolder=$this, SoundViewModel=$viewModel")
 
             this.viewModel = viewModel
             binding.viewModel = viewModel
@@ -123,7 +121,13 @@ class SoundAdapter(
 
             viewModel.isPlaying.observe(this, { binding.playIcon.visibility = if (it) View.VISIBLE else View.INVISIBLE })
             viewModel.isSelected.observe(this, { onIsSelectedChange(it) })
-            viewModel.categoryId.observe(this, { categoryId = it })
+            viewModel.isDragged.observe(this, {
+                Log.i(LOG_TAG, "viewHolder=$this, isDragged=$it")
+                binding.soundCard.background =
+                        if (it) ResourcesCompat.getDrawable(binding.soundCard.resources, R.drawable.border, null)
+                        else originalBackgroundDrawable
+            })
+
             appViewModel.reorderEnabled.observe(this, { value -> onReorderEnabledChange(value) })
             appViewModel.selectEnabled.observe(this, { onSelectEnabledChange(it) })
         }
@@ -157,7 +161,7 @@ class SoundAdapter(
         override fun onTouch(view: View, event: MotionEvent): Boolean {
             if (event.actionMasked == MotionEvent.ACTION_DOWN && reorderEnabled) {
                 startDragAndDrop(view)
-                return false
+                return true
             }
             return view.onTouchEvent(event)
         }
@@ -179,26 +183,21 @@ class SoundAdapter(
         }
 
         private fun startDragAndDrop(view: View) {
-            view.tag = adapterPosition
             val data = ClipData.newPlainText("", "")
             val shadowBuilder = View.DragShadowBuilder(view)
 
-            soundDragListener.start(this@SoundAdapter, adapterPosition, viewModel)
+            val draggedSoundViewModel = DraggedSoundViewModel(sound!!, this@SoundAdapter.recyclerView!!.hashCode(), viewModel)
 
             @Suppress("DEPRECATION")
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
-                view.startDragAndDrop(data, shadowBuilder, view, View.DRAG_FLAG_OPAQUE)
+                view.startDragAndDrop(data, shadowBuilder, draggedSoundViewModel, 0)
             else
-                view.startDrag(data, shadowBuilder, view, 0)
+                view.startDrag(data, shadowBuilder, draggedSoundViewModel, 0)
+
+            draggedSoundViewModel.start()
         }
 
-        override fun toString() = super.toString() + " '" + binding.soundName.text + "'"
-
-        /**
-         * This method is called on the _receiving_ item, i.e. the one that's being dragged over.
-         * Not the dragged one!
-         */
-        override fun onDrag(v: View, event: DragEvent) = soundDragListener.onDrag(v, event, viewModel, adapterPosition)
+        override fun toString() = "<SoundAdapter.ViewHolder adapterPosition=$adapterPosition, sound=$sound>"
 
         private fun showErrorToast() = Toast.makeText(context, viewModel.errorMessage, Toast.LENGTH_SHORT).show()
 

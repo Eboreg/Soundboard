@@ -15,3 +15,4 @@ fun setDrawableColor(view: ImageView, color: Int) {
         else -> (view.drawable as Drawable).colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
     }
 }
+

@@ -7,7 +7,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.provider.OpenableColumns
 import androidx.room.*
-import us.huseli.soundboard_kotlin.interfaces.OrderableItem
 
 @Entity(
         tableName = "Sound",
@@ -21,9 +20,9 @@ data class Sound(
         var categoryId: Int?,
         var name: String,
         val uri: Uri,
-        override var order: Int,
+        var order: Int,
         var volume: Int
-) : OrderableItem, Parcelable {
+) : Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readValue(Int::class.java.classLoader) as? Int,
             parcel.readValue(Int::class.java.classLoader) as? Int,
@@ -69,12 +68,8 @@ data class Sound(
     }
 
     companion object CREATOR : Parcelable.Creator<Sound> {
-        override fun createFromParcel(parcel: Parcel): Sound {
-            return Sound(parcel)
-        }
+        override fun createFromParcel(parcel: Parcel) = Sound(parcel)
 
-        override fun newArray(size: Int): Array<Sound?> {
-            return arrayOfNulls(size)
-        }
+        override fun newArray(size: Int): Array<Sound?> = arrayOfNulls(size)
     }
 }

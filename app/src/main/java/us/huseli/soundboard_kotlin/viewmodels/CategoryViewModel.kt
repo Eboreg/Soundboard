@@ -33,13 +33,21 @@ class CategoryViewModel : ViewModel() {
         _collapsed.value = category.collapsed
     }
 
-    fun toggleCollapsed() {
-        val newValue = !_collapsed.value!!
-        _collapsed.value = newValue
-        _category.value?.id?.let { categoryId ->
-            viewModelScope.launch(Dispatchers.IO) { repository.setCollapsed(categoryId, newValue) }
+    private fun setCollapsed(value: Boolean) {
+        if (_collapsed.value != value) {
+            _collapsed.value = value
+            _category.value?.id?.let { categoryId ->
+                viewModelScope.launch(Dispatchers.IO) { repository.setCollapsed(categoryId, value) }
+            }
         }
     }
+
+    fun toggleCollapsed() {
+        val newValue = _collapsed.value?.let { !it } ?: true
+        setCollapsed(newValue)
+    }
+
+    fun expand() = setCollapsed(false)
 
     fun updateSounds(sounds: List<Sound>) = viewModelScope.launch(Dispatchers.IO) {
         sounds.forEachIndexed { index, sound ->
