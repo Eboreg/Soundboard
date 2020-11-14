@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.OpenableColumns
+import android.util.Log
 import androidx.room.*
 
 @Entity(
@@ -16,13 +17,13 @@ import androidx.room.*
         indices = [Index("categoryId")]
 )
 data class Sound(
-        @PrimaryKey(autoGenerate = true) var id: Int? = null,
-        var categoryId: Int?,
-        var name: String,
-        val uri: Uri,
+        @PrimaryKey(autoGenerate = true) override var id: Int? = null,
+        override var categoryId: Int?,
+        override var name: String,
+        override val uri: Uri,
         var order: Int,
-        var volume: Int
-) : Parcelable {
+        override var volume: Int
+) : AbstractSound(), Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readValue(Int::class.java.classLoader) as? Int,
             parcel.readValue(Int::class.java.classLoader) as? Int,
@@ -30,11 +31,14 @@ data class Sound(
             parcel.readParcelable(Uri::class.java.classLoader)!!,
             //Converters.stringToUri(parcel.readString()!!),
             parcel.readInt(),
-            parcel.readInt())
+            parcel.readInt()) {
+        Log.d("SOUND", "Create Sound though Parcelable constructor: $this")
+    }
 
-    @Ignore constructor(name: String, uri: Uri): this(null, null, name, uri, 0, 100)
+    // @Ignore constructor(name: String, uri: Uri): this(null, null, name, uri, 0, 100)
 
-    @Ignore constructor(uri: Uri, flags: Int, contentResolver: ContentResolver): this("", uri) {
+    @Ignore constructor(uri: Uri, flags: Int, contentResolver: ContentResolver): this(null, null, "", uri, 0, 100) {
+        // Used in MainActivity.onActivityResult when new sounds are added
         // FLAG_GRANT_READ_URI_PERMISSION is not one of the permissions we are requesting
         // here, so bitwise-AND it away
         contentResolver.takePersistableUriPermission(uri, flags and Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -49,9 +53,13 @@ data class Sound(
                 cursor.close()
             }
         }
+        Log.d("SOUND", "Create Sound though new sound constructor: $this")
     }
 
-    override fun toString() = "<Sound id=$id, name=$name, categoryId=$categoryId>"
+    override fun toString(): String {
+        val hashCode = Integer.toHexString(System.identityHashCode(this))
+        return "Sound $hashCode <id=$id, name=$name, categoryId=$categoryId>"
+    }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeValue(id)

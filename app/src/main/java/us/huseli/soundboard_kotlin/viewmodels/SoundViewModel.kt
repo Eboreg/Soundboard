@@ -1,19 +1,36 @@
 package us.huseli.soundboard_kotlin.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.data.SoundRepository
 import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 
-class SoundViewModel(private val _sound: Sound) : ViewModel() {
+class SoundViewModel(override val sound: Sound) : AbstractSoundViewModel() {
     private val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application).soundDao())
-    private val player = GlobalApplication.application.getPlayer(_sound).apply {
+    private val player = GlobalApplication.application.getPlayer(sound.uri).apply {
         setOnCompletionListener { this@SoundViewModel.pause() }
     }
-    private val _isPlaying = MutableLiveData(player.isPlaying)
+
+    init {
+        Log.d(LOG_TAG, "init: sound=$sound, player=$player")
+        viewModelScope.launch(Dispatchers.IO) {
+            player.setup()
+            if (!player.isValid) {
+                _isValid.postValue(false)
+                errorMessage = player.errorMessage
+            }
+            _duration.postValue("${player.duration}s")
+        }
+    }
+
+    private val _isPlaying = MutableLiveData(false)
     private val _isSelected = MutableLiveData(false)
-    private val _isDragged = MutableLiveData(false)
+    private val _isValid = MutableLiveData(true)
+    private val _duration = MutableLiveData<String>()
 
     /**
      * Reasoning behind having a LiveData Sound _and_ a Sound as an initializer parameter:
@@ -21,14 +38,15 @@ class SoundViewModel(private val _sound: Sound) : ViewModel() {
      * We also want to, without any unnecessary delays or hassle, be able to init a SoundPlayer
      * and set those parameters that don't change once a Sound is saved (id, uri)
      */
-    val sound = repository.get(_sound.id)
+    //private val soundLiveData = repository.getLiveData(sound.id)
 
-    val errorMessage = player.errorMessage
-    val isValid = player.isValid
-    val duration = "${player.duration}s"
+    override var errorMessage = ""
 
-    val isDragged: LiveData<Boolean>
-        get() = _isDragged
+    val isValid: LiveData<Boolean>
+        get() = _isValid
+
+    override val duration: LiveData<String>
+        get() = _duration
 
     val isPlaying: LiveData<Boolean>
         get() = _isPlaying
@@ -36,27 +54,25 @@ class SoundViewModel(private val _sound: Sound) : ViewModel() {
     val isSelected: LiveData<Boolean>
         get() = _isSelected
 
-    val backgroundColor: LiveData<Int> = sound.switchMap { repository.getBackgroundColor(it?.categoryId) }
+    override val backgroundColor = repository.getBackgroundColor(sound.categoryId)
+    //override val backgroundColor: LiveData<Int> = soundLiveData.switchMap { repository.getBackgroundColor(it?.categoryId) }
 
-    val textColor = backgroundColor.map { GlobalApplication.colorHelper.getTextColorForBackgroundColor(it) }
+    override val textColor = backgroundColor.map { GlobalApplication.colorHelper.getTextColorForBackgroundColor(it) }
 
 
     /** Model fields */
-    val id = _sound.id
-    val name = sound.map { it?.name ?: "" }
-    val volume = sound.map { it?.volume ?: 100 }
-    var order: Int = _sound.order
-
+    val id = sound.id
+    //val volume = sound.map { it?.volume ?: 100 }
+    var order: Int = sound.order
+    override val name = liveData { emit(sound.name) }
+    // override val name = soundLiveData.map { it?.name ?: "" }
+    override val volume = liveData { emit(sound.volume) }
+    // override val volume = soundLiveData.map { it?.volume ?: 100 }
 
     /** Public methods */
-    override fun toString() = "<SoundViewModel name=${_sound.name}, id=${_sound.id}, categoryId=${_sound.categoryId}>"
-
-    fun startDrag() {
-        if (_isDragged.value != true) _isDragged.value = true
-    }
-
-    fun stopDrag() {
-        if (_isDragged.value != false) _isDragged.value = false
+    override fun toString(): String {
+        val hashCode = Integer.toHexString(System.identityHashCode(this))
+        return "SoundViewModel $hashCode <sound=$sound>"
     }
 
     fun toggleSelected() {
@@ -83,5 +99,10 @@ class SoundViewModel(private val _sound: Sound) : ViewModel() {
     private fun play() {
         player.play()
         _isPlaying.value = true
+    }
+
+
+    companion object {
+        const val LOG_TAG = "SoundViewModel"
     }
 }

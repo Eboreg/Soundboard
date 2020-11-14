@@ -32,10 +32,10 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
 
         val landscapeSpanCount = preferences.getInt("landscapeSpanCount", 0)
         initialSpanCount = appViewModel.setup(config.orientation, config.screenWidthDp, config.screenHeightDp, landscapeSpanCount)
-        appViewModel.spanCountLandscape.observe(viewLifecycleOwner, { preferences.edit {
+        appViewModel.spanCountLandscape.observe(viewLifecycleOwner) { preferences.edit {
             putInt("landscapeSpanCount", it)
             apply()
-        }})
+        }}
 
         binding = FragmentCategoryListBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
@@ -56,13 +56,13 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
 
         binding.categoryList.setOnTouchListener(this)
 
-        categoryListViewModel.categories.observe(viewLifecycleOwner, {
+        categoryListViewModel.categories.observe(viewLifecycleOwner) {
             Log.i(GlobalApplication.LOG_TAG,
                     "CategoryListFragment: categoryListViewModel.categories changed: $it, " +
                             "recyclerView ${binding.categoryList.hashCode()}, " +
                             "sending to CategoryAdapter ${categoryAdapter.hashCode()}")
             categoryAdapter.submitList(it)
-        })
+        }
     }
 
     override fun onTouch(view: View?, event: MotionEvent?): Boolean {

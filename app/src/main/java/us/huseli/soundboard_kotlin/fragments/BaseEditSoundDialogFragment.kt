@@ -69,7 +69,7 @@ abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSou
         // This has to be done here, otherwise: "Can't access the Fragment View's LifecycleOwner
         // when getView() is null i.e., before onCreateView() or after onDestroyView()"
         binding.lifecycleOwner = viewLifecycleOwner
-        getCategories().observe(viewLifecycleOwner, { binding.category.adapter = CategorySpinnerAdapter(requireContext(), it) })
+        getCategories().observe(viewLifecycleOwner) { binding.category.adapter = CategorySpinnerAdapter(requireContext(), it) }
     }
 
     internal open fun save() = viewModel.save()

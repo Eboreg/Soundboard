@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.GlobalApplication
 
 class SoundEditViewModel(private val soundId: Int) : BaseSoundEditViewModel() {
-    private val sound = repository.get(soundId)
+    private val sound = repository.getLiveData(soundId)
     private var originalCategoryId: Int? = null
 
     override val name = sound.map { it?.name ?: "" }
@@ -17,10 +17,10 @@ class SoundEditViewModel(private val soundId: Int) : BaseSoundEditViewModel() {
 
     override val volume = sound.map { it?.volume ?: 100 }
     override fun setVolume(value: Int) {
-        sound.value?.let {
-            if (it.volume != value) {
-                GlobalApplication.application.setPlayerVolume(it, value)
-                it.volume = value
+        sound.value?.let { sound ->
+            if (sound.volume != value) {
+                GlobalApplication.application.setPlayerVolume(sound, value)
+                sound.volume = value
             }
         }
     }

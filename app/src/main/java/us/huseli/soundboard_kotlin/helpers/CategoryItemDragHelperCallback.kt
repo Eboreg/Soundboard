@@ -8,15 +8,6 @@ import us.huseli.soundboard_kotlin.adapters.CategoryAdapter
 import java.util.*
 
 class CategoryItemDragHelperCallback : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0) {
-    /**
-     * Order of events:
-     * 1. User drags item from pos x to pos y
-     * 2. We update currentList and notify listeners
-     * 3. User releases item at pos z
-     * 4. We save new position data via onItemsReordered
-     * 5. Room LiveData observer sends us new list, but it's already identical to currentList, so
-     *    thanks to DiffUtil UI does not need to be updated!
-     */
     override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
         Log.d(GlobalApplication.LOG_TAG,
                 "ItemDragHelperCallback ${this.hashCode()} onMove: " +
@@ -28,18 +19,21 @@ class CategoryItemDragHelperCallback : ItemTouchHelper.SimpleCallback(ItemTouchH
             if (adapter is CategoryAdapter) {
                 val fromPosition = viewHolder.adapterPosition
                 val toPosition = target.adapterPosition
+                val mutableList = adapter.currentList.toMutableList()
 
                 if (fromPosition < toPosition)
-                    for (i in fromPosition until toPosition) Collections.swap(adapter.currentList, i, i + 1)
+                    for (i in fromPosition until toPosition) Collections.swap(mutableList, i, i + 1)
                 else
-                    for (i in fromPosition downTo toPosition + 1) Collections.swap(adapter.currentList, i, i - 1)
-
-                adapter.notifyItemMoved(fromPosition, toPosition)
+                    for (i in fromPosition downTo toPosition + 1) Collections.swap(mutableList, i, i - 1)
+                adapter.submitList(mutableList)
+                //adapter.notifyItemMoved(fromPosition, toPosition)
+                return true
             }
         }
-        return true
+        return false
     }
 
+/*
     override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
         super.clearView(recyclerView, viewHolder)
 
@@ -51,6 +45,8 @@ class CategoryItemDragHelperCallback : ItemTouchHelper.SimpleCallback(ItemTouchH
             }
         }
     }
+
+ */
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
 

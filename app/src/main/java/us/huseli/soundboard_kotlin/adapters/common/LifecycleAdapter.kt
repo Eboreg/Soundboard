@@ -1,10 +1,11 @@
 package us.huseli.soundboard_kotlin.adapters.common
 
 import androidx.lifecycle.Lifecycle
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 
-abstract class LifecycleAdapter<VH: LifecycleViewHolder> : RecyclerView.Adapter<VH>() {
-    protected val viewHolders = mutableListOf<VH>()
+abstract class LifecycleAdapter<T, VH: LifecycleViewHolder>(diffCallback: DiffUtil.ItemCallback<T>) : ListAdapter<T, VH>(diffCallback) {
+    private val viewHolders = mutableListOf<VH>()
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         holder.lifecycleRegistry.currentState = Lifecycle.State.INITIALIZED

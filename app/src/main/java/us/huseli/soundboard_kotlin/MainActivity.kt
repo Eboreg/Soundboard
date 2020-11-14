@@ -50,6 +50,7 @@ class MainActivity :
     /** Overridden Android methods */
 
     override fun onCreate(savedInstanceState: Bundle?) {
+/*
         try {
             Class.forName("dalvik.system.CloseGuard")
                     .getMethod("setEnabled", Boolean::class.javaPrimitiveType)
@@ -57,6 +58,7 @@ class MainActivity :
         } catch (e: ReflectiveOperationException) {
             throw RuntimeException(e)
         }
+*/
 
         super.onCreate(savedInstanceState)
 
@@ -67,20 +69,20 @@ class MainActivity :
         setSupportActionBar(actionbar_toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        appViewModel.selectEnabled.observe(this, { onSelectEnabledChange(it) })
+        appViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
 
         // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment
-        categoryListViewModel.categories.observe(this, {
+        categoryListViewModel.categories.observe(this) {
             categories = it
             if (it.isEmpty()) categoryListViewModel.create(getString(R.string.default_category))
-        })
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.appbar_menu, menu)
         // This has to be done here, because the callback requires the menu to exist
-        appViewModel.reorderEnabled.observe(this, { onReorderEnabledChange(it) })
-        appViewModel.zoomInPossible.observe(this, { onZoomInPossibleChange(it) })
+        appViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
+        appViewModel.zoomInPossible.observe(this) { onZoomInPossibleChange(it) }
         return true
     }
 

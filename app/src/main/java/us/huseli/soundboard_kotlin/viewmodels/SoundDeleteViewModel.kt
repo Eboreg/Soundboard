@@ -11,7 +11,11 @@ import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 class SoundDeleteViewModel : ViewModel() {
     private val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application).soundDao())
 
-    fun delete(soundId: Int) = viewModelScope.launch(Dispatchers.IO) { repository.delete(soundId) }
+    fun delete(soundId: Int) = delete(listOf(soundId))
 
-    fun delete(soundIds: List<Int>?) = viewModelScope.launch(Dispatchers.IO) { repository.delete(soundIds) }
+    fun delete(soundIds: List<Int>?) = viewModelScope.launch(Dispatchers.IO) {
+        val sounds = repository.getList(soundIds)
+        GlobalApplication.application.deletePlayers(sounds.map { it.uri })
+        repository.delete(soundIds)
+    }
 }

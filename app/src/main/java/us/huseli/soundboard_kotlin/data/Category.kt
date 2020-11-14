@@ -18,4 +18,5 @@ data class Category(
     @Ignore constructor(name: String): this(name, Color.DKGRAY)
 
     override fun toString() = name
+
 }

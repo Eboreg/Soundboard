@@ -1,3 +1,16 @@
+Set sound volume on load
+Set sound volume, bgcolor, name on update (drag + edit viewmodel)
+
+Write tests :-//////////////
+
+
+Try working with EmptySound when moving around.
+Start drag: Sound removed from adapter, EmptySound added in its place
+Sound is dragged to new position: EmptySound moved there
+Sound is dragged to new recyclerview: EmptySound moved there
+???
+
+
 Sounds don't change colour on category change
 
 Desired logic for soundviewholders:

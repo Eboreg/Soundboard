@@ -7,7 +7,7 @@
 
         <variable
             name="viewModel"
-            type="us.huseli.soundboard_kotlin.viewmodels.SoundViewModel" />
+            type="us.huseli.soundboard_kotlin.viewmodels.AbstractSoundViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -153,4 +153,3 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
-

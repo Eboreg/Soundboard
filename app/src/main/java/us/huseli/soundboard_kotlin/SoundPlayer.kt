@@ -6,15 +6,17 @@ import android.net.Uri
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-class SoundPlayer(context: Context, uri: Uri, volume: Int) {
+class SoundPlayer(private val context: Context, private val uri: Uri, private val volume: Int) {
+    constructor(context: Context, uri: Uri) : this(context, uri, 100)
+
     private val mediaPlayer = MediaPlayer()
 
-    var duration: Int  // In seconds
+    var duration: Int = 0  // In seconds
     var isPlaying = false
     var isValid = true
     var errorMessage = ""
 
-    init {
+    fun setup() {
         try {
             mediaPlayer.setDataSource(context, uri)
             mediaPlayer.prepare()
@@ -47,4 +49,6 @@ class SoundPlayer(context: Context, uri: Uri, volume: Int) {
     fun setOnCompletionListener(function: (MediaPlayer) -> Unit) {
         mediaPlayer.setOnCompletionListener(function)
     }
+
+    fun release() = mediaPlayer.release()
 }
