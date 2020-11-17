@@ -1,3 +1,89 @@
+2020-11-16 03:54:42.267 30411-30411 D/DataObserver: onItemRangeMoved<fromPosition=0, toPosition=4, itemCount=1>
+2020-11-16 03:54:45.824 30411-30411 I/ViewRootImpl@9dcf6b5[MainActivity]: Reporting drop result: true
+2020-11-16 03:54:45.835 30411-30411 I/Choreographer: Skipped 2685 frames!  The application may be doing too much work on its main thread.
+2020-11-16 03:54:45.992 30411-30411 D/LifecycleViewHolder: markDetach: SoundAdapter.ViewHolder 4922aa4 <adapterPosition=-1, sound=Sound 1cf21da <id=9, name=Den ariske mannens skor Edit 1 Export 2, categoryId=2>>
+2020-11-16 03:54:46.013 30411-30411 D/LifecycleViewHolder: markDetach: SoundAdapter.ViewHolder 7c4dd79 <adapterPosition=-1, sound=Sound a1e060b <id=6, name=Bobby Callender John, categoryId=2>>
+2020-11-16 03:54:48.850 30411-30424 I/undboard_kotli: Background young concurrent copying GC freed 54306(3086KB) AllocSpace objects, 15(240KB) LOS objects, 37% free, 5687KB/9082KB, paused 42us total 139.400ms
+2020-11-16 03:54:48.875 30411-30426 D/StrictMode: StrictMode policy violation: android.os.strictmode.LeakedClosableViolation: A resource was acquired at attached stack trace but never released. See java.io.Closeable for information on avoiding resource leaks.
+
+Sker det pga att det dragna ljudets viewholder detachas?
+
+
+SPEKULATIONER
+Vad händer när jag flyttar ett ljud till annan kategori?
+1. Jag kör startDragAndDrop() på en View, som är SoundAdapter.binding.soundContainer, dvs en
+    ConstraintLayout från item_sound.xml
+2. SoundDragListener2.onDragLocation() kör callback.insertOrMoveSound, där callback är den nya
+    kategorins SoundAdapter
+3. SoundAdapter.insertOrMoveSound() kör categoryViewModel.insertSound(...)
+4. CategoryViewModel.insertSound() kör updateSounds() med den nya kategorins uppdaterade Sound-
+    lista (inkl. det flyttade ljudet)
+5. CategoryViewModel.updateSounds() kör soundRepository.update() med denna lista
+6. SoundRepository.update() kör soundDao.update() med samma lista
+7. SoundDao.update() uppdaterar SQL-rad för varje ljud i listan
+8. CategoryViewModel.sounds live-uppdateras med nya listor via soundRepository.getByCategory()
+    -- för alla kategorier. Dvs även den gamla kategorin får ny lista, utan det flyttade ljudet.
+9. CategoryAdapter.ViewHolder för den _gamla_ kategorin skickar uppdaterad ljudlista till
+    sin soundAdapter.submitList()
+10. SoundAdapter.submitList() > ListAdapter.submitList() > AsyncListDiffer.submitList()
+11. AsyncListDiffer.submitList() kör listan via DiffUtil med SoundAdapter.DiffCallback, oerhört
+    snårigt vad som sker sedan
+12. Men TROLIGEN körs SoundAdapter.notifyItemRemoved d.v.s.
+    RecyclerView.Adapter.notifyItemRemoved(ljudets f.d. position), som kör
+    RecyclerView.AdapterDataObservable().notifyItemRangeRemoved(position, 1).
+13. Därifrån körs onItemRangeRemoved(positionStart, itemCount) på alla AdapterDataObservers, vilka
+    de nu är, men troligen är de RecyclerView.RecyclerViewDataObserver
+14. TROLIGEN mynnar detta ut i att ljudets gamla ViewHolder + View tas bort på ngt vis
+15. TROLIGEN körs RecyclerView.RecyclerViewDataObserver.onItemRangeRemoved(position, 1), som kör
+    AdapterHelper.onItemRangeRemoved(position, 1)
+16. Om ovanstående stämmer, är vi nu i ett läge där View från (1) är borttagen från skärmen (typ),
+    men dess startDragAndDrop() körs fortfarande ... kan detta vara problemet?
+
+ÅTGÄRDER OM SPEKULATIONERNA STÄMMER
+a)  Vänta med att ta bort ljud från gamla SoundAdaptern tills drag är slutförd. Detta innebär att
+    vi måste ställa om så att SoundAdapter.notifyItem* inte automatiskt uppdaterar DB i varje
+    läge, utan om drag är pågående så uppskjuts de operationerna, men views uppdateras ändå.
+    Förhoppningsvis är det så enkelt att man, under pågående drag, kan köra notifyItem* direkt
+    bara? Och inte insertOrMoveSound() eller något annat som kör submitList().
+        Eller NEJ, det är det ju inte :-////// -- notifyItem* förlitar sig fortfarande på
+    currentList, som handhas av ListAdapter. Så måste hitta något sätt att uppdatera currentList
+    utan att det förs vidare till databasen.
+        currentList är inte mutable utan är bara tänkt att uppdateras via submitList(). Men
+    ListAdapter.submitList() har i sig inget med databasen att göra. Så det borde funka att bara
+    köra submitList() med den lista man för tillfället vill visa, utan att DB ändras alls.
+        Eller NEJ igen. Kör man submitList() så uppdateras views enligt denna lista, skit samma
+    om det har gått via DB eller ej. Poängen är att ursprungs-View:n från (1) troligen måste vara
+    kvar tills drag är avslutad helt enkelt.
+        Kanske vi inte alls får röra original-View tills drag är avslutad? Dvs denna adapter-
+    position får inte flyttas eller något. Dock alla andra.
+b)  Gör ngn slug manöver i stil med att, vid ACTION_DRAG_ENTERED, avsluta nuvarande drag och starta
+    en ny (implicerar iofs (a), så den behöver göras oavsett)
+c)  Skit opp arslet så det är stort som fan
+
+
+
+Vad händer här? Vid tryck på "enable reorder". Märk särskilt
+"E/OpenGLRenderer: ReliableSurface: perform returned an error":
+
+2020-11-15 03:14:09.577 1987-1987 I/ViewRootImpl@fb21c4d[Toast]: setView = android.widget.LinearLayout@439b576 TM=true MM=false
+2020-11-15 03:14:09.642 1987-1987 I/ViewRootImpl@fb21c4d[Toast]: Relayout returned: old=(0,72,1080,2076) new=(284,1752,795,1884) req=(511,132)0 dur=36 res=0x7 s={true 484108890112} ch=true
+2020-11-15 03:14:09.645 1987-2713 D/OpenGLRenderer: createReliableSurface : 0x713f58b680(0x70b7237000)
+2020-11-15 03:14:09.646 1987-2713 I/mali_winsys: new_window_surface() [511x132] return: 0x3000
+2020-11-15 03:14:09.646 1987-2713 D/OpenGLRenderer: eglCreateWindowSurface : 0x714b5c8080
+2020-11-15 03:14:09.657 1987-2713 D/OpenGLRenderer: makeCurrent EglSurface : 0x7146c1e280 -> 0x714b5c8080
+2020-11-15 03:14:09.679 1987-2713 D/OpenGLRenderer: makeCurrent EglSurface : 0x714b5c8080 -> 0x7146c1e280
+2020-11-15 03:14:09.834 1987-1987 I/ViewRootImpl@fb21c4d[Toast]: MSG_RESIZED: frame=(284,1752,795,1884) ci=(0,0,0,0) vi=(0,0,511,132) or=1
+2020-11-15 03:14:11.499 1987-2713 D/OpenGLRenderer: destroyEglSurface : 0x714b5c8080
+2020-11-15 03:14:11.500 1987-2713 I/mali_egl: eglDestroySurface() in
+2020-11-15 03:14:11.506 1987-2713 I/mali_winsys: delete_surface() [511x132] return
+2020-11-15 03:14:11.506 1987-2713 I/mali_egl: eglDestroySurface() out
+2020-11-15 03:14:11.508 1987-2713 E/OpenGLRenderer: ReliableSurface: perform returned an error
+2020-11-15 03:14:11.508 1987-2713 W/libEGL: EGLNativeWindowType 0x713f58b690 disconnect failed
+2020-11-15 03:14:11.508 1987-2713 D/OpenGLRenderer: ~ReliableSurface : 0x713f58b680
+2020-11-15 03:14:11.509 1987-1987 I/ViewRootImpl@fb21c4d[Toast]: dispatchDetachedFromWindow
+2020-11-15 03:14:11.527 1987-1987 D/InputTransport: Input channel destroyed: 'd6dc559', fd=98
+
+
 Verkar som om det blir minnesläcka när man dragit ljud mellan två recyclerviews en gång, och sedan
 drar ljud en andra gång? Testar:
 1. Dra ljud mellan recyclerviews - funkar

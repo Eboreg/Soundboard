@@ -8,7 +8,8 @@ data class EmptySound(
         override var name: String,
         override val uri: Uri,
         override val volume: Int,
+        override var order: Int,
         var adapterPosition: Int?  // TODO: Maybe not necessary?
 ) : AbstractSound() {
-    constructor(categoryId: Int) : this(-1, categoryId, "", Uri.EMPTY, 100, null)
+    constructor(categoryId: Int) : this(-1, categoryId, "", Uri.EMPTY, 100, 0, null)
 }

@@ -22,16 +22,15 @@ import us.huseli.soundboard_kotlin.animators.CollapseButtonAnimator
 import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.databinding.ItemCategoryBinding
 import us.huseli.soundboard_kotlin.helpers.CategoryItemDragHelperCallback
+import us.huseli.soundboard_kotlin.helpers.SoundDragListener2
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
 import us.huseli.soundboard_kotlin.interfaces.ToastInterface
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
-import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
 
 class CategoryAdapter(
-        private val activity: FragmentActivity, private val categoryListViewModel: CategoryListViewModel,
-        private val appViewModel: AppViewModel, private val initialSpanCount: Int) :
+        private val activity: FragmentActivity, private val appViewModel: AppViewModel, private val initialSpanCount: Int) :
         DataBoundAdapter<Category, CategoryAdapter.ViewHolder, ItemCategoryBinding>(DiffCallback()) {
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 20) }
     internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
@@ -54,11 +53,10 @@ class CategoryAdapter(
 
     override fun getItemById(id: Int) = currentList.find { it.id == id }
 
-    fun onItemsReordered() = categoryListViewModel.saveOrder(currentList)
-
-// override fun calculateDiff(list: List<Category>) = DiffUtil.calculateDiff(DiffCallback(list, currentList), true).dispatchUpdatesTo(this)
-
-    //private fun updateSoundDb() = viewHolders.forEach { it.soundAdapter.updateDb() }
+    override fun toString(): String {
+        val hashCode = Integer.toHexString(System.identityHashCode(this))
+        return "CategoryAdapter $hashCode"
+    }
 
 
     class DiffCallback : DiffUtil.ItemCallback<Category>() {
@@ -84,12 +82,10 @@ class CategoryAdapter(
         private val categoryViewModel = CategoryViewModel()
         private val viewModelStore = ViewModelStore()
         // private val soundDragListener = SoundDragListener(this)
-        //private val soundDragListener = SoundDragListener2(this)
         private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
 
-        private val soundAdapter = SoundAdapter(activity, appViewModel, categoryViewModel, binding.soundList).apply {
-            setHasStableIds(true)
-        }
+        private val soundAdapter = SoundAdapter(activity, appViewModel, categoryViewModel, binding.soundList)
+        private val soundDragListener = SoundDragListener2(soundAdapter, this)
 
         private var category: Category? = null
         private var soundCount: Int? = null
@@ -99,7 +95,7 @@ class CategoryAdapter(
         init {
             binding.categoryEditButton.setOnClickListener(this)
             binding.categoryDeleteButton.setOnClickListener(this)
-            binding.root.setOnDragListener(soundAdapter.soundDragListener)
+            binding.root.setOnDragListener(soundDragListener)
 
             binding.soundList.apply {
                 adapter = soundAdapter
@@ -110,22 +106,20 @@ class CategoryAdapter(
             }
             categoryViewModel.sounds.observe(this) { sounds ->
                 Log.i(GlobalApplication.LOG_TAG,
-                        "CategoryAdapter ${this@CategoryAdapter.hashCode()}: viewholder ${hashCode()}, " +
+                        "${this@CategoryAdapter}: viewholder=$this, " +
                                 "recyclerView ${binding.soundList.hashCode()}, " +
-                                "SoundAdapter ${soundAdapter.hashCode()}, " +
-                                "Category ${category?.id} ${category?.name}, " +
+                                "SoundAdapter $soundAdapter, " +
+                                "Category $category, " +
                                 "sounds changed: $sounds")
                 soundCount = sounds.count()
                 soundAdapter.submitList(sounds)
             }
             categoryViewModel.backgroundColor.observe(this) { color -> binding.categoryHeader.setBackgroundColor(color) }
             categoryViewModel.collapsed.observe(this) { collapsed ->
-                if (!soundAdapter.soundDragListener.isDragging) soundAdapter.soundDragListener.wasCollapsed = collapsed
+                if (!soundDragListener.isDragging) soundDragListener.wasCollapsed = collapsed
                 collapseButtonAnimator.animate(collapsed)
                 binding.soundList.visibility = if (collapsed) View.GONE else View.VISIBLE
             }
-
-            appViewModel.reorderEnabled.observe(this) { value -> onReorderEnabledChange(value) }
         }
 
         fun bind(category: Category) {
@@ -135,20 +129,31 @@ class CategoryAdapter(
             this.category = category
 
             category.id?.let { soundAdapter.createEmptySound(it) }
-            //soundAdapter.createEmptySound(category.id)
             categoryViewModel.setCategory(category)
             binding.categoryViewModel = categoryViewModel
         }
 
+        fun showDropContainer() {
+            binding.emptyCategoryDropContainer.visibility = View.VISIBLE
+        }
+
+        fun hideDropContainer() {
+            binding.emptyCategoryDropContainer.visibility = View.GONE
+        }
+
+        fun getYOffset() = binding.soundList.y
+
         override fun onClick(v: View?) {
             // When icons in the category header are clicked
             val activity = binding.root.context as EditCategoryInterface
-            try {
-                when (v) {
-                    binding.categoryEditButton -> activity.showCategoryEditDialog(category?.id!!)
-                    binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(category?.id!!, category?.name!!, soundCount ?: 0)
+            category?.also { category ->
+                category.id?.also { catId ->
+                    when (v) {
+                        binding.categoryEditButton -> activity.showCategoryEditDialog(catId)
+                        binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(catId, category.name, soundCount ?: 0)
+                    }
                 }
-            } catch (e: Exception) {
+            } ?: run {
                 (activity as ToastInterface).showToast(R.string.not_initialized_yet)
             }
         }
@@ -165,32 +170,6 @@ class CategoryAdapter(
             super.markDestroyed()
             soundAdapter.setLifecycleDestroyed()
         }
-
-        //override fun removeSoundGlobal(sound: Sound) = this@CategoryAdapter.removeSound(sound)
-
-//        override fun moveSound(sound: Sound?, position: Int): Boolean {
-//            return sound?.let { soundAdapter.moveItem(it, position) } ?: false
-//        }
-
-        // override fun addSound(sound: Sound, position: Int) = soundAdapter.addItem(sound, position)
-
-        // override fun addSound(sound: Sound) = soundAdapter.addItem(sound, null)
-
-        // override fun expandCategory() = categoryViewModel.expand()
-
-        // override fun collapseCategory() = categoryViewModel.collapse()
-
-        // override fun showEmptySound() = soundAdapter.showEmptySound()
-
-        // override fun hideEmptySound() = soundAdapter.hideEmptySound()
-
-        // override fun moveEmptySoundIfNecessary(x: Float?, y: Float?) = soundAdapter.moveEmptySoundIfNecessary(x, y)
-
-        // override fun moveSoundIfNecessary(sound: Sound, x: Float?, y: Float?) = soundAdapter.moveSoundIfNecessary(sound, x, y)
-
-        // override fun updateSoundDb() = this@CategoryAdapter.updateSoundDb()
-
-        // override fun getRecyclerView() = binding.soundList
 
         override fun toString(): String {
             val hashCode = Integer.toHexString(System.identityHashCode(this))

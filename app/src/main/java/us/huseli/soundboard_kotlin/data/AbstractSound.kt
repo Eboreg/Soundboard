@@ -8,4 +8,5 @@ abstract class AbstractSound {
     abstract var categoryId: Int?
     abstract var name: String
     abstract val uri: Uri
+    abstract var order: Int
 }

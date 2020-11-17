@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.PorterDuff
+import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -31,9 +32,8 @@ import us.huseli.soundboard_kotlin.data.EmptySound
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.databinding.ItemEmptySoundBinding
 import us.huseli.soundboard_kotlin.databinding.ItemSoundBinding
-import us.huseli.soundboard_kotlin.helpers.SoundDragListener2
-import us.huseli.soundboard_kotlin.interfaces.SoundDragCallback2
 import us.huseli.soundboard_kotlin.viewmodels.*
+import java.util.*
 
 
 class SoundAdapter(
@@ -41,13 +41,55 @@ class SoundAdapter(
         private val appViewModel: AppViewModel,
         private val categoryViewModel: CategoryViewModel,
         private val recyclerView: RecyclerView) :
-        SoundDragCallback2,
+        //SoundDragCallback2,
         DataBoundAdapter<AbstractSound, SoundAdapter.AbstractViewHolder, ViewDataBinding>(DiffCallback()) {
 
     private var emptySound: EmptySound? = null
     private var emptySoundViewModel: EmptySoundViewModel? = null
+    private var draggedView: View? = null
     //private val emptySound = EmptySound()
-    val soundDragListener = SoundDragListener2(this)
+    //val soundDragListener = SoundDragListener2(this)
+
+    init {
+        setHasStableIds(true)
+        registerAdapterDataObserver(DataObserver())
+    }
+
+    class DataObserver : RecyclerView.AdapterDataObserver() {
+        override fun onChanged() {
+            Log.d(LOG_TAG, "onChanged")
+            super.onChanged()
+        }
+
+        override fun onItemRangeChanged(positionStart: Int, itemCount: Int) {
+            Log.d(LOG_TAG, "onItemRangeChanged<positionStart=$positionStart, itemCount=$itemCount>")
+            super.onItemRangeChanged(positionStart, itemCount)
+        }
+
+        override fun onItemRangeChanged(positionStart: Int, itemCount: Int, payload: Any?) {
+            Log.d(LOG_TAG, "onItemRangeChanged<positionStart=$positionStart, itemCount=$itemCount, payload=$payload>")
+            super.onItemRangeChanged(positionStart, itemCount, payload)
+        }
+
+        override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+            Log.d(LOG_TAG, "onItemRangeInserted<positionStart=$positionStart, itemCount=$itemCount>")
+            super.onItemRangeInserted(positionStart, itemCount)
+        }
+
+        override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
+            Log.d(LOG_TAG, "onItemRangeRemoved<positionStart=$positionStart, itemCount=$itemCount>")
+            super.onItemRangeRemoved(positionStart, itemCount)
+        }
+
+        override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
+            Log.d(LOG_TAG, "onItemRangeMoved<fromPosition=$fromPosition, toPosition=$toPosition, itemCount=$itemCount>")
+            super.onItemRangeMoved(fromPosition, toPosition, itemCount)
+        }
+
+        companion object {
+            const val LOG_TAG = "DataObserver"
+        }
+    }
 
     fun createEmptySound(categoryId: Int) {
         // Used by CategoryAdapter.ViewHolder.bind()
@@ -91,8 +133,12 @@ class SoundAdapter(
     override fun getItemById(id: Int) = currentList.find { it.id == id }
 
     override fun getItemId(position: Int): Long {
-        // TODO: Will they always have id set?
-        return currentList[position].id!!.toLong()
+        try {
+            return currentList[position].id!!.toLong()
+        } catch (e: NullPointerException) {
+            Log.e(LOG_TAG, "Sound at $position (${currentList[position]}) has null id")
+            throw e
+        }
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -111,6 +157,7 @@ class SoundAdapter(
     /**
      * Implemented SoundDragCallback2 methods
      */
+    /*
     override fun addEmptySoundIfNecessary() {
         emptySound?.let {
             if (!currentList.contains(it)) {
@@ -119,14 +166,28 @@ class SoundAdapter(
             }
         }
     }
+     */
 
-    override fun collapseCategory() = categoryViewModel.collapse()
+    fun cancelDrop() {
+        draggedView?.apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                try {
+                    cancelDragAndDrop()
+                } catch (e: Exception) {
+                    Log.e(LOG_TAG, e.toString())
+                }
+            }
+            cancelPendingInputEvents()
+        }
+    }
 
-    override fun containsSound(soundId: Int) = currentList.find { it.id == soundId } != null
+    fun collapseCategory() = categoryViewModel.collapse()
 
-    override fun expandCategory() = categoryViewModel.expand()
+    fun containsSound(sound: Sound) = currentList.indexOf(sound) > -1
 
-    override fun getSoundViewHolderUnder(x: Float, y: Float): SoundViewHolder? {
+    fun expandCategory() = categoryViewModel.expand()
+
+    fun getSoundViewHolderUnder(x: Float, y: Float): SoundViewHolder? {
         recyclerView.findChildViewUnder(x, y)?.let { view ->
             recyclerView.findContainingViewHolder(view)?.let { viewHolder ->
                 if (viewHolder is SoundViewHolder) return viewHolder
@@ -135,10 +196,8 @@ class SoundAdapter(
         return null
     }
 
-    override fun getYOffset() = recyclerView.y
-
-    override fun hideSound(soundId: Int) {
-        val position = currentList.indexOfFirst { it.id == soundId }
+    fun hideSound(sound: Sound) {
+        val position = currentList.indexOf(sound)
         recyclerView.getChildAt(position)?.let { view ->
             view.visibility = View.INVISIBLE
         }
@@ -147,22 +206,46 @@ class SoundAdapter(
         //currentList.find { it.id == soundId }?.let { removeItem(it) }
     }
 
-    override fun insertOrMoveSound(soundId: Int) {
-        insertOrMoveSound(soundId, currentList.size)
+    /**
+     * The different insertOrMoveSound() variants should _not_ update DB, only run submitList()
+     * with an updated Sound list. DB should be updated when we know the drag operation is well
+     * and truly finished.
+     * TODO: How do we know this?
+     */
+    fun insertOrMoveSound(sound: Sound, toPosition: Int) {
+        // Remove sound from old position if it already is in list
+        val fromPosition = currentList.indexOf(sound)
+        val sounds = currentList.toMutableList()
+
+        when {
+            toPosition == -1 -> sounds.add(sound)
+            fromPosition == -1 -> sounds.add(toPosition, sound)
+            fromPosition < toPosition -> for (i in fromPosition until toPosition) Collections.swap(sounds, i, i + 1)
+            else -> for (i in fromPosition downTo toPosition + 1) Collections.swap(sounds, i, i - 1)
+        }
+        submitList(sounds)
     }
 
-    override fun insertOrMoveSound(soundId: Int, toPosition: Int) {
-        // ViewModel is expected to remove sound from old position if it already is in list
-        categoryViewModel.insertSound(soundId, toPosition, currentList.filterIsInstance<Sound>())
-    }
-
-    override fun insertOrMoveSound(soundId: Int, x: Float, y: Float) {
-        when (val toPosition = getSoundViewHolderUnder(x, y)?.adapterPosition) {
-            null -> insertOrMoveSound(soundId)
-            else -> insertOrMoveSound(soundId, toPosition)
+    fun markSoundsForDrop(viewHolder: SoundViewHolder) {
+        viewHolder.binding.dropMarkerBefore.visibility = View.VISIBLE
+        if (viewHolder.adapterPosition > 0) {
+            // If there is other viewholder before this one, make its right margin red
+            (recyclerView.findViewHolderForAdapterPosition(viewHolder.adapterPosition - 1) as? SoundViewHolder)?.apply {
+                binding.dropMarkerAfter.visibility = View.VISIBLE
+            }
         }
     }
 
+    fun isEmpty() = currentList.isEmpty()
+
+    fun removeMarksForDrop() {
+        viewHolders.filterIsInstance<SoundViewHolder>().forEach {
+            it.binding.dropMarkerAfter.visibility = View.INVISIBLE
+            it.binding.dropMarkerBefore.visibility = View.INVISIBLE
+        }
+    }
+
+/*
     override fun moveEmptySound(toPosition: Int) {
         /**
          * Called by SoundDragListener2.
@@ -176,19 +259,28 @@ class SoundAdapter(
             Log.e(LOG_TAG, "moveEmptySound: $emptySound not in $currentList!")
         }
     }
+     */
 
+    /*
     override fun removeEmptySound() {
         emptySound?.let { removeItem(it) }
         //emptySoundViewModel?.hide()
     }
+     */
 
-    override fun removeSound(soundId: Int) = removeItemById(soundId)
+    // override fun removeSound(sound: Sound) = removeItem(sound)
 
-    override fun showSound(soundId: Int) {
-        val position = currentList.indexOfFirst { it.id == soundId }
+    fun showSound(sound: Sound) {
+        val position = currentList.indexOf(sound)
         recyclerView.getChildAt(position)?.let { view ->
             view.visibility = View.VISIBLE
         }
+    }
+
+    fun updateDb() {
+        val sounds = currentList.filterIsInstance<Sound>()
+        Log.d(LOG_TAG, "updateDb with $sounds")
+        categoryViewModel.updateSounds(sounds)
     }
 
 
@@ -199,10 +291,13 @@ class SoundAdapter(
 
 
     class DiffCallback : DiffUtil.ItemCallback<AbstractSound>() {
-        override fun areItemsTheSame(oldItem: AbstractSound, newItem: AbstractSound) = oldItem.id == newItem.id
+        override fun areItemsTheSame(oldItem: AbstractSound, newItem: AbstractSound): Boolean {
+            return oldItem.id == newItem.id
+        }
 
-        override fun areContentsTheSame(oldItem: AbstractSound, newItem: AbstractSound) =
-                oldItem.name == newItem.name && oldItem.uri == newItem.uri && oldItem.categoryId == newItem.categoryId
+        override fun areContentsTheSame(oldItem: AbstractSound, newItem: AbstractSound): Boolean {
+            return oldItem.name == newItem.name && oldItem.uri == newItem.uri && oldItem.categoryId == newItem.categoryId && oldItem.order == newItem.order
+        }
     }
 
 
@@ -226,13 +321,14 @@ class SoundAdapter(
         private val clickAnimator = (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
             setTarget(binding.soundCard)
         }
-        private val originalBackgroundDrawable = binding.soundCard.background.current
+
+        //private val originalBackgroundDrawable = binding.soundCard.background.current
         private var selectEnabled = false
         private var reorderEnabled = false
         private var isValid = true
-        private var draggedSound: DraggedSound? = null
 
-        private lateinit var longClickAnimator: SoundItemLongClickAnimator
+        //private var draggedSound: DraggedSound? = null
+        private var longClickAnimator: SoundItemLongClickAnimator? = null
 
         //var sound: AbstractSound? = null
         override val lifecycleRegistry = LifecycleRegistry(this)
@@ -257,7 +353,7 @@ class SoundAdapter(
                 isValid = it
             }
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 viewModel.backgroundColor.observe(this) { color ->
                     longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
                     binding.volumeBar.progressDrawable.alpha = 150
@@ -314,10 +410,15 @@ class SoundAdapter(
         override fun onTouch(view: View, event: MotionEvent): Boolean {
             if (reorderEnabled) {
                 if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                    /*
                     if (draggedSound == null || draggedSound?.isDragged == false) {
                         startDragAndDrop(view)
                         return true
                     }
+
+                     */
+                    Log.d(LOG_TAG, "onTouch: run startDragAndDrop on $view")
+                    startDragAndDrop(view)
                 }
                 return false
             }
@@ -327,7 +428,7 @@ class SoundAdapter(
         override fun onLongClick(v: View): Boolean {
             if (!reorderEnabled) {
                 (viewModel as? SoundViewModel)?.let {
-                    longClickAnimator.start()
+                    longClickAnimator?.start()
                     it.select()
                 }
             }
@@ -344,21 +445,23 @@ class SoundAdapter(
         }
 
         private fun startDragAndDrop(view: View) {
-            (viewModel as? SoundViewModel)?.id?.let { soundId ->
+            (viewModel as? SoundViewModel)?.sound?.let { sound ->
                 val data = ClipData.newPlainText("", "")
                 val shadowBuilder = View.DragShadowBuilder(view)
-
-                draggedSound = DraggedSound(soundId, adapterPosition)
+                val draggedSound = DraggedSound(sound, this@SoundAdapter, adapterPosition)
 
                 Log.d(LOG_TAG, "startDragAndDrop: draggedSound=$draggedSound, this=$this")
 
+                draggedView = view
+
                 @Suppress("DEPRECATION")
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     val retval = view.startDragAndDrop(data, shadowBuilder, draggedSound, 0)
                     @Suppress("ControlFlowWithEmptyBody")
                     if (!retval)
                         Log.e(LOG_TAG, "startDragAndDrop: view.startDragAndDrop() returned false")
-                    else {}
+                    else {
+                    }
                 } else
                     view.startDrag(data, shadowBuilder, draggedSound, 0)
             }

@@ -12,7 +12,7 @@ abstract class BaseSoundEditViewModel : ViewModel() {
 
     abstract fun setName(value: String)
     abstract fun setVolume(value: Int)
-    abstract fun setCategoryId(value: Int)
+    abstract fun setCategoryId(value: Int?): Any?
     abstract fun save(): Job
 
     abstract val name: LiveData<String>

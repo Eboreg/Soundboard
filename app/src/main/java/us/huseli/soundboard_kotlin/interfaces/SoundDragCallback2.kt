@@ -1,20 +1,27 @@
 package us.huseli.soundboard_kotlin.interfaces
 
 import us.huseli.soundboard_kotlin.adapters.SoundAdapter
+import us.huseli.soundboard_kotlin.data.Sound
 
 interface SoundDragCallback2 {
-    fun addEmptySoundIfNecessary(): Any?
+    //fun addEmptySoundIfNecessary(): Any?
+    fun cancelDrop(): Any?
     fun collapseCategory(): Any?
-    fun containsSound(soundId: Int): Boolean
+    fun containsSound(sound: Sound): Boolean
     fun expandCategory(): Any?
+    fun getAdapter(): SoundAdapter
     fun getSoundViewHolderUnder(x: Float, y: Float): SoundAdapter.SoundViewHolder?
     fun getYOffset(): Float
-    fun hideSound(soundId: Int): Any?
-    fun insertOrMoveSound(soundId: Int): Any?
-    fun insertOrMoveSound(soundId: Int, toPosition: Int)
-    fun insertOrMoveSound(soundId: Int, x: Float, y: Float): Any?
-    fun moveEmptySound(toPosition: Int): Any?
-    fun removeEmptySound(): Any?
-    fun removeSound(soundId: Int): Any?
-    fun showSound(soundId: Int): Any?
+    fun hideSound(sound: Sound): Any?
+    //fun insertOrMoveSound(sound: Sound): Any?
+    fun insertOrMoveSound(sound: Sound, toPosition: Int)
+    //fun insertOrMoveSound(sound: Sound, x: Float, y: Float): Any?
+    //fun moveEmptySound(toPosition: Int): Any?
+    //fun removeEmptySound(): Any?
+    //fun removeSound(sound: Sound): Any?
+    fun showSound(sound: Sound): Any?
+    fun updateDb(): Any?
+    fun markSoundsForDrop(viewHolder: SoundAdapter.SoundViewHolder): Any?
+    fun removeMarksForDrop(): Any?
+    fun isEmpty(): Boolean
 }

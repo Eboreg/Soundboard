@@ -1,3 +1,10 @@
+SoundDragListener2: Update DB when we surely know the drag operation is finished.
+And do it from the adapter receiving the sound, so we know it ends up in the right category.
+
+Make it possible to move sound last in list
+
+Do SoundDragListener2 stuff in IO thread? Or other? Except the purely UI related stuff.
+
 Set sound volume on load
 Set sound volume, bgcolor, name on update (drag + edit viewmodel)
 

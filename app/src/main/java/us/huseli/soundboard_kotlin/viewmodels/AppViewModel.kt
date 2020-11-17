@@ -9,6 +9,7 @@ import kotlin.math.roundToInt
 class AppViewModel : ViewModel() {
     companion object {
         const val DEFAULT_SPANCOUNT_LANDSCAPE = 8
+        const val DEFAULT_SPANCOUNT_PORTRAIT = 4
     }
 
     private val _orientation = MutableLiveData<Int>()

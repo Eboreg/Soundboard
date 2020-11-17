@@ -25,9 +25,11 @@ class SoundEditViewModel(private val soundId: Int) : BaseSoundEditViewModel() {
         }
     }
 
-    override fun setCategoryId(value: Int) {
-        if (originalCategoryId == null) originalCategoryId = sound.value?.categoryId
-        sound.value?.categoryId = value
+    override fun setCategoryId(value: Int?) {
+        if (value != null) {
+            if (originalCategoryId == null) originalCategoryId = sound.value?.categoryId
+            sound.value?.categoryId = value
+        }
     }
 
     override fun save() = viewModelScope.launch(Dispatchers.IO) {

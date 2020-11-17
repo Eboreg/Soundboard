@@ -21,7 +21,7 @@ data class Sound(
         override var categoryId: Int?,
         override var name: String,
         override val uri: Uri,
-        var order: Int,
+        override var order: Int,
         override var volume: Int
 ) : AbstractSound(), Parcelable {
     constructor(parcel: Parcel) : this(

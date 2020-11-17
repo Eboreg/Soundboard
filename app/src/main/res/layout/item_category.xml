@@ -115,5 +115,16 @@
             tools:listitem="@layout/item_sound"
             tools:spanCount="4" />
 
+        <TextView
+            android:id="@+id/emptyCategoryDropContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/border"
+            android:padding="@dimen/margin_small"
+            android:text="@string/add_sound_here"
+            android:textAlignment="center"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
     </LinearLayout>
 </layout>

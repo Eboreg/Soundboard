@@ -12,7 +12,7 @@ class EditCategoryDialogFragment : BaseCategoryDialogFragment() {
     private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
     private val categoryId by lazy { requireArguments().getInt(ARG_ID) }
 
-    override lateinit var viewModel: BaseCategoryEditViewModel
+    override var viewModel: BaseCategoryEditViewModel? = null
     override val title = R.string.edit_category
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {

@@ -16,6 +16,17 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <View
+            android:id="@+id/drop_marker_before"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#FF0000"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@id/sound_card"
+            app:layout_constraintEnd_toStartOf="@id/sound_card"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/sound_card" />
+
         <androidx.cardview.widget.CardView
             android:id="@+id/sound_card"
             android:layout_width="0dp"
@@ -107,8 +118,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:srcCompat="@drawable/ic_reorder"
-                    tools:drawableColor="@color/white"
-                    tools:visibility="visible" />
+                    tools:drawableColor="@color/white" />
 
                 <ProgressBar
                     android:id="@+id/volume_bar"
@@ -150,6 +160,17 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
+
+        <View
+            android:id="@+id/drop_marker_after"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#FF0000"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@id/sound_card"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/sound_card"
+            app:layout_constraintTop_toTopOf="@id/sound_card" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

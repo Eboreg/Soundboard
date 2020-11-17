@@ -39,6 +39,7 @@
     <string name="load_failed">Load failed</string>
     <string name="selected">Selected</string>
     <string name="delete_sounds">Delete sounds</string>
+    <string name="add_sound_here">Add sound here</string>
     <plurals name="delete_category_with_name_and_sounds">
         <item quantity="one">Delete category %1s and one sound?</item>
         <item quantity="other">Delete category %1s and %2d sounds?</item>

@@ -49,6 +49,7 @@ class GlobalApplication : Application() {
     companion object {
         const val LOG_TAG = "soundboard"
 
+        // Gonna allow lateinit here; it's totally OK if it throws up an exception
         lateinit var application: GlobalApplication
         lateinit var colorHelper: ColorHelper
     }

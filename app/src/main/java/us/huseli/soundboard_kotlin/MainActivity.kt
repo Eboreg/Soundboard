@@ -1,5 +1,6 @@
 package us.huseli.soundboard_kotlin
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Build
@@ -40,7 +41,7 @@ class MainActivity :
     private val soundEditMultipleViewModel by viewModels<SoundEditMultipleViewModel>()
     private var toast: Toast? = null
 
-    private lateinit var binding: ActivityMainBinding
+    //private var binding: ActivityMainBinding? = null
     private var actionMode: ActionMode? = null
 
     // Just to know whether a toast should be shown on value change
@@ -64,7 +65,8 @@ class MainActivity :
 
         setContentView(R.layout.activity_main)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        //binding = ActivityMainBinding.inflate(layoutInflater)
+        ActivityMainBinding.inflate(layoutInflater)
 
         setSupportActionBar(actionbar_toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
@@ -140,10 +142,12 @@ class MainActivity :
                             val sound = sounds.first()
                             var categoryIndex = categories.map { it.id }.indexOf(sound.categoryId)
                             if (categoryIndex == -1) categoryIndex = 0
-                            showDialogFragment(EditSoundDialogFragment.newInstance(sound.id!!, categoryIndex))
+                            sound.id?.let { soundId ->
+                                showDialogFragment(EditSoundDialogFragment.newInstance(soundId, categoryIndex))
+                            }
                         }
                         else -> {
-                            soundEditMultipleViewModel.setup(sounds.map { it.id!! }, getString(R.string.multiple_sounds_selected))
+                            soundEditMultipleViewModel.setup(sounds.mapNotNull { it.id }, getString(R.string.multiple_sounds_selected))
                             showDialogFragment(EditMultipleSoundDialogFragment())
                         }
                     }
@@ -153,7 +157,12 @@ class MainActivity :
             R.id.delete_sounds -> {
                 appViewModel.getSelectedSounds().let { sounds ->
                     when (sounds.size) {
-                        1 -> sounds.first().let { sound -> showDialogFragment(DeleteSoundFragment.newInstance(sound.id!!, sound.name)) }
+                        1 -> {
+                            val sound = sounds.first()
+                            sound.id?.let { soundId ->
+                                showDialogFragment(DeleteSoundFragment.newInstance(soundId, sound.name))
+                            }
+                        }
                         else -> showDialogFragment(DeleteSoundFragment.newInstance(sounds.map { it.id }))
                     }
                 }
@@ -227,6 +236,7 @@ class MainActivity :
         item?.icon?.alpha = if (value) 204 else 102
     }
 
+    @SuppressLint("QueryPermissionsNeeded")
     private fun startAddSoundActivity() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)

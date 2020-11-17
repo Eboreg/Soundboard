@@ -76,7 +76,7 @@ class SoundViewModel(override val sound: Sound) : AbstractSoundViewModel() {
     }
 
     fun toggleSelected() {
-        _isSelected.value = !_isSelected.value!!
+        _isSelected.value = !(_isSelected.value ?: false)
     }
 
     fun select() {

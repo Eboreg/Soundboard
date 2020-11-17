@@ -1,5 +1,6 @@
 package us.huseli.soundboard_kotlin.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -8,7 +9,7 @@ import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.data.Sound
 
 class SoundAddViewModel : BaseSoundEditViewModel() {
-    private lateinit var _sound: Sound
+    private var _sound: Sound? = null
     private val _name = MutableLiveData("")
     private val _volume = MutableLiveData(100)
 
@@ -24,20 +25,30 @@ class SoundAddViewModel : BaseSoundEditViewModel() {
     }
 
     override fun setName(value: String) {
-        _sound.name = value
+        _sound?.name = value
         _name.value = value
     }
 
     override fun setVolume(value: Int) {
-        _sound.volume = value
+        _sound?.volume = value
         _volume.value = value
     }
 
-    override fun setCategoryId(value: Int) {
-        _sound.categoryId = value
+    override fun setCategoryId(value: Int?) {
+        if (value != null)
+            _sound?.categoryId = value
     }
 
     override fun save() = viewModelScope.launch(Dispatchers.IO) {
-        repository.insert(_sound)
+        _sound?.let { sound ->
+            repository.insert(sound)
+        } ?: run {
+            Log.e(LOG_TAG, "save: _sound is null")
+        }
+    }
+
+
+    companion object {
+        const val LOG_TAG = "SoundAddViewModel"
     }
 }

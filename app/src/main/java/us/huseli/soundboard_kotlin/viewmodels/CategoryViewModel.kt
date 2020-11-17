@@ -48,7 +48,7 @@ class CategoryViewModel : ViewModel() {
 
     fun collapse() = setCollapsed(true)
 
-    private fun updateSounds(sounds: List<Sound>) = viewModelScope.launch(Dispatchers.IO) {
+    fun updateSounds(sounds: List<Sound>) = viewModelScope.launch(Dispatchers.IO) {
         sounds.forEachIndexed { index, sound ->
             sound.order = index
             sound.categoryId = categoryId
