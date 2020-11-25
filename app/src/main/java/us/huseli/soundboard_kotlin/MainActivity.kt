@@ -148,7 +148,7 @@ class MainActivity :
                 (data.extras?.get(EXTRA_SOUND_ID) as? Int)?.let { soundId ->
                     // soundId = id of sound to replace
                     val sound = Sound(uri, data.flags, contentResolver)
-                    soundViewModel.replaceSound(soundId, sound)
+                    soundViewModel.replaceSound(soundId, sound, this)
                 }
             }
         }

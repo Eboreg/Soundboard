@@ -30,13 +30,13 @@ class SoundViewModel : ViewModel() {
 
     fun addFailedSound(sound: Sound) = _failedSounds.add(sound)
 
-    fun replaceSound(soundId: Int, sound: Sound) {
+    fun replaceSound(soundId: Int, sound: Sound, context: Context) {
         _failedSounds.find { it.id == soundId }?.let { oldSound ->
             sound.id = soundId
             viewModelScope.launch(Dispatchers.IO) {
                 _failedSounds.remove(oldSound)
                 repository.update(sound)
-                players[sound.uri]?.setup()
+                players[sound.uri] = SoundPlayer(context, sound.uri, sound.volume)
             }
         }
     }
@@ -50,9 +50,9 @@ class SoundViewModel : ViewModel() {
     fun getPlayer(sound: Sound, context: Context): SoundPlayer {
         return getPlayer(sound) ?: SoundPlayer(context, sound.uri, sound.volume).also {
             players[sound.uri] = it
-            viewModelScope.launch(Dispatchers.IO) {
-                it.setup()
-            }
+//            viewModelScope.launch(Dispatchers.IO) {
+//                it.setup()
+//            }
         }
     }
 

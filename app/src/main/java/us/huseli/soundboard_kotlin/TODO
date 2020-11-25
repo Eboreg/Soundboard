@@ -18,8 +18,8 @@ OK, failedSounds and noPermission is implemented, now:
 - Remove test data from SoundViewHolder.bind and Sound.constructor
 
 
-Do mediaplayer.prepareAsync() and put the init() stuff in constructor?
-This way, we can avoid saving context as a val in SoundPlayer and maybe avoid leaks?
+Make sure old adapters & viewholders are garbage collected on config change/rotate, they don't seem
+to be doing so automatically
 
 
 Write tests :-//////////////
