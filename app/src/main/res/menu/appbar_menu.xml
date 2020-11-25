@@ -36,4 +36,12 @@
         android:title="@string/add_category"
         android:orderInCategory="2"
         app:showAsAction="ifRoom" />
+
+    <!--
+        <item
+            android:id="@+id/action_reinit_failed_sounds"
+            android:title="@string/re_init_failed_sounds"
+            android:orderInCategory="3"
+            app:showAsAction="never" />
+    -->
 </menu>

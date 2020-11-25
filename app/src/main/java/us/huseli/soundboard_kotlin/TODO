@@ -1,12 +1,26 @@
-SoundDragListener2: Update DB when we surely know the drag operation is finished.
-And do it from the adapter receiving the sound, so we know it ends up in the right category.
+If trying to add sounds without permission (like after a reinstall), MediaPlayer.prepare() throws
+IOException. Maybe catch that and alert the user that they could make some menu choice to
+re-init the failed sound URIs?
+Perhaps use some 'failedSounds' list in appViewModel or something. But where to populate it?
+SoundPlayer.setup() would be the obvious choise but that class doesn't know about Sound, only
+Uri and volume.
+setup() is called by SoundViewModel.getPlayer(), which DOES know about Sound, so maybe here?
+But then we have to re-throw the IOException to it.
+Also, it's a viewmodel and does not, and should not, know about other viewmodels.
+getPlayer is in turn called by SoundAdapter.SoundViewHolder.bind(), so maybe here?
+But we can't throw the exception all the way here. Maybe set some 'noPermission' bool on
+SoundPlayer instead? And check it here, and if true add sound to 'failedSounds'.
 
-Make it possible to move sound last in list
+OK, failedSounds and noPermission is implemented, now:
+- Show alert
+- Add menu item "re-add failed sounds"
+- Implement that functionality
+- Remove test data from SoundViewHolder.bind and Sound.constructor
 
-Do SoundDragListener2 stuff in IO thread? Or other? Except the purely UI related stuff.
 
-Set sound volume on load
-Set sound volume, bgcolor, name on update (drag + edit viewmodel)
+Do mediaplayer.prepareAsync() and put the init() stuff in constructor?
+This way, we can avoid saving context as a val in SoundPlayer and maybe avoid leaks?
+
 
 Write tests :-//////////////
 
@@ -17,43 +31,6 @@ Sound is dragged to new position: EmptySound moved there
 Sound is dragged to new recyclerview: EmptySound moved there
 ???
 
-
-Sounds don't change colour on category change
-
-Desired logic for soundviewholders:
-On click:
-    If reorder enabled: start drag & drop
-    Else if select enabled: toggle select
-    Else: play/pause (or show error toast)
-On long click:
-    (If reorder enabled: start drag & drop (same as on click))
-    Else if select enabled: do nothing
-    Else: Enable select, select item
-
-
-Drag sounds between categories? Is it even possible?
-https://github.com/jkozh/DragDropTwoRecyclerViews
-
-SoundDragListener.onDrag gets v = the RecyclerView we're currently dragging over.
-Try to somehow engage some inbuilt ItemTouchHelper magic on that recyclerview?
-While view is moving, ItemTouchHelper runs:
-                        updateDxDy(event, mSelectedFlags, activePointerIndex);
-                        moveIfNecessary(viewHolder);
-                        mRecyclerView.removeCallbacks(mScrollRunnable);
-                        mScrollRunnable.run();
-                        mRecyclerView.invalidate();
-On ACTION_UP (view is released):
-                    select(null, ACTION_STATE_IDLE);
-                    mActivePointerId = ACTIVE_POINTER_ID_NONE;
-moveIfNecessary is interesting; "Checks if we should swap w/ another view holder"
-It calls findSwapTargets()
-
-
-Click on category name should collapse/expand category
-
-Scrap the nested recyclerviews and implement getItemViewType?
-https://www.raywenderlich.com/272-intermediate-recyclerview-tutorial-with-kotlin
-(See branch one-recyclerview for maybe futile attempts at this)
 
 Trash CategoryListFragment, put it all in MainActivity?
 

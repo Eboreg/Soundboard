@@ -9,7 +9,7 @@ import us.huseli.soundboard_kotlin.GlobalApplication
 class SoundItemLongClickAnimator(view: CardView, originalColor: Int) {
     private val animateIn: ObjectAnimator?
     private val animateOut: ObjectAnimator?
-    private val flashColor = if (GlobalApplication.colorHelper.getLuminance(originalColor) >= 0.9) Color.BLACK else Color.WHITE
+    private val flashColor = if (GlobalApplication.application.getColorHelper().getLuminance(originalColor) >= 0.9) Color.BLACK else Color.WHITE
 
     init {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {

@@ -34,9 +34,8 @@ class SoundAddViewModel : BaseSoundEditViewModel() {
         _volume.value = value
     }
 
-    override fun setCategoryId(value: Int?) {
-        if (value != null)
-            _sound?.categoryId = value
+    override fun setCategoryId(value: Int) {
+        _sound?.categoryId = value
     }
 
     override fun save() = viewModelScope.launch(Dispatchers.IO) {

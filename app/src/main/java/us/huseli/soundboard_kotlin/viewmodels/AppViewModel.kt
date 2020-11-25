@@ -2,7 +2,6 @@ package us.huseli.soundboard_kotlin.viewmodels
 
 import android.content.res.Configuration
 import androidx.lifecycle.*
-import us.huseli.soundboard_kotlin.data.Sound
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -16,15 +15,6 @@ class AppViewModel : ViewModel() {
     private val _screenRatio = MutableLiveData<Double>()  // (width / height) in portrait mode
     private val _spanCountLandscape = MutableLiveData<Int>()
     private val _spanCountPortrait = MutableLiveData<Int>()
-    private val _reorderEnabled: MutableLiveData<Boolean> = MutableLiveData(false)
-    private val _selectEnabled = MutableLiveData(false)
-    private val _selectedSounds = mutableListOf<Sound>()
-
-    val selectEnabled: LiveData<Boolean>
-        get() = _selectEnabled
-
-    val reorderEnabled: LiveData<Boolean>
-        get() = _reorderEnabled
 
     val spanCountLandscape: LiveData<Int>
         get() = _spanCountLandscape
@@ -37,33 +27,6 @@ class AppViewModel : ViewModel() {
     }
 
     val zoomInPossible = spanCount.map { it != null && it > 1 }
-
-    fun getSelectedSounds() = _selectedSounds.toList()
-
-    fun selectSound(sound: Sound) {
-        enableSelect()
-        if (!_selectedSounds.contains(sound)) _selectedSounds.add(sound)
-    }
-
-    fun deselectSound(sound: Sound) {
-        _selectedSounds.remove(sound)
-        if (_selectedSounds.size == 0)
-            disableSelect()
-    }
-
-    private fun enableSelect() {
-        if (_selectEnabled.value != true) _selectEnabled.value = true
-        if (_reorderEnabled.value != false) _reorderEnabled.value = false
-    }
-
-    fun disableSelect() {
-        if (_selectEnabled.value != false) _selectEnabled.value = false
-        _selectedSounds.clear()
-    }
-
-    fun toggleReorderEnabled() {
-        _reorderEnabled.value = !(_reorderEnabled.value ?: false)
-    }
 
     fun zoomIn() = zoom(-1)
 

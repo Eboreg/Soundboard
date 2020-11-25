@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
@@ -14,7 +13,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.R
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundAdapter
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundViewHolder
@@ -22,28 +20,32 @@ import us.huseli.soundboard_kotlin.animators.CollapseButtonAnimator
 import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.databinding.ItemCategoryBinding
 import us.huseli.soundboard_kotlin.helpers.CategoryItemDragHelperCallback
-import us.huseli.soundboard_kotlin.helpers.SoundDragListener2
+import us.huseli.soundboard_kotlin.helpers.SoundDragListener
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
 import us.huseli.soundboard_kotlin.interfaces.ToastInterface
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
+import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
+import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
 
 class CategoryAdapter(
-        private val activity: FragmentActivity, private val appViewModel: AppViewModel, private val initialSpanCount: Int) :
-        DataBoundAdapter<Category, CategoryAdapter.ViewHolder, ItemCategoryBinding>(DiffCallback()) {
+        private val appViewModel: AppViewModel,
+        private val initialSpanCount: Int,
+        private val soundViewModel: SoundViewModel,
+        private val categoryListViewModel: CategoryListViewModel) :
+        DataBoundAdapter<Category, CategoryAdapter.CategoryViewHolder, ItemCategoryBinding>(DiffCallback()) {
+    override val LOG_TAG = "CategoryAdapter"
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 20) }
     internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
-//    public override val currentList: List<Category>
-//        get() = super.currentList
 
     override fun createBinding(parent: ViewGroup, viewType: Int) =
             ItemCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
 
-    override fun createViewHolder(binding: ItemCategoryBinding, parent: ViewGroup) = ViewHolder(binding)
+    override fun createViewHolder(binding: ItemCategoryBinding, parent: ViewGroup) = CategoryViewHolder(binding)
 
     @SuppressLint("ClickableViewAccessibility")
-    override fun bind(holder: ViewHolder, item: Category, position: Int) {
+    override fun bind(holder: CategoryViewHolder, item: Category, position: Int) {
         holder.binding.categoryMoveButton.setOnTouchListener { _, motionEvent ->
             if (motionEvent.action == MotionEvent.ACTION_DOWN) itemTouchHelper.startDrag(holder)
             return@setOnTouchListener false
@@ -56,6 +58,11 @@ class CategoryAdapter(
     override fun toString(): String {
         val hashCode = Integer.toHexString(System.identityHashCode(this))
         return "CategoryAdapter $hashCode"
+    }
+
+    fun onItemsReordered() {
+        currentList.forEachIndexed { index, item -> item.order = index }
+        categoryListViewModel.saveOrder(currentList)
     }
 
 
@@ -74,18 +81,19 @@ class CategoryAdapter(
      * Represents one individual category with its sound list.
      * Layout: item_category.xml, see this file for binding
      */
-    inner class ViewHolder(binding: ItemCategoryBinding) :
+    inner class CategoryViewHolder(binding: ItemCategoryBinding) :
             DataBoundViewHolder<ItemCategoryBinding, Category>(binding),
             View.OnClickListener,
             AppViewModelListenerInterface,
             ViewModelStoreOwner {
+        override val LOG_TAG = "CategoryViewHolder"
+
         private val categoryViewModel = CategoryViewModel()
         private val viewModelStore = ViewModelStore()
-        // private val soundDragListener = SoundDragListener(this)
         private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
 
-        private val soundAdapter = SoundAdapter(activity, appViewModel, categoryViewModel, binding.soundList)
-        private val soundDragListener = SoundDragListener2(soundAdapter, this)
+        private val soundAdapter = SoundAdapter(categoryViewModel, binding.soundList, soundViewModel)
+        private val soundDragListener = SoundDragListener(soundAdapter, this)
 
         private var category: Category? = null
         private var soundCount: Int? = null
@@ -100,19 +108,9 @@ class CategoryAdapter(
             binding.soundList.apply {
                 adapter = soundAdapter
                 layoutManager = GridLayoutManager(context, initialSpanCount).also { lm ->
-                    appViewModel.spanCount.observe(this@ViewHolder) { lm.spanCount = it }
+                    appViewModel.spanCount.observe(this@CategoryViewHolder) { lm.spanCount = it }
                 }
                 setRecycledViewPool(soundViewPool)
-            }
-            categoryViewModel.sounds.observe(this) { sounds ->
-                Log.i(GlobalApplication.LOG_TAG,
-                        "${this@CategoryAdapter}: viewholder=$this, " +
-                                "recyclerView ${binding.soundList.hashCode()}, " +
-                                "SoundAdapter $soundAdapter, " +
-                                "Category $category, " +
-                                "sounds changed: $sounds")
-                soundCount = sounds.count()
-                soundAdapter.submitList(sounds)
             }
             categoryViewModel.backgroundColor.observe(this) { color -> binding.categoryHeader.setBackgroundColor(color) }
             categoryViewModel.collapsed.observe(this) { collapsed ->
@@ -123,12 +121,27 @@ class CategoryAdapter(
         }
 
         fun bind(category: Category) {
-            Log.i(GlobalApplication.LOG_TAG, "CategoryAdapter.bind: ${this@CategoryAdapter.hashCode()} ViewHolder ${hashCode()} " +
+            Log.i(LOG_TAG, "CategoryAdapter.bind: ${this@CategoryAdapter.hashCode()} ViewHolder ${hashCode()} " +
                     "bind Category ${category.name} (${category.hashCode()}), categoryViewModel ${categoryViewModel.hashCode()}")
 
             this.category = category
 
-            category.id?.let { soundAdapter.createEmptySound(it) }
+            soundViewModel.getByCategory(category.id).observe(this) { sounds ->
+                Log.i(LOG_TAG, "ViewHolder.bind: adapter=${this@CategoryAdapter}, viewHolder=$this, category=$category, sounds=$sounds")
+
+                // TODO: remove, this is test data
+                /*
+                val invalidSound = Sound(666, category.id, "fail", Uri.fromParts("content", "//com.android.externalstorage.documents/document/0000-0000:Music/Soundboard/Uh! Sorry!.flac", null), 10, 100)
+                val mutableSounds = sounds.toMutableList() as MutableList<AbstractSound>
+                mutableSounds.add(invalidSound)
+                soundCount = mutableSounds.count()
+                soundAdapter.submitList(mutableSounds)
+                 */
+
+                soundCount = sounds.count()
+                soundAdapter.submitList(sounds)
+            }
+
             categoryViewModel.setCategory(category)
             binding.categoryViewModel = categoryViewModel
         }
@@ -175,5 +188,9 @@ class CategoryAdapter(
             val hashCode = Integer.toHexString(System.identityHashCode(this))
             return "CategoryAdapter.ViewHolder $hashCode <adapterPosition=$adapterPosition, category=$category>"
         }
+    }
+
+    companion object {
+        const val LOG_TAG = "CategoryAdapter"
     }
 }

@@ -18,7 +18,7 @@ class CategoryViewModel : ViewModel() {
 
     val name = _category.map { it?.name }
     val backgroundColor = _category.map { it?.backgroundColor ?: Color.DKGRAY }
-    val textColor = backgroundColor.map { bgc -> GlobalApplication.colorHelper.getTextColorForBackgroundColor(bgc) }
+    val textColor = backgroundColor.map { bgc -> GlobalApplication.application.getColorHelper().getTextColorForBackgroundColor(bgc) }
     val sounds = _category.switchMap { soundRepository.getByCategory(it?.id) }
 
     val collapsed: LiveData<Boolean>

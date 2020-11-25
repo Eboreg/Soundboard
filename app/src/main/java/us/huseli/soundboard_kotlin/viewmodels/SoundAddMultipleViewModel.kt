@@ -34,7 +34,7 @@ class SoundAddMultipleViewModel : BaseSoundEditViewModel() {
         _sounds.forEach { it.volume = value }
     }
 
-    override fun setCategoryId(value: Int?) = value?.let { _sounds.forEach { it.categoryId = value } }
+    override fun setCategoryId(value: Int) = _sounds.forEach { it.categoryId = value }
 
     override fun save() = viewModelScope.launch(Dispatchers.IO) {
         _sounds.forEach { repository.insert(it) }

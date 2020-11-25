@@ -3,52 +3,98 @@ package us.huseli.soundboard_kotlin
 import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
+import java.io.IOException
 import kotlin.math.pow
-import kotlin.math.roundToInt
 
 class SoundPlayer(private val context: Context, private val uri: Uri, private val volume: Int) {
-    constructor(context: Context, uri: Uri) : this(context, uri, 100)
+    private var mediaPlayer: MediaPlayer? = null
+    private var onStateChangeListener: OnStateChangeListener? = null
+    private var _state = State.INITIALIZING
+    private var _duration: Int = -1  // In milliseconds
+    private var _errorMessage = ""
+    private var _noPermission = false
 
-    private val mediaPlayer = MediaPlayer()
-
-    var duration: Int = 0  // In seconds
-    var isPlaying = false
-    var isValid = true
-    var errorMessage = ""
+    val duration: Int
+        get() = _duration
+    val errorMessage: String
+        get() = _errorMessage
+    val state: State
+        get() = _state
+    val noPermission: Boolean
+        get() = _noPermission
 
     fun setup() {
         try {
-            mediaPlayer.setDataSource(context, uri)
-            mediaPlayer.prepare()
-            duration = (mediaPlayer.duration.toDouble() / 1000).roundToInt()
-            setVolume(volume)
+            mediaPlayer = MediaPlayer().also { mediaPlayer ->
+                mediaPlayer.setDataSource(context, uri)
+                mediaPlayer.prepare()
+                _duration = mediaPlayer.duration
+                setVolume(volume)
+                mediaPlayer.setOnCompletionListener { stop() }
+                changeState(State.READY)
+            }
         } catch (e: Exception) {
-            isValid = false
-            duration = -1
-            errorMessage = if (e.cause != null) e.cause.toString() else e.toString()
+            if (e is IOException) _noPermission = true
+            _duration = -1
+            _errorMessage = if (e.cause != null) e.cause.toString() else e.toString()
+            changeState(State.ERROR)
         }
     }
 
-    fun pause() {
-        mediaPlayer.pause()
-        isPlaying = false
-        mediaPlayer.seekTo(0)
+    private fun changeState(state: State) {
+        if (state != _state) {
+            _state = state
+            onStateChangeListener?.onSoundPlayerStateChange(this, state)
+        }
     }
 
-    fun play() {
-        mediaPlayer.start()
-        isPlaying = true
+    private fun stop() {
+        mediaPlayer?.let {
+            it.pause()
+            changeState(State.STOPPED)
+            it.seekTo(0)
+        }
+    }
+
+    private fun play() {
+        mediaPlayer?.let {
+            it.start()
+            changeState(State.PLAYING)
+        }
+    }
+
+    fun togglePlay() {
+        if (_state == State.PLAYING) stop() else play()
     }
 
     fun setVolume(value: Int) {
         // MediaPlayer works with log values for some reason
-        val volume = (100.0.pow((if(value <= 100) value else 100) / 100.0) / 100).toFloat()
-        mediaPlayer.setVolume(volume, volume)
+        mediaPlayer?.let {
+            val volume = (100.0.pow((if (value <= 100) value else 100) / 100.0) / 100).toFloat()
+            it.setVolume(volume, volume)
+        }
     }
 
-    fun setOnCompletionListener(function: (MediaPlayer) -> Unit) {
-        mediaPlayer.setOnCompletionListener(function)
+    fun setOnStateChangeListener(listener: OnStateChangeListener) {
+        onStateChangeListener = listener
     }
 
-    fun release() = mediaPlayer.release()
+    fun release() {
+        mediaPlayer?.release()
+        mediaPlayer = null
+    }
+
+
+    interface OnStateChangeListener {
+        fun onSoundPlayerStateChange(player: SoundPlayer, state: State): Any?
+    }
+
+
+    enum class State {
+        INITIALIZING,
+        READY,
+        STOPPED,
+        PLAYING,
+        ERROR
+    }
 }

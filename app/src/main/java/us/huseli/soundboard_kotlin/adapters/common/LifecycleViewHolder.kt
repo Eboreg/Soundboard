@@ -8,6 +8,8 @@ import androidx.lifecycle.LifecycleRegistry
 import androidx.recyclerview.widget.RecyclerView
 
 abstract class LifecycleViewHolder(view: View) : RecyclerView.ViewHolder(view), LifecycleOwner {
+    @Suppress("PropertyName")
+    open val LOG_TAG = "LifecycleViewHolder"
     internal abstract val lifecycleRegistry: LifecycleRegistry
 
     private var wasPaused = false
@@ -40,9 +42,5 @@ abstract class LifecycleViewHolder(view: View) : RecyclerView.ViewHolder(view), 
     override fun toString(): String {
         val hashCode = Integer.toHexString(System.identityHashCode(this))
         return "LifecycleViewHolder $hashCode <itemId=$itemId, itemView=$itemView, adapterPosition=$adapterPosition>"
-    }
-
-    companion object {
-        const val LOG_TAG = "LifecycleViewHolder"
     }
 }

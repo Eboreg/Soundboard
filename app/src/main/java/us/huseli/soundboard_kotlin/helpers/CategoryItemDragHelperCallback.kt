@@ -26,27 +26,18 @@ class CategoryItemDragHelperCallback : ItemTouchHelper.SimpleCallback(ItemTouchH
                 else
                     for (i in fromPosition downTo toPosition + 1) Collections.swap(mutableList, i, i - 1)
                 adapter.submitList(mutableList)
-                //adapter.notifyItemMoved(fromPosition, toPosition)
                 return true
             }
         }
         return false
     }
 
-/*
     override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
         super.clearView(recyclerView, viewHolder)
 
         // By the time we get here, the list should be in the correct (new) order
-        recyclerView.adapter?.let { adapter ->
-            if (adapter is CategoryAdapter) {
-                adapter.currentList.forEachIndexed { index, item -> item.order = index }
-                adapter.onItemsReordered()
-            }
-        }
+        (recyclerView.adapter as? CategoryAdapter)?.onItemsReordered()
     }
-
- */
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
 

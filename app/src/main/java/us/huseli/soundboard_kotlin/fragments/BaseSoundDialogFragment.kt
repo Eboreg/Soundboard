@@ -6,10 +6,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import us.huseli.soundboard_kotlin.R
-import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
+import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
 
 abstract class BaseSoundDialogFragment : DialogFragment() {
-    internal val appViewModel by activityViewModels<AppViewModel>()
+    internal val soundViewModel by activityViewModels<SoundViewModel>()
     internal open val positiveButtonText = R.string.save
     internal abstract var title: Int
 
@@ -20,7 +20,7 @@ abstract class BaseSoundDialogFragment : DialogFragment() {
         }
     }
 
-    internal open fun onPositiveButtonClick(): Any? = appViewModel.disableSelect()
+    internal open fun onPositiveButtonClick() = soundViewModel.disableSelect()
 
     internal open fun configureDialog(builder: AlertDialog.Builder) {
         builder.apply {

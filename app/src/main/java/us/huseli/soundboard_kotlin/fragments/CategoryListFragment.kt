@@ -16,10 +16,12 @@ import us.huseli.soundboard_kotlin.databinding.FragmentCategoryListBinding
 import us.huseli.soundboard_kotlin.interfaces.ZoomInterface
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
+import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
 
 class CategoryListFragment : Fragment(), View.OnTouchListener {
     private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
     private val appViewModel by activityViewModels<AppViewModel>()
+    private val soundViewModel by activityViewModels<SoundViewModel>()
     private val preferences: SharedPreferences by lazy { requireActivity().getPreferences(Context.MODE_PRIVATE) }
     private val scaleGestureDetector by lazy { ScaleGestureDetector(requireContext(), ScaleListener()) }
 
@@ -49,7 +51,11 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
         super.onViewCreated(view, savedInstanceState)
 
         categoryAdapter = CategoryAdapter(
-                requireActivity(), appViewModel, initialSpanCount ?: AppViewModel.DEFAULT_SPANCOUNT_PORTRAIT).also { categoryAdapter ->
+                appViewModel,
+                initialSpanCount ?: AppViewModel.DEFAULT_SPANCOUNT_PORTRAIT,
+                soundViewModel,
+                categoryListViewModel
+        ).also { categoryAdapter ->
             binding?.also { binding ->
                 binding.categoryList.apply {
                     categoryAdapter.itemTouchHelper.attachToRecyclerView(this)
@@ -89,8 +95,10 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        binding = null
         categoryAdapter?.setLifecycleDestroyed()
     }
+
 
     private inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector?): Boolean {

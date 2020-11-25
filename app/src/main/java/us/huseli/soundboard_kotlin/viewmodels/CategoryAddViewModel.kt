@@ -15,7 +15,7 @@ class CategoryAddViewModel : BaseCategoryEditViewModel() {
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            _backgroundColor.postValue(GlobalApplication.colorHelper.randomColor(repository.getUsedColors()))
+            _backgroundColor.postValue(GlobalApplication.application.getColorHelper().randomColor(repository.getUsedColors()))
         }
     }
 

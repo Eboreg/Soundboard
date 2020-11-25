@@ -9,8 +9,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
-import kotlinx.android.synthetic.main.fragment_edit_sound.*
-import kotlinx.android.synthetic.main.fragment_edit_sound.view.*
 import us.huseli.soundboard_kotlin.R
 import us.huseli.soundboard_kotlin.adapters.CategorySpinnerAdapter
 import us.huseli.soundboard_kotlin.data.Category
@@ -27,7 +25,8 @@ abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSou
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val inflater = LayoutInflater.from(requireContext())
-        binding = FragmentEditSoundBinding.inflate(inflater, edit_sound_fragment, false).also {
+        // binding = FragmentEditSoundBinding.inflate(inflater, edit_sound_fragment, false).also {
+        binding = FragmentEditSoundBinding.inflate(inflater).also {
             it.viewModel = viewModel
         }
         return super.onCreateDialog(savedInstanceState)
@@ -62,8 +61,8 @@ abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSou
                 viewModel?.let { viewModel ->
                     viewModel.setVolume(binding.volume.progress)
                     viewModel.setName(soundName)
-                    viewModel.setCategoryId((binding.category.selectedItem as Category).id)
-                    appViewModel.disableSelect()
+                    (binding.category.selectedItem as Category).id?.let { viewModel.setCategoryId(it) }
+                    soundViewModel.disableSelect()
                     save()
                 } ?: run {
                     Log.e(LOG_TAG, "onPositiveButtonClick(): viewModel is null")
@@ -106,7 +105,8 @@ abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSou
          */
         super.onResume()
         viewModel?.categoryIndex?.let {
-            binding?.root?.category?.setSelection(it)
+            binding?.category?.setSelection(it)
+            // binding?.root?.category?.setSelection(it)
         }
     }
 
@@ -119,9 +119,16 @@ abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSou
         super.onSaveInstanceState(outState)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
+    }
+
+
     companion object {
         const val ARG_ID = "soundId"
         const val ARG_CATEGORY_INDEX = "categoryIndex"
+
         // For use in instance state
         const val ARG_NAME = "name"
         const val ARG_VOLUME = "volume"

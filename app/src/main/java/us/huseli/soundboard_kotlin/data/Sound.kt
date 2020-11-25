@@ -29,19 +29,20 @@ data class Sound(
             parcel.readValue(Int::class.java.classLoader) as? Int,
             parcel.readString() ?: "",
             parcel.readParcelable(Uri::class.java.classLoader)!!,
-            //Converters.stringToUri(parcel.readString()!!),
             parcel.readInt(),
             parcel.readInt()) {
         Log.d("SOUND", "Create Sound though Parcelable constructor: $this")
     }
 
-    // @Ignore constructor(name: String, uri: Uri): this(null, null, name, uri, 0, 100)
-
     @Ignore constructor(uri: Uri, flags: Int, contentResolver: ContentResolver): this(null, null, "", uri, 0, 100) {
-        // Used in MainActivity.onActivityResult when new sounds are added
-        // FLAG_GRANT_READ_URI_PERMISSION is not one of the permissions we are requesting
-        // here, so bitwise-AND it away
+        /**
+         * Used in MainActivity.onActivityResult when new sounds are added
+         *
+         * FLAG_GRANT_READ_URI_PERMISSION is not one of the permissions we are requesting
+         * here, so bitwise-AND it away
+         */
         contentResolver.takePersistableUriPermission(uri, flags and Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        // Try to set sound name based on filename:
         when (val cursor = contentResolver.query(uri, null, null, null, null)) {
             null -> name = ""
             else -> {
@@ -65,7 +66,6 @@ data class Sound(
         parcel.writeValue(id)
         parcel.writeValue(categoryId)
         parcel.writeString(name)
-        //parcel.writeString(Converters.uriToString(uri))
         parcel.writeParcelable(uri, flags)
         parcel.writeInt(order)
         parcel.writeInt(volume)

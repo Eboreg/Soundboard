@@ -6,8 +6,12 @@
     <data>
 
         <variable
-            name="viewModel"
-            type="us.huseli.soundboard_kotlin.viewmodels.AbstractSoundViewModel" />
+            name="sound"
+            type="us.huseli.soundboard_kotlin.data.Sound" />
+
+        <variable
+            name="categoryViewModel"
+            type="us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -33,7 +37,7 @@
             android:layout_height="0dp"
             android:layout_marginHorizontal="@dimen/margin_small"
             android:layout_marginBottom="@dimen/margin_normal"
-            app:cardBackgroundColor="@{viewModel.backgroundColor}"
+            app:cardBackgroundColor="@{categoryViewModel.backgroundColor}"
             app:cardCornerRadius="@dimen/sound_card_corner_radius"
             app:cardElevation="@dimen/sound_card_elevation"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -54,9 +58,9 @@
                     android:layout_height="0dp"
                     android:layout_margin="@dimen/margin_small"
                     android:gravity="center_horizontal|center_vertical"
-                    android:text="@{viewModel.name}"
+                    android:text="@{sound.name}"
                     android:textAlignment="center"
-                    android:textColor="@{viewModel.textColor}"
+                    android:textColor="@{categoryViewModel.textColor}"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -70,7 +74,7 @@
                     android:layout_height="match_parent"
                     android:contentDescription="@string/playing"
                     android:visibility="invisible"
-                    app:drawableColor="@{viewModel.textColor}"
+                    app:drawableColor="@{categoryViewModel.textColor}"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -83,7 +87,7 @@
                     android:layout_height="match_parent"
                     android:contentDescription="@string/load_failed"
                     android:visibility="invisible"
-                    app:drawableColor="@{viewModel.textColor}"
+                    app:drawableColor="@{categoryViewModel.textColor}"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -97,7 +101,7 @@
                     android:background="#80B2EBF2"
                     android:contentDescription="@string/selected"
                     android:visibility="invisible"
-                    app:drawableColor="@{viewModel.textColor}"
+                    app:drawableColor="@{categoryViewModel.textColor}"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -112,7 +116,7 @@
                     android:alpha="0.5"
                     android:contentDescription="@string/reorder"
                     android:visibility="invisible"
-                    app:drawableColor="@{viewModel.textColor}"
+                    app:drawableColor="@{categoryViewModel.textColor}"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -127,7 +131,7 @@
                     android:layout_height="2dp"
                     android:max="100"
                     android:min="0"
-                    android:progress="@{viewModel.volume}"
+                    android:progress="@{sound.volume}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -141,6 +145,7 @@
                     android:id="@+id/duration_card"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:visibility="gone"
                     app:cardBackgroundColor="#80000000"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
@@ -150,7 +155,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="@dimen/margin_small"
-                        android:text="@{viewModel.duration}"
                         android:textColor="@color/white"
                         android:textSize="@dimen/small_text"
                         tools:ignore="SmallSp"

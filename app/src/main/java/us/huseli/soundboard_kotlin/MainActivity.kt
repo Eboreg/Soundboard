@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -13,7 +14,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.fragment.app.Fragment
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
-import kotlinx.android.synthetic.main.actionbar.*
 import us.huseli.soundboard_kotlin.data.Category
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.databinding.ActivityMainBinding
@@ -32,46 +32,37 @@ class MainActivity :
         ToastInterface,
         ZoomInterface,
         ActionMode.Callback {
-    private var categories = emptyList<Category>()
-
     private val categoryListViewModel by viewModels<CategoryListViewModel>()
     private val appViewModel by viewModels<AppViewModel>()
+    private val soundViewModel by viewModels<SoundViewModel>()
     private val soundAddViewModel by viewModels<SoundAddViewModel>()
     private val soundAddMultipleViewModel by viewModels<SoundAddMultipleViewModel>()
     private val soundEditMultipleViewModel by viewModels<SoundEditMultipleViewModel>()
-    private var toast: Toast? = null
 
-    //private var binding: ActivityMainBinding? = null
     private var actionMode: ActionMode? = null
+    private lateinit var binding: ActivityMainBinding
+    private var categories = emptyList<Category>()
 
     // Just to know whether a toast should be shown on value change
     private var reorderEnabled: Boolean? = null
+    private var toast: Toast? = null
 
 
     /** Overridden Android methods */
-
     override fun onCreate(savedInstanceState: Bundle?) {
-/*
-        try {
-            Class.forName("dalvik.system.CloseGuard")
-                    .getMethod("setEnabled", Boolean::class.javaPrimitiveType)
-                    .invoke(null, true)
-        } catch (e: ReflectiveOperationException) {
-            throw RuntimeException(e)
-        }
-*/
-
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        // setContentView(R.layout.activity_main)
+        setContentView(binding.root)
 
-        //binding = ActivityMainBinding.inflate(layoutInflater)
-        ActivityMainBinding.inflate(layoutInflater)
-
-        setSupportActionBar(actionbar_toolbar)
+        setSupportActionBar(binding.actionbar.actionbarToolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        appViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
+        binding.actionbar.actionbarLogo.isClickable = true
+        binding.actionbar.actionbarLogo.setOnClickListener { showEasterEgg() }
+
+        soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
 
         // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment
         categoryListViewModel.categories.observe(this) {
@@ -80,10 +71,14 @@ class MainActivity :
         }
     }
 
+    private fun showEasterEgg() {
+        showDialogFragment(EasterEggFragment())
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.appbar_menu, menu)
         // This has to be done here, because the callback requires the menu to exist
-        appViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
+        soundViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
         appViewModel.zoomInPossible.observe(this) { onZoomInPossibleChange(it) }
         return true
     }
@@ -91,13 +86,36 @@ class MainActivity :
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_add_sound -> startAddSoundActivity()
-            R.id.action_toggle_reorder -> appViewModel.toggleReorderEnabled()
+            R.id.action_toggle_reorder -> soundViewModel.toggleReorderEnabled()
             R.id.action_zoom_in -> zoomIn()
             R.id.action_zoom_out -> zoomOut()
             R.id.action_add_category -> showDialogFragment(
                     AddCategoryDialogFragment.newInstance(DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG)), CATEGORY_ADD_DIALOG_TAG)
+            // R.id.action_reinit_failed_sounds -> reinitFailedSounds()
         }
         return true
+    }
+
+    @Suppress("unused")
+    @SuppressLint("QueryPermissionsNeeded")
+    private fun reinitFailedSounds() {
+        // TODO: Generalize this shit somehow (with ordinary open file stuff)
+        // TODO: Take up work on this stuff
+        soundViewModel.failedSounds.forEach { sound ->
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, sound.uri)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                        Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
+            else
+                intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            intent.type = "audio/*"
+            intent.addCategory(Intent.CATEGORY_OPENABLE)
+            intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
+            intent.putExtra(EXTRA_SOUND_ID, sound.id)
+            if (intent.resolveActivity(packageManager) != null) startActivityForResult(intent, REQUEST_SOUND_REINIT)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -124,6 +142,16 @@ class MainActivity :
                 }
             }
         }
+        // We have returned from failed sound reinit dialog
+        else if (requestCode == REQUEST_SOUND_REINIT && resultCode == Activity.RESULT_OK && data != null) {
+            data.data?.let { uri ->
+                (data.extras?.get(EXTRA_SOUND_ID) as? Int)?.let { soundId ->
+                    // soundId = id of sound to replace
+                    val sound = Sound(uri, data.flags, contentResolver)
+                    soundViewModel.replaceSound(soundId, sound)
+                }
+            }
+        }
     }
 
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
@@ -135,36 +163,41 @@ class MainActivity :
 
     override fun onActionItemClicked(mode: ActionMode?, item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.select_all_sounds -> {
+                soundViewModel.selectAll()
+                true
+            }
             R.id.edit_sounds -> {
-                appViewModel.getSelectedSounds().let { sounds ->
-                    when (sounds.size) {
-                        1 -> {
-                            val sound = sounds.first()
-                            var categoryIndex = categories.map { it.id }.indexOf(sound.categoryId)
-                            if (categoryIndex == -1) categoryIndex = 0
-                            sound.id?.let { soundId ->
-                                showDialogFragment(EditSoundDialogFragment.newInstance(soundId, categoryIndex))
-                            }
+                when (soundViewModel.selectedSounds.size) {
+                    0 -> {
+                    }
+                    1 -> {
+                        val sound = soundViewModel.selectedSounds.first()
+                        var categoryIndex = categories.map { it.id }.indexOf(sound.categoryId)
+                        if (categoryIndex == -1) categoryIndex = 0
+                        sound.id?.let { soundId ->
+                            showDialogFragment(EditSoundDialogFragment.newInstance(soundId, categoryIndex))
                         }
-                        else -> {
-                            soundEditMultipleViewModel.setup(sounds.mapNotNull { it.id }, getString(R.string.multiple_sounds_selected))
-                            showDialogFragment(EditMultipleSoundDialogFragment())
-                        }
+                    }
+                    else -> {
+                        soundEditMultipleViewModel.setup(
+                                soundViewModel.selectedSounds.mapNotNull { it.id }, getString(R.string.multiple_sounds_selected))
+                        showDialogFragment(EditMultipleSoundDialogFragment())
                     }
                 }
                 true
             }
             R.id.delete_sounds -> {
-                appViewModel.getSelectedSounds().let { sounds ->
-                    when (sounds.size) {
-                        1 -> {
-                            val sound = sounds.first()
-                            sound.id?.let { soundId ->
-                                showDialogFragment(DeleteSoundFragment.newInstance(soundId, sound.name))
-                            }
-                        }
-                        else -> showDialogFragment(DeleteSoundFragment.newInstance(sounds.map { it.id }))
+                when (soundViewModel.selectedSounds.size) {
+                    0 -> {
                     }
+                    1 -> {
+                        val sound = soundViewModel.selectedSounds.first()
+                        sound.id?.let { soundId ->
+                            showDialogFragment(DeleteSoundFragment.newInstance(soundId, sound.name))
+                        }
+                    }
+                    else -> showDialogFragment(DeleteSoundFragment.newInstance(soundViewModel.selectedSounds.map { it.id }))
                 }
                 true
             }
@@ -172,11 +205,10 @@ class MainActivity :
         }
     }
 
-    override fun onDestroyActionMode(mode: ActionMode?) = appViewModel.disableSelect()
+    override fun onDestroyActionMode(mode: ActionMode?) = soundViewModel.disableSelect()
 
 
     /** Overridden 3rd party methods */
-
     override fun onColorSelected(dialogId: Int, color: Int) {
         // Have to do this just because ColorPickerDialog won't accept a Fragment as context :/
         (supportFragmentManager.findFragmentByTag(DIALOG_TAGS[dialogId]) as ColorPickerDialogListener).onColorSelected(dialogId, color)
@@ -186,9 +218,8 @@ class MainActivity :
 
 
     /** Overridden own methods */
-
     override fun onReorderEnabledChange(value: Boolean) {
-        val item = actionbar_toolbar?.menu?.findItem(R.id.action_toggle_reorder)
+        val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_reorder)
         if (value) {
             if (reorderEnabled != null) showToast(R.string.reordering_enabled)
             item?.icon?.alpha = 204
@@ -229,9 +260,8 @@ class MainActivity :
 
 
     /** Own methods */
-
     private fun onZoomInPossibleChange(value: Boolean) {
-        val item = actionbar_toolbar?.menu?.findItem(R.id.action_zoom_in)
+        val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_zoom_in)
         item?.isEnabled = value
         item?.icon?.alpha = if (value) 204 else 102
     }
@@ -265,6 +295,8 @@ class MainActivity :
 
     companion object {
         const val REQUEST_SOUND_GET = 1
+        const val REQUEST_SOUND_REINIT = 2
+        const val EXTRA_SOUND_ID = "soundId"
         const val CATEGORY_ADD_DIALOG_TAG = "categoryAddDialog"
         const val CATEGORY_EDIT_DIALOG_TAG = "categoryEditDialog"
         val DIALOG_TAGS = listOf(CATEGORY_ADD_DIALOG_TAG, CATEGORY_EDIT_DIALOG_TAG)

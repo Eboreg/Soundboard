@@ -44,4 +44,11 @@
         <item quantity="one">Delete category %1s and one sound?</item>
         <item quantity="other">Delete category %1s and %2d sounds?</item>
     </plurals>
+    <string name="duration_seconds">%1$ds</string>
+    <string name="select_all">Select all</string>
+    <string name="re_init_failed_sounds" tools:keep="@string/re_init_failed_sounds">Re-init failed sounds</string>
+    <string name="easter_egg_text">Hur fan är det med dig, karl?</string>
+    <string name="easter_egg_tite">HALLON!!!</string>
+    <string name="easter_egg_negative_button">Lugna puckar</string>
+    <string name="easter_egg_positive_button">Hockeyklubba</string>
 </resources>
