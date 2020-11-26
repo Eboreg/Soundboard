@@ -6,8 +6,10 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.DocumentsContract
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -39,6 +41,7 @@ class MainActivity :
     private val soundAddMultipleViewModel by viewModels<SoundAddMultipleViewModel>()
     private val soundEditMultipleViewModel by viewModels<SoundEditMultipleViewModel>()
 
+    private val actionbarLogoTouchTimes = mutableListOf<Long>()
     private var actionMode: ActionMode? = null
     private lateinit var binding: ActivityMainBinding
     private var categories = emptyList<Category>()
@@ -59,8 +62,8 @@ class MainActivity :
         setSupportActionBar(binding.actionbar.actionbarToolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        binding.actionbar.actionbarLogo.isClickable = true
-        binding.actionbar.actionbarLogo.setOnClickListener { showEasterEgg() }
+        setupEasterEggClickListener()
+        //binding.actionbar.actionbarLogo.setOnClickListener { showEasterEgg() }
 
         soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
 
@@ -71,8 +74,19 @@ class MainActivity :
         }
     }
 
-    private fun showEasterEgg() {
-        showDialogFragment(EasterEggFragment())
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupEasterEggClickListener() {
+        binding.actionbar.actionbarLogo.isClickable = true
+        binding.actionbar.actionbarLogo.setOnTouchListener { _, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) actionbarLogoTouchTimes.add(event.eventTime)
+            Log.d(LOG_TAG, actionbarLogoTouchTimes.toString())
+            if (actionbarLogoTouchTimes.size == 3) {
+                if (actionbarLogoTouchTimes.first() + 1000 >= event.eventTime) showDialogFragment(EasterEggFragment())
+                actionbarLogoTouchTimes.clear()
+            } else if (actionbarLogoTouchTimes.size > 3)
+                actionbarLogoTouchTimes.clear()
+            true
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -299,6 +313,7 @@ class MainActivity :
         const val EXTRA_SOUND_ID = "soundId"
         const val CATEGORY_ADD_DIALOG_TAG = "categoryAddDialog"
         const val CATEGORY_EDIT_DIALOG_TAG = "categoryEditDialog"
+        const val LOG_TAG = "MainActity"
         val DIALOG_TAGS = listOf(CATEGORY_ADD_DIALOG_TAG, CATEGORY_EDIT_DIALOG_TAG)
     }
 }

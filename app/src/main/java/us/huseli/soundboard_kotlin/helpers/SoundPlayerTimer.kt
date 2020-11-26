@@ -7,8 +7,6 @@ import kotlin.math.roundToInt
 
 class SoundPlayerTimer(val duration: Int, private val progressBar: ProgressBar, private val originalProgress: Int) :
         CountDownTimer(duration.toLong(), 100) {
-    //private val originalProgress = progressBar.progress
-
     private fun toPercentage(millisUntilFinished: Long) =
             (((duration - millisUntilFinished).toDouble() / duration) * 100).roundToInt()
 
