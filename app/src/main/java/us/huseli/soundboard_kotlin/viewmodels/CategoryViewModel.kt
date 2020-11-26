@@ -7,14 +7,13 @@ import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.*
 
-class CategoryViewModel : ViewModel() {
+class CategoryViewModel(category: Category) : ViewModel() {
     private val database = SoundboardDatabase.getInstance(GlobalApplication.application)
     private val repository = CategoryRepository(database.categoryDao())
     private val soundRepository = SoundRepository(database.soundDao())
-    private var categoryId: Int? = null
-
-    private val _category = MutableLiveData<Category?>(null)
-    private val _collapsed = MutableLiveData(false)
+    private val categoryId = category.id
+    private val _category = MutableLiveData(category)
+    private val _collapsed = MutableLiveData(category.collapsed)
 
     val name = _category.map { it?.name }
     val backgroundColor = _category.map { it?.backgroundColor ?: Color.DKGRAY }
@@ -23,12 +22,6 @@ class CategoryViewModel : ViewModel() {
 
     val collapsed: LiveData<Boolean>
         get() = _collapsed
-
-    fun setCategory(category: Category) {
-        categoryId = category.id
-        _category.value = category
-        _collapsed.value = category.collapsed
-    }
 
     private fun setCollapsed(value: Boolean) {
         if (_collapsed.value != value) {

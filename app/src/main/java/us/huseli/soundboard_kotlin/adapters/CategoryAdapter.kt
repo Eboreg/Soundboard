@@ -7,7 +7,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
@@ -24,16 +24,14 @@ import us.huseli.soundboard_kotlin.helpers.SoundDragListener
 import us.huseli.soundboard_kotlin.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard_kotlin.interfaces.EditCategoryInterface
 import us.huseli.soundboard_kotlin.interfaces.ToastInterface
-import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
-import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
-import us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel
-import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
+import us.huseli.soundboard_kotlin.viewmodels.*
 
 class CategoryAdapter(
         private val appViewModel: AppViewModel,
         private val initialSpanCount: Int,
         private val soundViewModel: SoundViewModel,
-        private val categoryListViewModel: CategoryListViewModel) :
+        private val categoryListViewModel: CategoryListViewModel,
+        private val viewModelStoreOwner: ViewModelStoreOwner) :
         DataBoundAdapter<Category, CategoryAdapter.CategoryViewHolder, ItemCategoryBinding>(DiffCallback()) {
     override val LOG_TAG = "CategoryAdapter"
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 20) }
@@ -84,18 +82,15 @@ class CategoryAdapter(
     inner class CategoryViewHolder(binding: ItemCategoryBinding) :
             DataBoundViewHolder<ItemCategoryBinding, Category>(binding),
             View.OnClickListener,
-            AppViewModelListenerInterface,
-            ViewModelStoreOwner {
+            AppViewModelListenerInterface /*,
+            ViewModelStoreOwner */ {
         override val LOG_TAG = "CategoryViewHolder"
 
-        private val categoryViewModel = CategoryViewModel()
-        private val viewModelStore = ViewModelStore()
+        // private val viewModelStore = ViewModelStore()
         private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
 
-        private val soundAdapter = SoundAdapter(categoryViewModel, binding.soundList, soundViewModel)
-        private val soundDragListener = SoundDragListener(soundAdapter, this)
-
         private var category: Category? = null
+        private var soundAdapter: SoundAdapter? = null
         private var soundCount: Int? = null
 
         override val lifecycleRegistry = LifecycleRegistry(this)
@@ -103,28 +98,35 @@ class CategoryAdapter(
         init {
             binding.categoryEditButton.setOnClickListener(this)
             binding.categoryDeleteButton.setOnClickListener(this)
-            binding.root.setOnDragListener(soundDragListener)
 
             binding.soundList.apply {
-                adapter = soundAdapter
                 layoutManager = GridLayoutManager(context, initialSpanCount).also { lm ->
                     appViewModel.spanCount.observe(this@CategoryViewHolder) { lm.spanCount = it }
                 }
                 setRecycledViewPool(soundViewPool)
             }
+        }
+
+        fun bind(category: Category) {
+            Log.i(LOG_TAG, "CategoryAdapter.bind: ${this@CategoryAdapter.hashCode()} ViewHolder ${hashCode()} " +
+                    "bind Category ${category.name} (${category.hashCode()})")
+
+            this.category = category
+
+            val viewModelFactory = CategoryViewModelFactory(category)
+            val categoryViewModel = ViewModelProvider(viewModelStoreOwner, viewModelFactory).get(
+                    category.id.toString(), CategoryViewModel::class.java)
+            val soundAdapter = SoundAdapter(categoryViewModel, binding.soundList, soundViewModel).also { soundAdapter = it }
+            val soundDragListener = SoundDragListener(soundAdapter, this)
+
+            binding.root.setOnDragListener(soundDragListener)
+            binding.soundList.adapter = soundAdapter
             categoryViewModel.backgroundColor.observe(this) { color -> binding.categoryHeader.setBackgroundColor(color) }
             categoryViewModel.collapsed.observe(this) { collapsed ->
                 if (!soundDragListener.isDragging) soundDragListener.wasCollapsed = collapsed
                 collapseButtonAnimator.animate(collapsed)
                 binding.soundList.visibility = if (collapsed) View.GONE else View.VISIBLE
             }
-        }
-
-        fun bind(category: Category) {
-            Log.i(LOG_TAG, "CategoryAdapter.bind: ${this@CategoryAdapter.hashCode()} ViewHolder ${hashCode()} " +
-                    "bind Category ${category.name} (${category.hashCode()}), categoryViewModel ${categoryViewModel.hashCode()}")
-
-            this.category = category
 
             soundViewModel.getByCategory(category.id).observe(this) { sounds ->
                 Log.i(LOG_TAG, "ViewHolder.bind: adapter=${this@CategoryAdapter}, viewHolder=$this, category=$category, sounds=$sounds")
@@ -142,7 +144,6 @@ class CategoryAdapter(
                 soundAdapter.submitList(sounds)
             }
 
-            categoryViewModel.setCategory(category)
             binding.categoryViewModel = categoryViewModel
         }
 
@@ -175,13 +176,13 @@ class CategoryAdapter(
 
         override fun onSelectEnabledChange(value: Boolean) {}
 
-        override fun getViewModelStore() = viewModelStore
+        //override fun getViewModelStore() = viewModelStore
 
         override fun markDestroyed() {
             // Fragment calls adapter.setLifecycleDestroyed(), which calls this
             // We need to pass it on to soundAdapter
             super.markDestroyed()
-            soundAdapter.setLifecycleDestroyed()
+            soundAdapter?.setLifecycleDestroyed()
         }
 
         override fun toString(): String {

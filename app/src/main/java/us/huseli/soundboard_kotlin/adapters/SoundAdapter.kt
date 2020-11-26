@@ -89,8 +89,9 @@ class SoundAdapter(
      */
     override fun bind(holder: SoundViewHolder, item: Sound, position: Int) = holder.bind(item, categoryViewModel)
 
-    override fun createBinding(parent: ViewGroup, viewType: Int) =
-            ItemSoundBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+    override fun createBinding(parent: ViewGroup, viewType: Int): ItemSoundBinding {
+        return ItemSoundBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+    }
 
     override fun createViewHolder(binding: ItemSoundBinding, parent: ViewGroup): SoundViewHolder {
         return SoundViewHolder(binding, parent.context)
@@ -280,7 +281,7 @@ class SoundAdapter(
                 binding.duration.text = context.getString(R.string.duration_seconds, (value.toDouble() / 1000).roundToInt())
                 binding.durationCard.visibility = View.VISIBLE
                 if (playerTimer?.duration != value)
-                    playerTimer = SoundPlayerTimer(value, binding.volumeBar)
+                    playerTimer = SoundPlayerTimer(value, binding.volumeBar, sound?.volume ?: 100)
             }
         }
 

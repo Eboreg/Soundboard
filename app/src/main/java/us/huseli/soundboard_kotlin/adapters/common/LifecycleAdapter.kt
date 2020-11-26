@@ -25,8 +25,7 @@ abstract class LifecycleAdapter<T, VH: LifecycleViewHolder>(diffCallback: DiffUt
     }
 
     fun setLifecycleDestroyed() {
-        viewHolders.forEach {
-            it.markDestroyed()
-        }
+        viewHolders.forEach { it.markDestroyed() }
+        viewHolders.clear()
     }
 }

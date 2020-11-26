@@ -54,7 +54,8 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
                 appViewModel,
                 initialSpanCount ?: AppViewModel.DEFAULT_SPANCOUNT_PORTRAIT,
                 soundViewModel,
-                categoryListViewModel
+                categoryListViewModel,
+                requireActivity()
         ).also { categoryAdapter ->
             binding?.also { binding ->
                 binding.categoryList.apply {
@@ -97,6 +98,7 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
         super.onDestroyView()
         binding = null
         categoryAdapter?.setLifecycleDestroyed()
+        categoryAdapter = null
     }
 
 

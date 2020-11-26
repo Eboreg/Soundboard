@@ -39,7 +39,10 @@ class SoundPlayer(context: Context, uri: Uri, private val volume: Int) :
     override fun onPrepared(mp: MediaPlayer) {
         _duration = mp.duration
         setVolume(volume)
-        mp.setOnCompletionListener { stop() }
+        mp.setOnCompletionListener {
+            changeState(State.READY)
+            mediaPlayer.seekTo(0)
+        }
         changeState(State.READY)
     }
 
@@ -63,18 +66,16 @@ class SoundPlayer(context: Context, uri: Uri, private val volume: Int) :
         }
     }
 
-    private fun stop() {
-        mediaPlayer.pause()
-        changeState(State.STOPPED)
-        mediaPlayer.seekTo(0)
+    fun togglePlay() {
+        if (_state == State.PLAYING) {
+            mediaPlayer.pause()
+            changeState(State.STOPPED)
+            mediaPlayer.seekTo(0)
+        } else {
+            mediaPlayer.start()
+            changeState(State.PLAYING)
+        }
     }
-
-    private fun play() {
-        mediaPlayer.start()
-        changeState(State.PLAYING)
-    }
-
-    fun togglePlay() = if (_state == State.PLAYING) stop() else play()
 
     fun setVolume(value: Int) {
         // MediaPlayer works with log values for some reason

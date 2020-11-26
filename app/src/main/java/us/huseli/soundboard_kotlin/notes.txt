@@ -1,3 +1,14 @@
+CategoryListFragment.onDestroyView()
+    categoryAdapter?.setLifecycleDestroyed()
+        viewHolders.forEach { it.markDestroyed() }
+            soundAdapter.setLifecycleDestroyed()
+                viewHolders.forEach { it.markDestroyed() }
+                    soundViewModel.removeOnSelectAllListener(this)
+                viewHolders.clear()
+        viewHolders.clear()
+    categoryAdapter = null
+
+
 2020-11-16 03:54:42.267 30411-30411 D/DataObserver: onItemRangeMoved<fromPosition=0, toPosition=4, itemCount=1>
 2020-11-16 03:54:45.824 30411-30411 I/ViewRootImpl@9dcf6b5[MainActivity]: Reporting drop result: true
 2020-11-16 03:54:45.835 30411-30411 I/Choreographer: Skipped 2685 frames!  The application may be doing too much work on its main thread.
