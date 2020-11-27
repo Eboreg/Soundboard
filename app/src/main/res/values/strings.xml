@@ -25,9 +25,13 @@
     <string name="data_not_fetched_yet">Data not fetched yet, please try again</string>
     <string name="delete_category">Delete category</string>
     <string name="delete_category_with_name">Delete category %1$s?</string>
+    <string name="cannot_delete_last_category">There has to be at least one category.</string>
     <string name="edit_category">Edit category</string>
     <string name="move_category">Move category</string>
-    <string name="delete_sound">Delete sound</string>
+    <plurals name="delete_sound_title">
+        <item quantity="one">Delete sound</item>
+        <item quantity="other">Delete sounds</item>
+    </plurals>
     <string name="delete_sound_name">Delete sound %1$s?</string>
     <string name="delete_sounds_count" tools:ignore="PluralsCandidate">Delete %1$d sounds?</string>
     <string name="not_initialized_yet">Not initialized yet!</string>
@@ -38,7 +42,6 @@
     <string name="playing">Playing</string>
     <string name="load_failed">Load failed</string>
     <string name="selected">Selected</string>
-    <string name="delete_sounds">Delete sounds</string>
     <string name="add_sound_here">Add sound here</string>
     <plurals name="delete_category_with_name_and_sounds">
         <item quantity="one">Delete category %1s and one sound?</item>

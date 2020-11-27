@@ -1,34 +1,34 @@
 package us.huseli.soundboard_kotlin.fragments
 
+import android.app.Dialog
 import android.os.Bundle
-import androidx.appcompat.app.AlertDialog
 import us.huseli.soundboard_kotlin.R
 import us.huseli.soundboard_kotlin.viewmodels.SoundDeleteViewModel
 
 class DeleteSoundFragment : BaseSoundDialogFragment() {
-    override var title = R.string.delete_sound
     override val positiveButtonText = R.string.delete
-    private var soundIds = emptyList<Int>()
+
+    // private var soundIds = emptyList<Int>()
+    private var soundIds: List<Int>? = null
+    private var soundName: String? = null
+
+    override fun getTitle() =
+            resources.getQuantityString(R.plurals.delete_sound_title, soundIds?.size ?: 0)
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        soundIds = requireArguments().getIntegerArrayList(ARG_IDS)
+        soundName = requireArguments().getString(ARG_NAME)
+        return super.onCreateDialog(savedInstanceState)
+    }
 
     override fun onPositiveButtonClick() {
         SoundDeleteViewModel().delete(soundIds)
         super.onPositiveButtonClick()
     }
 
-    override fun configureDialog(builder: AlertDialog.Builder) {
-        requireArguments().getIntegerArrayList(ARG_IDS)?.let { soundIds = it }
-
-        builder.apply {
-            if (soundIds.size > 1) {
-                title = R.string.delete_sounds
-                setMessage(getString(R.string.delete_sounds_count, soundIds.size))
-            } else {
-                val soundName = requireArguments().getString(ARG_NAME) ?: ""
-                setMessage(resources.getString(R.string.delete_sound_name, soundName))
-            }
-        }
-        super.configureDialog(builder)
-    }
+    override fun getMessage() =
+            soundName?.let { getString(R.string.delete_sound_name, it) }
+                    ?: getString(R.string.delete_sounds_count, soundIds?.size)
 
     companion object {
         const val ARG_NAME = "name"

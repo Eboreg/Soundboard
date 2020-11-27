@@ -241,7 +241,7 @@ class MainActivity :
     }
 
     override fun showCategoryDeleteDialog(id: Int, name: String, soundCount: Int) =
-            showDialogFragment(DeleteCategoryFragment.newInstance(id, name, soundCount))
+            showDialogFragment(DeleteCategoryFragment.newInstance(id, name, soundCount, categories.size))
 
     override fun showCategoryEditDialog(categoryId: Int) =
             showDialogFragment(EditCategoryDialogFragment.newInstance(categoryId, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)), CATEGORY_EDIT_DIALOG_TAG)

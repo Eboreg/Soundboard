@@ -28,11 +28,18 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
         binding = FragmentEditCategoryBinding.inflate(inflater)
         // this.binding = binding
         binding?.viewModel = viewModel
+        binding?.selectColorButton?.setOnClickListener { onSelectColourClick() }
 
-        return AlertDialog.Builder(requireContext()).run {
-            setTitle(title)
-            setView(binding?.root)
-            setPositiveButton(R.string.save) { _, _ ->
+        val dialog = AlertDialog.Builder(requireContext())
+                .setTitle(title)
+                .setView(binding?.root)
+                .setPositiveButton(R.string.save, null)
+                .setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
+                .create()
+
+        // Custom listener to avoid automatic dismissal!
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val catName = binding?.categoryName?.text.toString().trim()
                 if (catName.isEmpty())
                     Toast.makeText(requireContext(), R.string.name_cannot_be_empty, Toast.LENGTH_SHORT).show()
@@ -40,15 +47,15 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
                     viewModel?.apply {
                         setName(catName)
                         save()
+                        dismiss()
                     } ?: run {
                         Log.e(LOG_TAG, "setPositiveButton: viewModel is null")
                     }
                 }
             }
-            setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
-            binding?.selectColorButton?.setOnClickListener { onSelectColourClick() }
-            create()
         }
+
+        return dialog
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {

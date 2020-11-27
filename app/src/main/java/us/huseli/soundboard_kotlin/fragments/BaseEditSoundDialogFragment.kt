@@ -25,7 +25,6 @@ abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSou
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val inflater = LayoutInflater.from(requireContext())
-        // binding = FragmentEditSoundBinding.inflate(inflater, edit_sound_fragment, false).also {
         binding = FragmentEditSoundBinding.inflate(inflater).also {
             it.viewModel = viewModel
         }
@@ -33,10 +32,8 @@ abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSou
     }
 
     override fun configureDialog(builder: AlertDialog.Builder) {
-        binding?.let {
-            super.configureDialog(builder)
-            builder.setView(it.root)
-        }
+        super.configureDialog(builder)
+        binding?.let { builder.setView(it.root) }
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
@@ -132,6 +129,7 @@ abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSou
         // For use in instance state
         const val ARG_NAME = "name"
         const val ARG_VOLUME = "volume"
+
         const val LOG_TAG = "BESoundDialogFragment"
     }
 }

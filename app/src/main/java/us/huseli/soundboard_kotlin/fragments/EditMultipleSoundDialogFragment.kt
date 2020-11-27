@@ -6,7 +6,7 @@ import us.huseli.soundboard_kotlin.viewmodels.SoundEditMultipleViewModel
 
 class EditMultipleSoundDialogFragment : BaseEditMultipleSoundDialogFragment<SoundEditMultipleViewModel>() {
     override val viewModel by activityViewModels<SoundEditMultipleViewModel>()
-    override var title = R.string.edit_sounds
+    override val title = R.string.edit_sounds
 
     override fun getCategories() = categoryListViewModel.categoriesWithEmpty
 }

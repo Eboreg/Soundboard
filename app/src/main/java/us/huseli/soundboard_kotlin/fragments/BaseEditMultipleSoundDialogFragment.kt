@@ -21,12 +21,11 @@ abstract class BaseEditMultipleSoundDialogFragment<VM: BaseSoundEditViewModel> :
             } ?: run {
                 Log.e(LOG_TAG, "onPositiveButtonClick(): viewModel is null")
             }
-            dismiss()
         } ?: run {
             Log.e(LOG_TAG, "onPositiveButtonClick(): binding is null")
-            dismiss()
         }
         soundViewModel.disableSelect()
+        dismiss()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
