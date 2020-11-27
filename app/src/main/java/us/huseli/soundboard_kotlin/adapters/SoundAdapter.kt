@@ -134,7 +134,8 @@ class SoundAdapter(
             else -> for (i in fromPosition downTo toPosition + 1) Collections.swap(sounds, i, i - 1)
         }
 
-        categoryViewModel.updateSounds(sounds.filterIsInstance<Sound>())
+        soundViewModel.update(sounds, categoryViewModel.categoryId)
+        //categoryViewModel.updateSounds(sounds.filterIsInstance<Sound>())
     }
 
     fun markSoundsForDrop(adapterPosition: Int) {

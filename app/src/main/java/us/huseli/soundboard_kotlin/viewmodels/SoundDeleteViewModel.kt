@@ -14,8 +14,6 @@ class SoundDeleteViewModel : ViewModel() {
     fun delete(soundId: Int) = delete(listOf(soundId))
 
     fun delete(soundIds: List<Int>?) = viewModelScope.launch(Dispatchers.IO) {
-        //val sounds = repository.getList(soundIds)
-        //GlobalApplication.application.deletePlayers(sounds.map { it.uri })
         repository.delete(soundIds)
     }
 }

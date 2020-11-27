@@ -113,14 +113,17 @@ class CategoryAdapter(
 
             this.category = category
 
-            val viewModelFactory = CategoryViewModelFactory(category)
+            // TODO: Make more failsafe
+            val viewModelFactory = CategoryViewModelFactory(category.id!!)
             val categoryViewModel = ViewModelProvider(viewModelStoreOwner, viewModelFactory).get(
                     category.id.toString(), CategoryViewModel::class.java)
             val soundAdapter = SoundAdapter(categoryViewModel, binding.soundList, soundViewModel).also { soundAdapter = it }
             val soundDragListener = SoundDragListener(soundAdapter, this)
 
+            binding.categoryViewModel = categoryViewModel
             binding.root.setOnDragListener(soundDragListener)
             binding.soundList.adapter = soundAdapter
+
             categoryViewModel.backgroundColor.observe(this) { color -> binding.categoryHeader.setBackgroundColor(color) }
             categoryViewModel.collapsed.observe(this) { collapsed ->
                 if (!soundDragListener.isDragging) soundDragListener.wasCollapsed = collapsed
@@ -143,8 +146,6 @@ class CategoryAdapter(
                 soundCount = sounds.count()
                 soundAdapter.submitList(sounds)
             }
-
-            binding.categoryViewModel = categoryViewModel
         }
 
         fun showDropContainer() {

@@ -30,28 +30,6 @@ abstract class DataBoundAdapter<T, VH : DataBoundViewHolder<B, T>, B : ViewDataB
         bind(holder, item, position)
     }
 
-    fun removeItem(item: T) {
-        // TODO: Not used? How are items being removed?
-        // "mutations to content must be done through submitList(List)"
-        // -- https://developer.android.com/reference/androidx/recyclerview/widget/ListAdapter
-        val mutableList = currentList.toMutableList()
-        mutableList.remove(item)
-        submitList(mutableList)
-        Log.i(LOG_TAG, "removeItem: removed item $item from $this")
-    }
-
-    fun removeItemById(id: Int) {
-        // TODO: Not used? How are items being removed?
-        if (id >= 0) {
-            getItemById(id)?.let { item ->
-                val mutableList = currentList.toMutableList()
-                mutableList.remove(item)
-                submitList(mutableList)
-                Log.i(LOG_TAG, "removeItemById: removed $item from position $id on $this")
-            }
-        }
-    }
-
     abstract fun getItemById(id: Int): T?
 
 

@@ -63,12 +63,11 @@ class MainActivity :
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
         setupEasterEggClickListener()
-        //binding.actionbar.actionbarLogo.setOnClickListener { showEasterEgg() }
 
         soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
 
-        // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment
         categoryListViewModel.categories.observe(this) {
+            // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment
             categories = it
             if (it.isEmpty()) categoryListViewModel.create(getString(R.string.default_category))
         }
@@ -182,10 +181,8 @@ class MainActivity :
                 true
             }
             R.id.edit_sounds -> {
-                when (soundViewModel.selectedSounds.size) {
-                    0 -> {
-                    }
-                    1 -> {
+                when {
+                    soundViewModel.selectedSounds.size == 1 -> {
                         val sound = soundViewModel.selectedSounds.first()
                         var categoryIndex = categories.map { it.id }.indexOf(sound.categoryId)
                         if (categoryIndex == -1) categoryIndex = 0
@@ -193,7 +190,7 @@ class MainActivity :
                             showDialogFragment(EditSoundDialogFragment.newInstance(soundId, categoryIndex))
                         }
                     }
-                    else -> {
+                    soundViewModel.selectedSounds.size > 1 -> {
                         soundEditMultipleViewModel.setup(
                                 soundViewModel.selectedSounds.mapNotNull { it.id }, getString(R.string.multiple_sounds_selected))
                         showDialogFragment(EditMultipleSoundDialogFragment())
@@ -202,16 +199,15 @@ class MainActivity :
                 true
             }
             R.id.delete_sounds -> {
-                when (soundViewModel.selectedSounds.size) {
-                    0 -> {
-                    }
-                    1 -> {
+                when {
+                    soundViewModel.selectedSounds.size == 1 -> {
                         val sound = soundViewModel.selectedSounds.first()
                         sound.id?.let { soundId ->
                             showDialogFragment(DeleteSoundFragment.newInstance(soundId, sound.name))
                         }
                     }
-                    else -> showDialogFragment(DeleteSoundFragment.newInstance(soundViewModel.selectedSounds.map { it.id }))
+                    soundViewModel.selectedSounds.size > 1 ->
+                        showDialogFragment(DeleteSoundFragment.newInstance(soundViewModel.selectedSounds.map { it.id }))
                 }
                 true
             }

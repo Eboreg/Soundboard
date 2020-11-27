@@ -1,3 +1,6 @@
+Efter färgbyt & namnbyt
+
+
 CategoryListFragment.onDestroyView()
     categoryAdapter?.setLifecycleDestroyed()
         viewHolders.forEach { it.markDestroyed() }

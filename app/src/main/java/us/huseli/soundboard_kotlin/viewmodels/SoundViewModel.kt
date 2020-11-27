@@ -41,6 +41,14 @@ class SoundViewModel : ViewModel() {
         }
     }
 
+    fun update(sounds: List<Sound>, categoryId: Int) = viewModelScope.launch(Dispatchers.IO) {
+        sounds.forEachIndexed { index, sound ->
+            sound.order = index
+            sound.categoryId = categoryId
+        }
+        repository.update(sounds)
+    }
+
     /******* SOUNDPLAYER STUFF *******/
     private fun getPlayer(sound: Sound): SoundPlayer? {
         // Conveniently update volume in case it's been changed

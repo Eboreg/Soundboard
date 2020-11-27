@@ -1,3 +1,12 @@
+Prevent deletion of last category
+
+Menu option: "on re-press" (or something).
+Meaning: If sound is pressed when it's already playing, one of these will happen:
+1. Playback stops
+2. Playback stops and starts over immediately
+3. New playback starts while current one still playing
+
+
 If trying to add sounds without permission (like after a reinstall), MediaPlayer.prepare() throws
 IOException. Maybe catch that and alert the user that they could make some menu choice to
 re-init the failed sound URIs?
