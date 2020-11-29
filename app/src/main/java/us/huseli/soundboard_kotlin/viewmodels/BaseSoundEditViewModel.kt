@@ -2,7 +2,6 @@ package us.huseli.soundboard_kotlin.viewmodels
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.Job
 import us.huseli.soundboard_kotlin.GlobalApplication
 import us.huseli.soundboard_kotlin.data.SoundRepository
 import us.huseli.soundboard_kotlin.data.SoundboardDatabase
@@ -12,8 +11,8 @@ abstract class BaseSoundEditViewModel : ViewModel() {
 
     abstract fun setName(value: String)
     abstract fun setVolume(value: Int)
-    abstract fun setCategoryId(value: Int)
-    abstract fun save(): Job
+    abstract fun setCategoryId(value: Int): Any?
+    abstract fun save(): Any?
 
     abstract val name: LiveData<String>
     abstract val volume: LiveData<Int>

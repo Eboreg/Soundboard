@@ -1,73 +1,41 @@
 package us.huseli.soundboard_kotlin.adapters.common
 
+import android.util.Log
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
-import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.RecyclerView
 
-abstract class DataBoundAdapter<T, VH: DataBoundViewHolder<B>, B: ViewDataBinding> : RecyclerView.Adapter<VH>() {
-    private val viewHolders = mutableListOf<VH>()
-    internal open val currentList = mutableListOf<T>()
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        val binding = createBinding(parent, viewType)
-        val viewHolder = createViewHolder(binding, parent)
-        viewHolder.lifecycleRegistry.currentState = Lifecycle.State.INITIALIZED
-        binding.lifecycleOwner = viewHolder
-        viewHolder.markCreated()
-        viewHolders.add(viewHolder)
-
-        return viewHolder
-    }
+abstract class DataBoundAdapter<T, VH : DataBoundViewHolder<B, T>, B : ViewDataBinding>(diffCallback: DiffUtil.ItemCallback<T>)
+        : LifecycleAdapter<T, VH>(diffCallback) {
+    @Suppress("PrivatePropertyName")
+    private val LOG_TAG = "DataBoundAdapter"
 
     protected abstract fun createViewHolder(binding: B, parent: ViewGroup): VH
 
     protected abstract fun createBinding(parent: ViewGroup, viewType: Int): B
 
-    protected abstract fun bind(holder: VH, item: T)
+    protected abstract fun bind(holder: VH, item: T, position: Int)
 
-    protected abstract fun calculateDiff(list: List<T>): Any
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+        val binding = createBinding(parent, viewType)
+        val holder = createViewHolder(binding, parent)
+        binding.lifecycleOwner = holder
 
-    override fun getItemCount() = currentList.size
-
-    override fun onBindViewHolder(holder: VH, position: Int) = bind(holder, currentList[position])
-
-    override fun onViewDetachedFromWindow(holder: VH) {
-        super.onViewDetachedFromWindow(holder)
-        holder.markDetach()
+        return holder
     }
 
-    override fun onViewAttachedToWindow(holder: VH) {
-        super.onViewAttachedToWindow(holder)
-        holder.markAttach()
+    override fun onBindViewHolder(holder: VH, position: Int) {
+        super.onBindViewHolder(holder, position)
+        val item = getItem(position)
+        Log.i(LOG_TAG, "onBindViewHolder: bind $item to holder=$holder on position=$position ----- adapter=$this")
+        bind(holder, item, position)
     }
 
-    open fun submitList(list: List<T>) {
-        calculateDiff(list)
-        currentList.clear()
-        currentList.addAll(list)
-    }
-
-    fun setLifecycleDestroyed() {
-        // TODO: Doesn't seem to be used. Find the page that introduced this architecture and check
-        viewHolders.forEach {
-            it.markDestroyed()
-        }
-    }
+    abstract fun getItemById(id: Int): T?
 
 
-    abstract inner class DiffCallback(private val newRows: List<T>, private val oldRows: List<T>) : DiffUtil.Callback() {
-        override fun getOldListSize() = oldRows.size
-        override fun getNewListSize() = newRows.size
-
-        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int)
-                = areItemsTheSame(oldRows[oldItemPosition], newRows[newItemPosition])
-
-        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int)
-                = areContentsTheSame(oldRows[oldItemPosition], newRows[newItemPosition])
-
-        abstract fun areItemsTheSame(oldItem: T, newItem: T): Boolean
-        abstract fun areContentsTheSame(oldItem: T, newItem: T): Boolean
+    abstract inner class DiffCallback : DiffUtil.ItemCallback<T>() {
+        abstract override fun areItemsTheSame(oldItem: T, newItem: T): Boolean
+        abstract override fun areContentsTheSame(oldItem: T, newItem: T): Boolean
     }
 }

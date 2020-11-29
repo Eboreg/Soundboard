@@ -1,5 +1,6 @@
 package us.huseli.soundboard_kotlin.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -14,7 +15,7 @@ class CategoryAddViewModel : BaseCategoryEditViewModel() {
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            _backgroundColor.postValue(GlobalApplication.colorHelper.randomColor(repository.getUsedColors()))
+            _backgroundColor.postValue(GlobalApplication.application.getColorHelper().randomColor(repository.getUsedColors()))
         }
     }
 
@@ -33,9 +34,20 @@ class CategoryAddViewModel : BaseCategoryEditViewModel() {
 
     // Used by AddCategoryDialogFrament & EditCategoryDialogFrament when saving
     override fun save() = viewModelScope.launch(Dispatchers.IO) {
-        // Background colour was initialized from the beginning, so we know it's set
-        // And we check for name in BaseCategoryDialogFragment (and set it at init)
-        val category = Category(_name.value!!, _backgroundColor.value!!)
-        repository.insert(category)
+        // Background colour was initialized from the beginning, so we know it's set.
+        // And we check for name in BaseCategoryDialogFragment (and set it at init).
+        // But still, we want to make sure.
+        val name = _name.value
+        val backgroundColor = _backgroundColor.value
+        if (name != null && backgroundColor != null) {
+            val category = Category(name, backgroundColor)
+            repository.insert(category)
+        } else
+            Log.e(LOG_TAG, "save(): name ($name) or backgroundColor ($backgroundColor) is null")
+    }
+
+
+    companion object {
+        const val LOG_TAG = "CategoryAddViewModel"
     }
 }

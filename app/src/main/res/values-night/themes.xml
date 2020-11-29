@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="MaterialTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="windowActionModeOverlay">true</item>
+        <item name="colorPrimary">@color/grey_400</item>
+        <item name="colorPrimaryVariant">@color/grey_700</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorSecondary">@color/blue_grey_600</item>
+        <item name="colorSecondaryVariant">@color/blue_grey_900</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="materialButtonStyle">@style/Widget.Soundboard.NightButton</item>
+        <item name="android:statusBarColor" tools:targetApi="lollipop">
+            ?android:attr/colorBackground
+        </item>
+        <item name="android:navigationBarColor" tools:targetApi="lollipop">
+            ?android:attr/colorBackground
+        </item>
+    </style>
+</resources>

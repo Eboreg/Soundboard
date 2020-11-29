@@ -16,14 +16,18 @@ class DeleteCategoryFragment : DialogFragment() {
             val name = requireArguments().getString(ARG_NAME) ?: ""
             val soundCount = requireArguments().getInt(ARG_SOUNDCOUNT)
             val id = requireArguments().getInt(ARG_ID)
+            val categoryCount = requireArguments().getInt(ARG_CATEGORYCOUNT)
 
             setTitle(R.string.delete_category)
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
-            when(soundCount) {
-                0 -> setMessage(resources.getString(R.string.delete_category_with_name, name))
-                else -> setMessage(resources.getQuantityString(R.plurals.delete_category_with_name_and_sounds, soundCount, name, soundCount))
+            if (categoryCount <= 1) setMessage(resources.getString(R.string.cannot_delete_last_category))
+            else {
+                when (soundCount) {
+                    0 -> setMessage(resources.getString(R.string.delete_category_with_name, name))
+                    else -> setMessage(resources.getQuantityString(R.plurals.delete_category_with_name_and_sounds, soundCount, name, soundCount))
+                }
+                setPositiveButton(R.string.ok) { _, _ -> categoryListViewModel.delete(id) }
             }
-            setPositiveButton(R.string.ok) { _, _ -> categoryListViewModel.delete(id) }
             create()
         }
     }
@@ -32,13 +36,15 @@ class DeleteCategoryFragment : DialogFragment() {
         const val ARG_ID = "id"
         const val ARG_NAME = "name"
         const val ARG_SOUNDCOUNT = "soundCount"
+        const val ARG_CATEGORYCOUNT = "categoryCount"
 
         @JvmStatic
-        fun newInstance(id: Int, name: String, soundCount: Int): DeleteCategoryFragment {
+        fun newInstance(id: Int, name: String, soundCount: Int, categoryCount: Int): DeleteCategoryFragment {
             return DeleteCategoryFragment().apply {
                 arguments = Bundle().apply {
                     putInt(ARG_ID, id)
                     putInt(ARG_SOUNDCOUNT, soundCount)
+                    putInt(ARG_CATEGORYCOUNT, categoryCount)
                     putString(ARG_NAME, name)
                 }
             }

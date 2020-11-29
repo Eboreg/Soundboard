@@ -6,13 +6,14 @@ import us.huseli.soundboard_kotlin.R
 import us.huseli.soundboard_kotlin.viewmodels.SoundEditViewModel
 
 class EditSoundDialogFragment : BaseEditSoundDialogFragment<SoundEditViewModel>() {
-    override var title = R.string.edit_sound
-    override lateinit var viewModel: SoundEditViewModel
+    override val title = R.string.edit_sound
+    override var viewModel: SoundEditViewModel? = null
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        viewModel = SoundEditViewModel(requireArguments().getInt(ARG_ID))
-        viewModel.categoryIndex = requireArguments().getInt(ARG_CATEGORY_INDEX)
+        viewModel = SoundEditViewModel(requireArguments().getInt(ARG_ID)).apply {
+            categoryIndex = requireArguments().getInt(ARG_CATEGORY_INDEX)
+        }
     }
 
     companion object {

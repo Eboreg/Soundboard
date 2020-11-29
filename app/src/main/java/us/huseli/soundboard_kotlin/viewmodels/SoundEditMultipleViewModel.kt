@@ -31,7 +31,7 @@ class SoundEditMultipleViewModel : BaseSoundEditViewModel() {
     }
 
     override fun save() = viewModelScope.launch(Dispatchers.IO) {
-        val sounds = repository.get(_soundIds)
+        val sounds = repository.getList(_soundIds)
         _volume.value?.let { volume -> sounds.forEach { it.volume = volume } }
         _newCategoryId?.let { categoryId ->
             var order = repository.getMaxOrder(categoryId)

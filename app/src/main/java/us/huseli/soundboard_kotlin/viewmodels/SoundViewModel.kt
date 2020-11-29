@@ -1,70 +1,154 @@
 package us.huseli.soundboard_kotlin.viewmodels
 
-import androidx.lifecycle.*
+import android.content.Context
+import android.net.Uri
+import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.GlobalApplication
+import us.huseli.soundboard_kotlin.SoundPlayer
 import us.huseli.soundboard_kotlin.data.Sound
 import us.huseli.soundboard_kotlin.data.SoundRepository
 import us.huseli.soundboard_kotlin.data.SoundboardDatabase
-import us.huseli.soundboard_kotlin.interfaces.OrderableItem
+import kotlin.collections.set
 
-class SoundViewModel(private val _sound: Sound) : ViewModel(), OrderableItem {
-    private val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application).soundDao())
-    private val player = GlobalApplication.application.getPlayer(_sound).apply {
-        setOnCompletionListener { this@SoundViewModel.pause() }
-    }
-    private val _isPlaying = MutableLiveData(player.isPlaying)
-    private val _isSelected = MutableLiveData(false)
+class SoundViewModel : ViewModel() {
+    private val database = SoundboardDatabase.getInstance(GlobalApplication.application)
+    private val repository = SoundRepository(database.soundDao())
+    private val players = HashMap<Uri, SoundPlayer>()
+    private val _failedSounds = mutableListOf<Sound>()
+    private val _reorderEnabled = MutableLiveData(false)
 
-    /**
-     * Reasoning behind having a LiveData Sound _and_ a Sound as an initializer parameter:
-     * We want an observable Sound object, that gets updated as the backend data updates.
-     * We also want to, without any unnecessary delays or hassle, be able to init a SoundPlayer
-     * and set those parameters that don't change once a Sound is saved (id, uri)
-     */
-    val sound = repository.get(_sound.id)
+    val failedSounds: List<Sound>
+        get() = _failedSounds
 
-    val errorMessage = player.errorMessage
-    val isValid = player.isValid
-    val duration = "${player.duration}s"
+    fun getByCategory(categoryId: Int?) = repository.getByCategory(categoryId)
 
-    val isPlaying: LiveData<Boolean>
-        get() = _isPlaying
+    fun addFailedSound(sound: Sound) = _failedSounds.add(sound)
 
-    val isSelected: LiveData<Boolean>
-        get() = _isSelected
-
-    val backgroundColor = sound.switchMap { repository.getBackgroundColor(it?.categoryId) }
-    val textColor = backgroundColor.map { GlobalApplication.colorHelper.getTextColorForBackgroundColor(it) }
-
-    /** Model fields */
-    val id = _sound.id
-    val categoryId = sound.map { it?.categoryId }
-    val name = sound.map { it?.name ?: "" }
-    val volume = sound.map { it?.volume ?: 100 }
-    override var order = _sound.order
-
-    override fun toString() = _sound.name
-
-    fun toggleSelected() {
-        _isSelected.value = !_isSelected.value!!
+    fun replaceSound(soundId: Int, sound: Sound, context: Context) {
+        _failedSounds.find { it.id == soundId }?.let { oldSound ->
+            sound.id = soundId
+            viewModelScope.launch(Dispatchers.IO) {
+                _failedSounds.remove(oldSound)
+                repository.update(sound)
+                players[sound.uri] = SoundPlayer(context, sound.uri, sound.volume)
+            }
+        }
     }
 
-    fun select() {
-        _isSelected.value = true
+    fun update(sounds: List<Sound>, categoryId: Int) = viewModelScope.launch(Dispatchers.IO) {
+        sounds.forEachIndexed { index, sound ->
+            sound.order = index
+            sound.categoryId = categoryId
+        }
+        repository.update(sounds)
     }
 
-    fun unselect() {
-        _isSelected.value = false
+    /******* SOUNDPLAYER STUFF *******/
+    private fun getPlayer(sound: Sound): SoundPlayer? {
+        // Conveniently update volume in case it's been changed
+        return players[sound.uri]?.apply { setVolume(sound.volume) }
     }
 
-    fun playOrPause() = if (player.isPlaying) pause() else play()
-
-    private fun pause() {
-        player.pause()
-        _isPlaying.value = false
+    fun getPlayer(sound: Sound, context: Context): SoundPlayer {
+        return getPlayer(sound) ?: SoundPlayer(context, sound.uri, sound.volume).also {
+            players[sound.uri] = it
+//            viewModelScope.launch(Dispatchers.IO) {
+//                it.setup()
+//            }
+        }
     }
-    private fun play() {
-        player.play()
-        _isPlaying.value = true
+
+    /******* RESPOND TO ACTIVITY STATE CHANGES *******/
+    override fun onCleared() {
+        super.onCleared()
+        Log.d(LOG_TAG, "Owner activity finished, releasing and removing SoundPlayers")
+        players.forEach {
+            it.value.release()
+            players.remove(it.key)
+        }
+        onSelectAllListeners.clear()
+    }
+
+
+    /******* SOUND SELECTION *******/
+    private val onSelectAllListeners = mutableListOf<OnSelectAllListener>()
+    private val _selectEnabled = MutableLiveData(false)
+    private val _selectedSounds = mutableListOf<Sound>()
+
+    val selectEnabled: LiveData<Boolean>
+        get() = _selectEnabled
+    val selectedSounds: List<Sound>
+        get() = _selectedSounds.toList()
+
+    fun select(sound: Sound) {
+        if (!_selectedSounds.contains(sound)) _selectedSounds.add(sound)
+    }
+
+    fun toggleSelected(sound: Sound): Boolean {
+        /**
+         * Returns true if sound was selected, false if deselected!
+         */
+        return when (_selectedSounds.contains(sound)) {
+            true -> {
+                deselect(sound)
+                false
+            }
+            else -> {
+                select(sound)
+                true
+            }
+        }
+    }
+
+    private fun deselect(sound: Sound) {
+        _selectedSounds.remove(sound)
+        if (_selectedSounds.size == 0) disableSelect()
+    }
+
+    fun enableSelect() {
+        if (_selectEnabled.value != true) _selectEnabled.value = true
+        if (_reorderEnabled.value != false) _reorderEnabled.value = false
+    }
+
+    fun disableSelect() {
+        if (_selectEnabled.value != false) _selectEnabled.value = false
+        _selectedSounds.clear()
+    }
+
+    fun selectAll() {
+        onSelectAllListeners.forEach { it.selectAllSounds() }
+    }
+
+    fun addOnSelectAllListener(listener: OnSelectAllListener) {
+        onSelectAllListeners.add(listener)
+    }
+
+    fun removeOnSelectAllListener(listener: OnSelectAllListener) {
+        onSelectAllListeners.remove(listener)
+    }
+
+
+    /******* SOUND REORDERING *******/
+    val reorderEnabled: LiveData<Boolean>
+        get() = _reorderEnabled
+
+    fun toggleReorderEnabled() {
+        _reorderEnabled.value = !(_reorderEnabled.value ?: false)
+    }
+
+
+    interface OnSelectAllListener {
+        fun selectAllSounds()
+    }
+
+
+    companion object {
+        const val LOG_TAG = "SoundViewModel2"
     }
 }

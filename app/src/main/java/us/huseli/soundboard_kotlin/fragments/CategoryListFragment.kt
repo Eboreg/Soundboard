@@ -16,14 +16,17 @@ import us.huseli.soundboard_kotlin.databinding.FragmentCategoryListBinding
 import us.huseli.soundboard_kotlin.interfaces.ZoomInterface
 import us.huseli.soundboard_kotlin.viewmodels.AppViewModel
 import us.huseli.soundboard_kotlin.viewmodels.CategoryListViewModel
+import us.huseli.soundboard_kotlin.viewmodels.SoundViewModel
 
 class CategoryListFragment : Fragment(), View.OnTouchListener {
     private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
     private val appViewModel by activityViewModels<AppViewModel>()
+    private val soundViewModel by activityViewModels<SoundViewModel>()
     private val preferences: SharedPreferences by lazy { requireActivity().getPreferences(Context.MODE_PRIVATE) }
     private val scaleGestureDetector by lazy { ScaleGestureDetector(requireContext(), ScaleListener()) }
 
-    private lateinit var binding: FragmentCategoryListBinding
+    private var categoryAdapter: CategoryAdapter? = null
+    private var binding: FragmentCategoryListBinding? = null
     private var initialSpanCount: Int? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -31,37 +34,49 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
 
         val landscapeSpanCount = preferences.getInt("landscapeSpanCount", 0)
         initialSpanCount = appViewModel.setup(config.orientation, config.screenWidthDp, config.screenHeightDp, landscapeSpanCount)
-        appViewModel.spanCountLandscape.observe(viewLifecycleOwner, { preferences.edit {
+        appViewModel.spanCountLandscape.observe(viewLifecycleOwner) { preferences.edit {
             putInt("landscapeSpanCount", it)
             apply()
-        }})
+        }}
 
         binding = FragmentCategoryListBinding.inflate(inflater, container, false)
-        binding.lifecycleOwner = viewLifecycleOwner
-        return binding.root
+        return binding?.let { binding ->
+            binding.lifecycleOwner = viewLifecycleOwner
+            binding.root
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val categoryAdapter = CategoryAdapter(requireActivity(), categoryListViewModel, appViewModel, initialSpanCount!!)
+        categoryAdapter = CategoryAdapter(
+                appViewModel,
+                initialSpanCount ?: AppViewModel.DEFAULT_SPANCOUNT_PORTRAIT,
+                soundViewModel,
+                categoryListViewModel,
+                requireActivity()
+        ).also { categoryAdapter ->
+            binding?.also { binding ->
+                binding.categoryList.apply {
+                    categoryAdapter.itemTouchHelper.attachToRecyclerView(this)
+                    adapter = categoryAdapter
+                    layoutManager = LinearLayoutManager(requireContext())
+                }
 
-        binding.categoryList.apply {
-            categoryAdapter.itemTouchHelper.attachToRecyclerView(this)
-            adapter = categoryAdapter
-            layoutManager = LinearLayoutManager(requireContext())
+                binding.categoryList.setOnTouchListener(this)
+
+                categoryListViewModel.categories.observe(viewLifecycleOwner) {
+                    Log.i(GlobalApplication.LOG_TAG,
+                            "CategoryListFragment: categoryListViewModel.categories changed: $it, " +
+                                    "recyclerView ${binding.categoryList.hashCode()}, " +
+                                    "sending to CategoryAdapter ${categoryAdapter.hashCode()}")
+                    categoryAdapter.submitList(it)
+                }
+            } ?: run {
+                Log.e(LOG_TAG, "onViewCreated: binding is null")
+            }
         }
-
-        binding.categoryList.setOnTouchListener(this)
-
-        categoryListViewModel.categories.observe(viewLifecycleOwner, {
-            Log.i(GlobalApplication.LOG_TAG,
-                    "CategoryListFragment: categoryListViewModel.categories changed: $it, " +
-                            "recyclerView ${binding.categoryList.hashCode()}, " +
-                            "sending to CategoryAdapter ${categoryAdapter.hashCode()}")
-            categoryAdapter.submitList(it)
-        })
     }
 
     override fun onTouch(view: View?, event: MotionEvent?): Boolean {
@@ -79,6 +94,13 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
         return scaleGestureDetector.onTouchEvent(event)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
+        categoryAdapter?.setLifecycleDestroyed()
+        categoryAdapter = null
+    }
+
 
     private inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector?): Boolean {
@@ -93,5 +115,10 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
             }
             return super.onScale(detector)
         }
+    }
+
+
+    companion object {
+        const val LOG_TAG = "CategoryListFragment"
     }
 }

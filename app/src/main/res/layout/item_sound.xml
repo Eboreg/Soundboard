@@ -6,14 +6,30 @@
     <data>
 
         <variable
-            name="viewModel"
-            type="us.huseli.soundboard_kotlin.viewmodels.SoundViewModel" />
+            name="sound"
+            type="us.huseli.soundboard_kotlin.data.Sound" />
+
+        <variable
+            name="categoryViewModel"
+            type="us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/sound_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+
+        <View
+            android:id="@+id/drop_marker_before"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#FF0000"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@id/sound_card"
+            app:layout_constraintEnd_toStartOf="@id/sound_card"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/sound_card" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/sound_card"
@@ -21,7 +37,7 @@
             android:layout_height="0dp"
             android:layout_marginHorizontal="@dimen/margin_small"
             android:layout_marginBottom="@dimen/margin_normal"
-            app:cardBackgroundColor="@{viewModel.backgroundColor}"
+            app:cardBackgroundColor="@{categoryViewModel.backgroundColor}"
             app:cardCornerRadius="@dimen/sound_card_corner_radius"
             app:cardElevation="@dimen/sound_card_elevation"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -29,7 +45,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:cardBackgroundColor="@color/white">
+            tools:background="0"
+            tools:cardBackgroundColor="@color/purple_500">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -41,14 +58,15 @@
                     android:layout_height="0dp"
                     android:layout_margin="@dimen/margin_small"
                     android:gravity="center_horizontal|center_vertical"
-                    android:text="@{viewModel.name}"
+                    android:text="@{sound.name}"
                     android:textAlignment="center"
-                    android:textColor="@{viewModel.textColor}"
+                    android:textColor="@{categoryViewModel.textColor}"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    tools:text="Sound name" />
+                    tools:text="Sound name"
+                    tools:textColor="@color/white" />
 
                 <ImageView
                     android:id="@+id/play_icon"
@@ -56,7 +74,7 @@
                     android:layout_height="match_parent"
                     android:contentDescription="@string/playing"
                     android:visibility="invisible"
-                    app:drawableColor="@{viewModel.textColor}"
+                    app:drawableColor="@{categoryViewModel.textColor}"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -69,7 +87,7 @@
                     android:layout_height="match_parent"
                     android:contentDescription="@string/load_failed"
                     android:visibility="invisible"
-                    app:drawableColor="@{viewModel.textColor}"
+                    app:drawableColor="@{categoryViewModel.textColor}"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -83,12 +101,28 @@
                     android:background="#80B2EBF2"
                     android:contentDescription="@string/selected"
                     android:visibility="invisible"
-                    app:drawableColor="@{viewModel.textColor}"
+                    app:drawableColor="@{categoryViewModel.textColor}"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:srcCompat="@drawable/ic_check" />
+
+                <ImageView
+                    android:id="@+id/reorder_icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="@dimen/margin_normal"
+                    android:alpha="0.5"
+                    android:contentDescription="@string/reorder"
+                    android:visibility="invisible"
+                    app:drawableColor="@{categoryViewModel.textColor}"
+                    app:layout_constraintBottom_toTopOf="@+id/volume_bar"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/ic_reorder"
+                    tools:drawableColor="@color/white" />
 
                 <ProgressBar
                     android:id="@+id/volume_bar"
@@ -97,7 +131,7 @@
                     android:layout_height="2dp"
                     android:max="100"
                     android:min="0"
-                    android:progress="@{viewModel.volume}"
+                    android:progress="@{sound.volume}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -111,6 +145,7 @@
                     android:id="@+id/duration_card"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:visibility="gone"
                     app:cardBackgroundColor="#80000000"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
@@ -120,7 +155,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="@dimen/margin_small"
-                        android:text="@{viewModel.duration}"
                         android:textColor="@color/white"
                         android:textSize="@dimen/small_text"
                         tools:ignore="SmallSp"
@@ -131,6 +165,16 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
 
+        <View
+            android:id="@+id/drop_marker_after"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#FF0000"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@id/sound_card"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/sound_card"
+            app:layout_constraintTop_toTopOf="@id/sound_card" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
-

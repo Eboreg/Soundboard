@@ -22,7 +22,10 @@ class CategoryListViewModel : ViewModel() {
     }
 
     fun create(name: String) = viewModelScope.launch(Dispatchers.IO) {
-        repository.insert(Category(name, GlobalApplication.colorHelper.randomColor(repository.getUsedColors())))
+        /**
+         * Used in MainActivity.onCreate() to create empty default category if there are none
+         */
+        repository.insert(Category(name, GlobalApplication.application.getColorHelper().randomColor(repository.getUsedColors())))
     }
 
     // Used by DeleteCategoryFragment

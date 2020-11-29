@@ -1,47 +1,41 @@
 package us.huseli.soundboard_kotlin.viewmodels
 
-import android.graphics.Color
-import androidx.lifecycle.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.map
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard_kotlin.GlobalApplication
-import us.huseli.soundboard_kotlin.data.*
+import us.huseli.soundboard_kotlin.data.CategoryRepository
+import us.huseli.soundboard_kotlin.data.SoundboardDatabase
 
-class CategoryViewModel : ViewModel() {
+class CategoryViewModel(val categoryId: Int) : ViewModel() {
     private val database = SoundboardDatabase.getInstance(GlobalApplication.application)
     private val repository = CategoryRepository(database.categoryDao())
-    private val soundRepository = SoundRepository(database.soundDao())
+    private val _category = repository.get(categoryId)
 
-    private val _category = MutableLiveData<Category?>(null)
-    private val _collapsed = MutableLiveData(false)
+    val name = _category.map { it.name }
+    val backgroundColor = _category.map { it.backgroundColor }
+    val textColor = backgroundColor.map { bgc -> GlobalApplication.application.getColorHelper().getTextColorForBackgroundColor(bgc) }
+    val collapsed = _category.map { it.collapsed }
 
-    val name = _category.map { it?.name }
-
-    val backgroundColor = _category.map { it?.backgroundColor ?: Color.DKGRAY }
-
-    val textColor = backgroundColor.map { bgc -> GlobalApplication.colorHelper.getTextColorForBackgroundColor(bgc) }
-
-    val collapsed: LiveData<Boolean>
-        get() = _collapsed
-
-    val sounds = _category.switchMap { soundRepository.getByCategory(it?.id) }
-
-    fun setCategory(category: Category) {
-        _category.value = category
-        _collapsed.value = category.collapsed
-    }
-
-    fun toggleCollapsed() {
-        val newValue = !_collapsed.value!!
-        _collapsed.value = newValue
-        _category.value?.id?.let { categoryId ->
-            viewModelScope.launch(Dispatchers.IO) { repository.setCollapsed(categoryId, newValue) }
+    private fun setCollapsed(value: Boolean) {
+        if (collapsed.value != value) {
+            viewModelScope.launch(Dispatchers.IO) { repository.setCollapsed(categoryId, value) }
         }
     }
 
-    fun updateSoundOrder(sounds: List<Sound>) = viewModelScope.launch(Dispatchers.IO) {
-        soundRepository.update(sounds)
+    fun toggleCollapsed() {
+        val newValue = collapsed.value?.let { !it } ?: true
+        setCollapsed(newValue)
     }
 
-    override fun toString() = _category.value?.name ?: ""
+    fun expand() = setCollapsed(false)
+
+    fun collapse() = setCollapsed(true)
+
+    override fun toString(): String {
+        val hashCode = Integer.toHexString(System.identityHashCode(this))
+        return "CategoryViewModel $hashCode <category=${_category.value}>"
+    }
 }

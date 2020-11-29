@@ -1,5 +1,7 @@
 <resources>
-    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
-        <item name="windowActionModeOverlay">true</item>
+
+    <style name="Widget.Soundboard.NightButton" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">?android:attr/colorBackground</item>
+        <item name="android:textColor">@color/white</item>
     </style>
 </resources>
