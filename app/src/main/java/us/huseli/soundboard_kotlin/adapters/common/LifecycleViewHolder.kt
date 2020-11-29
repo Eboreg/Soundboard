@@ -8,17 +8,19 @@ import androidx.lifecycle.LifecycleRegistry
 import androidx.recyclerview.widget.RecyclerView
 
 abstract class LifecycleViewHolder(view: View) : RecyclerView.ViewHolder(view), LifecycleOwner {
-    @Suppress("PropertyName")
-    open val LOG_TAG = "LifecycleViewHolder"
+    @Suppress("PrivatePropertyName")
+    private val LOG_TAG = "LifecycleViewHolder"
     internal abstract val lifecycleRegistry: LifecycleRegistry
 
     private var wasPaused = false
 
     fun markCreated() {
+        Log.d(LOG_TAG, "markCreated: $this")
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
     }
 
     fun markAttach() {
+        Log.d(LOG_TAG, "markAttach: $this, wasPaused=$wasPaused")
         if (wasPaused) {
             lifecycleRegistry.currentState = Lifecycle.State.RESUMED
             wasPaused = false

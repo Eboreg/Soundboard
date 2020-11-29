@@ -40,9 +40,10 @@ import kotlin.math.roundToInt
 class SoundAdapter(
         private val categoryViewModel: CategoryViewModel,
         private val recyclerView: RecyclerView,
-        private val soundViewModel: SoundViewModel) :
+        private val soundViewModel: SoundViewModel,
+        private val appViewModel: AppViewModel) :
         DataBoundAdapter<Sound, SoundAdapter.SoundViewHolder, ItemSoundBinding>(DiffCallback()) {
-    override val LOG_TAG = "SoundAdapter"
+    private val LOG_TAG = "SoundAdapter"
 
     init {
         setHasStableIds(true)
@@ -224,7 +225,7 @@ class SoundAdapter(
             View.OnTouchListener,
             SoundPlayer.OnStateChangeListener,
             SoundViewModel.OnSelectAllListener {
-        override val LOG_TAG = "SoundViewHolder"
+        private val LOG_TAG = "SoundViewHolder"
 
         private val clickAnimator = (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
             setTarget(binding.soundCard)
@@ -253,10 +254,13 @@ class SoundAdapter(
 
             binding.categoryViewModel = categoryViewModel
 
-            player = soundViewModel.getPlayer(sound, context).also {
-                it.setOnStateChangeListener(this)
-                setDuration(it.duration)
-                if (it.noPermission) soundViewModel.addFailedSound(sound)
+            player = soundViewModel.getPlayer(sound, context).also { player ->
+                if (player.noPermission) soundViewModel.addFailedSound(sound)
+                else {
+                    player.setOnStateChangeListener(this)
+                    setDuration(player.duration)
+                    appViewModel.repressMode.observe(this) { player.repressMode = it }
+                }
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

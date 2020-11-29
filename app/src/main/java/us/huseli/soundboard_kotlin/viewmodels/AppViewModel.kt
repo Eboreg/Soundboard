@@ -2,6 +2,7 @@ package us.huseli.soundboard_kotlin.viewmodels
 
 import android.content.res.Configuration
 import androidx.lifecycle.*
+import us.huseli.soundboard_kotlin.SoundPlayer
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -12,9 +13,13 @@ class AppViewModel : ViewModel() {
     }
 
     private val _orientation = MutableLiveData<Int>()
+    private val _repressMode = MutableLiveData(SoundPlayer.RepressMode.STOP)
     private val _screenRatio = MutableLiveData<Double>()  // (width / height) in portrait mode
     private val _spanCountLandscape = MutableLiveData<Int>()
     private val _spanCountPortrait = MutableLiveData<Int>()
+
+    val repressMode: LiveData<SoundPlayer.RepressMode>
+        get() = _repressMode
 
     val spanCountLandscape: LiveData<Int>
         get() = _spanCountLandscape
@@ -31,6 +36,16 @@ class AppViewModel : ViewModel() {
     fun zoomIn() = zoom(-1)
 
     fun zoomOut() = zoom(1)
+
+    fun cycleRepressMode() {
+        _repressMode.value = _repressMode.value?.let {
+            when (it) {
+                SoundPlayer.RepressMode.STOP -> SoundPlayer.RepressMode.RESTART
+                SoundPlayer.RepressMode.RESTART -> SoundPlayer.RepressMode.OVERLAP
+                SoundPlayer.RepressMode.OVERLAP -> SoundPlayer.RepressMode.STOP
+            }
+        } ?: SoundPlayer.RepressMode.STOP
+    }
 
 
     /** PRIVATE METHODS */

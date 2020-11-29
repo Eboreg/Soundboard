@@ -47,6 +47,7 @@ class MainActivity :
     private var categories = emptyList<Category>()
 
     // Just to know whether a toast should be shown on value change
+    private var repressMode: SoundPlayer.RepressMode? = null
     private var reorderEnabled: Boolean? = null
     private var toast: Toast? = null
 
@@ -60,9 +61,16 @@ class MainActivity :
         setContentView(binding.root)
 
         setSupportActionBar(binding.actionbar.actionbarToolbar)
+        //setSupportActionBar(binding.actionbarToolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
         setupEasterEggClickListener()
+
+        setupBottomBar()
+        appViewModel.repressMode.observe(this) {
+            if (repressMode != null) showToast("On re-press: $it")
+            repressMode = it
+        }
 
         soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
 
@@ -73,10 +81,22 @@ class MainActivity :
         }
     }
 
+    private fun setupBottomBar() {
+        binding.bottombar.bottombarToolbar.inflateMenu(R.menu.bottom_menu)
+        binding.bottombar.bottombarToolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_set_repress_mode -> appViewModel.cycleRepressMode()
+            }
+            true
+        }
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private fun setupEasterEggClickListener() {
         binding.actionbar.actionbarLogo.isClickable = true
         binding.actionbar.actionbarLogo.setOnTouchListener { _, event ->
+            //binding.actionbarLogo.isClickable = true
+            //binding.actionbarLogo.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN) actionbarLogoTouchTimes.add(event.eventTime)
             Log.d(LOG_TAG, actionbarLogoTouchTimes.toString())
             if (actionbarLogoTouchTimes.size == 3) {
@@ -230,6 +250,7 @@ class MainActivity :
     /** Overridden own methods */
     override fun onReorderEnabledChange(value: Boolean) {
         val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_reorder)
+        //val item = binding.actionbarToolbar.menu?.findItem(R.id.action_toggle_reorder)
         if (value) {
             if (reorderEnabled != null) showToast(R.string.reordering_enabled)
             item?.icon?.alpha = 204
@@ -272,6 +293,7 @@ class MainActivity :
     /** Own methods */
     private fun onZoomInPossibleChange(value: Boolean) {
         val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_zoom_in)
+        //val item = binding.actionbarToolbar.menu?.findItem(R.id.action_zoom_in)
         item?.isEnabled = value
         item?.icon?.alpha = if (value) 204 else 102
     }

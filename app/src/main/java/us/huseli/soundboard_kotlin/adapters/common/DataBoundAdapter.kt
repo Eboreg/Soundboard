@@ -7,7 +7,8 @@ import androidx.recyclerview.widget.DiffUtil
 
 abstract class DataBoundAdapter<T, VH : DataBoundViewHolder<B, T>, B : ViewDataBinding>(diffCallback: DiffUtil.ItemCallback<T>)
         : LifecycleAdapter<T, VH>(diffCallback) {
-    override val LOG_TAG = "DataBoundAdapter"
+    @Suppress("PrivatePropertyName")
+    private val LOG_TAG = "DataBoundAdapter"
 
     protected abstract fun createViewHolder(binding: B, parent: ViewGroup): VH
 

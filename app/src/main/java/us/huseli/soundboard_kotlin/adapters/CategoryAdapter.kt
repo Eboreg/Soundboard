@@ -33,8 +33,9 @@ class CategoryAdapter(
         private val categoryListViewModel: CategoryListViewModel,
         private val viewModelStoreOwner: ViewModelStoreOwner) :
         DataBoundAdapter<Category, CategoryAdapter.CategoryViewHolder, ItemCategoryBinding>(DiffCallback()) {
-    override val LOG_TAG = "CategoryAdapter"
-    private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 20) }
+    @Suppress("PrivatePropertyName")
+    private val LOG_TAG = "CategoryAdapter"
+    private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 200) }
     internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
 
     override fun createBinding(parent: ViewGroup, viewType: Int) =
@@ -84,7 +85,8 @@ class CategoryAdapter(
             View.OnClickListener,
             AppViewModelListenerInterface /*,
             ViewModelStoreOwner */ {
-        override val LOG_TAG = "CategoryViewHolder"
+        @Suppress("PrivatePropertyName")
+        private val LOG_TAG = "CategoryViewHolder"
 
         // private val viewModelStore = ViewModelStore()
         private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
@@ -117,7 +119,7 @@ class CategoryAdapter(
             val viewModelFactory = CategoryViewModelFactory(category.id!!)
             val categoryViewModel = ViewModelProvider(viewModelStoreOwner, viewModelFactory).get(
                     category.id.toString(), CategoryViewModel::class.java)
-            val soundAdapter = SoundAdapter(categoryViewModel, binding.soundList, soundViewModel).also { soundAdapter = it }
+            val soundAdapter = SoundAdapter(categoryViewModel, binding.soundList, soundViewModel, appViewModel).also { soundAdapter = it }
             val soundDragListener = SoundDragListener(soundAdapter, this)
 
             binding.categoryViewModel = categoryViewModel

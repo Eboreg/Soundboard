@@ -5,15 +5,18 @@ import android.media.MediaPlayer
 import android.net.Uri
 import kotlin.math.pow
 
-class SoundPlayer(context: Context, uri: Uri, private val volume: Int) :
+class SoundPlayer(private val context: Context, private val uri: Uri, private val volume: Int) :
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
     private val mediaPlayer = MediaPlayer()
+    private val tempMediaPlayers = mutableListOf<MediaPlayer>()
 
     private var onStateChangeListener: OnStateChangeListener? = null
     private var _state = State.INITIALIZING
     private var _duration: Int = -1  // In milliseconds
     private var _errorMessage = ""
     private var _noPermission = false
+
+    var repressMode = RepressMode.STOP
 
     val duration: Int
         get() = _duration
@@ -60,7 +63,7 @@ class SoundPlayer(context: Context, uri: Uri, private val volume: Int) :
     }
 
     private fun changeState(state: State) {
-        if (state != _state) {
+        if (state != State.READY || tempMediaPlayers.size == 0) {
             _state = state
             onStateChangeListener?.onSoundPlayerStateChange(this, state)
         }
@@ -68,9 +71,41 @@ class SoundPlayer(context: Context, uri: Uri, private val volume: Int) :
 
     fun togglePlay() {
         if (_state == State.PLAYING) {
-            mediaPlayer.pause()
-            changeState(State.STOPPED)
-            mediaPlayer.seekTo(0)
+            when (repressMode) {
+                RepressMode.STOP -> {
+                    mediaPlayer.pause()
+                    changeState(State.STOPPED)
+                    mediaPlayer.seekTo(0)
+                }
+                RepressMode.RESTART -> {
+                    mediaPlayer.pause()
+                    mediaPlayer.seekTo(0)
+                    mediaPlayer.start()
+                    changeState(State.PLAYING)
+                }
+                RepressMode.OVERLAP -> {
+                    // TODO: adjust volumes?
+                    // TODO: make sure state is not changed until last sound finished
+                    // TODO: save mediaplayer instances to keep track of them & be able to stop
+                    // all of them at once in case RepressMode changed
+                    val mp = MediaPlayer()
+                    MediaPlayer().apply {
+                        tempMediaPlayers.add(this)
+                        setOnCompletionListener {
+                            tempMediaPlayers.remove(this)
+                            changeState(State.READY)
+                        }
+                        setDataSource(context, uri)
+                        prepare()
+                        start()
+                        changeState(State.PLAYING)
+                    }
+                    //mediaPlayer.setDataSource()
+                }
+            }
+//            mediaPlayer.pause()
+//            changeState(State.STOPPED)
+//            mediaPlayer.seekTo(0)
         } else {
             mediaPlayer.start()
             changeState(State.PLAYING)
@@ -102,4 +137,8 @@ class SoundPlayer(context: Context, uri: Uri, private val volume: Int) :
         PLAYING,
         ERROR
     }
+
+
+    enum class RepressMode { STOP, RESTART, OVERLAP }
+
 }
