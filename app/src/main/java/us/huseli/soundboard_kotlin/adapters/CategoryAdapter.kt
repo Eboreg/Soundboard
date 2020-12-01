@@ -106,6 +106,7 @@ class CategoryAdapter(
                     appViewModel.spanCount.observe(this@CategoryViewHolder) { lm.spanCount = it }
                 }
                 setRecycledViewPool(soundViewPool)
+                setItemViewCacheSize(20)
             }
         }
 
@@ -145,7 +146,9 @@ class CategoryAdapter(
                 soundAdapter.submitList(mutableSounds)
                  */
 
-                soundCount = sounds.count()
+                soundCount = sounds.count().also {
+                    if (it > 20) binding.soundList.setItemViewCacheSize(it)
+                }
                 soundAdapter.submitList(sounds)
             }
         }

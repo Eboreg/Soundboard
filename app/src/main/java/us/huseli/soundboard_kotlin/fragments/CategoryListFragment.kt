@@ -65,15 +65,16 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
                     }
                     adapter = categoryAdapter
                     layoutManager = LinearLayoutManager(requireContext())
+                    setOnTouchListener(this@CategoryListFragment)
                 }
-
-                binding.categoryList.setOnTouchListener(this)
 
                 categoryListViewModel.categories.observe(viewLifecycleOwner) {
                     Log.i(GlobalApplication.LOG_TAG,
                             "CategoryListFragment: categoryListViewModel.categories changed: $it, " +
                                     "recyclerView ${binding.categoryList.hashCode()}, " +
                                     "sending to CategoryAdapter ${categoryAdapter.hashCode()}")
+                    // Cache 'em all - this shit needs to be fast
+                    binding.categoryList.setItemViewCacheSize(it.size)
                     categoryAdapter.submitList(it)
                 }
             } ?: run {
