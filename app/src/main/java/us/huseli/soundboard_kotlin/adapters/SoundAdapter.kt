@@ -263,10 +263,10 @@ class SoundAdapter(
                 }
             }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                this@SoundAdapter.categoryViewModel.backgroundColor.observe(this) { color ->
-                    longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
-                    binding.volumeBar.progressDrawable.alpha = 150
+            this@SoundAdapter.categoryViewModel.backgroundColor.observe(this) { color ->
+                longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
+                binding.volumeBar.progressDrawable.alpha = 150
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     binding.volumeBar.progressTintMode = PorterDuff.Mode.OVERLAY
                     binding.volumeBar.progressTintList =
                             if (GlobalApplication.application.getColorHelper().getLuminance(color) >= 0.6) ColorStateList.valueOf(Color.BLACK)
@@ -383,6 +383,13 @@ class SoundAdapter(
                     }
                 }
                 binding.failIcon.visibility = if (state == SoundPlayer.State.ERROR) View.VISIBLE else View.INVISIBLE
+                if (state == SoundPlayer.State.INITIALIZING) {
+                    binding.soundLoading.visibility = View.VISIBLE
+                    binding.soundName.visibility = View.INVISIBLE
+                } else {
+                    binding.soundLoading.visibility = View.INVISIBLE
+                    binding.soundName.visibility = View.VISIBLE
+                }
                 if (state == SoundPlayer.State.READY) setDuration(player.duration)
                 if (state == SoundPlayer.State.ERROR || state == SoundPlayer.State.INITIALIZING) binding.durationCard.visibility = View.GONE
             }
