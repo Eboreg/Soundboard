@@ -11,7 +11,6 @@ abstract class LifecycleAdapter<T, VH: LifecycleViewHolder>(diffCallback: DiffUt
     private val viewHolders = mutableListOf<VH>()
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        Log.d(LOG_TAG, "onBindViewHolder: holder=$holder, position=$position")
         holder.markCreated()
         viewHolders.add(holder)
     }

@@ -60,6 +60,9 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
             binding?.also { binding ->
                 binding.categoryList.apply {
                     categoryAdapter.itemTouchHelper.attachToRecyclerView(this)
+                    this.setRecyclerListener {
+                        Log.d(LOG_TAG, it.toString())
+                    }
                     adapter = categoryAdapter
                     layoutManager = LinearLayoutManager(requireContext())
                 }

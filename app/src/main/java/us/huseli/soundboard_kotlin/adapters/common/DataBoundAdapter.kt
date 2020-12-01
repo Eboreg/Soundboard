@@ -19,6 +19,7 @@ abstract class DataBoundAdapter<T, VH : DataBoundViewHolder<B, T>, B : ViewDataB
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val binding = createBinding(parent, viewType)
         val holder = createViewHolder(binding, parent)
+        Log.i(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
         binding.lifecycleOwner = holder
 
         return holder
@@ -27,7 +28,7 @@ abstract class DataBoundAdapter<T, VH : DataBoundViewHolder<B, T>, B : ViewDataB
     override fun onBindViewHolder(holder: VH, position: Int) {
         super.onBindViewHolder(holder, position)
         val item = getItem(position)
-        Log.i(LOG_TAG, "onBindViewHolder: bind $item to holder=$holder on position=$position ----- adapter=$this")
+        Log.i(LOG_TAG, "onBindViewHolder: item=$item, holder=$holder, position=$position, adapter=$this")
         bind(holder, item, position)
     }
 
