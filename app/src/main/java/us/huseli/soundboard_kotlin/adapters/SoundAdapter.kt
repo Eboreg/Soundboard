@@ -43,6 +43,7 @@ class SoundAdapter(
         private val soundViewModel: SoundViewModel,
         private val appViewModel: AppViewModel) :
         DataBoundAdapter<Sound, SoundAdapter.SoundViewHolder, ItemSoundBinding>(DiffCallback()) {
+    @Suppress("PrivatePropertyName")
     private val LOG_TAG = "SoundAdapter"
 
     init {
@@ -225,6 +226,7 @@ class SoundAdapter(
             View.OnTouchListener,
             SoundPlayer.OnStateChangeListener,
             SoundViewModel.OnSelectAllListener {
+        @Suppress("PrivatePropertyName")
         private val LOG_TAG = "SoundViewHolder"
 
         private val clickAnimator = (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply {

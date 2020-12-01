@@ -50,8 +50,6 @@
     <string name="duration_seconds">%1$ds</string>
     <string name="select_all">Select all</string>
     <string name="re_init_failed_sounds" tools:keep="@string/re_init_failed_sounds">Re-init failed sounds</string>
-    <string name="easter_egg_text">Hur fan är det med dig, karl?</string>
-    <string name="easter_egg_tite">HALLON!!!</string>
-    <string name="easter_egg_negative_button">Lugna puckar</string>
-    <string name="easter_egg_positive_button">Hockeyklubba</string>
+    <string name="repress_mode">Re-press mode</string>
+    <string name="on_repress">On repress: %1$s</string>
 </resources>

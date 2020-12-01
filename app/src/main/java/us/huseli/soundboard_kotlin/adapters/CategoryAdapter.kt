@@ -33,8 +33,6 @@ class CategoryAdapter(
         private val categoryListViewModel: CategoryListViewModel,
         private val viewModelStoreOwner: ViewModelStoreOwner) :
         DataBoundAdapter<Category, CategoryAdapter.CategoryViewHolder, ItemCategoryBinding>(DiffCallback()) {
-    @Suppress("PrivatePropertyName")
-    private val LOG_TAG = "CategoryAdapter"
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 200) }
     internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
 

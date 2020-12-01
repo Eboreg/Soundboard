@@ -18,10 +18,10 @@ class EasterEggFragment : DialogFragment() {
         binding = FragmentEasterEggBinding.inflate(inflater)
 
         return AlertDialog.Builder(requireContext()).run {
-            setTitle(getString(R.string.easter_egg_tite))
+            setTitle("HALLON!!!")
             setView(binding?.root)
-            setPositiveButton(getString(R.string.easter_egg_positive_button)) { _, _ -> MediaPlayer.create(requireContext(), R.raw.hallon3).start() }
-            setNegativeButton(getString(R.string.easter_egg_negative_button)) { _, _ -> MediaPlayer.create(requireContext(), R.raw.hallon2).start() }
+            setPositiveButton("Hockeyklubba") { _, _ -> MediaPlayer.create(requireContext(), R.raw.hallon3).start() }
+            setNegativeButton("Lugna puckar") { _, _ -> MediaPlayer.create(requireContext(), R.raw.hallon2).start() }
             create().also { MediaPlayer.create(requireContext(), R.raw.hallon1).start() }
         }
     }

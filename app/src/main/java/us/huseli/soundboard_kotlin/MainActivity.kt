@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import us.huseli.soundboard_kotlin.data.Category
@@ -68,7 +69,14 @@ class MainActivity :
 
         setupBottomBar()
         appViewModel.repressMode.observe(this) {
-            if (repressMode != null) showToast("On re-press: $it")
+            if (repressMode != null) {
+                binding.bottombar?.bottombarToolbar?.menu?.findItem(R.id.action_set_repress_mode)?.icon = when (it) {
+                    SoundPlayer.RepressMode.OVERLAP -> ResourcesCompat.getDrawable(resources, R.drawable.ic_repress_overlap, theme)
+                    SoundPlayer.RepressMode.RESTART -> ResourcesCompat.getDrawable(resources, R.drawable.ic_repress_restart, theme)
+                    SoundPlayer.RepressMode.STOP -> ResourcesCompat.getDrawable(resources, R.drawable.ic_repress_stop, theme)
+                }
+                showToast(getString(R.string.on_repress, it))
+            }
             repressMode = it
         }
 
@@ -82,10 +90,13 @@ class MainActivity :
     }
 
     private fun setupBottomBar() {
-        binding.bottombar.bottombarToolbar.inflateMenu(R.menu.bottom_menu)
-        binding.bottombar.bottombarToolbar.setOnMenuItemClickListener { item ->
+        //binding.bottombar.bottombarToolbar.inflateMenu(R.menu.bottom_menu)
+        binding.bottombar?.bottombarToolbar?.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_set_repress_mode -> appViewModel.cycleRepressMode()
+                R.id.action_add_category -> showAddCategoryFragment()
+                R.id.action_zoom_in -> zoomIn()
+                R.id.action_zoom_out -> zoomOut()
             }
             true
         }
@@ -122,12 +133,14 @@ class MainActivity :
             R.id.action_toggle_reorder -> soundViewModel.toggleReorderEnabled()
             R.id.action_zoom_in -> zoomIn()
             R.id.action_zoom_out -> zoomOut()
-            R.id.action_add_category -> showDialogFragment(
-                    AddCategoryDialogFragment.newInstance(DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG)), CATEGORY_ADD_DIALOG_TAG)
+            R.id.action_add_category -> showAddCategoryFragment()
             // R.id.action_reinit_failed_sounds -> reinitFailedSounds()
         }
         return true
     }
+
+    private fun showAddCategoryFragment() =
+            showDialogFragment(AddCategoryDialogFragment.newInstance(DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG)), CATEGORY_ADD_DIALOG_TAG)
 
     @Suppress("unused")
     @SuppressLint("QueryPermissionsNeeded")
@@ -292,10 +305,14 @@ class MainActivity :
 
     /** Own methods */
     private fun onZoomInPossibleChange(value: Boolean) {
-        val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_zoom_in)
-        //val item = binding.actionbarToolbar.menu?.findItem(R.id.action_zoom_in)
-        item?.isEnabled = value
-        item?.icon?.alpha = if (value) 204 else 102
+        binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_zoom_in)?.apply {
+            isEnabled = value
+            icon?.alpha = if (value) 255 else 128
+        }
+        binding.bottombar?.bottombarToolbar?.menu?.findItem(R.id.action_zoom_in)?.apply {
+            isEnabled = value
+            icon?.alpha = if (value) 255 else 128
+        }
     }
 
     @SuppressLint("QueryPermissionsNeeded")
