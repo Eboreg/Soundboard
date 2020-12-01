@@ -3,6 +3,7 @@ package us.huseli.soundboard_kotlin
 import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
+import kotlinx.coroutines.*
 import kotlin.math.pow
 
 class SoundPlayer(private val context: Context, private val uri: Uri, private val volume: Int) :
@@ -11,6 +12,7 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
     private val tempMediaPlayers = mutableListOf<MediaPlayer>()
 
     private var onStateChangeListener: OnStateChangeListener? = null
+    private val scope = CoroutineScope(Job() + Dispatchers.IO)
     private var _state = State.INITIALIZING
     private var _duration: Int = -1  // In milliseconds
     private var _errorMessage = ""
@@ -28,14 +30,16 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
         get() = _noPermission
 
     init {
-        mediaPlayer.setOnPreparedListener(this)
-        mediaPlayer.setOnErrorListener(this)
-        try {
-            mediaPlayer.setDataSource(context, uri)
-            mediaPlayer.prepareAsync()
-        } catch (e: Exception) {
-            _errorMessage = if (e.cause != null) e.cause.toString() else e.toString()
-            changeState(State.ERROR)
+        scope.launch {
+            mediaPlayer.setOnPreparedListener(this@SoundPlayer)
+            mediaPlayer.setOnErrorListener(this@SoundPlayer)
+            try {
+                mediaPlayer.setDataSource(context, uri)
+                mediaPlayer.prepareAsync()
+            } catch (e: Exception) {
+                _errorMessage = if (e.cause != null) e.cause.toString() else e.toString()
+                changeState(State.ERROR)
+            }
         }
     }
 
