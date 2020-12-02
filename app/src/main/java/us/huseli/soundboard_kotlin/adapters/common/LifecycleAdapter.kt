@@ -16,19 +16,19 @@ abstract class LifecycleAdapter<T, VH: LifecycleViewHolder>(diffCallback: DiffUt
     }
 
     override fun onViewDetachedFromWindow(holder: VH) {
-        Log.d(LOG_TAG, "onViewDetachedFromWindow: holder=$holder")
+        Log.i(LOG_TAG, "onViewDetachedFromWindow: holder=$holder")
         super.onViewDetachedFromWindow(holder)
         holder.markDetach()
     }
 
     override fun onViewAttachedToWindow(holder: VH) {
-        Log.d(LOG_TAG, "onViewAttachedToWindow: holder=$holder")
+        Log.i(LOG_TAG, "onViewAttachedToWindow: holder=$holder")
         super.onViewAttachedToWindow(holder)
         holder.markAttach()
     }
 
     fun setLifecycleDestroyed() {
-        Log.d(LOG_TAG, "setLifecycleDestroyed")
+        Log.i(LOG_TAG, "setLifecycleDestroyed")
         viewHolders.forEach { it.markDestroyed() }
         viewHolders.clear()
     }

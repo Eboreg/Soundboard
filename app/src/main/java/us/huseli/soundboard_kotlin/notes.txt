@@ -1,3 +1,14 @@
+2020-12-02 23:11:14.710 5834-5834 I/soundboard: CategoryListFragment: categoryListViewModel.categories changed: [Vinjetter, Korta favoriter, Sex, Göb, Kommunism, Mörkhyat, Default], recyclerView 37733690, sending to CategoryAdapter 135976427
+2020-12-02 23:11:15.901 5834-5834 I/DataBoundAdapter: onBindViewHolder: item=Sex, holder=CategoryAdapter.ViewHolder 96c75d6 <adapterPosition=2, category=null>, position=2, adapter=CategoryAdapter 81ad5eb
+2020-12-02 23:11:15.903 5834-5834 I/CategoryViewHolder: CategoryAdapter.bind: 135976427 ViewHolder 158102998 bind Category Sex (488103281)
+2020-12-02 23:11:15.940 5834-5834 I/LifecycleAdapter: onViewAttachedToWindow: holder=CategoryAdapter.ViewHolder 96c75d6 <adapterPosition=2, category=Sex>
+2020-12-02 23:11:18.320 5834-5834 I/CategoryViewHolder: ViewHolder.bind: adapter=CategoryAdapter 81ad5eb, viewHolder=CategoryAdapter.ViewHolder 96c75d6 <adapterPosition=2, category=Sex>, category=Sex, sounds=[Sound 692c835 <id=41, name=Fowley teenage woman, categoryId=9>, Sound 37d94ca <id=64, name=Icka Prick, categoryId=9>, Sound e0a163b <id=115, name=Sperman Karlssons Jättefjång, categoryId=9>, Sound 9b3a158 <id=138, name=Zacharias fingret i skitan, categoryId=9>, Sound eb4b2b1 <id=139, name=Zacharias hela jävla pungen i mun, categoryId=9>, Sound 7483396 <id=140, name=Zacharias spanska spöt, categoryId=9>, Sound 579db17 <id=141, name=Zacharias Ta mig i skitan, categoryId=9>, Sound 6d7b04 <id=142, name=Zacharias underbara lustar, categoryId=9>, Sound 330c8ed <id=143, name=Zacharias å vad kåt jag är, categoryId=9>]
+2020-12-02 23:11:24.008 5834-5834 I/LifecycleAdapter: onViewDetachedFromWindow: holder=CategoryAdapter.ViewHolder 96c75d6 <adapterPosition=2, category=Sex>
+
+
+
+
+
 Efter färgbyt & namnbyt
 
 

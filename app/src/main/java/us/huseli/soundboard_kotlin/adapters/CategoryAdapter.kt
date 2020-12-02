@@ -109,7 +109,7 @@ class CategoryAdapter(
         }
 
         fun bind(category: Category) {
-            Log.i(LOG_TAG, "CategoryAdapter.bind: ${this@CategoryAdapter.hashCode()} ViewHolder ${hashCode()} " +
+            Log.i(LOG_TAG, "ViewHolder.bind: ${this@CategoryAdapter.hashCode()} ViewHolder ${hashCode()} " +
                     "bind Category ${category.name} (${category.hashCode()})")
 
             this.category = category
@@ -133,7 +133,7 @@ class CategoryAdapter(
             }
 
             soundViewModel.getByCategory(category.id).observe(this) { sounds ->
-                Log.i(LOG_TAG, "ViewHolder.bind: adapter=${this@CategoryAdapter}, viewHolder=$this, category=$category, sounds=$sounds")
+                Log.i(LOG_TAG, "ViewHolder sound list observer: adapter=${this@CategoryAdapter}, viewHolder=$this, category=$category, sounds=$sounds")
 
                 // TODO: remove, this is test data
                 /*

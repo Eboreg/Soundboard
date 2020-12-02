@@ -15,8 +15,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.view.children
-import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LifecycleRegistry
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -26,10 +24,8 @@ import us.huseli.soundboard_kotlin.SoundPlayer
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundAdapter
 import us.huseli.soundboard_kotlin.adapters.common.DataBoundViewHolder
 import us.huseli.soundboard_kotlin.animators.SoundItemLongClickAnimator
-import us.huseli.soundboard_kotlin.data.AbstractSound
 import us.huseli.soundboard_kotlin.data.DraggedSound
 import us.huseli.soundboard_kotlin.data.Sound
-import us.huseli.soundboard_kotlin.databinding.ItemEmptySoundBinding
 import us.huseli.soundboard_kotlin.databinding.ItemSoundBinding
 import us.huseli.soundboard_kotlin.helpers.SoundPlayerTimer
 import us.huseli.soundboard_kotlin.viewmodels.*
@@ -159,7 +155,6 @@ class SoundAdapter(
     fun isEmpty() = currentList.isEmpty()
 
     fun removeMarksForDrop() {
-        recyclerView.children
         for (i in 0..recyclerView.childCount) {
             val child = recyclerView.getChildAt(i)
             if (child != null) {
@@ -173,29 +168,22 @@ class SoundAdapter(
 
     fun showSound(sound: Sound) {
         val position = currentList.indexOf(sound)
-        recyclerView.getChildAt(position)?.let { view ->
-            view.visibility = View.VISIBLE
-        }
+        recyclerView.getChildAt(position)?.let { view -> view.visibility = View.VISIBLE }
     }
 
     fun getAdapterPositionUnder(x: Float, y: Float): Int {
         recyclerView.findChildViewUnder(x, y)?.let { view ->
             (recyclerView.findContainingViewHolder(view) as? SoundViewHolder)?.let { viewHolder ->
                 /**
-                 * view går från view.x till view.x + view.width
-                 * Om vi är över första halvan av view, returnera position för view
-                 * Om vi är över andra halvan, returnera position för view:n efter om någon
+                 * view spans horizontally from view.x to (view.x + view.width)
+                 * If we are over view's first half, return view position
+                 * If we are over view's second half, return view position + 1
                  */
                 val middleX = view.x + (view.width / 2)
                 return if (x <= middleX) viewHolder.adapterPosition else viewHolder.adapterPosition + 1
             }
         }
         return currentList.size
-    }
-
-
-    companion object {
-        const val EMPTY_SOUND_VIEW_TYPE = 2
     }
 
 
@@ -207,14 +195,6 @@ class SoundAdapter(
         override fun areContentsTheSame(oldItem: Sound, newItem: Sound): Boolean {
             return oldItem.name == newItem.name && oldItem.order == newItem.order && oldItem.volume == newItem.volume
         }
-    }
-
-
-    abstract inner class AbstractViewHolder(binding: ViewDataBinding) : DataBoundViewHolder<ViewDataBinding, AbstractSound>(binding)
-
-
-    inner class EmptySoundViewHolder(override val binding: ItemEmptySoundBinding) : AbstractViewHolder(binding) {
-        override val lifecycleRegistry = LifecycleRegistry(this)
     }
 
 
