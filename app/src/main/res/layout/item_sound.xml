@@ -7,11 +7,11 @@
 
         <variable
             name="sound"
-            type="us.huseli.soundboard_kotlin.data.Sound" />
+            type="us.huseli.soundboard.data.Sound" />
 
         <variable
             name="categoryViewModel"
-            type="us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel" />
+            type="us.huseli.soundboard.viewmodels.CategoryViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

@@ -8,7 +8,7 @@
 
         <variable
             name="categoryViewModel"
-            type="us.huseli.soundboard_kotlin.viewmodels.CategoryViewModel" />
+            type="us.huseli.soundboard.viewmodels.CategoryViewModel" />
     </data>
 
     <LinearLayout

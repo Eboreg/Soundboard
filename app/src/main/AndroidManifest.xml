@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="us.huseli.soundboard_kotlin">
+    package="us.huseli.soundboard">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
-        android:name=".GlobalApplication"
+        android:name="us.huseli.soundboard.GlobalApplication"
         android:allowBackup="true"
         android:configChanges="orientation|screenSize"
         android:fullBackupContent="@xml/backup_descriptor"
@@ -16,7 +16,7 @@
         android:theme="@style/MaterialTheme">
 
         <activity
-            android:name=".MainActivity"
+            android:name="us.huseli.soundboard.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/MaterialTheme">
             <intent-filter>

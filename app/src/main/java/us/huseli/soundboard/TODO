@@ -1,0 +1,60 @@
+Problem: UI gets laggy on first scroll because Sound recyclerviews that are at first not visible
+don't get populated until they are. Their sounds are fetched and sent via submitList(), but nothing
+more is done until the recyclerview enters the window.
+Solution #1: Do as much work as possible (mainly getPlayer()) before this happens
+Solution #2: Fuck around with RecyclerView.LayoutManager.LayoutPrefetchRegistry
+    (https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView.LayoutManager#collectinitialprefetchpositions)
+    If API level >= 21 (L+), tryGetViewHolderForPositionByDeadline() scans holder.itemView for
+    nested recyclerviews after creating holder via adapter.createViewHolder(). It does so via
+    RecyclerView.findNestedRecyclerView() and then adds it to holder.mNestedRecyclerView.
+    GapWorker.prefetchInnerRecyclerViewWithDeadline() is run with that nested RecyclerView as
+    argument.
+    Seems like there is an issue here somewhere though? https://stackoverflow.com/questions/54150680/nested-recyclerview-prefetch-not-working-on-initial-scroll-only
+
+
+If trying to add sounds without permission (like after a reinstall), MediaPlayer.prepare() throws
+IOException. Maybe catch that and alert the user that they could make some menu choice to
+re-init the failed sound URIs?
+Perhaps use some 'failedSounds' list in appViewModel or something. But where to populate it?
+SoundPlayer.setup() would be the obvious choise but that class doesn't know about Sound, only
+Uri and volume.
+setup() is called by SoundViewModel.getPlayer(), which DOES know about Sound, so maybe here?
+But then we have to re-throw the IOException to it.
+Also, it's a viewmodel and does not, and should not, know about other viewmodels.
+getPlayer is in turn called by SoundAdapter.SoundViewHolder.bind(), so maybe here?
+But we can't throw the exception all the way here. Maybe set some 'noPermission' bool on
+SoundPlayer instead? And check it here, and if true add sound to 'failedSounds'.
+
+OK, failedSounds and noPermission is implemented, now:
+- Show alert
+- Add menu item "re-add failed sounds"
+- Implement that functionality
+- Remove test data from SoundViewHolder.bind and Sound.constructor
+
+
+Make sure old adapters & viewholders are garbage collected on config change/rotate, they don't seem
+to be doing so automatically
+
+
+Write tests :-//////////////
+
+
+Try working with EmptySound when moving around.
+Start drag: Sound removed from adapter, EmptySound added in its place
+Sound is dragged to new position: EmptySound moved there
+Sound is dragged to new recyclerview: EmptySound moved there
+???
+
+
+Trash CategoryListFragment, put it all in MainActivity?
+
+######## PROBABLY NOT #########
+
+Try setting AudioAttributes: https://developer.android.com/reference/kotlin/android/media/AudioAttributes
+- FLAG_LOW_LATENCY (Deprecated: Use AudioTrack.Builder#setPerformanceMode(int) with AudioTrack#PERFORMANCE_MODE_LOW_LATENCY to control performance.)
+- USAGE_MEDIA
+Comment: This is probably WAY too cumbersome to be worth it.
+See: https://mindtherobot.com/blog/580/android-audio-play-a-wav-file-on-an-audiotrack/
+
+Share sounds from other apps to this one -- seems like it's not possible to do this and get
+persistable permissions to the URI? :(
