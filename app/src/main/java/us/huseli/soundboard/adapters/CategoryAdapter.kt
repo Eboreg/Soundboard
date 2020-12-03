@@ -114,7 +114,6 @@ class CategoryAdapter(
                 }
                 setRecycledViewPool(soundViewPool)
                 setItemViewCacheSize(20)
-                // TODO: Remove if not working, just trying
                 isNestedScrollingEnabled = false
             }
         }
@@ -157,6 +156,7 @@ class CategoryAdapter(
             }
         }
 
+        @Suppress("unused")
         private fun submitListWithInvalidSound(sounds: List<Sound>) {
             val invalidSound = Sound(666, category?.id, "fail", Uri.fromParts("content", "//com.android.externalstorage.documents/document/0000-0000:Music/Soundboard/Uh! Sorry!.flac", null), 10, 100)
             val mutableSounds = sounds.toMutableList()
@@ -200,7 +200,7 @@ class CategoryAdapter(
             // Fragment calls adapter.setLifecycleDestroyed(), which calls this
             // We need to pass it on to soundAdapter
             super.markDestroyed()
-            soundAdapter?.setLifecycleDestroyed()
+            soundAdapter.setLifecycleDestroyed()
         }
 
         override fun toString(): String {

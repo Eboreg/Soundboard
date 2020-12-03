@@ -1,3 +1,9 @@
+When in sound select mode and long pressing on a sound:
+- If sound is not already selected:
+    - Select this sound and all between it and the last other selected sound
+Requirement: Keep track of last selected sound for each sound recyclerview
+
+
 Problem: UI gets laggy on first scroll because Sound recyclerviews that are at first not visible
 don't get populated until they are. Their sounds are fetched and sent via submitList(), but nothing
 more is done until the recyclerview enters the window.
@@ -10,6 +16,9 @@ Solution #2: Fuck around with RecyclerView.LayoutManager.LayoutPrefetchRegistry
     GapWorker.prefetchInnerRecyclerViewWithDeadline() is run with that nested RecyclerView as
     argument.
     Seems like there is an issue here somewhere though? https://stackoverflow.com/questions/54150680/nested-recyclerview-prefetch-not-working-on-initial-scroll-only
+
+2020-12-03: Trying out #2
+2020-12-03: Trying out #1 also
 
 
 If trying to add sounds without permission (like after a reinstall), MediaPlayer.prepare() throws
