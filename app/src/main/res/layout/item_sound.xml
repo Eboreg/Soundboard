@@ -39,7 +39,7 @@
             android:layout_marginBottom="@dimen/margin_normal"
             app:cardBackgroundColor="@{categoryViewModel.backgroundColor}"
             app:cardCornerRadius="@dimen/sound_card_corner_radius"
-            app:cardElevation="@dimen/sound_card_elevation"
+            app:cardElevation="@dimen/elevation_big"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="4:3"
             app:layout_constraintEnd_toEndOf="parent"

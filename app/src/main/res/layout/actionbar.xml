@@ -3,9 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/actionbar_height"
+    android:layout_height="?attr/actionBarSize"
     android:padding="2dp"
-    android:theme="@style/Widget.Soundboard.Bar"
+    android:theme="@style/Soundboard.Toolbar"
     tools:ignore="Overdraw">
 
     <ImageView
@@ -18,7 +18,7 @@
         android:paddingEnd="0dp"
         android:scaleType="centerInside"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintDimensionRatio="1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@mipmap/ic_launcher_round" />
@@ -26,12 +26,11 @@
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/actionbar_toolbar"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:minHeight="?attr/actionBarSize"
-        android:theme="@style/Widget.Soundboard.Bar"
-        tools:menu="@menu/appbar_menu"
+        android:layout_height="0dp"
+        android:theme="@style/Soundboard.Toolbar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/actionbar_logo"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:menu="@menu/appbar_menu" />
 </androidx.constraintlayout.widget.ConstraintLayout>

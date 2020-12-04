@@ -66,8 +66,11 @@
                 android:layout_height="@dimen/action_button_height"
                 android:layout_marginEnd="@dimen/margin_normal"
                 android:src="@drawable/color_circle"
+                android:background="@drawable/color_circle"
+                android:elevation="@dimen/elevation_normal"
                 app:drawableColor="@{viewModel.backgroundColor}"
-                tools:ignore="ContentDescription" />
+                tools:ignore="ContentDescription"
+                tools:targetApi="lollipop" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/select_color_button"

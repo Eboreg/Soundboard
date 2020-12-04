@@ -11,10 +11,12 @@
 
 
 <resources>
-    <color name="primaryColor">#212121</color>
-    <color name="primaryLightColor">#484848</color>
-    <color name="primaryDarkColor">#000000</color>
-    <color name="primaryTextColor">#ffffff</color>
+    <color name="primary">@color/grey_900</color>
+    <color name="primaryVariant">@color/black</color>
+    <color name="onPrimary">@color/white</color>
+    <color name="secondary">@color/blue_grey_300</color>
+    <color name="secondaryVariant">@color/blue_grey_600</color>
+    <color name="onSecondary">@color/white</color>
 
     <color name="red_50">#FFEBEE</color>
     <color name="red_100">#FFCDD2</color>

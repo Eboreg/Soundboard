@@ -5,13 +5,13 @@
     android:layout_height="@dimen/actionbar_height"
     android:gravity="center"
     android:orientation="horizontal"
-    android:theme="@style/Widget.Soundboard.Bar">
+    android:theme="@style/Soundboard.Toolbar">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/bottombar_toolbar"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:theme="@style/Widget.Soundboard.Bar"
+        android:layout_height="match_parent"
+        android:theme="@style/Soundboard.Toolbar"
         app:menu="@menu/bottom_menu" />
 
 </LinearLayout>

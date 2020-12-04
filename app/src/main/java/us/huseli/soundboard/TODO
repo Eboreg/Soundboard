@@ -1,7 +1,8 @@
-When in sound select mode and long pressing on a sound:
-- If sound is not already selected:
-    - Select this sound and all between it and the last other selected sound
-Requirement: Keep track of last selected sound for each sound recyclerview
+On config change, selected sounds are remembered but are not visually selected
+
+
+Check for usages of adapterPosition/layoutPosition and correct according to
+https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView#positions-in-recyclerview:
 
 
 Problem: UI gets laggy on first scroll because Sound recyclerviews that are at first not visible

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">@color/grey_400</color>
+    <color name="primaryVariant">@color/grey_700</color>
+    <color name="onPrimary">@color/black</color>
+    <color name="secondary">@color/blue_grey_900</color>
+</resources>
