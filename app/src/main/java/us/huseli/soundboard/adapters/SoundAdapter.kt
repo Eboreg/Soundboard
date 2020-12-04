@@ -49,6 +49,7 @@ class SoundAdapter(
         //registerAdapterDataObserver(DataObserver())
     }
 
+    // TODO: Remove
     inner class DataObserver : RecyclerView.AdapterDataObserver() {
         @Suppress("PropertyName")
         val LOG_TAG = "DataObserver"
@@ -145,7 +146,6 @@ class SoundAdapter(
         }
 
         categoryViewModel?.let { soundViewModel.update(sounds, it.categoryId) }
-        //categoryViewModel.updateSounds(sounds.filterIsInstance<Sound>())
     }
 
     fun markSoundsForDrop(adapterPosition: Int) {
@@ -198,15 +198,29 @@ class SoundAdapter(
         return currentList.size
     }
 
+    private fun selectAllInBetween(sound: Sound) {
+        // Select all sound between `sound` and last selected one (if any).
+        categoryViewModel?.categoryId?.let { categoryId ->
+            soundViewModel.getLastSelected(categoryId, sound)?.let { lastSelected ->
+                // TODO: Are these always consistent with adapter/layout positions?
+                val pos1 = currentList.indexOf(sound)
+                val pos2 = currentList.indexOf(lastSelected)
+                if (pos1 != -1 && pos2 != -1) {
+                    val start = if (pos1 < pos2) pos1 else pos2
+                    val end = if (start == pos1) pos2 else pos1
+                    for (pos in (start + 1) until end)
+                        (recyclerView.findViewHolderForLayoutPosition(pos) as? SoundViewHolder)?.select()
+                }
+            }
+        }
+    }
+
 
     class DiffCallback : DiffUtil.ItemCallback<Sound>() {
-        override fun areItemsTheSame(oldItem: Sound, newItem: Sound): Boolean {
-            return oldItem.id == newItem.id
-        }
+        override fun areItemsTheSame(oldItem: Sound, newItem: Sound) = oldItem.id == newItem.id
 
-        override fun areContentsTheSame(oldItem: Sound, newItem: Sound): Boolean {
-            return oldItem.name == newItem.name && oldItem.order == newItem.order && oldItem.volume == newItem.volume
-        }
+        override fun areContentsTheSame(oldItem: Sound, newItem: Sound) =
+                oldItem.name == newItem.name && oldItem.order == newItem.order && oldItem.volume == newItem.volume
     }
 
 
@@ -225,11 +239,12 @@ class SoundAdapter(
             setTarget(binding.soundCard)
         }
 
-        private var sound: Sound? = null
-        private var selectEnabled = false
-        private var reorderEnabled = false
-        private var playerTimer: SoundPlayerTimer? = null
         private var longClickAnimator: SoundItemLongClickAnimator? = null
+        private var playerTimer: SoundPlayerTimer? = null
+        private var reorderEnabled = false
+        private var selectEnabled = false
+        private var sound: Sound? = null
+
         override val lifecycleRegistry = LifecycleRegistry(this)
 
         init {
@@ -285,18 +300,7 @@ class SoundAdapter(
 
         private fun onSelectEnabledChange(value: Boolean) {
             selectEnabled = value
-            if (!value) {
-                onIsSelectedChange(false)
-            }
-        }
-
-        private fun onIsSelectedChange(value: Boolean) {
-            Log.d(LOG_TAG, "onIsSelectedChange<sound=$sound, value=$value")
-            if (value) {
-                binding.selectedIcon.visibility = View.VISIBLE
-            } else {
-                binding.selectedIcon.visibility = View.INVISIBLE
-            }
+            if (!value) binding.selectedIcon.visibility = View.INVISIBLE
         }
 
         private fun onReorderEnabledChange(value: Boolean) {
@@ -316,12 +320,20 @@ class SoundAdapter(
         }
 
         override fun onLongClick(v: View): Boolean {
-            if (!reorderEnabled && !selectEnabled) {
+            if (!reorderEnabled) {
                 sound?.let { sound ->
                     longClickAnimator?.start()
-                    soundViewModel.enableSelect()
-                    soundViewModel.select(sound)
-                    onIsSelectedChange(true)
+                    if (!selectEnabled) {
+                        // Select is not enabled; enable it
+                        soundViewModel.enableSelect()
+                    } else {
+                        // Select is enabled; if this sound is not selected, select it and all
+                        // between it and the last selected one (if any)
+                        if (!soundViewModel.isSelected(sound)) {
+                            selectAllInBetween(sound)
+                        }
+                    }
+                    select()
                 }
             }
             return true
@@ -330,7 +342,7 @@ class SoundAdapter(
         override fun onClick(view: View) {
             sound?.let { sound ->
                 when {
-                    selectEnabled -> onIsSelectedChange(soundViewModel.toggleSelected(sound))
+                    selectEnabled -> if (!soundViewModel.isSelected(sound)) select() else deselect()
                     players[sound]?.state == SoundPlayer.State.ERROR -> showErrorToast()
                     else -> players[sound]?.togglePlay()
                 }
@@ -388,10 +400,17 @@ class SoundAdapter(
             }
         }
 
-        override fun selectAllSounds() {
+        override fun select() {
             sound?.let { sound ->
                 soundViewModel.select(sound)
-                onIsSelectedChange(true)
+                binding.selectedIcon.visibility = View.VISIBLE
+            }
+        }
+
+        private fun deselect() {
+            sound?.let { sound ->
+                soundViewModel.deselect(sound)
+                binding.selectedIcon.visibility = View.INVISIBLE
             }
         }
 
@@ -408,4 +427,5 @@ class SoundAdapter(
         }
 
     }
+
 }

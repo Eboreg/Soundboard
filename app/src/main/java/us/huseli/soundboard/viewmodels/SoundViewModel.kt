@@ -79,36 +79,27 @@ class SoundViewModel : ViewModel() {
     /******* SOUND SELECTION *******/
     private val onSelectAllListeners = mutableListOf<OnSelectAllListener>()
     private val _selectEnabled = MutableLiveData(false)
-    private val _selectedSounds = mutableListOf<Sound>()
+    private val _selectedSounds = mutableSetOf<Sound>()
+    //private val _selectedSounds = mutableListOf<Sound>()
 
     val selectEnabled: LiveData<Boolean>
         get() = _selectEnabled
     val selectedSounds: List<Sound>
         get() = _selectedSounds.toList()
 
-    fun select(sound: Sound) {
-        if (!_selectedSounds.contains(sound)) _selectedSounds.add(sound)
-    }
+    fun select(sound: Sound) = _selectedSounds.add(sound)
 
-    fun toggleSelected(sound: Sound): Boolean {
-        /**
-         * Returns true if sound was selected, false if deselected!
-         */
-        return when (_selectedSounds.contains(sound)) {
-            true -> {
-                deselect(sound)
-                false
-            }
-            else -> {
-                select(sound)
-                true
-            }
-        }
-    }
-
-    private fun deselect(sound: Sound) {
+    fun deselect(sound: Sound) {
         _selectedSounds.remove(sound)
         if (_selectedSounds.size == 0) disableSelect()
+    }
+
+    fun getLastSelected(categoryId: Int, except: Sound): Sound? {
+        return try {
+            _selectedSounds.last { it.categoryId == categoryId && it != except }
+        } catch (e: NoSuchElementException) {
+            null
+        }
     }
 
     fun enableSelect() {
@@ -122,7 +113,7 @@ class SoundViewModel : ViewModel() {
     }
 
     fun selectAll() {
-        onSelectAllListeners.forEach { it.selectAllSounds() }
+        onSelectAllListeners.forEach { it.select() }
     }
 
     fun addOnSelectAllListener(listener: OnSelectAllListener) {
@@ -132,6 +123,8 @@ class SoundViewModel : ViewModel() {
     fun removeOnSelectAllListener(listener: OnSelectAllListener) {
         onSelectAllListeners.remove(listener)
     }
+
+    fun isSelected(sound: Sound) = _selectedSounds.contains(sound)
 
 
     /******* SOUND REORDERING *******/
@@ -144,7 +137,7 @@ class SoundViewModel : ViewModel() {
 
 
     interface OnSelectAllListener {
-        fun selectAllSounds()
+        fun select()
     }
 
 
