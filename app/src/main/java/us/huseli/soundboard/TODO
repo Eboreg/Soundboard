@@ -1,3 +1,6 @@
+Can we make sure volumespinner only starts once sound play has really started?
+
+
 What do we need DataBound*/LifeCycle* for? Could they be scrapped somwhere?
 
 

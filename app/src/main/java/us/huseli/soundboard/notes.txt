@@ -1,3 +1,32 @@
+previousList
+result = {Collections$UnmodifiableRandomAccessList@11655}  size = 90
+ 0 = {Sound@12086} "Sound 13841f7 <id=33, name=Hallon men karl! Hallon! 2, categoryId=1>"
+ 1 = {Sound@12404} "Sound 5178864 <id=43, name=It's A Challenge!, categoryId=1>"
+ 2 = {Sound@12405} "Sound 7ebbacd <id=34, name=Hallon men karl! Hallon!, categoryId=1>"
+ 3 = {Sound@12406} "Sound 9d72f82 <id=35, name=Hard driving rock, categoryId=1>"
+ 4 = {Sound@12407} "Sound 1a50693 <id=36, name=Hocus Pocus, categoryId=1>"
+ 5 = {Sound@12408} "Sound 3f6c6d0 <id=37, name=Homoloordi, categoryId=1>"
+ 6 = {Sound@12409} "Sound 58636c9 <id=38, name=Hory shiet, categoryId=1>"
+ 7 = {Sound@12410} "Sound 74cc1ce <id=39, name=I'm gay 1, categoryId=1>"
+ 8 = {Sound@12411} "Sound 20f78ef <id=40, name=I'm gay 2, categoryId=1>"
+ 9 = {Sound@12412} "Sound f497ffc <id=41, name=Icka Prick, categoryId=1>"
+ 10 = {Sound@12413} "Sound 327685 <id=42, name=In a Glass House, categoryId=1>"
+
+currentList
+result = {Collections$UnmodifiableRandomAccessList@12212}  size = 90
+ 0 = {Sound@12219} "Sound ca0cf9d <id=35, name=Hard driving rock, categoryId=1>"
+ 1 = {Sound@12220} "Sound 286c12 <id=33, name=Hallon men karl! Hallon! 2, categoryId=1>"
+ 2 = {Sound@12221} "Sound a0fafe3 <id=43, name=It's A Challenge!, categoryId=1>"
+ 3 = {Sound@12222} "Sound cd73de0 <id=34, name=Hallon men karl! Hallon!, categoryId=1>"
+ 4 = {Sound@12223} "Sound 7bfc899 <id=36, name=Hocus Pocus, categoryId=1>"
+ 5 = {Sound@12224} "Sound b1d375e <id=37, name=Homoloordi, categoryId=1>"
+ 6 = {Sound@12225} "Sound 303673f <id=38, name=Hory shiet, categoryId=1>"
+ 7 = {Sound@12226} "Sound ba2580c <id=39, name=I'm gay 1, categoryId=1>"
+ 8 = {Sound@12227} "Sound 3b5555 <id=40, name=I'm gay 2, categoryId=1>"
+ 9 = {Sound@12228} "Sound 2016b6a <id=41, name=Icka Prick, categoryId=1>"
+ 10 = {Sound@12229} "Sound 751385b <id=42, name=In a Glass House, categoryId=1>"
+
+
 2020-12-02 23:11:14.710 5834-5834 I/soundboard: CategoryListFragment: categoryListViewModel.categories changed: [Vinjetter, Korta favoriter, Sex, Göb, Kommunism, Mörkhyat, Default], recyclerView 37733690, sending to CategoryAdapter 135976427
 2020-12-02 23:11:15.901 5834-5834 I/DataBoundAdapter: onBindViewHolder: item=Sex, holder=CategoryAdapter.ViewHolder 96c75d6 <adapterPosition=2, category=null>, position=2, adapter=CategoryAdapter 81ad5eb
 2020-12-02 23:11:15.903 5834-5834 I/CategoryViewHolder: CategoryAdapter.bind: 135976427 ViewHolder 158102998 bind Category Sex (488103281)

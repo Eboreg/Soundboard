@@ -21,8 +21,8 @@ import androidx.recyclerview.widget.RecyclerView
 import us.huseli.soundboard.GlobalApplication
 import us.huseli.soundboard.R
 import us.huseli.soundboard.SoundPlayer
-import us.huseli.soundboard.adapters.common.DataBoundAdapter
-import us.huseli.soundboard.adapters.common.DataBoundViewHolder
+import us.huseli.soundboard.adapters.common.LifecycleAdapter
+import us.huseli.soundboard.adapters.common.LifecycleViewHolder
 import us.huseli.soundboard.animators.SoundItemLongClickAnimator
 import us.huseli.soundboard.data.DraggedSound
 import us.huseli.soundboard.data.Sound
@@ -37,10 +37,10 @@ class SoundAdapter(
         private val recyclerView: RecyclerView,
         private val soundViewModel: SoundViewModel,
         private val appViewModel: AppViewModel) :
-        DataBoundAdapter<Sound, SoundAdapter.SoundViewHolder, ItemSoundBinding>(DiffCallback()) {
+        LifecycleAdapter<Sound, SoundAdapter.SoundViewHolder>(DiffCallback()) {
     @Suppress("PrivatePropertyName")
     private val LOG_TAG = "SoundAdapter"
-    private val players = hashMapOf<Sound, SoundPlayer>()
+    private val players = hashMapOf<Int, SoundPlayer>()
 
     private var selectEnabled = false
 
@@ -90,27 +90,14 @@ class SoundAdapter(
     /**
      * Various implemented/overridden methods
      */
-    override fun bind(holder: SoundViewHolder, item: Sound, position: Int) {
-        categoryViewModel?.let { holder.bind(item, it) }
-                ?: run { Log.e(LOG_TAG, "bind: categoryViewModel is null") }
-    }
-
     override fun onCurrentListChanged(previousList: List<Sound>, currentList: List<Sound>) {
         // Get players for newly added sounds
-        currentList.subtract(previousList).forEach { players[it] = soundViewModel.getPlayer(it, recyclerView.context) }
+        currentList.subtract(previousList).forEach {
+            it.id?.let { soundId -> players[soundId] = soundViewModel.getPlayer(it, recyclerView.context) }
+        }
         // Remove references to players for sounds no longer present
-        previousList.subtract(currentList).forEach { players.remove(it) }
+        previousList.subtract(currentList).forEach { players.remove(it.id) }
     }
-
-    override fun createBinding(parent: ViewGroup, viewType: Int): ItemSoundBinding {
-        return ItemSoundBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-    }
-
-    override fun createViewHolder(binding: ItemSoundBinding, parent: ViewGroup): SoundViewHolder {
-        return SoundViewHolder(binding, parent.context)
-    }
-
-    override fun getItemById(id: Int) = currentList.find { it.id == id }
 
     override fun getItemId(position: Int): Long {
         try {
@@ -119,6 +106,22 @@ class SoundAdapter(
             Log.e(LOG_TAG, "Sound at $position (${currentList[position]}) has null id")
             throw e
         }
+    }
+
+    override fun onBindViewHolder(holder: SoundViewHolder, position: Int) {
+        val item = getItem(position)
+        Log.i(LOG_TAG, "onBindViewHolder: item=$item, holder=$holder, position=$position, adapter=$this")
+        categoryViewModel?.let { holder.bind(item, it) }
+                ?: run { Log.e(LOG_TAG, "onBindViewHolder: categoryViewModel is null") }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SoundViewHolder {
+        val binding = ItemSoundBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val holder = SoundViewHolder(binding, parent.context)
+        Log.i(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
+        binding.lifecycleOwner = holder
+
+        return holder
     }
 
     override fun toString(): String {
@@ -237,13 +240,13 @@ class SoundAdapter(
 
 
     @SuppressLint("ClickableViewAccessibility")
-    inner class SoundViewHolder(override val binding: ItemSoundBinding, private val context: Context) :
-            DataBoundViewHolder<ItemSoundBinding, Sound>(binding),
+    inner class SoundViewHolder(val binding: ItemSoundBinding, private val context: Context) :
             View.OnClickListener,
             View.OnLongClickListener,
             View.OnTouchListener,
             SoundPlayer.OnStateChangeListener,
-            SoundViewModel.OnSelectAllListener {
+            SoundViewModel.OnSelectAllListener,
+            LifecycleViewHolder(binding.root) {
         @Suppress("PrivatePropertyName")
         private val LOG_TAG = "SoundViewHolder"
 
@@ -273,7 +276,7 @@ class SoundAdapter(
 
             binding.categoryViewModel = categoryViewModel
 
-            players[sound]?.also { player ->
+            players[sound.id]?.also { player ->
                 if (player.noPermission) soundViewModel.addFailedSound(sound)
                 else {
                     player.setOnStateChangeListener(this)
@@ -354,8 +357,8 @@ class SoundAdapter(
             sound?.let { sound ->
                 when {
                     selectEnabled -> if (!soundViewModel.isSelected(sound)) select() else deselect()
-                    players[sound]?.state == SoundPlayer.State.ERROR -> showErrorToast()
-                    else -> players[sound]?.togglePlay()
+                    players[sound.id]?.state == SoundPlayer.State.ERROR -> showErrorToast()
+                    else -> players[sound.id]?.togglePlay()
                 }
                 clickAnimator.start()
             }
@@ -430,7 +433,7 @@ class SoundAdapter(
             return "SoundAdapter.ViewHolder $hashCode <adapterPosition=$adapterPosition, sound=$sound>"
         }
 
-        private fun showErrorToast() = Toast.makeText(context, players[sound]?.errorMessage, Toast.LENGTH_SHORT).show()
+        private fun showErrorToast() = Toast.makeText(context, players[sound?.id]?.errorMessage, Toast.LENGTH_SHORT).show()
 
         override fun markDestroyed() {
             soundViewModel.removeOnSelectAllListener(this)
