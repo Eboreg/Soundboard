@@ -42,6 +42,8 @@ class SoundAdapter(
     private val LOG_TAG = "SoundAdapter"
     private val players = hashMapOf<Sound, SoundPlayer>()
 
+    private var selectEnabled = false
+
     var categoryViewModel: CategoryViewModel? = null
 
     init {
@@ -124,11 +126,29 @@ class SoundAdapter(
         return "SoundAdapter $hashCode <currentList=$currentList>"
     }
 
+    /**
+     * Own public methods
+     */
     fun collapseCategory() = categoryViewModel?.collapse()
 
     fun containsSound(sound: Sound) = currentList.indexOf(sound) > -1
 
     fun expandCategory() = categoryViewModel?.expand()
+
+    fun getAdapterPositionUnder(x: Float, y: Float): Int {
+        recyclerView.findChildViewUnder(x, y)?.let { view ->
+            (recyclerView.findContainingViewHolder(view) as? SoundViewHolder)?.let { viewHolder ->
+                /**
+                 * view spans horizontally from view.x to (view.x + view.width)
+                 * If we are over view's first half, return view position
+                 * If we are over view's second half, return view position + 1
+                 */
+                val middleX = view.x + (view.width / 2)
+                return if (x <= middleX) viewHolder.adapterPosition else viewHolder.adapterPosition + 1
+            }
+        }
+        return currentList.size
+    }
 
     fun insertOrMoveSound(sound: Sound, toPosition: Int) {
         val fromPosition = currentList.indexOf(currentList.filterIsInstance<Sound>().find { it.id == sound.id })
@@ -148,6 +168,8 @@ class SoundAdapter(
         categoryViewModel?.let { soundViewModel.update(sounds, it.categoryId) }
     }
 
+    fun isEmpty() = currentList.isEmpty()
+
     fun markSoundsForDrop(adapterPosition: Int) {
         /**
          * adapterPosition = position we would move to, were we to drop right now
@@ -164,7 +186,9 @@ class SoundAdapter(
         if (adapterPosition < currentList.size) (recyclerView.findViewHolderForAdapterPosition(adapterPosition) as SoundViewHolder).binding.dropMarkerBefore.visibility = View.VISIBLE
     }
 
-    fun isEmpty() = currentList.isEmpty()
+    fun onSelectEnabledChange(value: Boolean) {
+        selectEnabled = value
+    }
 
     fun removeMarksForDrop() {
         for (i in 0..recyclerView.childCount) {
@@ -183,21 +207,9 @@ class SoundAdapter(
         recyclerView.getChildAt(position)?.let { view -> view.visibility = View.VISIBLE }
     }
 
-    fun getAdapterPositionUnder(x: Float, y: Float): Int {
-        recyclerView.findChildViewUnder(x, y)?.let { view ->
-            (recyclerView.findContainingViewHolder(view) as? SoundViewHolder)?.let { viewHolder ->
-                /**
-                 * view spans horizontally from view.x to (view.x + view.width)
-                 * If we are over view's first half, return view position
-                 * If we are over view's second half, return view position + 1
-                 */
-                val middleX = view.x + (view.width / 2)
-                return if (x <= middleX) viewHolder.adapterPosition else viewHolder.adapterPosition + 1
-            }
-        }
-        return currentList.size
-    }
-
+    /**
+     * Private methods
+     */
     private fun selectAllInBetween(sound: Sound) {
         // Select all sound between `sound` and last selected one (if any).
         categoryViewModel?.categoryId?.let { categoryId ->
@@ -242,7 +254,6 @@ class SoundAdapter(
         private var longClickAnimator: SoundItemLongClickAnimator? = null
         private var playerTimer: SoundPlayerTimer? = null
         private var reorderEnabled = false
-        private var selectEnabled = false
         private var sound: Sound? = null
 
         override val lifecycleRegistry = LifecycleRegistry(this)
@@ -299,8 +310,8 @@ class SoundAdapter(
         }
 
         private fun onSelectEnabledChange(value: Boolean) {
-            selectEnabled = value
-            if (!value) binding.selectedIcon.visibility = View.INVISIBLE
+            if (value && soundViewModel.selectedSounds.contains(sound)) binding.selectedIcon.visibility = View.VISIBLE
+            else if (!value) binding.selectedIcon.visibility = View.INVISIBLE
         }
 
         private fun onReorderEnabledChange(value: Boolean) {

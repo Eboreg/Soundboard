@@ -38,11 +38,9 @@ class CategoryAdapter(
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 200) }
     internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
 
-    override fun createBinding(parent: ViewGroup, viewType: Int) =
-            ItemCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-
-    override fun createViewHolder(binding: ItemCategoryBinding, parent: ViewGroup) = CategoryViewHolder(binding)
-
+    /**
+     * Overridden methods
+     */
     @SuppressLint("ClickableViewAccessibility")
     override fun bind(holder: CategoryViewHolder, item: Category, position: Int) {
         holder.binding.categoryMoveButton.setOnTouchListener { _, motionEvent ->
@@ -52,6 +50,11 @@ class CategoryAdapter(
         holder.bind(item)
     }
 
+    override fun createBinding(parent: ViewGroup, viewType: Int) =
+            ItemCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+
+    override fun createViewHolder(binding: ItemCategoryBinding, parent: ViewGroup) = CategoryViewHolder(binding)
+
     override fun getItemById(id: Int) = currentList.find { it.id == id }
 
     override fun toString(): String {
@@ -59,6 +62,9 @@ class CategoryAdapter(
         return "CategoryAdapter $hashCode"
     }
 
+    /**
+     * Own methods
+     */
     fun onItemsReordered() {
         currentList.forEachIndexed { index, item -> item.order = index }
         categoryListViewModel.saveOrder(currentList)
@@ -154,6 +160,8 @@ class CategoryAdapter(
                 }
                 soundAdapter.submitList(sounds)
             }
+
+            soundViewModel.selectEnabled.observe(this) { soundAdapter.onSelectEnabledChange(it) }
         }
 
         @Suppress("unused")

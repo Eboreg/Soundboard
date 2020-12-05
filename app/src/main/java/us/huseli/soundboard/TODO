@@ -1,4 +1,4 @@
-On config change, selected sounds are remembered but are not visually selected
+What do we need DataBound*/LifeCycle* for? Could they be scrapped somwhere?
 
 
 Check for usages of adapterPosition/layoutPosition and correct according to

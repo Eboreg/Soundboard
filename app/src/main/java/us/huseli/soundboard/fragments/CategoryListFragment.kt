@@ -37,13 +37,36 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
         appViewModel.spanCountLandscape.observe(viewLifecycleOwner) { preferences.edit {
             putInt("landscapeSpanCount", it)
             apply()
-        }}
+        }
+        }
 
         binding = FragmentCategoryListBinding.inflate(inflater, container, false)
         return binding?.let { binding ->
             binding.lifecycleOwner = viewLifecycleOwner
             binding.root
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
+        categoryAdapter?.setLifecycleDestroyed()
+        categoryAdapter = null
+    }
+
+    override fun onTouch(view: View?, event: MotionEvent?): Boolean {
+        // Seems like we have to do this here and not in MainActivity, because otherwise
+        // RecyclerView consumes the touch events and they never reach MainActivity.onTouch()
+        when (event?.actionMasked) {
+            MotionEvent.ACTION_UP -> {
+                view?.performClick()
+                return false
+            }
+            MotionEvent.ACTION_MOVE -> {
+                if (event.pointerCount == 1) return false
+            }
+        }
+        return scaleGestureDetector.onTouchEvent(event)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -80,28 +103,6 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
                 Log.e(LOG_TAG, "onViewCreated: binding is null")
             }
         }
-    }
-
-    override fun onTouch(view: View?, event: MotionEvent?): Boolean {
-        // Seems like we have to do this here and not in MainActivity, because otherwise
-        // RecyclerView consumes the touch events and they never reach MainActivity.onTouch()
-        when (event?.actionMasked) {
-            MotionEvent.ACTION_UP -> {
-                view?.performClick()
-                return false
-            }
-            MotionEvent.ACTION_MOVE -> {
-                if (event.pointerCount == 1) return false
-            }
-        }
-        return scaleGestureDetector.onTouchEvent(event)
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        binding = null
-        categoryAdapter?.setLifecycleDestroyed()
-        categoryAdapter = null
     }
 
 
