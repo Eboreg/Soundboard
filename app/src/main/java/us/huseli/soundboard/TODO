@@ -1,4 +1,7 @@
-Can we make sure volumespinner only starts once sound play has really started?
+On sound move, the viewholder still belongs to the old adapter?
+1. Move sound
+2. Click it
+3. In onClick, this@SoundAdapter is still the old adapter
 
 
 What do we need DataBound*/LifeCycle* for? Could they be scrapped somwhere?

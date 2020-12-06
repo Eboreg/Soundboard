@@ -3,6 +3,7 @@ package us.huseli.soundboard
 import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Build
 import kotlinx.coroutines.*
 import kotlin.math.pow
 
@@ -41,6 +42,12 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
                 _errorMessage = if (e.cause != null) e.cause.toString() else e.toString()
                 changeState(State.ERROR)
             }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                mediaPlayer.setOnMediaTimeDiscontinuityListener { _, mts ->
+                    if (mts.mediaClockRate > 0.0) changeState(State.PLAYING)
+                }
+            }
         }
     }
 
@@ -48,7 +55,7 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
         _duration = mp.duration
         setVolume(volume)
         mp.setOnCompletionListener {
-            changeState(State.READY)
+            if (!isPlaying()) changeState(State.READY)
             mediaPlayer.seekTo(0)
         }
         changeState(State.READY)
@@ -67,12 +74,11 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
         return true
     }
 
+    private fun isPlaying() = mediaPlayer.isPlaying || tempMediaPlayers.any { it.isPlaying }
+
     private fun changeState(state: State) {
-        // if (state != State.READY || tempMediaPlayers.size == 0) {
-        if (tempMediaPlayers.size == 0) {
-            _state = state
-            onStateChangeListener?.onSoundPlayerStateChange(this, state)
-        }
+        _state = state
+        onStateChangeListener?.onSoundPlayerStateChange(this, state)
     }
 
     fun togglePlay() {
@@ -80,18 +86,18 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
             when (repressMode) {
                 RepressMode.STOP -> {
                     mediaPlayer.pause()
-                    tempMediaPlayers.forEach { it.pause() }
-                    tempMediaPlayers.clear()
+                    stopAndClearTempPlayers()
                     changeState(State.STOPPED)
                     mediaPlayer.seekTo(0)
                 }
                 RepressMode.RESTART -> {
-                    mediaPlayer.pause()
                     mediaPlayer.seekTo(0)
-                    mediaPlayer.start()
-                    tempMediaPlayers.forEach { it.pause() }
-                    tempMediaPlayers.clear()
-                    changeState(State.PLAYING)
+                    stopAndClearTempPlayers()
+                    //changeState(State.PLAYING)
+                    // TODO: Maybe remove, experimenting with "discontinuity listener"
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                        changeState(State.PLAYING)
+                    }
                 }
                 RepressMode.OVERLAP -> {
                     // TODO: adjust volumes?
@@ -101,8 +107,9 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
                         start()
                         tempMediaPlayers.add(this)
                         setOnCompletionListener {
+                            release()
                             tempMediaPlayers.remove(this)
-                            changeState(State.READY)
+                            if (!this@SoundPlayer.isPlaying()) changeState(State.READY)
                         }
                         changeState(State.PLAYING)
                     }
@@ -110,8 +117,20 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
             }
         } else {
             mediaPlayer.start()
-            changeState(State.PLAYING)
+            //changeState(State.PLAYING)
+            // TODO: Maybe remove, experimenting with "discontinuity listener"
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                changeState(State.PLAYING)
+            }
         }
+    }
+
+    private fun stopAndClearTempPlayers() {
+        tempMediaPlayers.forEach {
+            it.stop()
+            it.release()
+        }
+        tempMediaPlayers.clear()
     }
 
     fun setVolume(value: Int) {
