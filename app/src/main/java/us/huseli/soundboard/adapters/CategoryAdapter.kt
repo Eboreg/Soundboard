@@ -55,7 +55,7 @@ class CategoryAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
         val binding = ItemCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        val holder = CategoryViewHolder(binding)
+        val holder = CategoryViewHolder(binding, this)
         Log.i(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
         binding.lifecycleOwner = holder
 
@@ -91,16 +91,21 @@ class CategoryAdapter(
      * Represents one individual category with its sound list.
      * Layout: item_category.xml, see this file for binding
      */
-    inner class CategoryViewHolder(internal val binding: ItemCategoryBinding) :
+    class CategoryViewHolder(internal val binding: ItemCategoryBinding, private val adapter: CategoryAdapter) :
             View.OnClickListener,
             AppViewModelListenerInterface,
             LifecycleViewHolder(binding.root) {
         @Suppress("PrivatePropertyName")
         private val LOG_TAG = "CategoryViewHolder"
 
+        private val appViewModel = adapter.appViewModel
         private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
+        private val initialSpanCount = adapter.initialSpanCount
         private val soundAdapter: SoundAdapter
         private val soundDragListener: SoundDragListener
+        private val soundViewModel = adapter.soundViewModel
+        private val soundViewPool = adapter.soundViewPool
+        private val viewModelStoreOwner = adapter.viewModelStoreOwner
 
         private var category: Category? = null
         private var soundCount: Int? = null
@@ -117,7 +122,7 @@ class CategoryAdapter(
             binding.root.setOnDragListener(soundDragListener)
 
             binding.soundList.apply {
-                adapter = soundAdapter
+                this.adapter = soundAdapter
                 layoutManager = GridLayoutManager(context, initialSpanCount).also { lm ->
                     appViewModel.spanCount.observe(this@CategoryViewHolder) { lm.spanCount = it }
                 }
@@ -128,7 +133,7 @@ class CategoryAdapter(
         }
 
         fun bind(category: Category) {
-            Log.i(LOG_TAG, "ViewHolder.bind: ${this@CategoryAdapter.hashCode()} ViewHolder ${hashCode()} " +
+            Log.i(LOG_TAG, "ViewHolder.bind: ${adapter.hashCode()} ViewHolder ${hashCode()} " +
                     "bind Category ${category.name} (${category.hashCode()})")
 
             this.category = category
@@ -153,7 +158,7 @@ class CategoryAdapter(
             }
 
             soundViewModel.getByCategory(category.id).observe(this) { sounds ->
-                Log.i(LOG_TAG, "ViewHolder sound list observer: adapter=${this@CategoryAdapter}, viewHolder=$this, category=$category, sounds=$sounds")
+                Log.i(LOG_TAG, "ViewHolder sound list observer: adapter=$adapter, viewHolder=$this, category=$category, sounds=$sounds")
 
                 // TODO: Remove test call + method when not needed
                 // submitListWithInvalidSound(sounds)
