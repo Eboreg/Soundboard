@@ -278,13 +278,15 @@ class SoundAdapter(
             }
 
             categoryViewModel.backgroundColor.observe(this) { color ->
-                longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
-                binding.volumeBar.progressDrawable.alpha = 150
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    binding.volumeBar.progressTintMode = PorterDuff.Mode.OVERLAY
-                    binding.volumeBar.progressTintList =
-                            if (GlobalApplication.application.getColorHelper().getLuminance(color) >= 0.6) ColorStateList.valueOf(Color.BLACK)
-                            else ColorStateList.valueOf(Color.WHITE)
+                if (color != null) {
+                    longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
+                    binding.volumeBar.progressDrawable.alpha = 150
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        binding.volumeBar.progressTintMode = PorterDuff.Mode.OVERLAY
+                        binding.volumeBar.progressTintList =
+                                if (GlobalApplication.application.getColorHelper().getLuminance(color) >= 0.6) ColorStateList.valueOf(Color.BLACK)
+                                else ColorStateList.valueOf(Color.WHITE)
+                    }
                 }
             }
 

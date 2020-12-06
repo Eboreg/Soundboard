@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 class CategoryEditViewModel(categoryId: Int) : BaseCategoryEditViewModel() {
     private val category = repository.get(categoryId)
     private val _newBackgroundColor = MutableLiveData<Int>()
-    private val _originalBackgroundColor = category.map { it.backgroundColor }
+    private val _originalBackgroundColor = category.map { it?.backgroundColor }
     private val _backgroundColor = MediatorLiveData<Int>()
 
     init {
@@ -15,7 +15,7 @@ class CategoryEditViewModel(categoryId: Int) : BaseCategoryEditViewModel() {
         _backgroundColor.addSource(_newBackgroundColor) { _backgroundColor.value = it }
     }
 
-    override var name = category.map { it.name }
+    override var name: LiveData<String?> = category.map { it?.name }
     override val backgroundColor: LiveData<Int>
         get() = _backgroundColor
 

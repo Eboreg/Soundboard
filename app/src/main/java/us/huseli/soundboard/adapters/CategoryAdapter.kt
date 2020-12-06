@@ -150,7 +150,9 @@ class CategoryAdapter(
             binding.categoryViewModel = categoryViewModel
             soundAdapter.categoryViewModel = categoryViewModel
 
-            categoryViewModel.backgroundColor.observe(this) { color -> binding.categoryHeader.setBackgroundColor(color) }
+            categoryViewModel.backgroundColor.observe(this) { color ->
+                if (color != null) binding.categoryHeader.setBackgroundColor(color)
+            }
             categoryViewModel.collapsed.observe(this) { collapsed ->
                 if (!soundDragListener.isDragging) soundDragListener.wasCollapsed = collapsed
                 collapseButtonAnimator.animate(collapsed)

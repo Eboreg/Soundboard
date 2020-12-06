@@ -14,10 +14,12 @@ class CategoryViewModel(val categoryId: Int) : ViewModel() {
     private val repository = CategoryRepository(database.categoryDao())
     private val _category = repository.get(categoryId)
 
-    val name = _category.map { it.name }
-    val backgroundColor = _category.map { it.backgroundColor }
-    val textColor = backgroundColor.map { bgc -> GlobalApplication.application.getColorHelper().getTextColorForBackgroundColor(bgc) }
-    val collapsed = _category.map { it.collapsed }
+    val name = _category.map { it?.name }
+    val backgroundColor = _category.map { it?.backgroundColor }
+    val textColor = backgroundColor.map { bgc ->
+        if (bgc != null) GlobalApplication.application.getColorHelper().getTextColorForBackgroundColor(bgc) else null
+    }
+    val collapsed = _category.map { it?.collapsed ?: false }
 
     private fun setCollapsed(value: Boolean) {
         if (collapsed.value != value) {

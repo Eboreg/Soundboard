@@ -8,11 +8,13 @@ import android.widget.ImageView
 import androidx.databinding.BindingAdapter
 
 @BindingAdapter("drawableColor")
-fun setDrawableColor(view: ImageView, color: Int) {
-    when (view.drawable) {
-        is GradientDrawable -> (view.drawable as GradientDrawable).setColor(color)
-        // <Lollipop compatible version of setTint(color):
-        else -> (view.drawable as Drawable).colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+fun setDrawableColor(view: ImageView, color: Int?) {
+    if (color != null) {
+        when (view.drawable) {
+            is GradientDrawable -> (view.drawable as GradientDrawable).setColor(color)
+            // <Lollipop compatible version of setTint(color):
+            else -> (view.drawable as Drawable).colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+        }
     }
 }
 

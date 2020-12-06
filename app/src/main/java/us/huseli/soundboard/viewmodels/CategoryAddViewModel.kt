@@ -21,7 +21,7 @@ class CategoryAddViewModel : BaseCategoryEditViewModel() {
 
     override val backgroundColor: LiveData<Int>
         get() = _backgroundColor
-    override val name: LiveData<String>
+    override val name: LiveData<String?>
         get() = _name
 
     override fun setName(value: String) {
