@@ -2,10 +2,6 @@ In some instance, when creating categories and moving sounds around, an empty ca
 populated with another category's sounds
 
 
-Sometimes when clicking expand/collapse category, other categories' expand icons "flicker" too.
-Or maybe always!
-
-
 Run release() on MediaPlayer objects at some point (research activity/app lifecycle to decide when)
 Or just let GC take care of it?
 

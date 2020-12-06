@@ -108,6 +108,7 @@ class CategoryAdapter(
         private val viewModelStoreOwner = adapter.viewModelStoreOwner
 
         private var category: Category? = null
+        private var isCollapsed: Boolean? = null
         private var soundCount: Int? = null
 
         override val lifecycleRegistry = LifecycleRegistry(this)
@@ -154,9 +155,13 @@ class CategoryAdapter(
                 if (color != null) binding.categoryHeader.setBackgroundColor(color)
             }
             categoryViewModel.collapsed.observe(this) { collapsed ->
-                if (!soundDragListener.isDragging) soundDragListener.wasCollapsed = collapsed
-                collapseButtonAnimator.animate(collapsed)
-                binding.soundList.visibility = if (collapsed) View.GONE else View.VISIBLE
+                // Without this if, unnecessary animations are triggered on all categories?!
+                if (collapsed != isCollapsed) {
+                    if (!soundDragListener.isDragging) soundDragListener.wasCollapsed = collapsed
+                    collapseButtonAnimator.animate(collapsed)
+                    binding.soundList.visibility = if (collapsed) View.GONE else View.VISIBLE
+                    isCollapsed = collapsed
+                }
             }
 
             soundViewModel.getByCategory(category.id).observe(this) { sounds ->
