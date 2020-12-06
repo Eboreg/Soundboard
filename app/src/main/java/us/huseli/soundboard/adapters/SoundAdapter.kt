@@ -107,7 +107,7 @@ class SoundAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SoundViewHolder {
         val binding = ItemSoundBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        val holder = SoundViewHolder(binding, parent.context)
+        val holder = SoundViewHolder(binding, parent.context, this)
         Log.i(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
         binding.lifecycleOwner = holder
 
@@ -144,7 +144,7 @@ class SoundAdapter(
     }
 
     fun insertOrMoveSound(sound: Sound, toPosition: Int) {
-        val fromPosition = currentList.indexOf(currentList.filterIsInstance<Sound>().find { it.id == sound.id })
+        val fromPosition = currentList.indexOf(sound)
         val sounds = currentList.toMutableList()
 
         Log.i(LOG_TAG, "insertOrMoveSound: fromPosition=$fromPosition, toPosition=$toPosition, sound=$sound, this=$this, sounds=$sounds")
@@ -230,7 +230,7 @@ class SoundAdapter(
 
 
     @SuppressLint("ClickableViewAccessibility")
-    inner class SoundViewHolder(val binding: ItemSoundBinding, private val context: Context) :
+    class SoundViewHolder(val binding: ItemSoundBinding, private val context: Context, private val adapter: SoundAdapter) :
             View.OnClickListener,
             View.OnLongClickListener,
             View.OnTouchListener,
@@ -240,9 +240,12 @@ class SoundAdapter(
         @Suppress("PrivatePropertyName")
         private val LOG_TAG = "SoundViewHolder"
 
+        private val appViewModel = adapter.appViewModel
         private val clickAnimator = (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
             setTarget(binding.soundCard)
         }
+        private val recyclerView = adapter.recyclerView
+        private val soundViewModel = adapter.soundViewModel
 
         private var longClickAnimator: SoundItemLongClickAnimator? = null
         private var playerTimer: SoundPlayerTimer? = null
@@ -259,7 +262,7 @@ class SoundAdapter(
         }
 
         fun bind(sound: Sound, categoryViewModel: CategoryViewModel) {
-            Log.i(LOG_TAG, "bind: sound=$sound ----- adapter=${this@SoundAdapter} ----- viewHolder=$this ----- categoryViewModel=${this@SoundAdapter.categoryViewModel}")
+            Log.i(LOG_TAG, "bind: sound=$sound ----- adapter=$adapter ----- viewHolder=$this ----- categoryViewModel=${adapter.categoryViewModel}")
 
             this.sound = sound
             binding.sound = sound
@@ -274,7 +277,7 @@ class SoundAdapter(
                 }
             }
 
-            this@SoundAdapter.categoryViewModel?.backgroundColor?.observe(this) { color ->
+            categoryViewModel.backgroundColor.observe(this) { color ->
                 longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
                 binding.volumeBar.progressDrawable.alpha = 150
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -326,14 +329,14 @@ class SoundAdapter(
             if (!reorderEnabled) {
                 sound?.let { sound ->
                     longClickAnimator?.start()
-                    if (!selectEnabled) {
+                    if (!adapter.selectEnabled) {
                         // Select is not enabled; enable it
                         soundViewModel.enableSelect()
                     } else {
                         // Select is enabled; if this sound is not selected, select it and all
                         // between it and the last selected one (if any)
                         if (!soundViewModel.isSelected(sound)) {
-                            selectAllInBetween(sound)
+                            adapter.selectAllInBetween(sound)
                         }
                     }
                     select()
@@ -346,7 +349,7 @@ class SoundAdapter(
             sound?.let { sound ->
                 val player = soundViewModel.getPlayer(sound, recyclerView.context)
                 when {
-                    selectEnabled -> if (!soundViewModel.isSelected(sound)) select() else deselect()
+                    adapter.selectEnabled -> if (!soundViewModel.isSelected(sound)) select() else deselect()
                     player.state == SoundPlayer.State.ERROR -> showErrorToast()
                     else -> player.togglePlay()
                 }

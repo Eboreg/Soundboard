@@ -153,6 +153,6 @@ class SoundDragListener(private val soundAdapter: SoundAdapter, private val cate
 
 
     companion object {
-        const val LOG_TAG = "SoundDragListener2"
+        const val LOG_TAG = "SoundDragListener"
     }
 }

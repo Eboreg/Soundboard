@@ -1,7 +1,23 @@
+Run release() on MediaPlayer objects at some point (research activity/app lifecycle to decide when)
+Or just let GC take care of it?
+
+
 On sound move, the viewholder still belongs to the old adapter?
 1. Move sound
 2. Click it
 3. In onClick, this@SoundAdapter is still the old adapter
+Sound changed fore- & background colours after move, but not the volumeBar colours
+Also, after some other action (edit sound?), it reverted to old category's colours!
+Where/when does sound view get those colours?
+- item_sound gets categoryViewModel.backgroundColor & textcolor
+- item_sound.categoryViewModel is set in SoundViewHolder.bind() with the categoryViewModel argument
+    which is sent by SoundAdapter.onBindViewHolder()
+- item_sound.volumeBar colour is also set in SoundViewHolder.bind(), though not from the
+    categoryViewModel argument, but from this@SoundAdapter.categoryViewModel!
+- So clearly, when bind() is called, viewholder still "belongs" to the old adapter somehow?
+- OR: this@SoundAdapter.categoryViewModel?.backgroundColor?.observe is run twice after move, once
+    for the old adapter and once for the new, because the old observation is never cancelled?
+
 
 
 What do we need DataBound*/LifeCycle* for? Could they be scrapped somwhere?
