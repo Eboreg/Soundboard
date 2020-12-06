@@ -135,27 +135,14 @@ class MainActivity :
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
-        // setContentView(R.layout.activity_main)
         setContentView(binding.root)
 
         setSupportActionBar(binding.actionbar.actionbarToolbar)
-        //setSupportActionBar(binding.actionbarToolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
         setupEasterEggClickListener()
 
         setupBottomBar()
-        appViewModel.repressMode.observe(this) {
-            if (repressMode != null) {
-                binding.bottombar?.bottombarToolbar?.menu?.findItem(R.id.action_set_repress_mode)?.icon = when (it) {
-                    SoundPlayer.RepressMode.OVERLAP -> ResourcesCompat.getDrawable(resources, R.drawable.ic_repress_overlap, theme)
-                    SoundPlayer.RepressMode.RESTART -> ResourcesCompat.getDrawable(resources, R.drawable.ic_repress_restart, theme)
-                    SoundPlayer.RepressMode.STOP -> ResourcesCompat.getDrawable(resources, R.drawable.ic_repress_stop, theme)
-                }
-                showToast(getString(R.string.on_repress, it))
-            }
-            repressMode = it
-        }
 
         soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
 
@@ -176,6 +163,7 @@ class MainActivity :
         // This has to be done here, because the callback requires the menu to exist
         soundViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
         appViewModel.zoomInPossible.observe(this) { onZoomInPossibleChange(it) }
+        appViewModel.repressMode.observe(this) { onRepressModeChange(it) }
         return true
     }
 
@@ -188,6 +176,7 @@ class MainActivity :
             R.id.action_zoom_in -> zoomIn()
             R.id.action_zoom_out -> zoomOut()
             R.id.action_add_category -> showAddCategoryFragment()
+            R.id.action_set_repress_mode -> appViewModel.cycleRepressMode()
             // R.id.action_reinit_failed_sounds -> reinitFailedSounds()
         }
         return true
@@ -212,7 +201,6 @@ class MainActivity :
      */
     override fun onReorderEnabledChange(value: Boolean) {
         val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_reorder)
-        //val item = binding.actionbarToolbar.menu?.findItem(R.id.action_toggle_reorder)
         if (value) {
             if (reorderEnabled != null) showToast(R.string.reordering_enabled)
             item?.icon?.alpha = 204
@@ -255,6 +243,18 @@ class MainActivity :
     /**
      * Own methods
      */
+    private fun onRepressModeChange(mode: SoundPlayer.RepressMode) {
+        val icon = when (mode) {
+            SoundPlayer.RepressMode.OVERLAP -> ResourcesCompat.getDrawable(resources, R.drawable.ic_repress_overlap, theme)
+            SoundPlayer.RepressMode.RESTART -> ResourcesCompat.getDrawable(resources, R.drawable.ic_repress_restart, theme)
+            SoundPlayer.RepressMode.STOP -> ResourcesCompat.getDrawable(resources, R.drawable.ic_repress_stop, theme)
+        }
+        binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_set_repress_mode)?.icon = icon
+        binding.bottombar?.bottombarToolbar?.menu?.findItem(R.id.action_set_repress_mode)?.icon = icon
+        if (this.repressMode != null) showToast(getString(R.string.on_repress, mode))
+        this.repressMode = mode
+    }
+
     private fun onZoomInPossibleChange(value: Boolean) {
         binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_zoom_in)?.apply {
             isEnabled = value
@@ -290,23 +290,13 @@ class MainActivity :
 
     private fun setupBottomBar() {
         //binding.bottombar.bottombarToolbar.inflateMenu(R.menu.bottom_menu)
-        binding.bottombar?.bottombarToolbar?.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.action_set_repress_mode -> appViewModel.cycleRepressMode()
-                R.id.action_add_category -> showAddCategoryFragment()
-                R.id.action_zoom_in -> zoomIn()
-                R.id.action_zoom_out -> zoomOut()
-            }
-            true
-        }
+        binding.bottombar?.bottombarToolbar?.setOnMenuItemClickListener { onOptionsItemSelected(it) }
     }
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setupEasterEggClickListener() {
         binding.actionbar.actionbarLogo.isClickable = true
         binding.actionbar.actionbarLogo.setOnTouchListener { _, event ->
-            //binding.actionbarLogo.isClickable = true
-            //binding.actionbarLogo.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN) actionbarLogoTouchTimes.add(event.eventTime)
             Log.d(LOG_TAG, actionbarLogoTouchTimes.toString())
             if (actionbarLogoTouchTimes.size == 3) {
