@@ -6,7 +6,7 @@ import android.widget.ProgressBar
 import kotlin.math.roundToInt
 
 class SoundPlayerTimer(val duration: Int, private val progressBar: ProgressBar, private val originalProgress: Int) :
-        CountDownTimer(duration.toLong(), 100) {
+        CountDownTimer(duration.toLong(), 50) {
     private fun toPercentage(millisUntilFinished: Long) =
             (((duration - millisUntilFinished).toDouble() / duration) * 100).roundToInt()
 
