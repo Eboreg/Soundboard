@@ -230,7 +230,7 @@ class SoundAdapter(
 
 
     @SuppressLint("ClickableViewAccessibility")
-    class SoundViewHolder(val binding: ItemSoundBinding, private val context: Context, private val adapter: SoundAdapter) :
+    class SoundViewHolder(internal val binding: ItemSoundBinding, private val context: Context, private val adapter: SoundAdapter) :
             View.OnClickListener,
             View.OnLongClickListener,
             View.OnTouchListener,

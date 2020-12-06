@@ -77,6 +77,10 @@ data class Sound(
         return 0
     }
 
+    override fun hashCode(): Int {
+        return id ?: 0
+    }
+
     companion object CREATOR : Parcelable.Creator<Sound> {
         override fun createFromParcel(parcel: Parcel) = Sound(parcel)
 

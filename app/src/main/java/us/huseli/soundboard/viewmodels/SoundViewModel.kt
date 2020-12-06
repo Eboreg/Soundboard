@@ -28,8 +28,6 @@ class SoundViewModel : ViewModel() {
 
     fun getByCategory(categoryId: Int?) = repository.getByCategory(categoryId)
 
-    fun addFailedSound(sound: Sound) = _failedSounds.add(sound)
-
     fun replaceSound(soundId: Int, sound: Sound, context: Context) {
         _failedSounds.find { it.id == soundId }?.let { oldSound ->
             sound.id = soundId
@@ -57,11 +55,8 @@ class SoundViewModel : ViewModel() {
 
     fun getPlayer(sound: Sound, context: Context): SoundPlayer {
         return getPlayer(sound) ?: SoundPlayer(context, sound.uri, sound.volume).also {
-            if (it.noPermission) addFailedSound(sound)
+            if (it.noPermission) _failedSounds.add(sound)
             players[sound.uri] = it
-//            viewModelScope.launch(Dispatchers.IO) {
-//                it.setup()
-//            }
         }
     }
 
@@ -143,6 +138,6 @@ class SoundViewModel : ViewModel() {
 
 
     companion object {
-        const val LOG_TAG = "SoundViewModel2"
+        const val LOG_TAG = "SoundViewModel"
     }
 }

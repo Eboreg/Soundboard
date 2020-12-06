@@ -15,8 +15,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import us.huseli.soundboard.R
-import us.huseli.soundboard.adapters.common.DataBoundAdapter
-import us.huseli.soundboard.adapters.common.DataBoundViewHolder
+import us.huseli.soundboard.adapters.common.LifecycleAdapter
+import us.huseli.soundboard.adapters.common.LifecycleViewHolder
 import us.huseli.soundboard.animators.CollapseButtonAnimator
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
@@ -34,7 +34,7 @@ class CategoryAdapter(
         private val soundViewModel: SoundViewModel,
         private val categoryListViewModel: CategoryListViewModel,
         private val viewModelStoreOwner: ViewModelStoreOwner) :
-        DataBoundAdapter<Category, CategoryAdapter.CategoryViewHolder, ItemCategoryBinding>(DiffCallback()) {
+        LifecycleAdapter<Category, CategoryAdapter.CategoryViewHolder>(DiffCallback()) {
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 200) }
     internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
 
@@ -42,7 +42,10 @@ class CategoryAdapter(
      * Overridden methods
      */
     @SuppressLint("ClickableViewAccessibility")
-    override fun bind(holder: CategoryViewHolder, item: Category, position: Int) {
+    override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
+        super.onBindViewHolder(holder, position)
+        val item = getItem(position)
+        Log.i(LOG_TAG, "onBindViewHolder: item=$item, holder=$holder, position=$position, adapter=$this")
         holder.binding.categoryMoveButton.setOnTouchListener { _, motionEvent ->
             if (motionEvent.action == MotionEvent.ACTION_DOWN) itemTouchHelper.startDrag(holder)
             return@setOnTouchListener false
@@ -50,12 +53,14 @@ class CategoryAdapter(
         holder.bind(item)
     }
 
-    override fun createBinding(parent: ViewGroup, viewType: Int) =
-            ItemCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
+        val binding = ItemCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val holder = CategoryViewHolder(binding)
+        Log.i(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
+        binding.lifecycleOwner = holder
 
-    override fun createViewHolder(binding: ItemCategoryBinding, parent: ViewGroup) = CategoryViewHolder(binding)
-
-    override fun getItemById(id: Int) = currentList.find { it.id == id }
+        return holder
+    }
 
     override fun toString(): String {
         val hashCode = Integer.toHexString(System.identityHashCode(this))
@@ -86,15 +91,13 @@ class CategoryAdapter(
      * Represents one individual category with its sound list.
      * Layout: item_category.xml, see this file for binding
      */
-    inner class CategoryViewHolder(binding: ItemCategoryBinding) :
-            DataBoundViewHolder<ItemCategoryBinding, Category>(binding),
+    inner class CategoryViewHolder(internal val binding: ItemCategoryBinding) :
             View.OnClickListener,
-            AppViewModelListenerInterface /*,
-            ViewModelStoreOwner */ {
+            AppViewModelListenerInterface,
+            LifecycleViewHolder(binding.root) {
         @Suppress("PrivatePropertyName")
         private val LOG_TAG = "CategoryViewHolder"
 
-        // private val viewModelStore = ViewModelStore()
         private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
         private val soundAdapter: SoundAdapter
         private val soundDragListener: SoundDragListener
@@ -201,8 +204,6 @@ class CategoryAdapter(
         override fun onReorderEnabledChange(value: Boolean) {}
 
         override fun onSelectEnabledChange(value: Boolean) {}
-
-        //override fun getViewModelStore() = viewModelStore
 
         override fun markDestroyed() {
             // Fragment calls adapter.setLifecycleDestroyed(), which calls this
