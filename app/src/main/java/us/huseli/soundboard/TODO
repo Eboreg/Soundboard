@@ -1,8 +1,8 @@
+Try: On RepressMode.RESTART, start a new MediaPlayer immediately and THEN stop the current?
+
+
 Run release() on MediaPlayer objects at some point (research activity/app lifecycle to decide when)
 Or just let GC take care of it?
-
-
-What do we need DataBound*/LifeCycle* for? Could they be scrapped somwhere?
 
 
 Check for usages of adapterPosition/layoutPosition and correct according to

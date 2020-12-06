@@ -92,36 +92,33 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
                 }
                 RepressMode.RESTART -> {
                     mediaPlayer.seekTo(0)
-                    stopAndClearTempPlayers()
-                    //changeState(State.PLAYING)
-                    // TODO: Maybe remove, experimenting with "discontinuity listener"
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                        changeState(State.PLAYING)
-                    }
+                    changeState(State.PLAYING)
                 }
                 RepressMode.OVERLAP -> {
                     // TODO: adjust volumes?
-                    MediaPlayer().apply {
-                        setDataSource(context, uri)
-                        prepare()
-                        start()
-                        tempMediaPlayers.add(this)
-                        setOnCompletionListener {
-                            release()
-                            tempMediaPlayers.remove(this)
-                            if (!this@SoundPlayer.isPlaying()) changeState(State.READY)
-                        }
-                        changeState(State.PLAYING)
-                    }
+                    createAndStartTempPlayer()
                 }
             }
         } else {
             mediaPlayer.start()
-            //changeState(State.PLAYING)
-            // TODO: Maybe remove, experimenting with "discontinuity listener"
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                 changeState(State.PLAYING)
             }
+        }
+    }
+
+    private fun createAndStartTempPlayer(): MediaPlayer {
+        return MediaPlayer().apply {
+            setDataSource(context, uri)
+            prepare()
+            start()
+            tempMediaPlayers.add(this)
+            setOnCompletionListener {
+                release()
+                tempMediaPlayers.remove(this)
+                if (!this@SoundPlayer.isPlaying()) changeState(State.READY)
+            }
+            changeState(State.PLAYING)
         }
     }
 
