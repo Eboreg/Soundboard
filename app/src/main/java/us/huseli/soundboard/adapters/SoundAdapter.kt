@@ -40,7 +40,6 @@ class SoundAdapter(
         LifecycleAdapter<Sound, SoundAdapter.SoundViewHolder>(DiffCallback()) {
     @Suppress("PrivatePropertyName")
     private val LOG_TAG = "SoundAdapter"
-    private val players = hashMapOf<Int, SoundPlayer>()
 
     private var selectEnabled = false
 
@@ -51,7 +50,7 @@ class SoundAdapter(
         //registerAdapterDataObserver(DataObserver())
     }
 
-    // TODO: Remove
+    // TODO: Delete
     inner class DataObserver : RecyclerView.AdapterDataObserver() {
         @Suppress("PropertyName")
         val LOG_TAG = "DataObserver"
@@ -90,15 +89,6 @@ class SoundAdapter(
     /**
      * Various implemented/overridden methods
      */
-    override fun onCurrentListChanged(previousList: List<Sound>, currentList: List<Sound>) {
-        // Get players for newly added sounds
-        currentList.subtract(previousList).forEach {
-            it.id?.let { soundId -> players[soundId] = soundViewModel.getPlayer(it, recyclerView.context) }
-        }
-        // Remove references to players for sounds no longer present
-        previousList.subtract(currentList).forEach { players.remove(it.id) }
-    }
-
     override fun getItemId(position: Int): Long {
         try {
             return currentList[position].id!!.toLong()
@@ -276,9 +266,8 @@ class SoundAdapter(
 
             binding.categoryViewModel = categoryViewModel
 
-            players[sound.id]?.also { player ->
-                if (player.noPermission) soundViewModel.addFailedSound(sound)
-                else {
+            soundViewModel.getPlayer(sound, recyclerView.context).also { player ->
+                if (!player.noPermission) {
                     player.setOnStateChangeListener(this)
                     setDuration(player.duration)
                     appViewModel.repressMode.observe(this) { player.repressMode = it }
@@ -355,10 +344,11 @@ class SoundAdapter(
 
         override fun onClick(view: View) {
             sound?.let { sound ->
+                val player = soundViewModel.getPlayer(sound, recyclerView.context)
                 when {
                     selectEnabled -> if (!soundViewModel.isSelected(sound)) select() else deselect()
-                    players[sound.id]?.state == SoundPlayer.State.ERROR -> showErrorToast()
-                    else -> players[sound.id]?.togglePlay()
+                    player.state == SoundPlayer.State.ERROR -> showErrorToast()
+                    else -> player.togglePlay()
                 }
                 clickAnimator.start()
             }
@@ -433,7 +423,10 @@ class SoundAdapter(
             return "SoundAdapter.ViewHolder $hashCode <adapterPosition=$adapterPosition, sound=$sound>"
         }
 
-        private fun showErrorToast() = Toast.makeText(context, players[sound?.id]?.errorMessage, Toast.LENGTH_SHORT).show()
+        private fun showErrorToast() {
+            val errorMessage = sound?.let { soundViewModel.getPlayer(it, recyclerView.context) }?.errorMessage
+            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+        }
 
         override fun markDestroyed() {
             soundViewModel.removeOnSelectAllListener(this)

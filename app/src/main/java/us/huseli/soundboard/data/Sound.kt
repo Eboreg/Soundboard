@@ -57,6 +57,8 @@ data class Sound(
         Log.d("SOUND", "Create Sound though new sound constructor: $this")
     }
 
+    override fun equals(other: Any?) = other is Sound && other.id == id
+
     override fun toString(): String {
         val hashCode = Integer.toHexString(System.identityHashCode(this))
         return "Sound $hashCode <id=$id, name=$name, categoryId=$categoryId>"

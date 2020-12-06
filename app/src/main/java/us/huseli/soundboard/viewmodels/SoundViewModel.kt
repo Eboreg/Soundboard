@@ -57,6 +57,7 @@ class SoundViewModel : ViewModel() {
 
     fun getPlayer(sound: Sound, context: Context): SoundPlayer {
         return getPlayer(sound) ?: SoundPlayer(context, sound.uri, sound.volume).also {
+            if (it.noPermission) addFailedSound(sound)
             players[sound.uri] = it
 //            viewModelScope.launch(Dispatchers.IO) {
 //                it.setup()
