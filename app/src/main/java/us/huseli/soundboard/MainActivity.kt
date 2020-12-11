@@ -6,7 +6,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.DocumentsContract
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
@@ -39,13 +38,13 @@ class MainActivity :
     private val appViewModel by viewModels<AppViewModel>()
     private val soundViewModel by viewModels<SoundViewModel>()
     private val soundAddViewModel by viewModels<SoundAddViewModel>()
-    private val soundAddMultipleViewModel by viewModels<SoundAddMultipleViewModel>()
     private val soundEditMultipleViewModel by viewModels<SoundEditMultipleViewModel>()
 
     private val actionbarLogoTouchTimes = mutableListOf<Long>()
     private var actionMode: ActionMode? = null
     private lateinit var binding: ActivityMainBinding
     private var categories = emptyList<Category>()
+    private var sounds = emptyList<Sound>()
 
     // Just to know whether a toast should be shown on value change
     private var repressMode: SoundPlayer.RepressMode? = null
@@ -64,11 +63,7 @@ class MainActivity :
                 when {
                     soundViewModel.selectedSounds.size == 1 -> {
                         val sound = soundViewModel.selectedSounds.first()
-                        var categoryIndex = categories.map { it.id }.indexOf(sound.categoryId)
-                        if (categoryIndex == -1) categoryIndex = 0
-                        sound.id?.let { soundId ->
-                            showDialogFragment(EditSoundDialogFragment.newInstance(soundId, categoryIndex))
-                        }
+                        showEditSoundDialogFragment(sound)
                     }
                     soundViewModel.selectedSounds.size > 1 -> {
                         soundEditMultipleViewModel.setup(
@@ -107,15 +102,44 @@ class MainActivity :
                     for (i in 0 until clipData.itemCount) {
                         sounds.add(Sound(clipData.getItemAt(i).uri, data.flags, contentResolver))
                     }
-                    soundAddMultipleViewModel.setup(sounds, getString(R.string.multiple_sounds_selected))
-                    showDialogFragment(AddMultipleSoundDialogFragment())
+                    soundAddViewModel.setup(sounds, this.sounds, getString(R.string.multiple_sounds_selected))
+                    if (soundAddViewModel.isDuplicate) {
+                        val fragment = AddDuplicateSoundDialogFragment.newInstance(true).apply {
+                            setOnAddDuplicateListener {
+                                soundAddViewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.ADD
+                                showDialogFragment(AddMultipleSoundDialogFragment())
+                            }
+                            setOnUpdateExistingListener {
+                                soundAddViewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.UPDATE
+                                showDialogFragment(AddMultipleSoundDialogFragment())
+                            }
+                            setOnSkipDuplicatesListener {
+                                soundAddViewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.SKIP
+                                when (soundAddViewModel.sounds.size) {
+                                    0 -> showToast(R.string.no_sounds_to_add)
+                                    1 -> showDialogFragment(AddSoundDialogFragment())
+                                    else -> showDialogFragment(AddMultipleSoundDialogFragment())
+                                }
+                            }
+                        }
+                        showDialogFragment(fragment)
+                    } else showDialogFragment(AddMultipleSoundDialogFragment())
                 }
             } else {
                 // One item selected; data.data is a Uri
                 data.data?.let { uri ->
                     val sound = Sound(uri, data.flags, contentResolver)
-                    soundAddViewModel.setup(sound)
-                    showDialogFragment(AddSoundDialogFragment())
+                    soundAddViewModel.setup(sound, sounds)
+                    //soundAddViewModel.setup(sound, sounds)
+                    if (soundAddViewModel.isDuplicate) {
+                        val fragment = AddDuplicateSoundDialogFragment().apply {
+                            setOnAddDuplicateListener { showDialogFragment(AddSoundDialogFragment()) }
+                            setOnUpdateExistingListener {
+                                it?.let { sound -> showEditSoundDialogFragment(sound) }
+                            }
+                        }
+                        showDialogFragment(fragment)
+                    } else showDialogFragment(AddSoundDialogFragment())
                 }
             }
         }
@@ -145,6 +169,11 @@ class MainActivity :
         setupBottomBar()
 
         soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
+
+        soundViewModel.sounds.observe(this) {
+            sounds = it
+            soundViewModel.initPlayers(it, this)
+        }
 
         categoryListViewModel.categories.observe(this) {
             // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment
@@ -298,7 +327,6 @@ class MainActivity :
         binding.actionbar.actionbarLogo.isClickable = true
         binding.actionbar.actionbarLogo.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN) actionbarLogoTouchTimes.add(event.eventTime)
-            Log.d(LOG_TAG, actionbarLogoTouchTimes.toString())
             if (actionbarLogoTouchTimes.size == 3) {
                 if (actionbarLogoTouchTimes.first() + 1000 >= event.eventTime) showDialogFragment(EasterEggFragment())
                 actionbarLogoTouchTimes.clear()
@@ -320,6 +348,14 @@ class MainActivity :
     }
 
     private fun showDialogFragment(fragment: Fragment) = showDialogFragment(fragment, null)
+
+    private fun showEditSoundDialogFragment(sound: Sound) {
+        var categoryIndex = categories.map { it.id }.indexOf(sound.categoryId)
+        if (categoryIndex == -1) categoryIndex = 0
+        sound.id?.let { soundId ->
+            showDialogFragment(EditSoundDialogFragment.newInstance(soundId, categoryIndex))
+        }
+    }
 
     @SuppressLint("QueryPermissionsNeeded")
     private fun startAddSoundActivity() {

@@ -28,9 +28,7 @@ class SoundDragListener(private val soundAdapter: SoundAdapter, private val cate
         logNumber++
     }
 
-    private fun dumpLog(tag: String, event: DragEvent, comment: String) = dumpLog(tag, event, comment, null)
-
-    private fun dumpLog(tag: String, event: DragEvent) = dumpLog(tag, event, null, null)
+    private fun dumpLog(tag: String, event: DragEvent, comment: String?) = dumpLog(tag, event, comment, null)
 
     private fun dumpLog(tag: String, event: DragEvent, extra: Map<String, Any?>) = dumpLog(tag, event, null, extra)
 
@@ -79,7 +77,7 @@ class SoundDragListener(private val soundAdapter: SoundAdapter, private val cate
             DragEvent.ACTION_DROP -> onDrop(event, view, draggedSound)
             DragEvent.ACTION_DRAG_ENDED -> onDragEnded(event, view)
             else -> {
-                dumpLog(event.action.toString(), event)
+                dumpLog(event.action.toString(), event, null)
                 false
             }
         }

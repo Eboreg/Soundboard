@@ -29,6 +29,7 @@ abstract class BaseEditMultipleSoundDialogFragment<VM: BaseSoundEditViewModel> :
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        // TODO: Why save to viewmodel here but not in BaseEditSoundDialogFragment? Which is best?
         super.onSaveInstanceState(outState)
         viewModel?.let { viewModel ->
             binding?.let { binding ->

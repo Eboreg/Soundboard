@@ -1,66 +1,126 @@
-previousList
-result = {Collections$UnmodifiableRandomAccessList@11655}  size = 90
- 0 = {Sound@12086} "Sound 13841f7 <id=33, name=Hallon men karl! Hallon! 2, categoryId=1>"
- 1 = {Sound@12404} "Sound 5178864 <id=43, name=It's A Challenge!, categoryId=1>"
- 2 = {Sound@12405} "Sound 7ebbacd <id=34, name=Hallon men karl! Hallon!, categoryId=1>"
- 3 = {Sound@12406} "Sound 9d72f82 <id=35, name=Hard driving rock, categoryId=1>"
- 4 = {Sound@12407} "Sound 1a50693 <id=36, name=Hocus Pocus, categoryId=1>"
- 5 = {Sound@12408} "Sound 3f6c6d0 <id=37, name=Homoloordi, categoryId=1>"
- 6 = {Sound@12409} "Sound 58636c9 <id=38, name=Hory shiet, categoryId=1>"
- 7 = {Sound@12410} "Sound 74cc1ce <id=39, name=I'm gay 1, categoryId=1>"
- 8 = {Sound@12411} "Sound 20f78ef <id=40, name=I'm gay 2, categoryId=1>"
- 9 = {Sound@12412} "Sound f497ffc <id=41, name=Icka Prick, categoryId=1>"
- 10 = {Sound@12413} "Sound 327685 <id=42, name=In a Glass House, categoryId=1>"
+2020-12-11 01:19:32.812 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FHallon%20men%20karl!%20Hallon!%202.flac, volume=100
+2020-12-11 01:19:32.820 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FKambodja%20a%CC%88r%20befriat.wav, volume=100
+2020-12-11 01:19:32.835 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fmusikens%20makt.flac, volume=100
+2020-12-11 01:19:32.846 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FAh%2C%20Music.flac, volume=100
+2020-12-11 01:19:32.857 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fba%20dum%20tss.wav, volume=100
+2020-12-11 01:19:32.868 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FGayniggers%201.flac, volume=100
+2020-12-11 01:19:32.895 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FHallon%20men%20karl!%20Hallon!.flac, volume=100
+2020-12-11 01:19:32.915 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FIcka%20Prick.flac, volume=100
+2020-12-11 01:19:32.939 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fmao%20tse%20tungs%20tanke.wav, volume=100
+2020-12-11 01:19:32.959 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fmusikens%20makt%20kort.flac, volume=100
+2020-12-11 01:19:32.972 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FNiggers%20come%20in%20every%20colour%20kort.flac, volume=100
+2020-12-11 01:19:32.995 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobbo%20Viking.flac, volume=100
+2020-12-11 01:19:33.007 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FCool%20Britannia.flac, volume=100
+2020-12-11 01:19:33.020 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FGayniggers%202.flac, volume=100
+2020-12-11 01:19:33.039 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fjaaazzz.wav, volume=100
+2020-12-11 01:19:33.055 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FNiggers%20come%20in%20every%20colour.flac, volume=100
+2020-12-11 01:19:33.071 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FRobert%20%C3%A4r%20en%20kommunist.flac, volume=100
+2020-12-11 01:19:33.086 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FSperman%20Karlssons%20J%C3%A4ttefj%C3%A5ng.flac, volume=100
+2020-12-11 01:19:33.106 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FVad%20har%20du%20lyssnat%20p%C3%A5%20sen%20sist%20Edit%201%20Export%202.flac, volume=100
+2020-12-11 01:19:33.126 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBoing%20Boom%20Tschak.flac, volume=100
+2020-12-11 01:19:33.146 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDet%20svaga%20r%C3%B6da%20vinet.mp3, volume=100
+2020-12-11 01:19:33.168 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FGayniggers%20female%20creatures%201.flac, volume=100
+2020-12-11 01:19:33.178 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FKF%20-%20Kate%20(SILENCE).flac, volume=100
+2020-12-11 01:19:33.200 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Frorsman.wav, volume=100
+2020-12-11 01:19:33.221 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FVad%20har%20du%20lyssnat%20p%C3%A5%20sen%20sist%202%20Edit%201%20Export%201.flac, volume=100
+2020-12-11 01:19:33.235 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FWhite%20Lines%20Base%202.flac, volume=100
+2020-12-11 01:19:33.247 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FZacharias%20fingret%20i%20skitan.flac, volume=100
+2020-12-11 01:19:33.263 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FegolE.flac, volume=100
+2020-12-11 01:19:33.283 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FFowley%20teenage%20woman.flac, volume=100
+2020-12-11 01:19:33.298 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FGayniggers%20female%20creatures%202.flac, volume=100
+2020-12-11 01:19:33.317 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FKF%20-%20Lizzie%20(MRS%20M).flac, volume=100
+2020-12-11 01:19:33.340 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FLyssnat%20p%C3%A5%204.mp3, volume=100
+2020-12-11 01:19:33.360 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FSplittringen%20var%20bra%20och%20n%C3%B6dv%C3%A4ndig.flac, volume=100
+2020-12-11 01:19:33.376 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FWhite%20motherfuckers%201.wav, volume=100
+2020-12-11 01:19:33.391 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FZacharias%20hela%20j%C3%A4vla%20pungen%20i%20mun.flac, volume=100
+2020-12-11 01:19:33.410 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FEloge.flac, volume=100
+2020-12-11 01:19:33.427 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FGayniggers%20female%20creatures%20kort.flac, volume=100
+2020-12-11 01:19:33.439 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FHocus%20Pocus.flac, volume=100
+2020-12-11 01:19:33.454 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FKF%20-%20Lizzie.flac, volume=100
+2020-12-11 01:19:33.468 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FLyssnat%20p%C3%A5.mp3, volume=100
+2020-12-11 01:19:33.484 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FWhite%20motherfuckers%202.wav, volume=100
+2020-12-11 01:19:33.505 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FZacharias%20spanska%20sp%C3%B6t.flac, volume=100
+2020-12-11 01:19:33.526 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FFlim%20Flam%20Flum.flac, volume=100
+2020-12-11 01:19:33.542 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FGayniggers%20gay%20universe.flac, volume=100
+2020-12-11 01:19:33.556 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FIn%20a%20Glass%20House.flac, volume=100
+2020-12-11 01:19:33.567 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FLou%20Reed%20drugs.flac, volume=100
+2020-12-11 01:19:33.588 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FLyssnat_loveny.mp3, volume=100
+2020-12-11 01:19:33.607 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FZacharias%20Ta%20mig%20i%20skitan.flac, volume=100
+2020-12-11 01:19:33.632 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBisarra%20h%C3%B6rnan%202%20Edit%201%20Export%201.flac, volume=100
+2020-12-11 01:19:33.648 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FGayway%20to%20heaven%20kort.flac, volume=100
+2020-12-11 01:19:33.660 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FHallon%20du%20%C3%A4r%20ju%20inte%20klok.flac, volume=100
+2020-12-11 01:19:33.678 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FIt's%20A%20Challenge!.flac, volume=100
+2020-12-11 01:19:33.695 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FLou%20Reed%20message.flac, volume=100
+2020-12-11 01:19:33.711 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FZacharias%20underbara%20lustar.flac, volume=100
+2020-12-11 01:19:33.725 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDen%20ariske%20mannens%20skor%20Edit%201%20Export%202.flac, volume=100
+2020-12-11 01:19:33.741 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FGayway%20to%20heaven.flac, volume=100
+2020-12-11 01:19:33.758 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FHallon%20Hallon!!.flac, volume=100
+2020-12-11 01:19:33.779 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FJod-Kaliklora.flac, volume=100
+2020-12-11 01:19:33.789 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FLucia%20Pamela.flac, volume=100
+2020-12-11 01:19:33.804 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FZacharias%20%C3%A5%20vad%20k%C3%A5t%20jag%20%C3%A4r.flac, volume=100
+2020-12-11 01:19:33.826 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FHallon%20hur%20fan%20%C3%A4r%20det%20med%20dig%20karl.flac, volume=100
+2020-12-11 01:19:33.840 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FHomoloordi.flac, volume=100
+2020-12-11 01:19:33.855 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FLa%20Polka%20du%20colonel.flac, volume=100
+2020-12-11 01:19:33.878 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FLugosi%20Pull%20the%20string%202.flac, volume=100
+2020-12-11 01:19:33.896 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FRobert%20spelar%20banjo%20Edit%201%20Export%201.flac, volume=100
+2020-12-11 01:19:33.911 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FHard%20driving%20rock.flac, volume=100
+2020-12-11 01:19:33.922 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FI'm%20gay%201.wav, volume=100
+2020-12-11 01:19:33.937 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FMarinetti%201.flac, volume=100
+2020-12-11 01:19:33.952 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FOry's%20Creole%20Trombone.flac, volume=100
+2020-12-11 01:19:33.967 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FZappa-jingel.flac, volume=100
+2020-12-11 01:19:33.985 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FI'm%20gay%202.wav, volume=100
+2020-12-11 01:19:34.005 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FJajja%20Lasse%20L%C3%B6nndahl!.flac, volume=100
+2020-12-11 01:19:34.016 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FMarinetti%202.flac, volume=100
+2020-12-11 01:19:34.034 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FMorbid%20Angel%20Mahummuhu%20Gal-Gal.flac, volume=100
+2020-12-11 01:19:34.048 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FRay%20Charles%20Wooo.flac, volume=100
+2020-12-11 01:19:34.063 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FJim%20Gillette%20POWER.flac, volume=100
+2020-12-11 01:19:34.077 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FLa%20di%20da%20poofter.flac, volume=100
+2020-12-11 01:19:34.098 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FMarinetti%203.flac, volume=100
+2020-12-11 01:19:34.120 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FUh!%20Ain't%20it%20funky%20now!.wav, volume=100
+2020-12-11 01:19:34.132 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FJim%20Gillette%20what%20a%20rush.flac, volume=100
+2020-12-11 01:19:34.145 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FLou%20Reed%20transvestite.flac, volume=100
+2020-12-11 01:19:34.157 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FMarinetti%204.flac, volume=100
+2020-12-11 01:19:34.169 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FUh!%20Disco!.flac, volume=100
+2020-12-11 01:19:34.184 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FJimmy%20Carl%20Black.wav, volume=100
+2020-12-11 01:19:34.198 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FMy%20god%20is%20Lucifer%202.flac, volume=100
+2020-12-11 01:19:34.211 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FUh!%20Sorry!.flac, volume=100
+2020-12-11 01:19:34.234 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBen's%20Radio.flac, volume=100
+2020-12-11 01:19:34.249 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FLugosi%20Pull%20the%20string%201.flac, volume=100
+2020-12-11 01:19:34.260 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FMy%20god%20is%20Lucifer%203.flac, volume=100
+2020-12-11 01:19:34.270 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fmoa_003%20n%C3%A4hej.flac, volume=100
+2020-12-11 01:19:34.283 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FMy%20meditations%201.flac, volume=100
+2020-12-11 01:19:34.297 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fmoa_003.flac, volume=100
+2020-12-11 01:19:34.313 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FMy%20meditations%202.flac, volume=100
+2020-12-11 01:19:34.326 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FMy%20god%20is%20Lucifer%201.flac, volume=100
+2020-12-11 01:19:34.346 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FMy%20meditations%203.flac, volume=100
+2020-12-11 01:19:34.359 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FNikuta%20o%20jee.wav, volume=100
+2020-12-11 01:19:34.376 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FOh%20God%20Oh%20Man.flac, volume=100
+2020-12-11 01:19:34.400 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FPurpleDave%202.flac, volume=100
+2020-12-11 01:19:34.413 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FPurpleDave.flac, volume=100
+2020-12-11 01:19:34.426 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FThings%20ghastly.flac, volume=100
+2020-12-11 01:19:34.439 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FUh!.flac, volume=100
+2020-12-11 01:19:34.451 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FThings%20horrible%20mess.flac, volume=100
+2020-12-11 01:19:34.467 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FWhite%20Lines%20Base%201.flac, volume=100
+2020-12-11 01:19:34.483 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FThings%20wicked%20piss.flac, volume=100
+2020-12-11 01:19:34.503 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fwinamp.flac, volume=100
+2020-12-11 01:19:34.524 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FRoland-JV-2080-Orchestra-Hit-C3.wav, volume=100
+2020-12-11 01:19:34.536 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FTroll%202.flac, volume=100
+2020-12-11 01:19:34.552 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FSuomi%20Finland%20Perkele.flac, volume=100
+2020-12-11 01:19:34.563 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FUggla%201977.flac, volume=100
+2020-12-11 01:19:34.572 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FVafan%20%C3%A4r%20meningen.flac, volume=100
+2020-12-11 01:19:34.582 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FYngwie%20more%20is%20more.wav, volume=100
+2020-12-11 01:19:34.594 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FVr%C3%A5lande%20getto%20av%20vindruvor.flac, volume=100
+2020-12-11 01:19:34.607 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FYngwie%20fury.wav, volume=100
+2020-12-11 01:19:34.621 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FBobby%20Callender%20John.flac, volume=100
+2020-12-11 01:19:34.640 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FDonovan%20starfish.flac, volume=100
+2020-12-11 01:19:34.658 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FEternally%20grateful%20Dizzy.flac, volume=100
+2020-12-11 01:19:34.671 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FFenriz%20primitive.wav, volume=100
+2020-12-11 01:19:34.682 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FGediget%20arbete.flac, volume=100
+2020-12-11 01:19:34.695 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FHallon%20b%C3%A4sta%20kiosken.flac, volume=100
+2020-12-11 01:19:34.707 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FHallon%20men%20hallon!.flac, volume=100
+2020-12-11 01:19:34.726 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FHory%20shiet.flac, volume=100
+2020-12-11 01:19:34.742 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FEd%20Sanders.flac, volume=100
 
-currentList
-result = {Collections$UnmodifiableRandomAccessList@12212}  size = 90
- 0 = {Sound@12219} "Sound ca0cf9d <id=35, name=Hard driving rock, categoryId=1>"
- 1 = {Sound@12220} "Sound 286c12 <id=33, name=Hallon men karl! Hallon! 2, categoryId=1>"
- 2 = {Sound@12221} "Sound a0fafe3 <id=43, name=It's A Challenge!, categoryId=1>"
- 3 = {Sound@12222} "Sound cd73de0 <id=34, name=Hallon men karl! Hallon!, categoryId=1>"
- 4 = {Sound@12223} "Sound 7bfc899 <id=36, name=Hocus Pocus, categoryId=1>"
- 5 = {Sound@12224} "Sound b1d375e <id=37, name=Homoloordi, categoryId=1>"
- 6 = {Sound@12225} "Sound 303673f <id=38, name=Hory shiet, categoryId=1>"
- 7 = {Sound@12226} "Sound ba2580c <id=39, name=I'm gay 1, categoryId=1>"
- 8 = {Sound@12227} "Sound 3b5555 <id=40, name=I'm gay 2, categoryId=1>"
- 9 = {Sound@12228} "Sound 2016b6a <id=41, name=Icka Prick, categoryId=1>"
- 10 = {Sound@12229} "Sound 751385b <id=42, name=In a Glass House, categoryId=1>"
-
-
-2020-12-02 23:11:14.710 5834-5834 I/soundboard: CategoryListFragment: categoryListViewModel.categories changed: [Vinjetter, Korta favoriter, Sex, Göb, Kommunism, Mörkhyat, Default], recyclerView 37733690, sending to CategoryAdapter 135976427
-2020-12-02 23:11:15.901 5834-5834 I/DataBoundAdapter: onBindViewHolder: item=Sex, holder=CategoryAdapter.ViewHolder 96c75d6 <adapterPosition=2, category=null>, position=2, adapter=CategoryAdapter 81ad5eb
-2020-12-02 23:11:15.903 5834-5834 I/CategoryViewHolder: CategoryAdapter.bind: 135976427 ViewHolder 158102998 bind Category Sex (488103281)
-2020-12-02 23:11:15.940 5834-5834 I/LifecycleAdapter: onViewAttachedToWindow: holder=CategoryAdapter.ViewHolder 96c75d6 <adapterPosition=2, category=Sex>
-2020-12-02 23:11:18.320 5834-5834 I/CategoryViewHolder: ViewHolder.bind: adapter=CategoryAdapter 81ad5eb, viewHolder=CategoryAdapter.ViewHolder 96c75d6 <adapterPosition=2, category=Sex>, category=Sex, sounds=[Sound 692c835 <id=41, name=Fowley teenage woman, categoryId=9>, Sound 37d94ca <id=64, name=Icka Prick, categoryId=9>, Sound e0a163b <id=115, name=Sperman Karlssons Jättefjång, categoryId=9>, Sound 9b3a158 <id=138, name=Zacharias fingret i skitan, categoryId=9>, Sound eb4b2b1 <id=139, name=Zacharias hela jävla pungen i mun, categoryId=9>, Sound 7483396 <id=140, name=Zacharias spanska spöt, categoryId=9>, Sound 579db17 <id=141, name=Zacharias Ta mig i skitan, categoryId=9>, Sound 6d7b04 <id=142, name=Zacharias underbara lustar, categoryId=9>, Sound 330c8ed <id=143, name=Zacharias å vad kåt jag är, categoryId=9>]
-2020-12-02 23:11:24.008 5834-5834 I/LifecycleAdapter: onViewDetachedFromWindow: holder=CategoryAdapter.ViewHolder 96c75d6 <adapterPosition=2, category=Sex>
-
-
-
-
-
-Efter färgbyt & namnbyt
-
-
-CategoryListFragment.onDestroyView()
-    categoryAdapter?.setLifecycleDestroyed()
-        viewHolders.forEach { it.markDestroyed() }
-            soundAdapter.setLifecycleDestroyed()
-                viewHolders.forEach { it.markDestroyed() }
-                    soundViewModel.removeOnSelectAllListener(this)
-                viewHolders.clear()
-        viewHolders.clear()
-    categoryAdapter = null
-
-
-2020-11-16 03:54:42.267 30411-30411 D/DataObserver: onItemRangeMoved<fromPosition=0, toPosition=4, itemCount=1>
-2020-11-16 03:54:45.824 30411-30411 I/ViewRootImpl@9dcf6b5[MainActivity]: Reporting drop result: true
-2020-11-16 03:54:45.835 30411-30411 I/Choreographer: Skipped 2685 frames!  The application may be doing too much work on its main thread.
-2020-11-16 03:54:45.992 30411-30411 D/LifecycleViewHolder: markDetach: SoundAdapter.ViewHolder 4922aa4 <adapterPosition=-1, sound=Sound 1cf21da <id=9, name=Den ariske mannens skor Edit 1 Export 2, categoryId=2>>
-2020-11-16 03:54:46.013 30411-30411 D/LifecycleViewHolder: markDetach: SoundAdapter.ViewHolder 7c4dd79 <adapterPosition=-1, sound=Sound a1e060b <id=6, name=Bobby Callender John, categoryId=2>>
-2020-11-16 03:54:48.850 30411-30424 I/undboard_kotli: Background young concurrent copying GC freed 54306(3086KB) AllocSpace objects, 15(240KB) LOS objects, 37% free, 5687KB/9082KB, paused 42us total 139.400ms
-2020-11-16 03:54:48.875 30411-30426 D/StrictMode: StrictMode policy violation: android.os.strictmode.LeakedClosableViolation: A resource was acquired at attached stack trace but never released. See java.io.Closeable for information on avoiding resource leaks.
-
-Sker det pga att det dragna ljudets viewholder detachas?
 
 
 SPEKULATIONER

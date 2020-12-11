@@ -25,7 +25,7 @@ interface SoundDao {
     fun update(sounds: List<Sound>) = sounds.forEach { sound -> update(sound) }
 
     @Query("SELECT * FROM Sound ORDER BY `order`")
-    fun getAll(): LiveData<List<Sound>>
+    fun list(): LiveData<List<Sound>>
 
     @Query("DELETE FROM Sound WHERE id = :soundId")
     fun delete(soundId: Int)

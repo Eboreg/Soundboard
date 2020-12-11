@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="delete_sound_title">
+        <item quantity="one">Delete sound</item>
+        <item quantity="other">Delete sounds</item>
+    </plurals>
+    <plurals name="delete_category_with_name_and_sounds">
+        <item quantity="one">Delete category %1s and one sound?</item>
+        <item quantity="other">Delete category %1s and %2d sounds?</item>
+    </plurals>
+    <plurals name="duplicate_sound_added">
+        <item quantity="one">Duplicate sound added</item>
+        <item quantity="other">Duplicate sounds added</item>
+    </plurals>
+    <plurals name="add_duplicate">
+        <item quantity="one">Add duplicate</item>
+        <item quantity="other">Add duplicates</item>
+    </plurals>
+    <plurals name="first_duplicate_will_be_updated">
+        <item quantity="one">If you choose to update existing sound, and multiple instances of it exist, only the first one will be updated.</item>
+        <item quantity="other">If you choose to update existing sounds, and multiple instances of them exist, only the first ones will be updated.</item>
+    </plurals>
+    <plurals name="sound_already_exists">
+        <item quantity="one">Sound %1$s already exists in the database. Do you want to update the existing sound, add a duplicate, or skip it?</item>
+        <item quantity="other">Some sounds already exist in the database. Do you want to update the existing sounds, add duplicates, or skip them?</item>
+    </plurals>
+</resources>

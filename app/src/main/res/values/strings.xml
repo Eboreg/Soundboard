@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">Söun̈dböard</string>
+    <string name="app_name" translatable="false">Söun̈dböard</string>
     <string name="add_sound">Add sound</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
@@ -28,10 +28,6 @@
     <string name="cannot_delete_last_category">There has to be at least one category.</string>
     <string name="edit_category">Edit category</string>
     <string name="move_category">Move category</string>
-    <plurals name="delete_sound_title">
-        <item quantity="one">Delete sound</item>
-        <item quantity="other">Delete sounds</item>
-    </plurals>
     <string name="delete_sound_name">Delete sound %1$s?</string>
     <string name="delete_sounds_count" tools:ignore="PluralsCandidate">Delete %1$d sounds?</string>
     <string name="not_initialized_yet">Not initialized yet!</string>
@@ -43,13 +39,14 @@
     <string name="load_failed">Load failed</string>
     <string name="selected">Selected</string>
     <string name="add_sound_here">Add sound here</string>
-    <plurals name="delete_category_with_name_and_sounds">
-        <item quantity="one">Delete category %1s and one sound?</item>
-        <item quantity="other">Delete category %1s and %2d sounds?</item>
-    </plurals>
     <string name="duration_seconds">%1$ds</string>
     <string name="select_all">Select all</string>
     <string name="re_init_failed_sounds" tools:keep="@string/re_init_failed_sounds">Re-init failed sounds</string>
     <string name="repress_mode">Re-press mode</string>
     <string name="on_repress">On repress: %1$s</string>
+    <string name="update_existing">Update existing</string>
+    <string name="sound_already_exists">Sound %1$s already exists in the database. Do you want to update the existing sound or add a duplicate?</string>
+    <string name="skip">Skip</string>
+    <string name="no_sounds_to_add">No sounds to add!</string>
+    <string name="soundplayer_not_initialized">SoundPlayer not initialized</string>
 </resources>

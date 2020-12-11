@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="delete_sound_title">
+        <item quantity="one">Radera ljud</item>
+        <item quantity="other">Radera ljud</item>
+    </plurals>
+    <plurals name="delete_category_with_name_and_sounds">
+        <item quantity="one">Radera kategorin %1s och ett ljud?</item>
+        <item quantity="other">Radera kategorin %1s och %2d ljud?</item>
+    </plurals>
+    <plurals name="duplicate_sound_added">
+        <item quantity="one">Dubblettljud tillagt</item>
+        <item quantity="other">Dubblettljud tillagda</item>
+    </plurals>
+    <plurals name="add_duplicate">
+        <item quantity="one">Lägg till dubblett</item>
+        <item quantity="other">Lägg till dubbletter</item>
+    </plurals>
+    <plurals name="first_duplicate_will_be_updated">
+        <item quantity="one">Om du väljer att uppdatera det existerande ljudet, och flera instanser av det existerar, kommer bara den första att uppdateras.</item>
+        <item quantity="other">Om du väljer att uppdatera de existerande ljuden, och flera instanser av dem existerar, kommer bara de första att uppdateras.</item>
+    </plurals>
+    <plurals name="sound_already_exists">
+        <item quantity="one">Ljudet %1$s finns redan i databasen. Vill du uppdatera det existerande ljudet, lägga till en dubblett eller hoppa över det?</item>
+        <item quantity="other">Några ljud finns redan i databasen. Vill du uppdatera de existerande ljuden, lägga till dubbletter eller hoppa över dem?</item>
+    </plurals>
+</resources>

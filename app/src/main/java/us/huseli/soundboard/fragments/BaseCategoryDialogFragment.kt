@@ -122,6 +122,7 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
         // For restoring instance state on recreate
         const val ARG_NAME = "name"
         const val ARG_BACKGROUND_COLOR = "backgroundColor"
+
         const val LOG_TAG = "BCategoryDialogFragment"
     }
 }

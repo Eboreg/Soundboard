@@ -28,7 +28,9 @@ import us.huseli.soundboard.data.DraggedSound
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.ItemSoundBinding
 import us.huseli.soundboard.helpers.SoundPlayerTimer
-import us.huseli.soundboard.viewmodels.*
+import us.huseli.soundboard.viewmodels.AppViewModel
+import us.huseli.soundboard.viewmodels.CategoryViewModel
+import us.huseli.soundboard.viewmodels.SoundViewModel
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -47,43 +49,6 @@ class SoundAdapter(
 
     init {
         setHasStableIds(true)
-        //registerAdapterDataObserver(DataObserver())
-    }
-
-    // TODO: Delete
-    inner class DataObserver : RecyclerView.AdapterDataObserver() {
-        @Suppress("PropertyName")
-        val LOG_TAG = "DataObserver"
-
-        override fun onChanged() {
-            Log.d(LOG_TAG, "onChanged ---- adapter=${this@SoundAdapter}")
-            super.onChanged()
-        }
-
-        override fun onItemRangeChanged(positionStart: Int, itemCount: Int) {
-            Log.d(LOG_TAG, "onItemRangeChanged<positionStart=$positionStart, itemCount=$itemCount> ---- adapter=${this@SoundAdapter}")
-            super.onItemRangeChanged(positionStart, itemCount)
-        }
-
-        override fun onItemRangeChanged(positionStart: Int, itemCount: Int, payload: Any?) {
-            Log.d(LOG_TAG, "onItemRangeChanged<positionStart=$positionStart, itemCount=$itemCount, payload=$payload> ---- adapter=${this@SoundAdapter}")
-            super.onItemRangeChanged(positionStart, itemCount, payload)
-        }
-
-        override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
-            Log.d(LOG_TAG, "onItemRangeInserted<positionStart=$positionStart, itemCount=$itemCount> ---- adapter=${this@SoundAdapter}")
-            super.onItemRangeInserted(positionStart, itemCount)
-        }
-
-        override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
-            Log.d(LOG_TAG, "onItemRangeRemoved<positionStart=$positionStart, itemCount=$itemCount> ---- adapter=${this@SoundAdapter}")
-            super.onItemRangeRemoved(positionStart, itemCount)
-        }
-
-        override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
-            Log.d(LOG_TAG, "onItemRangeMoved<fromPosition=$fromPosition, toPosition=$toPosition, itemCount=$itemCount> ---- adapter=${this@SoundAdapter}")
-            super.onItemRangeMoved(fromPosition, toPosition, itemCount)
-        }
     }
 
     /**
@@ -108,7 +73,7 @@ class SoundAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SoundViewHolder {
         val binding = ItemSoundBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val holder = SoundViewHolder(binding, parent.context, this)
-        Log.i(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
+        Log.d(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
         binding.lifecycleOwner = holder
 
         return holder
@@ -248,6 +213,7 @@ class SoundAdapter(
         private val soundViewModel = adapter.soundViewModel
 
         private var longClickAnimator: SoundItemLongClickAnimator? = null
+        private var player: SoundPlayer? = null
         private var playerTimer: SoundPlayerTimer? = null
         private var reorderEnabled = false
         private var sound: Sound? = null
@@ -262,14 +228,12 @@ class SoundAdapter(
         }
 
         fun bind(sound: Sound, categoryViewModel: CategoryViewModel) {
-            Log.i(LOG_TAG, "bind: sound=$sound ----- adapter=$adapter ----- viewHolder=$this ----- categoryViewModel=${adapter.categoryViewModel}")
-
             this.sound = sound
             binding.sound = sound
 
             binding.categoryViewModel = categoryViewModel
 
-            soundViewModel.getPlayer(sound, recyclerView.context).also { player ->
+            player = soundViewModel.getPlayer(sound, context).also { player ->
                 if (!player.noPermission) {
                     player.setOnStateChangeListener(this)
                     setDuration(player.duration)
@@ -349,11 +313,11 @@ class SoundAdapter(
 
         override fun onClick(view: View) {
             sound?.let { sound ->
-                val player = soundViewModel.getPlayer(sound, recyclerView.context)
                 when {
                     adapter.selectEnabled -> if (!soundViewModel.isSelected(sound)) select() else deselect()
-                    player.state == SoundPlayer.State.ERROR -> showErrorToast()
-                    else -> player.togglePlay()
+                    player == null -> Toast.makeText(context, R.string.soundplayer_not_initialized, Toast.LENGTH_SHORT).show()
+                    player?.state == SoundPlayer.State.ERROR -> showErrorToast()
+                    else -> player?.togglePlay()
                 }
                 clickAnimator.start()
             }
@@ -368,14 +332,9 @@ class SoundAdapter(
                 Log.d(LOG_TAG, "startDragAndDrop: draggedSound=$draggedSound, this=$this")
 
                 @Suppress("DEPRECATION")
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    val retval = view.startDragAndDrop(data, shadowBuilder, draggedSound, 0)
-                    @Suppress("ControlFlowWithEmptyBody")
-                    if (!retval)
-                        Log.e(LOG_TAG, "startDragAndDrop: view.startDragAndDrop() returned false")
-                    else {
-                    }
-                } else
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+                    view.startDragAndDrop(data, shadowBuilder, draggedSound, 0)
+                else
                     view.startDrag(data, shadowBuilder, draggedSound, 0)
             }
         }
@@ -428,10 +387,8 @@ class SoundAdapter(
             return "SoundAdapter.ViewHolder $hashCode <adapterPosition=$adapterPosition, sound=$sound>"
         }
 
-        private fun showErrorToast() {
-            val errorMessage = sound?.let { soundViewModel.getPlayer(it, recyclerView.context) }?.errorMessage
-            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-        }
+        private fun showErrorToast() =
+                Toast.makeText(context, player?.errorMessage, Toast.LENGTH_SHORT).show()
 
         override fun markDestroyed() {
             soundViewModel.removeOnSelectAllListener(this)

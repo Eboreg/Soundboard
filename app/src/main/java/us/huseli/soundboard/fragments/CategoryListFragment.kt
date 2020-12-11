@@ -10,7 +10,6 @@ import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import us.huseli.soundboard.GlobalApplication
 import us.huseli.soundboard.adapters.CategoryAdapter
 import us.huseli.soundboard.databinding.FragmentCategoryListBinding
 import us.huseli.soundboard.interfaces.ZoomInterface
@@ -91,10 +90,6 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
                 }
 
                 categoryListViewModel.categories.observe(viewLifecycleOwner) {
-                    Log.i(GlobalApplication.LOG_TAG,
-                            "CategoryListFragment: categoryListViewModel.categories changed: $it, " +
-                                    "recyclerView ${binding.categoryList.hashCode()}, " +
-                                    "sending to CategoryAdapter ${categoryAdapter.hashCode()}")
                     // Cache 'em all - this shit needs to be fast
                     binding.categoryList.setItemViewCacheSize(it.size)
                     categoryAdapter.submitList(it)

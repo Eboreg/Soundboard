@@ -4,10 +4,11 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import kotlinx.coroutines.*
 import kotlin.math.pow
 
-class SoundPlayer(private val context: Context, private val uri: Uri, private val volume: Int) :
+class SoundPlayer(private var context: Context?, private val uri: Uri, private val initVolume: Int) :
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
     private val mediaPlayer = MediaPlayer()
     private val tempMediaPlayers = mutableListOf<MediaPlayer>()
@@ -20,6 +21,13 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
     private var _noPermission = false
 
     var repressMode = RepressMode.STOP
+    var volume: Int = initVolume
+        set(value) {
+            field = value
+            // MediaPlayer works with log values for some reason
+            val mpVolume = (100.0.pow((if (value <= 100) value else 100) / 100.0) / 100).toFloat()
+            mediaPlayer.setVolume(mpVolume, mpVolume)
+        }
 
     val duration: Int
         get() = _duration
@@ -31,12 +39,13 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
         get() = _noPermission
 
     init {
+        Log.i(LOG_TAG, "init: uri=$uri, volume=$initVolume")
         scope.launch {
             mediaPlayer.setOnPreparedListener(this@SoundPlayer)
             mediaPlayer.setOnErrorListener(this@SoundPlayer)
             try {
                 @Suppress("BlockingMethodInNonBlockingContext")
-                mediaPlayer.setDataSource(context, uri)
+                mediaPlayer.setDataSource(context!!, uri)
                 mediaPlayer.prepareAsync()
             } catch (e: Exception) {
                 _errorMessage = if (e.cause != null) e.cause.toString() else e.toString()
@@ -53,7 +62,7 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
 
     override fun onPrepared(mp: MediaPlayer) {
         _duration = mp.duration
-        setVolume(volume)
+        //setVolume(initVolume)
         mp.setOnCompletionListener {
             if (!isPlaying()) changeState(State.READY)
             mediaPlayer.seekTo(0)
@@ -109,16 +118,18 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
 
     private fun createAndStartTempPlayer(): MediaPlayer {
         return MediaPlayer().apply {
-            setDataSource(context, uri)
-            prepare()
-            start()
-            tempMediaPlayers.add(this)
-            setOnCompletionListener {
-                release()
-                tempMediaPlayers.remove(this)
-                if (!this@SoundPlayer.isPlaying()) changeState(State.READY)
+            context?.let { context ->
+                setDataSource(context, uri)
+                prepare()
+                start()
+                tempMediaPlayers.add(this)
+                setOnCompletionListener {
+                    release()
+                    tempMediaPlayers.remove(this)
+                    if (!this@SoundPlayer.isPlaying()) changeState(State.READY)
+                }
+                changeState(State.PLAYING)
             }
-            changeState(State.PLAYING)
         }
     }
 
@@ -130,17 +141,16 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
         tempMediaPlayers.clear()
     }
 
-    fun setVolume(value: Int) {
-        // MediaPlayer works with log values for some reason
-        val volume = (100.0.pow((if (value <= 100) value else 100) / 100.0) / 100).toFloat()
-        mediaPlayer.setVolume(volume, volume)
-    }
-
     fun setOnStateChangeListener(listener: OnStateChangeListener) {
         onStateChangeListener = listener
     }
 
-    fun release() = mediaPlayer.release()
+    fun release() {
+        context = null
+        stopAndClearTempPlayers()
+        mediaPlayer.release()
+        onStateChangeListener = null
+    }
 
 
     interface OnStateChangeListener {
@@ -151,4 +161,8 @@ class SoundPlayer(private val context: Context, private val uri: Uri, private va
     enum class State { INITIALIZING, READY, STOPPED, PLAYING, ERROR }
 
     enum class RepressMode { STOP, RESTART, OVERLAP }
+
+    companion object {
+        const val LOG_TAG = "SoundPlayer"
+    }
 }

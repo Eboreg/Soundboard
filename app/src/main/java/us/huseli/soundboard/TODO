@@ -1,5 +1,14 @@
+Clean up Log calls
+
+
+Add search func.
+
+
+When dragging sounds near screen edges: scroll
+
+
 In some instance, when creating categories and moving sounds around, an empty category was
-populated with another category's sounds
+populated with another category's sounds (How to recreate?)
 
 
 Run release() on MediaPlayer objects at some point (research activity/app lifecycle to decide when)

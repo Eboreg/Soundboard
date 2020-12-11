@@ -56,7 +56,7 @@ class CategoryAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
         val binding = ItemCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val holder = CategoryViewHolder(binding, this)
-        Log.i(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
+        Log.d(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
         binding.lifecycleOwner = holder
 
         return holder
@@ -134,9 +134,6 @@ class CategoryAdapter(
         }
 
         fun bind(category: Category) {
-            Log.i(LOG_TAG, "ViewHolder.bind: ${adapter.hashCode()} ViewHolder ${hashCode()} " +
-                    "bind Category ${category.name} (${category.hashCode()})")
-
             this.category = category
             val categoryId = category.id
             if (categoryId == null) {
@@ -164,8 +161,8 @@ class CategoryAdapter(
                 }
             }
 
-            soundViewModel.getByCategory(category.id).observe(this) { sounds ->
-                Log.i(LOG_TAG, "ViewHolder sound list observer: adapter=$adapter, viewHolder=$this, category=$category, sounds=$sounds")
+            soundViewModel.listByCategory(category.id).observe(this) { sounds ->
+                Log.d(LOG_TAG, "ViewHolder sound list observer: adapter=$adapter, viewHolder=$this, category=$category, sounds=$sounds")
 
                 // TODO: Remove test call + method when not needed
                 // submitListWithInvalidSound(sounds)
