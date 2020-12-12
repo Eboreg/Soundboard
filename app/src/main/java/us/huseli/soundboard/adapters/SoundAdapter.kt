@@ -209,7 +209,6 @@ class SoundAdapter(
         private val clickAnimator = (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
             setTarget(binding.soundCard)
         }
-        private val recyclerView = adapter.recyclerView
         private val soundViewModel = adapter.soundViewModel
 
         private var longClickAnimator: SoundItemLongClickAnimator? = null
@@ -233,11 +232,14 @@ class SoundAdapter(
 
             binding.categoryViewModel = categoryViewModel
 
-            player = soundViewModel.getPlayer(sound, context).also { player ->
-                if (!player.noPermission) {
-                    player.setOnStateChangeListener(this)
-                    setDuration(player.duration)
-                    appViewModel.repressMode.observe(this) { player.repressMode = it }
+            soundViewModel.players.observe(this) { players ->
+                player = players[sound]?.also { player ->
+                    if (!player.noPermission) {
+                        player.volume = sound.volume
+                        player.setOnStateChangeListener(this)
+                        setDuration(player.duration)
+                        appViewModel.repressMode.observe(this) { player.repressMode = it }
+                    }
                 }
             }
 
@@ -267,6 +269,8 @@ class SoundAdapter(
                 binding.durationCard.visibility = View.VISIBLE
                 if (playerTimer?.duration != value)
                     playerTimer = SoundPlayerTimer(value, binding.volumeBar, sound?.volume ?: 100)
+                else
+                    sound?.volume?.let { playerTimer?.originalProgress = it }
             }
         }
 

@@ -45,6 +45,10 @@
     <string name="repress_mode">Återtrycksläge</string>
     <string name="on_repress">Vid återtryck: %1$s</string>
     <string name="update_existing">Uppdatera existerande</string>
-    <string name="sound_already_exists">Ljudet %1$s finns redan i databasen. Vill du uppdatera det existerande ljudet eller lägga till en dubblett?</string>
     <string name="skip">Hoppa över</string>
+    <string name="no_sounds_to_add">Inga ljud att lägga till!</string>
+    <string name="soundplayer_not_initialized">SoundPlayer är inte initierad</string>
+    <string name="input_search_term">Ange sökfras</string>
+    <string name="toggle_filter">Filter på/av</string>
+    <string name="close_filter">Stäng filtrering</string>
 </resources>

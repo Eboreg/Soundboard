@@ -43,6 +43,13 @@
         android:orderInCategory="2"
         app:showAsAction="ifRoom" />
 
+    <item
+        android:id="@+id/action_toggle_filter"
+        android:icon="@drawable/ic_filter"
+        android:title="@string/toggle_filter"
+        android:orderInCategory="2"
+        app:showAsAction="ifRoom" />
+
     <!--
         <item
             android:id="@+id/action_reinit_failed_sounds"

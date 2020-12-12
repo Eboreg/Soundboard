@@ -45,8 +45,10 @@
     <string name="repress_mode">Re-press mode</string>
     <string name="on_repress">On repress: %1$s</string>
     <string name="update_existing">Update existing</string>
-    <string name="sound_already_exists">Sound %1$s already exists in the database. Do you want to update the existing sound or add a duplicate?</string>
     <string name="skip">Skip</string>
     <string name="no_sounds_to_add">No sounds to add!</string>
     <string name="soundplayer_not_initialized">SoundPlayer not initialized</string>
+    <string name="input_search_term">Input search term</string>
+    <string name="toggle_filter">Toggle filtering</string>
+    <string name="close_filter">Close filter</string>
 </resources>

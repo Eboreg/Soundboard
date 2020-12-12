@@ -8,9 +8,10 @@ import android.util.Log
 import kotlinx.coroutines.*
 import kotlin.math.pow
 
-class SoundPlayer(private var context: Context?, private val uri: Uri, private val initVolume: Int) :
+class SoundPlayer(private var context: Context?, private val uri: Uri, initVolume: Int) :
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
-    private val mediaPlayer = MediaPlayer()
+    //private val mediaPlayer = MediaPlayer()
+    private var mediaPlayer: MediaPlayer? = null
     private val tempMediaPlayers = mutableListOf<MediaPlayer>()
 
     private var onStateChangeListener: OnStateChangeListener? = null
@@ -19,14 +20,18 @@ class SoundPlayer(private var context: Context?, private val uri: Uri, private v
     private var _duration: Int = -1  // In milliseconds
     private var _errorMessage = ""
     private var _noPermission = false
+    private var _previousVolume: Int? = null
 
     var repressMode = RepressMode.STOP
     var volume: Int = initVolume
         set(value) {
-            field = value
-            // MediaPlayer works with log values for some reason
-            val mpVolume = (100.0.pow((if (value <= 100) value else 100) / 100.0) / 100).toFloat()
-            mediaPlayer.setVolume(mpVolume, mpVolume)
+            if (value != _previousVolume) {
+                field = value
+                _previousVolume = value
+                // MediaPlayer works with log values for some reason
+                val mpVolume = (100.0.pow((if (value <= 100) value else 100) / 100.0) / 100).toFloat()
+                mediaPlayer?.setVolume(mpVolume, mpVolume)
+            }
         }
 
     val duration: Int
@@ -39,22 +44,24 @@ class SoundPlayer(private var context: Context?, private val uri: Uri, private v
         get() = _noPermission
 
     init {
-        Log.i(LOG_TAG, "init: uri=$uri, volume=$initVolume")
         scope.launch {
-            mediaPlayer.setOnPreparedListener(this@SoundPlayer)
-            mediaPlayer.setOnErrorListener(this@SoundPlayer)
-            try {
-                @Suppress("BlockingMethodInNonBlockingContext")
-                mediaPlayer.setDataSource(context!!, uri)
-                mediaPlayer.prepareAsync()
-            } catch (e: Exception) {
-                _errorMessage = if (e.cause != null) e.cause.toString() else e.toString()
-                changeState(State.ERROR)
-            }
+            Log.i(LOG_TAG, "init: uri=$uri, volume=$initVolume")
+            mediaPlayer = MediaPlayer().also { mediaPlayer ->
+                mediaPlayer.setOnPreparedListener(this@SoundPlayer)
+                mediaPlayer.setOnErrorListener(this@SoundPlayer)
+                try {
+                    @Suppress("BlockingMethodInNonBlockingContext")
+                    mediaPlayer.setDataSource(context!!, uri)
+                    mediaPlayer.prepareAsync()
+                } catch (e: Exception) {
+                    _errorMessage = if (e.cause != null) e.cause.toString() else e.toString()
+                    changeState(State.ERROR)
+                }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                mediaPlayer.setOnMediaTimeDiscontinuityListener { _, mts ->
-                    if (mts.mediaClockRate > 0.0) changeState(State.PLAYING)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    mediaPlayer.setOnMediaTimeDiscontinuityListener { _, mts ->
+                        if (mts.mediaClockRate > 0.0) changeState(State.PLAYING)
+                    }
                 }
             }
         }
@@ -65,7 +72,8 @@ class SoundPlayer(private var context: Context?, private val uri: Uri, private v
         //setVolume(initVolume)
         mp.setOnCompletionListener {
             if (!isPlaying()) changeState(State.READY)
-            mediaPlayer.seekTo(0)
+            it.seekTo(0)
+            //mediaPlayer.seekTo(0)
         }
         changeState(State.READY)
     }
@@ -83,7 +91,7 @@ class SoundPlayer(private var context: Context?, private val uri: Uri, private v
         return true
     }
 
-    private fun isPlaying() = mediaPlayer.isPlaying || tempMediaPlayers.any { it.isPlaying }
+    private fun isPlaying() = mediaPlayer?.isPlaying == true || tempMediaPlayers.any { it.isPlaying }
 
     private fun changeState(state: State) {
         _state = state
@@ -91,27 +99,29 @@ class SoundPlayer(private var context: Context?, private val uri: Uri, private v
     }
 
     fun togglePlay() {
-        if (_state == State.PLAYING) {
-            when (repressMode) {
-                RepressMode.STOP -> {
-                    mediaPlayer.pause()
-                    stopAndClearTempPlayers()
-                    changeState(State.STOPPED)
-                    mediaPlayer.seekTo(0)
+        mediaPlayer?.also { mediaPlayer ->
+            if (_state == State.PLAYING) {
+                when (repressMode) {
+                    RepressMode.STOP -> {
+                        mediaPlayer.pause()
+                        stopAndClearTempPlayers()
+                        changeState(State.STOPPED)
+                        mediaPlayer.seekTo(0)
+                    }
+                    RepressMode.RESTART -> {
+                        mediaPlayer.seekTo(0)
+                        changeState(State.PLAYING)
+                    }
+                    RepressMode.OVERLAP -> {
+                        // TODO: adjust volumes?
+                        createAndStartTempPlayer()
+                    }
                 }
-                RepressMode.RESTART -> {
-                    mediaPlayer.seekTo(0)
+            } else {
+                mediaPlayer.start()
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                     changeState(State.PLAYING)
                 }
-                RepressMode.OVERLAP -> {
-                    // TODO: adjust volumes?
-                    createAndStartTempPlayer()
-                }
-            }
-        } else {
-            mediaPlayer.start()
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                changeState(State.PLAYING)
             }
         }
     }
@@ -146,9 +156,10 @@ class SoundPlayer(private var context: Context?, private val uri: Uri, private v
     }
 
     fun release() {
+        scope.cancel()
         context = null
         stopAndClearTempPlayers()
-        mediaPlayer.release()
+        mediaPlayer?.release()
         onStateChangeListener = null
     }
 

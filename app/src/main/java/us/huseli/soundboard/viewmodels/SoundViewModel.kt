@@ -1,7 +1,7 @@
 package us.huseli.soundboard.viewmodels
 
 import android.content.Context
-import android.net.Uri
+import android.text.Editable
 import android.util.Log
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
@@ -11,18 +11,36 @@ import us.huseli.soundboard.SoundPlayer
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.data.SoundRepository
 import us.huseli.soundboard.data.SoundboardDatabase
+import java.util.*
+import kotlin.collections.HashMap
 import kotlin.collections.set
 
 class SoundViewModel : ViewModel() {
     private val database = SoundboardDatabase.getInstance(GlobalApplication.application)
     private val repository = SoundRepository(database.soundDao())
-    private val players = HashMap<Uri, SoundPlayer>()
+
     private val _failedSounds = mutableListOf<Sound>()
+    private val _filterEnabled = MutableLiveData(false)
+    private val _filterTerm = MutableLiveData("")
     private val _reorderEnabled = MutableLiveData(false)
+    private val _sounds = repository.list()
 
     val failedSounds: List<Sound>
         get() = _failedSounds
-    val sounds = repository.list()
+
+    val filterEnabled: LiveData<Boolean>
+        get() = _filterEnabled
+
+    val sounds = _filterEnabled.switchMap {
+        when (it) {
+            true -> _filteredSounds
+            else -> _sounds
+        }
+    }
+
+    fun disableFilter() {
+        _filterEnabled.value = false
+    }
 
     fun listByCategory(categoryId: Int?) = sounds.map { sound -> sound.filter { it.categoryId == categoryId } }
 
@@ -32,7 +50,8 @@ class SoundViewModel : ViewModel() {
             viewModelScope.launch(Dispatchers.IO) {
                 _failedSounds.remove(oldSound)
                 repository.update(sound)
-                players[sound.uri] = SoundPlayer(context, sound.uri, sound.volume)
+                //addPlayer(sound.uri, SoundPlayer(context, sound.uri, sound.volume))
+                //_players[sound.uri] = SoundPlayer(context, sound.uri, sound.volume)
             }
         }
     }
@@ -45,42 +64,48 @@ class SoundViewModel : ViewModel() {
         repository.update(sounds)
     }
 
-    /******* SOUNDPLAYER STUFF *******/
-    private fun getPlayer(sound: Sound): SoundPlayer? {
-        return players[sound.uri]?.apply {
-            // Conveniently update volume in case it's been changed
-            if (volume != sound.volume) volume = sound.volume
+
+    /******* FILTERING *******/
+    private val _filteredSounds = _filterTerm.switchMap { term ->
+        _sounds.map { sounds ->
+            sounds.filter { sound ->
+                sound.name.toLowerCase(Locale.getDefault()).contains(term.toLowerCase(Locale.getDefault()))
+            }
         }
     }
 
-    fun getPlayer(sound: Sound, context: Context): SoundPlayer {
-        return getPlayer(sound) ?: initPlayer(sound, context)
+    fun setFilterTerm(term: Editable?) {
+        _filterTerm.value = term?.toString()
     }
 
-    private fun initPlayer(sound: Sound, context: Context): SoundPlayer {
-        return players[sound.uri] ?: SoundPlayer(context, sound.uri, sound.volume).also {
-            viewModelScope.launch(Dispatchers.IO) { players[sound.uri] = it }
-            if (it.noPermission) _failedSounds.add(sound)
-        }
+    fun toggleFilterEnabled() {
+        _filterEnabled.value = _filterEnabled.value != true
     }
 
-    /**
-     * Only to be used when we have fetched ALL sounds
-     */
-    fun initPlayers(sounds: List<Sound>, context: Context) = viewModelScope.launch(Dispatchers.IO) {
-        // Remove players for no longer existing sounds
-        players.filterNot { entry -> entry.key in sounds.map { it.uri } }.forEach {
-            it.value.release()
-            players.remove(it.key)
+
+    /******* PLAYER RELATED STUFF *******/
+    private val _players = HashMap<Sound, SoundPlayer>()
+
+    val players: LiveData<HashMap<Sound, SoundPlayer>> = _sounds.map { sounds ->
+        // Add players for new sounds
+        sounds.filter { it !in _players.keys }.forEach {
+            _players[it] = SoundPlayer(GlobalApplication.application, it.uri, it.volume)
         }
-        sounds.filterNot { sound -> sound.uri in players.map { it.key } }.forEach { initPlayer(it, context) }
+        // Remove players for old sounds
+        _players.keys.filter { sound -> sound !in sounds }.forEach { _players.remove(it) }
+        _players
     }
+
+    fun setVolume(sound: Sound, volume: Int) {
+        _players[sound]?.volume = volume
+    }
+
 
     /******* RESPOND TO ACTIVITY STATE CHANGES *******/
     override fun onCleared() {
         super.onCleared()
         Log.i(LOG_TAG, "Owner activity finished, releasing and removing SoundPlayers")
-        players.forEach {
+        _players.forEach {
             it.value.release()
         }
         onSelectAllListeners.clear()

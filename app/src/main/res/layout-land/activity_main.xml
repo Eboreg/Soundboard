@@ -3,6 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <data>
+
+        <variable
+            name="soundViewModel"
+            type="us.huseli.soundboard.viewmodels.SoundViewModel" />
+    </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/app_container"
         android:layout_width="match_parent"
@@ -14,10 +21,58 @@
             android:id="@+id/actionbar"
             layout="@layout/actionbar"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="?attr/actionBarSize"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/filterBar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:theme="@style/Soundboard.Toolbar"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/actionbar"
+            tools:visibility="visible">
+
+            <EditText
+                android:id="@+id/filterTerm"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_normal"
+                android:autofillHints="filterTerm"
+                android:ems="10"
+                android:focusable="true"
+                android:hint="@string/input_search_term"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/disableFilter"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Hej hopp" />
+
+            <ImageView
+                android:id="@+id/disableFilter"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginEnd="@dimen/margin_normal"
+                android:background="?actionBarItemBackground"
+                android:clickable="true"
+                android:contentDescription="@string/close_filter"
+                android:focusable="true"
+                android:onClick="@{() -> soundViewModel.disableFilter()}"
+                android:padding="@dimen/margin_small"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintDimensionRatio="1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/filterTerm"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_cancel" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/category_list_container"
@@ -27,7 +82,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/actionbar"
+            app:layout_constraintTop_toBottomOf="@id/filterBar"
             tools:layout="@layout/fragment_category_list" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

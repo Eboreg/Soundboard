@@ -2,6 +2,7 @@ package us.huseli.soundboard
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -9,11 +10,15 @@ import android.provider.DocumentsContract
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
+import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import us.huseli.soundboard.data.Category
@@ -159,20 +164,33 @@ class MainActivity :
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
+        binding.soundViewModel = soundViewModel
         setContentView(binding.root)
 
         setSupportActionBar(binding.actionbar.actionbarToolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
-
         setupEasterEggClickListener()
-
         setupBottomBar()
+
+        binding.filterTerm.addTextChangedListener {
+            soundViewModel.setFilterTerm(it)
+        }
+        binding.filterTerm.setOnEditorActionListener { _, actionId, _ ->
+            return@setOnEditorActionListener when (actionId) {
+                EditorInfo.IME_ACTION_SEARCH -> {
+                    // Hide soft keyboard on "search" button press
+                    (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.hideSoftInputFromWindow(binding.filterTerm.windowToken, 0)
+                    true
+                }
+                else -> false
+            }
+        }
 
         soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
 
         soundViewModel.sounds.observe(this) {
             sounds = it
-            soundViewModel.initPlayers(it, this)
+            //soundViewModel.initPlayers(it, this)
         }
 
         categoryListViewModel.categories.observe(this) {
@@ -190,6 +208,7 @@ class MainActivity :
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.appbar_menu, menu)
         // This has to be done here, because the callback requires the menu to exist
+        soundViewModel.filterEnabled.observe(this) { onFilterEnabledChange(it) }
         soundViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
         appViewModel.zoomInPossible.observe(this) { onZoomInPossibleChange(it) }
         appViewModel.repressMode.observe(this) { onRepressModeChange(it) }
@@ -202,6 +221,7 @@ class MainActivity :
         when (item.itemId) {
             R.id.action_add_sound -> startAddSoundActivity()
             R.id.action_toggle_reorder -> soundViewModel.toggleReorderEnabled()
+            R.id.action_toggle_filter -> soundViewModel.toggleFilterEnabled()
             R.id.action_zoom_in -> zoomIn()
             R.id.action_zoom_out -> zoomOut()
             R.id.action_add_category -> showAddCategoryFragment()
@@ -232,10 +252,10 @@ class MainActivity :
         val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_reorder)
         if (value) {
             if (reorderEnabled != null) showToast(R.string.reordering_enabled)
-            item?.icon?.alpha = 204
+            item?.icon?.alpha = 255
         } else {
             if (reorderEnabled != null) showToast(R.string.reordering_disabled)
-            item?.icon?.alpha = 102
+            item?.icon?.alpha = 128
         }
         reorderEnabled = value
     }
@@ -282,6 +302,22 @@ class MainActivity :
         binding.bottombar?.bottombarToolbar?.menu?.findItem(R.id.action_set_repress_mode)?.icon = icon
         if (this.repressMode != null) showToast(getString(R.string.on_repress, mode))
         this.repressMode = mode
+    }
+
+    private fun onFilterEnabledChange(value: Boolean) {
+        val manager = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_filter)
+        if (value) {
+            item?.icon?.alpha = 255
+            binding.filterBar.visibility = View.VISIBLE
+            binding.filterTerm.requestFocus()
+            manager?.showSoftInput(binding.filterTerm, InputMethodManager.SHOW_IMPLICIT)
+        } else {
+            item?.icon?.alpha = 128
+            binding.filterBar.visibility = View.GONE
+            //binding.searchTerm.setText("")
+            manager?.hideSoftInputFromWindow(binding.filterTerm.windowToken, 0)
+        }
     }
 
     private fun onZoomInPossibleChange(value: Boolean) {
