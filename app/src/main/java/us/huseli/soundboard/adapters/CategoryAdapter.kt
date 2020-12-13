@@ -23,6 +23,7 @@ import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.ItemCategoryBinding
 import us.huseli.soundboard.helpers.CategoryItemDragHelperCallback
 import us.huseli.soundboard.helpers.SoundDragListener
+import us.huseli.soundboard.helpers.SoundScroller
 import us.huseli.soundboard.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard.interfaces.EditCategoryInterface
 import us.huseli.soundboard.interfaces.ToastInterface
@@ -33,7 +34,8 @@ class CategoryAdapter(
         private val initialSpanCount: Int,
         private val soundViewModel: SoundViewModel,
         private val categoryListViewModel: CategoryListViewModel,
-        private val viewModelStoreOwner: ViewModelStoreOwner) :
+        private val viewModelStoreOwner: ViewModelStoreOwner,
+        private val soundScroller: SoundScroller) :
         LifecycleAdapter<Category, CategoryAdapter.CategoryViewHolder>(DiffCallback()) {
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 200) }
     internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
@@ -91,7 +93,7 @@ class CategoryAdapter(
      * Represents one individual category with its sound list.
      * Layout: item_category.xml, see this file for binding
      */
-    class CategoryViewHolder(internal val binding: ItemCategoryBinding, private val adapter: CategoryAdapter) :
+    class CategoryViewHolder(internal val binding: ItemCategoryBinding, adapter: CategoryAdapter) :
             View.OnClickListener,
             AppViewModelListenerInterface,
             LifecycleViewHolder(binding.root) {
@@ -103,6 +105,7 @@ class CategoryAdapter(
         private val initialSpanCount = adapter.initialSpanCount
         private val soundAdapter: SoundAdapter
         private val soundDragListener: SoundDragListener
+        private val soundScroller = adapter.soundScroller
         private val soundViewModel = adapter.soundViewModel
         private val soundViewPool = adapter.soundViewPool
         private val viewModelStoreOwner = adapter.viewModelStoreOwner
@@ -114,12 +117,11 @@ class CategoryAdapter(
         override val lifecycleRegistry = LifecycleRegistry(this)
 
         init {
+            soundAdapter = SoundAdapter(binding.soundList, soundViewModel, appViewModel)
+            soundDragListener = SoundDragListener(soundAdapter, this, soundScroller)
+
             binding.categoryEditButton.setOnClickListener(this)
             binding.categoryDeleteButton.setOnClickListener(this)
-
-            soundAdapter = SoundAdapter(binding.soundList, soundViewModel, appViewModel)
-            soundDragListener = SoundDragListener(soundAdapter, this)
-
             binding.root.setOnDragListener(soundDragListener)
 
             binding.soundList.apply {
@@ -162,7 +164,7 @@ class CategoryAdapter(
             }
 
             soundViewModel.listByCategory(category.id).observe(this) { sounds ->
-                Log.d(LOG_TAG, "ViewHolder sound list observer: adapter=$adapter, viewHolder=$this, category=$category, sounds=$sounds")
+                Log.d(LOG_TAG, "ViewHolder sound list observer: viewHolder=$this, category=$category, sounds=$sounds")
 
                 // TODO: Remove test call + method when not needed
                 // submitListWithInvalidSound(sounds)

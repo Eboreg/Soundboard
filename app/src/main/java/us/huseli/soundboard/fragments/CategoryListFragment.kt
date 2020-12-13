@@ -12,6 +12,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import us.huseli.soundboard.adapters.CategoryAdapter
 import us.huseli.soundboard.databinding.FragmentCategoryListBinding
+import us.huseli.soundboard.helpers.SoundScroller
 import us.huseli.soundboard.interfaces.ZoomInterface
 import us.huseli.soundboard.viewmodels.AppViewModel
 import us.huseli.soundboard.viewmodels.CategoryListViewModel
@@ -33,10 +34,11 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
 
         val landscapeSpanCount = preferences.getInt("landscapeSpanCount", 0)
         initialSpanCount = appViewModel.setup(config.orientation, config.screenWidthDp, config.screenHeightDp, landscapeSpanCount)
-        appViewModel.spanCountLandscape.observe(viewLifecycleOwner) { preferences.edit {
-            putInt("landscapeSpanCount", it)
-            apply()
-        }
+        appViewModel.spanCountLandscape.observe(viewLifecycleOwner) {
+            preferences.edit {
+                putInt("landscapeSpanCount", it)
+                apply()
+            }
         }
 
         binding = FragmentCategoryListBinding.inflate(inflater, container, false)
@@ -72,14 +74,15 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        categoryAdapter = CategoryAdapter(
-                appViewModel,
-                initialSpanCount ?: AppViewModel.DEFAULT_SPANCOUNT_PORTRAIT,
-                soundViewModel,
-                categoryListViewModel,
-                requireActivity()
-        ).also { categoryAdapter ->
-            binding?.also { binding ->
+        binding?.also { binding ->
+            categoryAdapter = CategoryAdapter(
+                    appViewModel,
+                    initialSpanCount ?: AppViewModel.DEFAULT_SPANCOUNT_PORTRAIT,
+                    soundViewModel,
+                    categoryListViewModel,
+                    requireActivity(),
+                    SoundScroller(binding.categoryList, 10, 10)
+            ).also { categoryAdapter ->
                 binding.categoryList.apply {
                     categoryAdapter.itemTouchHelper.attachToRecyclerView(this)
                     adapter = categoryAdapter
@@ -94,9 +97,9 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
                     binding.categoryList.setItemViewCacheSize(it.size)
                     categoryAdapter.submitList(it)
                 }
-            } ?: run {
-                Log.e(LOG_TAG, "onViewCreated: binding is null")
             }
+        } ?: run {
+            Log.e(LOG_TAG, "onViewCreated: binding is null")
         }
     }
 

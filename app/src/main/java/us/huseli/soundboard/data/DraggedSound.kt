@@ -1,6 +1,6 @@
 package us.huseli.soundboard.data
 
-class DraggedSound(val sound: Sound, var currentAdapterPosition: Int) {
+class DraggedSound(val sound: Sound, var currentAdapterPosition: Int, val viewHeight: Int) {
     var state = State.IDLE
 
     override fun toString(): String {

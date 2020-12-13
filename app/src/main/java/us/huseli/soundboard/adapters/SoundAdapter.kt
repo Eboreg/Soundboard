@@ -331,7 +331,7 @@ class SoundAdapter(
             sound?.let { sound ->
                 val data = ClipData.newPlainText("", "")
                 val shadowBuilder = View.DragShadowBuilder(view)
-                val draggedSound = DraggedSound(sound, adapterPosition)
+                val draggedSound = DraggedSound(sound, adapterPosition, view.height)
 
                 Log.d(LOG_TAG, "startDragAndDrop: draggedSound=$draggedSound, this=$this")
 

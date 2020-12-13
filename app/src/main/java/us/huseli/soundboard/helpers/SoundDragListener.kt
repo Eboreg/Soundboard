@@ -11,7 +11,10 @@ import us.huseli.soundboard.data.DraggedSound
  * Owned by CategoryAdapter.ViewHolder.
  * view = RecyclerView with SoundAdapter
  */
-class SoundDragListener(private val soundAdapter: SoundAdapter, private val categoryViewHolder: CategoryAdapter.CategoryViewHolder) : View.OnDragListener {
+class SoundDragListener(
+        private val soundAdapter: SoundAdapter,
+        private val categoryViewHolder: CategoryAdapter.CategoryViewHolder,
+        private val soundScroller: SoundScroller) : View.OnDragListener {
     private val hashCode = Integer.toHexString(System.identityHashCode(this))
     private var logNumber = 0
 
@@ -73,7 +76,7 @@ class SoundDragListener(private val soundAdapter: SoundAdapter, private val cate
             DragEvent.ACTION_DRAG_STARTED -> onDragStarted(event, view, draggedSound)
             DragEvent.ACTION_DRAG_ENTERED -> onDragEntered(event, view)
             DragEvent.ACTION_DRAG_EXITED -> onDragExited(event, view, draggedSound)
-            DragEvent.ACTION_DRAG_LOCATION -> onDragLocation(event, draggedSound)
+            DragEvent.ACTION_DRAG_LOCATION -> onDragLocation(event, view, draggedSound)
             DragEvent.ACTION_DROP -> onDrop(event, view, draggedSound)
             DragEvent.ACTION_DRAG_ENDED -> onDragEnded(event, view)
             else -> {
@@ -107,16 +110,18 @@ class SoundDragListener(private val soundAdapter: SoundAdapter, private val cate
         return true
     }
 
-    private fun onDragLocation(event: DragEvent, draggedSound: DraggedSound): Boolean {
+    private fun onDragLocation(event: DragEvent, view: View, draggedSound: DraggedSound): Boolean {
         /**
          * Get the adapter position we would move to, were we to drop right now.
          * We cannot return a ViewHolder, since we might be over the rightmost part of the
          * last viewholder, in which case there is not yet a viewholder at the position where
          * we want to drop.
          */
+        scrollIfNecessary(event, view, draggedSound)
+
         if (!soundAdapter.isEmpty() && draggedSound.state == DraggedSound.State.IDLE) {
-            draggedSound.state = DraggedSound.State.MOVING
             val (x, y) = getXY(event)
+            draggedSound.state = DraggedSound.State.MOVING
             val adapterPosition = soundAdapter.getAdapterPositionUnder(x, y)
             if (adapterPosition != draggedSound.currentAdapterPosition) {
                 draggedSound.currentAdapterPosition = adapterPosition
@@ -147,6 +152,24 @@ class SoundDragListener(private val soundAdapter: SoundAdapter, private val cate
     private fun reset() {
         logNumber = 0
         isDragging = false
+    }
+
+    private fun scrollIfNecessary(event: DragEvent, view: View, draggedSound: DraggedSound) {
+        /**
+         * We want to scroll as longs as some of the dragged sound is outside the vertical limits
+         * of the visible Category RecyclerView.
+         * view = Category item view receiving the event
+         * event.y = position relative to view
+         *
+         * Because screen will contain a header and maybe a footer, we calculate with their offsets.
+         *
+         * View.DragShadowBuilder sets drag point (contained in event.y) to be in the middle of the
+         * dragged view. That means the upper edge of dragged view is at event.y - (viewHeight / 2),
+         * and lower edge is at event.y + (viewHeight / 2).
+         */
+        val location = IntArray(2)
+        view.getLocationOnScreen(location)
+        soundScroller.scrollIfNecessary(location[1] + event.y, draggedSound.viewHeight)
     }
 
 
