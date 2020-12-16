@@ -51,4 +51,5 @@
     <string name="input_search_term">Ange sökfras</string>
     <string name="toggle_filter">Filter på/av</string>
     <string name="close_filter">Stäng filtrering</string>
+    <string name="undo">Ångra</string>
 </resources>

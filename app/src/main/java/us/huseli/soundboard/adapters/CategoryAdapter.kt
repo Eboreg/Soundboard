@@ -24,7 +24,6 @@ import us.huseli.soundboard.databinding.ItemCategoryBinding
 import us.huseli.soundboard.helpers.CategoryItemDragHelperCallback
 import us.huseli.soundboard.helpers.SoundDragListener
 import us.huseli.soundboard.helpers.SoundScroller
-import us.huseli.soundboard.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard.interfaces.EditCategoryInterface
 import us.huseli.soundboard.interfaces.ToastInterface
 import us.huseli.soundboard.viewmodels.*
@@ -95,7 +94,6 @@ class CategoryAdapter(
      */
     class CategoryViewHolder(internal val binding: ItemCategoryBinding, adapter: CategoryAdapter) :
             View.OnClickListener,
-            AppViewModelListenerInterface,
             LifecycleViewHolder(binding.root) {
         @Suppress("PrivatePropertyName")
         private val LOG_TAG = "CategoryViewHolder"
@@ -211,10 +209,6 @@ class CategoryAdapter(
                 (activity as ToastInterface).showToast(R.string.not_initialized_yet)
             }
         }
-
-        override fun onReorderEnabledChange(value: Boolean) {}
-
-        override fun onSelectEnabledChange(value: Boolean) {}
 
         override fun markDestroyed() {
             // Fragment calls adapter.setLifecycleDestroyed(), which calls this

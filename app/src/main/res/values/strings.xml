@@ -51,4 +51,5 @@
     <string name="input_search_term">Input search term</string>
     <string name="toggle_filter">Toggle filtering</string>
     <string name="close_filter">Close filter</string>
+    <string name="undo">Undo</string>
 </resources>

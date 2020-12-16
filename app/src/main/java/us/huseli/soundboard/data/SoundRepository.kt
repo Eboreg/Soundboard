@@ -24,5 +24,4 @@ class SoundRepository(private val soundDao: SoundDao) {
     }
 
     fun list() = soundDao.list()
-
 }

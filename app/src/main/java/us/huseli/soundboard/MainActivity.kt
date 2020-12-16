@@ -25,7 +25,6 @@ import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.ActivityMainBinding
 import us.huseli.soundboard.fragments.*
-import us.huseli.soundboard.interfaces.AppViewModelListenerInterface
 import us.huseli.soundboard.interfaces.EditCategoryInterface
 import us.huseli.soundboard.interfaces.ToastInterface
 import us.huseli.soundboard.interfaces.ZoomInterface
@@ -34,7 +33,6 @@ import us.huseli.soundboard.viewmodels.*
 class MainActivity :
         AppCompatActivity(),
         EditCategoryInterface,
-        AppViewModelListenerInterface,
         ColorPickerDialogListener,
         ToastInterface,
         ZoomInterface,
@@ -47,15 +45,15 @@ class MainActivity :
 
     private val actionbarLogoTouchTimes = mutableListOf<Long>()
     private var actionMode: ActionMode? = null
-    private lateinit var binding: ActivityMainBinding
     private var categories = emptyList<Category>()
-    private var sounds = emptyList<Sound>()
-
-    // Just to know whether a toast should be shown on value change
-    private var repressMode: SoundPlayer.RepressMode? = null
+    private var filterEnabled: Boolean = false
+    private var filterWasEnabled: Boolean = false
     private var reorderEnabled: Boolean? = null
+    private var repressMode: SoundPlayer.RepressMode? = null
+    private var sounds = emptyList<Sound>()
     private var toast: Toast? = null
 
+    private lateinit var binding: ActivityMainBinding
 
     /** Overridden Android methods */
     override fun onActionItemClicked(mode: ActionMode?, item: MenuItem): Boolean {
@@ -208,10 +206,11 @@ class MainActivity :
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.appbar_menu, menu)
         // This has to be done here, because the callback requires the menu to exist
+        appViewModel.repressMode.observe(this) { onRepressModeChange(it) }
+        appViewModel.zoomInPossible.observe(this) { onZoomInPossibleChange(it) }
         soundViewModel.filterEnabled.observe(this) { onFilterEnabledChange(it) }
         soundViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
-        appViewModel.zoomInPossible.observe(this) { onZoomInPossibleChange(it) }
-        appViewModel.repressMode.observe(this) { onRepressModeChange(it) }
+        soundViewModel.undosAvailable.observe(this) { onUndosAvailableChange(it) }
         return true
     }
 
@@ -219,19 +218,29 @@ class MainActivity :
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.action_add_category -> showAddCategoryFragment()
             R.id.action_add_sound -> startAddSoundActivity()
-            R.id.action_toggle_reorder -> soundViewModel.toggleReorderEnabled()
+            // R.id.action_reinit_failed_sounds -> reinitFailedSounds()
+            R.id.action_set_repress_mode -> appViewModel.cycleRepressMode()
             R.id.action_toggle_filter -> soundViewModel.toggleFilterEnabled()
+            R.id.action_toggle_reorder -> soundViewModel.toggleReorderEnabled()
+            R.id.action_undo -> soundViewModel.undo()
             R.id.action_zoom_in -> zoomIn()
             R.id.action_zoom_out -> zoomOut()
-            R.id.action_add_category -> showAddCategoryFragment()
-            R.id.action_set_repress_mode -> appViewModel.cycleRepressMode()
-            // R.id.action_reinit_failed_sounds -> reinitFailedSounds()
         }
         return true
     }
 
     override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?) = false
+
+    private fun onUndosAvailableChange(value: Boolean?) {
+        // There are 1 or more undos in the queue
+        val undoItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_undo)
+        when (value) {
+            true -> undoItem?.icon?.alpha = 255
+            else -> undoItem?.icon?.alpha = 128
+        }
+    }
 
 
     /**
@@ -248,27 +257,6 @@ class MainActivity :
     /**
      * Overridden own methods
      */
-    override fun onReorderEnabledChange(value: Boolean) {
-        val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_reorder)
-        if (value) {
-            if (reorderEnabled != null) showToast(R.string.reordering_enabled)
-            item?.icon?.alpha = 255
-        } else {
-            if (reorderEnabled != null) showToast(R.string.reordering_disabled)
-            item?.icon?.alpha = 128
-        }
-        reorderEnabled = value
-    }
-
-    override fun onSelectEnabledChange(value: Boolean) {
-        actionMode = if (value)
-            startSupportActionMode(this)
-        else {
-            actionMode?.finish()
-            null
-        }
-    }
-
     override fun showCategoryDeleteDialog(id: Int, name: String, soundCount: Int) =
             showDialogFragment(DeleteCategoryFragment.newInstance(id, name, soundCount, categories.size))
 
@@ -282,16 +270,54 @@ class MainActivity :
 
     override fun showToast(textResource: Int) = showToast(getText(textResource))
 
-    override fun zoomIn() =
-            appViewModel.zoomIn()?.let { showToast(getString(R.string.zoom_level_percent, it)) }
+    override fun zoomIn() = appViewModel.zoomIn()?.let { showToast(getString(R.string.zoom_level_percent, it)) }
 
-    override fun zoomOut() =
-            appViewModel.zoomOut()?.let { showToast(getString(R.string.zoom_level_percent, it)) }
+    override fun zoomOut() = appViewModel.zoomOut()?.let { showToast(getString(R.string.zoom_level_percent, it)) }
 
 
     /**
      * Own methods
      */
+    private fun onFilterEnabledChange(value: Boolean) {
+        filterEnabled = value
+        val manager = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_filter)
+        if (value) {
+            item?.icon?.alpha = 255
+            binding.filterBar.visibility = View.VISIBLE
+            binding.filterTerm.requestFocus()
+            manager?.showSoftInput(binding.filterTerm, InputMethodManager.SHOW_IMPLICIT)
+        } else {
+            item?.icon?.alpha = 128
+            binding.filterBar.visibility = View.GONE
+            manager?.hideSoftInputFromWindow(binding.filterTerm.windowToken, 0)
+        }
+    }
+
+    private fun onReorderEnabledChange(value: Boolean) {
+        val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_reorder)
+        val toggleFilterItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_filter)
+        val undoItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_undo)
+        if (value) {
+            if (reorderEnabled != null) showToast(R.string.reordering_enabled)
+            item?.icon?.alpha = 255
+            filterWasEnabled = filterEnabled
+            toggleFilterItem?.isVisible = false
+            soundViewModel.disableFilter()
+            soundViewModel.enableUndo()
+            undoItem?.isVisible = true
+            undoItem?.icon?.alpha = 128
+        } else {
+            if (reorderEnabled != null) showToast(R.string.reordering_disabled)
+            item?.icon?.alpha = 128
+            toggleFilterItem?.isVisible = true
+            if (filterWasEnabled) soundViewModel.enableFilter()
+            soundViewModel.disableUndo()
+            undoItem?.isVisible = false
+        }
+        reorderEnabled = value  // Has to come last
+    }
+
     private fun onRepressModeChange(mode: SoundPlayer.RepressMode) {
         val icon = when (mode) {
             SoundPlayer.RepressMode.OVERLAP -> ResourcesCompat.getDrawable(resources, R.drawable.ic_repress_overlap, theme)
@@ -304,19 +330,12 @@ class MainActivity :
         this.repressMode = mode
     }
 
-    private fun onFilterEnabledChange(value: Boolean) {
-        val manager = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-        val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_filter)
-        if (value) {
-            item?.icon?.alpha = 255
-            binding.filterBar.visibility = View.VISIBLE
-            binding.filterTerm.requestFocus()
-            manager?.showSoftInput(binding.filterTerm, InputMethodManager.SHOW_IMPLICIT)
-        } else {
-            item?.icon?.alpha = 128
-            binding.filterBar.visibility = View.GONE
-            //binding.searchTerm.setText("")
-            manager?.hideSoftInputFromWindow(binding.filterTerm.windowToken, 0)
+    private fun onSelectEnabledChange(value: Boolean) {
+        actionMode = if (value)
+            startSupportActionMode(this)
+        else {
+            actionMode?.finish()
+            null
         }
     }
 

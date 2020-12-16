@@ -1,3 +1,85 @@
+Före flytt:
+result = {ArrayList@11660}  size = 122
+ 0 = {Sound@12205} "Sound 36f1875 <id=1, name=Ah, Music, categoryId=6>"
+ 1 = {Sound@12206} "Sound eb808e5 <id=7, name=Boing Boom Tschak, categoryId=7>"
+ 2 = {Sound@12207} "Sound e5002ed <id=44, name=jaaazzz, categoryId=1>"
+ 3 = {Sound@12208} "Sound fc544fc <id=50, name=Kambodja är befriat, categoryId=11>"
+ 4 = {Sound@12209} "Sound b964b68 <id=73, name=musikens makt kort, categoryId=5>"
+  categoryId = {Integer@12406} 5
+  id = {Integer@12407} 73
+  name = "musikens makt kort"
+  order = 0
+  uri = {Uri$StringUri@12409} "content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fmusikens%20makt%20kort.flac"
+  volume = 100
+  shadow$_klass_ = {Class@10509} "class us.huseli.soundboard.data.Sound"
+  shadow$_monitor_ = -1953084568
+ 5 = {Sound@12210} "Sound d2fbfba <id=2, name=ba dum tss, categoryId=7>"
+ 6 = {Sound@12211} "Sound f3f400a <id=8, name=Cool Britannia, categoryId=6>"
+ 7 = {Sound@12212} "Sound 9fcff10 <id=19, name=Gayniggers 1, categoryId=8>"
+ 8 = {Sound@12213} "Sound 943a522 <id=33, name=Hallon men karl! Hallon! 2, categoryId=1>"
+ 9 = {Sound@12214} "Sound 7797b72 <id=41, name=Icka Prick., categoryId=9>"
+ 10 = {Sound@12215} "Sound 467fb81 <id=74, name=musikens makt, categoryId=5>"
+  categoryId = {Integer@12406} 5
+  id = {Integer@12412} 74
+  name = "musikens makt"
+  order = 1
+  uri = {Uri$StringUri@12414} "content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fmusikens%20makt.flac"
+  volume = 100
+  shadow$_klass_ = {Class@10509} "class us.huseli.soundboard.data.Sound"
+  shadow$_monitor_ = -2073560191
+
+Vid flytt: SoundViewModel.update()
+result = {ArrayList@12513}  size = 12
+ 0 = {Sound@12215} "Sound 467fb81 <id=74, name=musikens makt, categoryId=5>"
+  categoryId = {Integer@12527} 5
+  id = {Integer@12412} 74
+  name = "musikens makt"
+  order = 0
+  uri = {Uri$StringUri@12414} "content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fmusikens%20makt.flac"
+  volume = 100
+  shadow$_klass_ = {Class@10509} "class us.huseli.soundboard.data.Sound"
+  shadow$_monitor_ = -2073560191
+ 1 = {Sound@12209} "Sound b964b68 <id=73, name=musikens makt kort, categoryId=5>"
+  categoryId = {Integer@12529} 5
+  id = {Integer@12407} 73
+  name = "musikens makt kort"
+  order = 1
+  uri = {Uri$StringUri@12409} "content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fmusikens%20makt%20kort.flac"
+  volume = 100
+  shadow$_klass_ = {Class@10509} "class us.huseli.soundboard.data.Sound"
+  shadow$_monitor_ = -1953084568
+
+Efter flytt: _undoStates[0]
+result = {ArrayList@11660}  size = 122
+ 0 = {Sound@12205} "Sound 36f1875 <id=1, name=Ah, Music, categoryId=6>"
+ 1 = {Sound@12206} "Sound eb808e5 <id=7, name=Boing Boom Tschak, categoryId=7>"
+ 2 = {Sound@12207} "Sound e5002ed <id=44, name=jaaazzz, categoryId=1>"
+ 3 = {Sound@12208} "Sound fc544fc <id=50, name=Kambodja är befriat, categoryId=11>"
+ 4 = {Sound@12209} "Sound b964b68 <id=73, name=musikens makt kort, categoryId=5>"
+  categoryId = {Integer@12529} 5
+  id = {Integer@12407} 73
+  name = "musikens makt kort"
+  order = 1
+  uri = {Uri$StringUri@12409} "content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fmusikens%20makt%20kort.flac"
+  volume = 100
+  shadow$_klass_ = {Class@10509} "class us.huseli.soundboard.data.Sound"
+  shadow$_monitor_ = -1953084568
+ 5 = {Sound@12210} "Sound d2fbfba <id=2, name=ba dum tss, categoryId=7>"
+ 6 = {Sound@12211} "Sound f3f400a <id=8, name=Cool Britannia, categoryId=6>"
+ 7 = {Sound@12212} "Sound 9fcff10 <id=19, name=Gayniggers 1, categoryId=8>"
+ 8 = {Sound@12213} "Sound 943a522 <id=33, name=Hallon men karl! Hallon! 2, categoryId=1>"
+ 9 = {Sound@12214} "Sound 7797b72 <id=41, name=Icka Prick., categoryId=9>"
+ 10 = {Sound@12215} "Sound 467fb81 <id=74, name=musikens makt, categoryId=5>"
+  categoryId = {Integer@12527} 5
+  id = {Integer@12412} 74
+  name = "musikens makt"
+  order = 0
+  uri = {Uri$StringUri@12414} "content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fmusikens%20makt.flac"
+  volume = 100
+  shadow$_klass_ = {Class@10509} "class us.huseli.soundboard.data.Sound"
+  shadow$_monitor_ = -2073560191
+
+
 2020-12-11 01:19:32.812 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FHallon%20men%20karl!%20Hallon!%202.flac, volume=100
 2020-12-11 01:19:32.820 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2FKambodja%20a%CC%88r%20befriat.wav, volume=100
 2020-12-11 01:19:32.835 7148-14186 I/SoundPlayer: init: uri=content://com.android.externalstorage.documents/document/0000-0000%3AMusic%2FSoundboard%2Fmusikens%20makt.flac, volume=100

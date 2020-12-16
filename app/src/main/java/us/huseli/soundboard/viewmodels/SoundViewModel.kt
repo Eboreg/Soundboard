@@ -23,7 +23,16 @@ class SoundViewModel : ViewModel() {
     private val _filterEnabled = MutableLiveData(false)
     private val _filterTerm = MutableLiveData("")
     private val _reorderEnabled = MutableLiveData(false)
-    private val _sounds = repository.list()
+    private val _sounds = repository.list().map {
+        if (_undoEnabled) addUndoState(it)
+        it
+    }
+    private var _undoEnabled = false
+    private val _undosAvailable = MutableLiveData(false)
+    private val _undoStates = mutableListOf<List<Sound>>()
+    //private val _undoStates = MutableList<List<Sound>>()
+    //private val _undosAvailable = _undoStates.map { it.isNotEmpty() }
+
 
     val failedSounds: List<Sound>
         get() = _failedSounds
@@ -38,12 +47,10 @@ class SoundViewModel : ViewModel() {
         }
     }
 
-    fun disableFilter() {
-        _filterEnabled.value = false
-    }
-
     fun listByCategory(categoryId: Int?) = sounds.map { sound -> sound.filter { it.categoryId == categoryId } }
 
+    @Suppress("UNUSED_PARAMETER")
+    // TODO: Not used ATM
     fun replaceSound(soundId: Int, sound: Sound, context: Context) {
         _failedSounds.find { it.id == soundId }?.let { oldSound ->
             sound.id = soundId
@@ -72,6 +79,14 @@ class SoundViewModel : ViewModel() {
                 sound.name.toLowerCase(Locale.getDefault()).contains(term.toLowerCase(Locale.getDefault()))
             }
         }
+    }
+
+    fun disableFilter() {
+        _filterEnabled.value = false
+    }
+
+    fun enableFilter() {
+        _filterEnabled.value = true
     }
 
     fun setFilterTerm(term: Editable?) {
@@ -122,11 +137,23 @@ class SoundViewModel : ViewModel() {
     val selectedSounds: List<Sound>
         get() = _selectedSounds.toList()
 
-    fun select(sound: Sound) = _selectedSounds.add(sound)
+    fun addOnSelectAllListener(listener: OnSelectAllListener) {
+        onSelectAllListeners.add(listener)
+    }
 
     fun deselect(sound: Sound) {
         _selectedSounds.remove(sound)
         if (_selectedSounds.size == 0) disableSelect()
+    }
+
+    fun disableSelect() {
+        if (_selectEnabled.value != false) _selectEnabled.value = false
+        _selectedSounds.clear()
+    }
+
+    fun enableSelect() {
+        if (_selectEnabled.value != true) _selectEnabled.value = true
+        if (_reorderEnabled.value != false) _reorderEnabled.value = false
     }
 
     fun getLastSelected(categoryId: Int, except: Sound): Sound? {
@@ -137,29 +164,17 @@ class SoundViewModel : ViewModel() {
         }
     }
 
-    fun enableSelect() {
-        if (_selectEnabled.value != true) _selectEnabled.value = true
-        if (_reorderEnabled.value != false) _reorderEnabled.value = false
-    }
-
-    fun disableSelect() {
-        if (_selectEnabled.value != false) _selectEnabled.value = false
-        _selectedSounds.clear()
-    }
-
-    fun selectAll() {
-        onSelectAllListeners.forEach { it.select() }
-    }
-
-    fun addOnSelectAllListener(listener: OnSelectAllListener) {
-        onSelectAllListeners.add(listener)
-    }
+    fun isSelected(sound: Sound) = _selectedSounds.contains(sound)
 
     fun removeOnSelectAllListener(listener: OnSelectAllListener) {
         onSelectAllListeners.remove(listener)
     }
 
-    fun isSelected(sound: Sound) = _selectedSounds.contains(sound)
+    fun select(sound: Sound) = _selectedSounds.add(sound)
+
+    fun selectAll() {
+        onSelectAllListeners.forEach { it.select() }
+    }
 
 
     /******* SOUND REORDERING *******/
@@ -168,6 +183,47 @@ class SoundViewModel : ViewModel() {
 
     fun toggleReorderEnabled() {
         _reorderEnabled.value = !(_reorderEnabled.value ?: false)
+    }
+
+    /******* UNDO *******/
+    val undosAvailable: LiveData<Boolean>
+        get() = _undosAvailable
+
+    private fun addUndoState(sounds: List<Sound>) {
+        _undoStates.add(sounds.map { it.copy() })
+        _undosAvailable.value = _undoStates.size > 1
+    }
+
+    fun disableUndo() {
+        if (_undoEnabled) {
+            _undoEnabled = false
+            _undosAvailable.value = false
+            _undoStates.clear()
+        }
+    }
+
+    fun enableUndo() {
+        if (!_undoEnabled) {
+            // Don't set _undosAvailable just yet since it's meant for updating UI
+            _undoEnabled = true
+            // Do an initial state save
+            _sounds.value?.let { addUndoState(it) }
+        }
+    }
+
+    fun undo() = viewModelScope.launch(Dispatchers.IO) {
+        /**
+         * Last state in list is always going to be current state, so going "back" to that wouldn't
+         * change anything. So we need to go back to the _next to_ last state. We do that by
+         * removing the last state from list and applying the one that then becomes last.
+         * Then we also remove the next to last one, because that same state will be set once again
+         * when we get the new sound list from repository.
+         */
+        if (_undoStates.size > 1) {
+            _undoStates.removeLast()
+            repository.update(_undoStates.removeLast())
+            if (_undoStates.size <= 1) _undosAvailable.postValue(false)
+        }
     }
 
 
