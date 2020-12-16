@@ -99,7 +99,7 @@ class CategoryAdapter(
         private val LOG_TAG = "CategoryViewHolder"
 
         private val appViewModel = adapter.appViewModel
-        private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
+        private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton, binding.soundList)
         private val initialSpanCount = adapter.initialSpanCount
         private val soundAdapter: SoundAdapter
         private val soundDragListener: SoundDragListener
@@ -156,7 +156,13 @@ class CategoryAdapter(
                 if (collapsed != isCollapsed) {
                     if (!soundDragListener.isDragging) soundDragListener.wasCollapsed = collapsed
                     collapseButtonAnimator.animate(collapsed)
-                    binding.soundList.visibility = if (collapsed) View.GONE else View.VISIBLE
+                    if (collapsed) {
+                        //binding.soundList.visibility = View.GONE
+                        // binding.categoryHeader.invalidate()
+                    } else {
+                        //binding.soundList.visibility = View.VISIBLE
+                    }
+                    // binding.soundList.visibility = if (collapsed) View.GONE else View.VISIBLE
                     isCollapsed = collapsed
                 }
             }

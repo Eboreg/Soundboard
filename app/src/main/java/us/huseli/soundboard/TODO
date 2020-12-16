@@ -1,13 +1,14 @@
+When collapsing last category, its header disappears from view until you scroll, then reappears
+CategoryAdapter.onViewDetachedFromWindow() is run for that holder and it's hidden. Why?
+
+
 On ordering enabled: scroll with 2 fingers?
 
 
-After altering a category, play icon & volumebar on sounds dont work?
-
-
-How to handle sound filtering while selecting?
-
-
 Clean up Log calls
+
+
+After altering a category, play icon & volumebar on sounds dont work? (Cannot recreate?)
 
 
 In some instance, when creating categories and moving sounds around, an empty category was
