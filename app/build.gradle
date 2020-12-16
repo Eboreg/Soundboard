@@ -48,6 +48,7 @@ android {
         debug {
             jniDebuggable true
             renderscriptDebuggable true
+            applicationIdSuffix ".debug"
         }
     }
 
