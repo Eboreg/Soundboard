@@ -50,7 +50,7 @@ class MainActivity :
     private var filterWasEnabled: Boolean = false
     private var reorderEnabled: Boolean? = null
     private var repressMode: SoundPlayer.RepressMode? = null
-    private var sounds = emptyList<Sound>()
+    private var sounds = emptyList<Sound>()  // used for soundAddViewModel
     private var toast: Toast? = null
 
     private lateinit var binding: ActivityMainBinding
@@ -166,6 +166,8 @@ class MainActivity :
         setContentView(binding.root)
 
         setSupportActionBar(binding.actionbar.actionbarToolbar)
+//        if (BuildConfig.BUILD_TYPE == "debug")
+//            binding.actionbar.actionbarLogo.setImageResource(R.mipmap.ic_launcher_debug_round)
         supportActionBar?.setDisplayShowTitleEnabled(false)
         setupEasterEggClickListener()
         setupBottomBar()
