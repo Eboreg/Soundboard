@@ -36,19 +36,19 @@ android {
         }
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        signingConfig signingConfigs.debug
     }
 
     buildTypes {
         release {
-            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
+            debuggable true
         }
         debug {
             jniDebuggable true
             renderscriptDebuggable true
             applicationIdSuffix ".debug"
+            signingConfig signingConfigs.debug
         }
     }
 

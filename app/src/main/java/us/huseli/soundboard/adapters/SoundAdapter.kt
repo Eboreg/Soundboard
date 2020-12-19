@@ -79,6 +79,8 @@ class SoundAdapter(
         return holder
     }
 
+    override fun onViewRecycled(holder: SoundViewHolder) = holder.release()
+
     override fun toString(): String {
         val hashCode = Integer.toHexString(System.identityHashCode(this))
         return "SoundAdapter $hashCode <currentList=$currentList>"
@@ -232,11 +234,15 @@ class SoundAdapter(
 
             binding.categoryViewModel = categoryViewModel
 
+            /**
+             * We observe this.sound and not (this method's local) sound, so the object's player
+             * stays consistent with its object's sound.
+             */
             soundViewModel.players.observe(this) { players ->
-                player = players[sound]?.also { player ->
-                    if (!player.noPermission) {
+                this.sound?.let { sound ->
+                    player = players[sound]?.also { player ->
                         player.volume = sound.volume
-                        player.setOnStateChangeListener(this)
+                        player.addOnStateChangeListener(this)
                         setDuration(player.duration)
                         appViewModel.repressMode.observe(this) { player.repressMode = it }
                     }
@@ -297,20 +303,20 @@ class SoundAdapter(
 
         override fun onLongClick(v: View): Boolean {
             if (!reorderEnabled) {
-                sound?.let { sound ->
-                    longClickAnimator?.start()
-                    if (!adapter.selectEnabled) {
-                        // Select is not enabled; enable it
-                        soundViewModel.enableSelect()
-                    } else {
-                        // Select is enabled; if this sound is not selected, select it and all
-                        // between it and the last selected one (if any)
+                longClickAnimator?.start()
+                if (!adapter.selectEnabled) {
+                    // Select is not enabled; enable it
+                    soundViewModel.enableSelect()
+                } else {
+                    // Select is enabled; if this sound is not selected, select it and all
+                    // between it and the last selected one (if any)
+                    sound?.let { sound ->
                         if (!soundViewModel.isSelected(sound)) {
                             adapter.selectAllInBetween(sound)
                         }
                     }
-                    select()
                 }
+                select()
             }
             return true
         }
@@ -395,8 +401,13 @@ class SoundAdapter(
                 Toast.makeText(context, player?.errorMessage, Toast.LENGTH_SHORT).show()
 
         override fun markDestroyed() {
-            soundViewModel.removeOnSelectAllListener(this)
+            release()
             super.markDestroyed()
+        }
+
+        fun release() {
+            soundViewModel.removeOnSelectAllListener(this)
+            player?.removeOnStateChangeListener(this)
         }
 
     }

@@ -10,11 +10,10 @@ import kotlin.math.pow
 
 class SoundPlayer(private var context: Context?, private val uri: Uri, initVolume: Int) :
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
-    //private val mediaPlayer = MediaPlayer()
     private var mediaPlayer: MediaPlayer? = null
     private val tempMediaPlayers = mutableListOf<MediaPlayer>()
 
-    private var onStateChangeListener: OnStateChangeListener? = null
+    private var onStateChangeListeners = mutableSetOf<OnStateChangeListener>()
     private val scope = CoroutineScope(Job() + Dispatchers.IO)
     private var _state = State.INITIALIZING
     private var _duration: Int = -1  // In milliseconds
@@ -69,7 +68,6 @@ class SoundPlayer(private var context: Context?, private val uri: Uri, initVolum
 
     override fun onPrepared(mp: MediaPlayer) {
         _duration = mp.duration
-        //setVolume(initVolume)
         mp.setOnCompletionListener {
             if (!isPlaying()) changeState(State.READY)
             it.seekTo(0)
@@ -94,8 +92,9 @@ class SoundPlayer(private var context: Context?, private val uri: Uri, initVolum
     private fun isPlaying() = mediaPlayer?.isPlaying == true || tempMediaPlayers.any { it.isPlaying }
 
     private fun changeState(state: State) {
+        Log.i(LOG_TAG, "changeState: this=$this, uri=$uri, onStateChangeListeners=$onStateChangeListeners, state=$state")
         _state = state
-        onStateChangeListener?.onSoundPlayerStateChange(this, state)
+        onStateChangeListeners.forEach { it.onSoundPlayerStateChange(this, state) }
     }
 
     fun togglePlay() {
@@ -151,8 +150,14 @@ class SoundPlayer(private var context: Context?, private val uri: Uri, initVolum
         tempMediaPlayers.clear()
     }
 
-    fun setOnStateChangeListener(listener: OnStateChangeListener) {
-        onStateChangeListener = listener
+    fun addOnStateChangeListener(listener: OnStateChangeListener) {
+        if (listener !in onStateChangeListeners) onStateChangeListeners.add(listener)
+        Log.i(LOG_TAG, "addOnStateChangeListener: this=$this, uri=$uri, listener=$listener, onStateChangeListeners=$onStateChangeListeners")
+    }
+
+    fun removeOnStateChangeListener(listener: OnStateChangeListener) {
+        onStateChangeListeners.remove(listener)
+        Log.i(LOG_TAG, "removeOnStateChangeListener: this=$this, uri=$uri, listener=$listener, onStateChangeListeners=$onStateChangeListeners")
     }
 
     fun release() {
@@ -160,7 +165,7 @@ class SoundPlayer(private var context: Context?, private val uri: Uri, initVolum
         context = null
         stopAndClearTempPlayers()
         mediaPlayer?.release()
-        onStateChangeListener = null
+        onStateChangeListeners.clear()
     }
 
 

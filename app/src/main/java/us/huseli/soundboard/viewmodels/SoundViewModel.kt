@@ -30,8 +30,6 @@ class SoundViewModel : ViewModel() {
     private var _undoEnabled = false
     private val _undosAvailable = MutableLiveData(false)
     private val _undoStates = mutableListOf<List<Sound>>()
-    //private val _undoStates = MutableList<List<Sound>>()
-    //private val _undosAvailable = _undoStates.map { it.isNotEmpty() }
 
 
     val failedSounds: List<Sound>
@@ -46,8 +44,6 @@ class SoundViewModel : ViewModel() {
             else -> _sounds
         }
     }
-
-    fun listByCategory(categoryId: Int?) = sounds.map { sound -> sound.filter { it.categoryId == categoryId } }
 
     @Suppress("UNUSED_PARAMETER")
     // TODO: Not used ATM

@@ -167,6 +167,19 @@ class CategoryAdapter(
                 }
             }
 
+            soundViewModel.sounds.observe(this) { allSounds ->
+                val sounds = allSounds.filter { sound -> sound.categoryId == category.id }
+                Log.d(LOG_TAG, "ViewHolder sound list observer: viewHolder=$this, category=$category, sounds=$sounds")
+
+                // TODO: Remove test call + method when not needed
+                // submitListWithInvalidSound(sounds)
+
+                soundCount = sounds.size.also {
+                    if (it > 20) binding.soundList.setItemViewCacheSize(it)
+                }
+                soundAdapter.submitList(sounds)
+            }
+            /*
             soundViewModel.listByCategory(category.id).observe(this) { sounds ->
                 Log.d(LOG_TAG, "ViewHolder sound list observer: viewHolder=$this, category=$category, sounds=$sounds")
 
@@ -178,6 +191,7 @@ class CategoryAdapter(
                 }
                 soundAdapter.submitList(sounds)
             }
+             */
 
             soundViewModel.selectEnabled.observe(this) { soundAdapter.onSelectEnabledChange(it) }
         }

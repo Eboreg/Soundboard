@@ -1,3 +1,8 @@
+Lots of errors on release version. Memory leaks?
+Especially when starting many mediaplayers simultaneously.
+(Does not seem to be eating a bunch of cpu or memory though)
+
+
 When collapsing last category, its header disappears from view until you scroll, then reappears
 CategoryAdapter.onViewDetachedFromWindow() is run for that holder and it's hidden. Why?
 
