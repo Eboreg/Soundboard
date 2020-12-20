@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 sentry.properties
+*.trace
+*.hprof
+keystore.properties

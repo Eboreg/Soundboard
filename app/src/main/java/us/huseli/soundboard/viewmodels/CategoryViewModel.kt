@@ -1,5 +1,6 @@
 package us.huseli.soundboard.viewmodels
 
+import androidx.annotation.Keep
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,7 @@ import us.huseli.soundboard.GlobalApplication
 import us.huseli.soundboard.data.CategoryRepository
 import us.huseli.soundboard.data.SoundboardDatabase
 
+@Keep
 class CategoryViewModel(val categoryId: Int) : ViewModel() {
     private val database = SoundboardDatabase.getInstance(GlobalApplication.application)
     private val repository = CategoryRepository(database.categoryDao())
