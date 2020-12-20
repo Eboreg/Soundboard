@@ -32,11 +32,13 @@ class CategoryAddViewModel : BaseCategoryEditViewModel() {
         _backgroundColor.value = value
     }
 
-    // Used by AddCategoryDialogFrament & EditCategoryDialogFrament when saving
     override fun save() = viewModelScope.launch(Dispatchers.IO) {
-        // Background colour was initialized from the beginning, so we know it's set.
-        // And we check for name in BaseCategoryDialogFragment (and set it at init).
-        // But still, we want to make sure.
+        /**
+         * Used by AddCategoryDialogFrament & EditCategoryDialogFrament when saving.
+         * Background colour was initialized from the beginning, so we know it's set.
+         * And we check for name in BaseCategoryDialogFragment (and set it at init).
+         * But still, we want to make sure.
+         */
         val name = _name.value
         val backgroundColor = _backgroundColor.value
         if (name != null && backgroundColor != null) {

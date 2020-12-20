@@ -39,9 +39,6 @@ class CategoryAdapter(
     private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 200) }
     internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
 
-    /**
-     * Overridden methods
-     */
     @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         super.onBindViewHolder(holder, position)
@@ -68,9 +65,6 @@ class CategoryAdapter(
         return "CategoryAdapter $hashCode"
     }
 
-    /**
-     * Own methods
-     */
     fun onItemsReordered() {
         currentList.forEachIndexed { index, item -> item.order = index }
         categoryListViewModel.saveOrder(currentList)
@@ -99,7 +93,7 @@ class CategoryAdapter(
         private val LOG_TAG = "CategoryViewHolder"
 
         private val appViewModel = adapter.appViewModel
-        private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton, binding.soundList)
+        private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
         private val initialSpanCount = adapter.initialSpanCount
         private val soundAdapter: SoundAdapter
         private val soundDragListener: SoundDragListener
@@ -156,13 +150,7 @@ class CategoryAdapter(
                 if (collapsed != isCollapsed) {
                     if (!soundDragListener.isDragging) soundDragListener.wasCollapsed = collapsed
                     collapseButtonAnimator.animate(collapsed)
-                    if (collapsed) {
-                        //binding.soundList.visibility = View.GONE
-                        // binding.categoryHeader.invalidate()
-                    } else {
-                        //binding.soundList.visibility = View.VISIBLE
-                    }
-                    // binding.soundList.visibility = if (collapsed) View.GONE else View.VISIBLE
+                    binding.soundList.visibility = if (collapsed) View.GONE else View.VISIBLE
                     isCollapsed = collapsed
                 }
             }

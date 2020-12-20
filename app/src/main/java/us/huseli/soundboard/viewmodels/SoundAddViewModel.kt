@@ -13,7 +13,6 @@ class SoundAddViewModel : BaseSoundEditViewModel() {
     private val _sounds = mutableListOf<Sound>()
     private val _volume = MutableLiveData(100)
 
-    // Will really only be a placeholder string like 'multiple sounds selected'
     override val name: LiveData<String>
         get() = _name
     override val volume: LiveData<Int>

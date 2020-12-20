@@ -51,9 +51,7 @@ class SoundAdapter(
         setHasStableIds(true)
     }
 
-    /**
-     * Various implemented/overridden methods
-     */
+    /*********** OVERRIDDEN/IMPLEMENTED METHODS ***********/
     override fun getItemId(position: Int): Long {
         try {
             return currentList[position].id!!.toLong()
@@ -86,9 +84,8 @@ class SoundAdapter(
         return "SoundAdapter $hashCode <currentList=$currentList>"
     }
 
-    /**
-     * Own public methods
-     */
+
+    /*********** OWN PUBLIC METHODS ***********/
     fun collapseCategory() = categoryViewModel?.collapse()
 
     fun containsSound(sound: Sound) = currentList.indexOf(sound) > -1
@@ -167,9 +164,8 @@ class SoundAdapter(
         recyclerView.getChildAt(position)?.let { view -> view.visibility = View.VISIBLE }
     }
 
-    /**
-     * Private methods
-     */
+
+    /*********** PRIVATE METHODS ***********/
     private fun selectAllInBetween(sound: Sound) {
         // Select all sound between `sound` and last selected one (if any).
         categoryViewModel?.categoryId?.let { categoryId ->

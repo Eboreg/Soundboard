@@ -152,6 +152,7 @@ class SoundDragListener(
     private fun reset() {
         logNumber = 0
         isDragging = false
+        soundScroller.stop()
     }
 
     private fun scrollIfNecessary(event: DragEvent, view: View, draggedSound: DraggedSound) {

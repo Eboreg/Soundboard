@@ -12,7 +12,7 @@ import android.view.View
  * @param interval The number of milliseconds between the scrollings
  */
 class SoundScroller(private val view: View, private val distance: Int, private val interval: Int) {
-    private var direction: Direction? = null
+    private var direction: Int? = null
     private val handler = Handler(this)
     private var isScrolling = false
     private var realDistance = distance
@@ -41,19 +41,19 @@ class SoundScroller(private val view: View, private val distance: Int, private v
 
     private fun scroll() {
         Log.d(LOG_TAG, "scroll: realDistance=$realDistance, direction=$direction")
-        when (direction) {
-            Direction.DOWN -> view.scrollBy(0, realDistance)
-            Direction.UP -> view.scrollBy(0, -realDistance)
+        direction?.let { direction ->
+            if (view.canScrollVertically(direction)) view.scrollBy(0, direction * realDistance)
+            else stop()
         }
     }
 
     @Synchronized
-    private fun start(direction: Direction, fast: Boolean) {
-        realDistance = when (fast) {
-            true -> distance * 3
-            false -> distance
-        }
-        if (!isScrolling) {
+    private fun start(direction: Int, fast: Boolean) {
+        if (!isScrolling && view.canScrollVertically(direction)) {
+            realDistance = when (fast) {
+                true -> distance * 3
+                false -> distance
+            }
             isScrolling = true
             this.direction = direction
             handler.sendMessage(handler.obtainMessage(MSG))
@@ -61,16 +61,21 @@ class SoundScroller(private val view: View, private val distance: Int, private v
     }
 
     @Synchronized
-    private fun start(direction: Direction) = start(direction, false)
+    private fun start(direction: Int) = start(direction, false)
 
     @Synchronized
-    private fun stop() {
+    fun stop() {
         isScrolling = false
         handler.removeMessages(MSG)
     }
 
 
-    enum class Direction { UP, DOWN }
+    class Direction {
+        companion object {
+            const val UP = -1
+            const val DOWN = 1
+        }
+    }
 
 
     data class VerticalLimits(val top: Int, val bottom: Int)

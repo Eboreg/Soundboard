@@ -116,9 +116,7 @@ class SoundViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         Log.i(LOG_TAG, "Owner activity finished, releasing and removing SoundPlayers")
-        _players.forEach {
-            it.value.release()
-        }
+        _players.forEach { it.value.release() }
         onSelectAllListeners.clear()
     }
 
@@ -133,9 +131,7 @@ class SoundViewModel : ViewModel() {
     val selectedSounds: List<Sound>
         get() = _selectedSounds.toList()
 
-    fun addOnSelectAllListener(listener: OnSelectAllListener) {
-        onSelectAllListeners.add(listener)
-    }
+    fun addOnSelectAllListener(listener: OnSelectAllListener) = onSelectAllListeners.add(listener)
 
     fun deselect(sound: Sound) {
         _selectedSounds.remove(sound)
