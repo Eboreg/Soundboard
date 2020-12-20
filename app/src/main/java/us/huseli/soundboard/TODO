@@ -1,3 +1,21 @@
+Enable undo for all changes but limit the number of undos
+
+
+Set sort order for sounds within category: name, duration, add time. Ascending or descending
+
+
+Buttons in dark mode: make background lighter and text black?
+
+
+Volume slider in dark mode: make same colour as text
+
+
+Can the responsiveness (time from soundcard press to sound playing) be improved further?
+
+
+Maybe do zoom a bit more sensitive (so you don't have to pinch so "far")
+
+
 Check for stuff that could be done in worker threads
 
 

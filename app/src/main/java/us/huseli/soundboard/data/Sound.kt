@@ -8,6 +8,7 @@ import android.os.Parcelable
 import android.provider.OpenableColumns
 import android.util.Log
 import androidx.room.*
+import java.util.*
 
 @Entity(
         tableName = "Sound",
@@ -17,24 +18,28 @@ import androidx.room.*
         indices = [Index("categoryId")]
 )
 data class Sound(
-        @PrimaryKey(autoGenerate = true) override var id: Int? = null,
-        override var categoryId: Int?,
-        override var name: String,
-        override val uri: Uri,
-        override var order: Int,
-        override var volume: Int
-) : AbstractSound(), Parcelable {
+        @PrimaryKey(autoGenerate = true) var id: Int? = null,
+        var categoryId: Int?,
+        var name: String,
+        val uri: Uri,
+        var order: Int,
+        var volume: Int,
+        val added: Date
+) : Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readValue(Int::class.java.classLoader) as? Int,
             parcel.readValue(Int::class.java.classLoader) as? Int,
             parcel.readString() ?: "",
             parcel.readParcelable(Uri::class.java.classLoader)!!,
             parcel.readInt(),
-            parcel.readInt()) {
+            parcel.readInt(),
+            parcel.readSerializable() as Date) {
         Log.d("SOUND", "Create Sound though Parcelable constructor: $this")
     }
 
-    @Ignore constructor(uri: Uri, flags: Int, contentResolver: ContentResolver): this(null, null, "", uri, 0, 100) {
+    @Ignore
+    constructor(uri: Uri, flags: Int, contentResolver: ContentResolver) :
+            this(null, null, "", uri, 0, 100, Date()) {
         /**
          * Used in MainActivity.onActivityResult when new sounds are added
          *
@@ -71,15 +76,12 @@ data class Sound(
         parcel.writeParcelable(uri, flags)
         parcel.writeInt(order)
         parcel.writeInt(volume)
+        parcel.writeSerializable(added)
     }
 
-    override fun describeContents(): Int {
-        return 0
-    }
+    override fun describeContents(): Int = 0
 
-    override fun hashCode(): Int {
-        return id ?: 0
-    }
+    override fun hashCode(): Int = id ?: 0
 
     companion object CREATOR : Parcelable.Creator<Sound> {
         override fun createFromParcel(parcel: Parcel) = Sound(parcel)

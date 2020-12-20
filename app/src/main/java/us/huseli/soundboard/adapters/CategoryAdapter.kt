@@ -27,6 +27,7 @@ import us.huseli.soundboard.helpers.SoundScroller
 import us.huseli.soundboard.interfaces.EditCategoryInterface
 import us.huseli.soundboard.interfaces.ToastInterface
 import us.huseli.soundboard.viewmodels.*
+import java.util.*
 
 class CategoryAdapter(
         private val appViewModel: AppViewModel,
@@ -186,7 +187,7 @@ class CategoryAdapter(
 
         @Suppress("unused")
         private fun submitListWithInvalidSound(sounds: List<Sound>) {
-            val invalidSound = Sound(666, category?.id, "fail", Uri.fromParts("content", "//com.android.externalstorage.documents/document/0000-0000:Music/Soundboard/Uh! Sorry!.flac", null), 10, 100)
+            val invalidSound = Sound(666, category?.id, "fail", Uri.fromParts("content", "//com.android.externalstorage.documents/document/0000-0000:Music/Soundboard/Uh! Sorry!.flac", null), 10, 100, Date())
             val mutableSounds = sounds.toMutableList()
             mutableSounds.add(invalidSound)
             soundCount = mutableSounds.count()

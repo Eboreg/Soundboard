@@ -327,7 +327,7 @@ class MainActivity :
             SoundPlayer.RepressMode.STOP -> ResourcesCompat.getDrawable(resources, R.drawable.ic_repress_stop, theme)
         }
         binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_set_repress_mode)?.icon = icon
-        binding.bottombar?.bottombarToolbar?.menu?.findItem(R.id.action_set_repress_mode)?.icon = icon
+        binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_set_repress_mode)?.icon = icon
         if (this.repressMode != null) showToast(getString(R.string.on_repress, mode))
         this.repressMode = mode
     }
@@ -346,7 +346,7 @@ class MainActivity :
             isEnabled = value
             icon?.alpha = if (value) 255 else 128
         }
-        binding.bottombar?.bottombarToolbar?.menu?.findItem(R.id.action_zoom_in)?.apply {
+        binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_zoom_in)?.apply {
             isEnabled = value
             icon?.alpha = if (value) 255 else 128
         }
@@ -376,7 +376,7 @@ class MainActivity :
 
     private fun setupBottomBar() {
         //binding.bottombar.bottombarToolbar.inflateMenu(R.menu.bottom_menu)
-        binding.bottombar?.bottombarToolbar?.setOnMenuItemClickListener { onOptionsItemSelected(it) }
+        binding.bottombar.bottombarToolbar?.setOnMenuItemClickListener { onOptionsItemSelected(it) }
     }
 
     @SuppressLint("ClickableViewAccessibility")

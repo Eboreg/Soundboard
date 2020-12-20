@@ -7,8 +7,9 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import java.util.*
 
-@Database(entities = [Sound::class, Category::class], version = 10, exportSchema = false)
+@Database(entities = [Sound::class, Category::class], version = 11, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class SoundboardDatabase : RoomDatabase() {
     abstract fun soundDao(): SoundDao
@@ -116,9 +117,16 @@ abstract class SoundboardDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_9_10 = object: Migration(9, 10) {
+        private val MIGRATION_9_10 = object : Migration(9, 10) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE SoundCategory ADD COLUMN collapsed INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        private val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                val now = Date().time
+                database.execSQL("ALTER TABLE Sound ADD COLUMN added INTEGER NOT NULL DEFAULT $now")
             }
         }
 
@@ -136,6 +144,7 @@ abstract class SoundboardDatabase : RoomDatabase() {
                     .addMigrations(MIGRATION_7_8)
                     .addMigrations(MIGRATION_8_9)
                     .addMigrations(MIGRATION_9_10)
+                    .addMigrations(MIGRATION_10_11)
                     .fallbackToDestructiveMigration()
                     .build()
         }
