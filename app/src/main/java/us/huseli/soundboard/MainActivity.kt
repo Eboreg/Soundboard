@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.DocumentsContract
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
@@ -161,13 +162,14 @@ class MainActivity :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Log.d(LOG_TAG, "width=${windowManager.currentWindowMetrics.bounds.width()}, height=${windowManager.currentWindowMetrics.bounds.height()}")
+        }
         binding = ActivityMainBinding.inflate(layoutInflater)
         binding.soundViewModel = soundViewModel
         setContentView(binding.root)
 
         setSupportActionBar(binding.actionbar.actionbarToolbar)
-//        if (BuildConfig.BUILD_TYPE == "debug")
-//            binding.actionbar.actionbarLogo.setImageResource(R.mipmap.ic_launcher_debug_round)
         supportActionBar?.setDisplayShowTitleEnabled(false)
         setupEasterEggClickListener()
         setupBottomBar()
@@ -212,7 +214,7 @@ class MainActivity :
         appViewModel.zoomInPossible.observe(this) { onZoomInPossibleChange(it) }
         soundViewModel.filterEnabled.observe(this) { onFilterEnabledChange(it) }
         soundViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
-        soundViewModel.undosAvailable.observe(this) { onUndosAvailableChange(it) }
+        soundViewModel.undoAvailable.observe(this) { onUndosAvailableChange(it) }
         return true
     }
 
@@ -238,6 +240,7 @@ class MainActivity :
     private fun onUndosAvailableChange(value: Boolean?) {
         // There are 1 or more undos in the queue
         val undoItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_undo)
+                ?: binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_undo)
         when (value) {
             true -> undoItem?.icon?.alpha = 255
             else -> undoItem?.icon?.alpha = 128
@@ -299,23 +302,24 @@ class MainActivity :
     private fun onReorderEnabledChange(value: Boolean) {
         val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_reorder)
         val toggleFilterItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_filter)
-        val undoItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_undo)
+//        val undoItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_undo)
+//                ?: binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_undo)
         if (value) {
             if (reorderEnabled != null) showToast(R.string.reordering_enabled)
             item?.icon?.alpha = 255
             filterWasEnabled = filterEnabled
             toggleFilterItem?.isVisible = false
             soundViewModel.disableFilter()
-            soundViewModel.enableUndo()
-            undoItem?.isVisible = true
-            undoItem?.icon?.alpha = 128
+            //soundViewModel.enableUndo()
+            //undoItem?.isVisible = true
+            //undoItem?.icon?.alpha = 128
         } else {
             if (reorderEnabled != null) showToast(R.string.reordering_disabled)
             item?.icon?.alpha = 128
             toggleFilterItem?.isVisible = true
             if (filterWasEnabled) soundViewModel.enableFilter()
-            soundViewModel.disableUndo()
-            undoItem?.isVisible = false
+            //soundViewModel.disableUndo()
+            //undoItem?.isVisible = false
         }
         reorderEnabled = value  // Has to come last
     }

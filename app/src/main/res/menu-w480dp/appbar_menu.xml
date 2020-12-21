@@ -25,14 +25,6 @@
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/action_undo"
-        android:icon="@drawable/ic_undo"
-        android:orderInCategory="2"
-        android:title="@string/undo"
-        android:visible="false"
-        app:showAsAction="always" />
-
-    <item
         android:id="@+id/action_set_repress_mode"
         android:icon="@drawable/ic_repress_stop"
         android:orderInCategory="3"
@@ -58,6 +50,13 @@
         android:icon="@drawable/ic_zoom_out"
         android:orderInCategory="6"
         android:title="@string/zoom_out"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_undo"
+        android:icon="@drawable/ic_undo"
+        android:orderInCategory="7"
+        android:title="@string/undo"
         app:showAsAction="always" />
 
     <!--

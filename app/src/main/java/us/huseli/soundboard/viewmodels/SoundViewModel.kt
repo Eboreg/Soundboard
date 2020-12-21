@@ -24,13 +24,9 @@ class SoundViewModel : ViewModel() {
     private val _filterTerm = MutableLiveData("")
     private val _reorderEnabled = MutableLiveData(false)
     private val _sounds = repository.list().map {
-        if (_undoEnabled) addUndoState(it)
+        addUndoState(it)
         it
     }
-    private var _undoEnabled = false
-    private val _undosAvailable = MutableLiveData(false)
-    private val _undoStates = mutableListOf<List<Sound>>()
-
 
     val failedSounds: List<Sound>
         get() = _failedSounds
@@ -178,29 +174,16 @@ class SoundViewModel : ViewModel() {
     }
 
     /******* UNDO *******/
-    val undosAvailable: LiveData<Boolean>
-        get() = _undosAvailable
+    private val _undoStates = mutableListOf<List<Sound>>()
+    private val _undoAvailable = MutableLiveData(false)
+
+    val undoAvailable: LiveData<Boolean>
+        get() = _undoAvailable
 
     private fun addUndoState(sounds: List<Sound>) {
         _undoStates.add(sounds.map { it.copy() })
-        _undosAvailable.value = _undoStates.size > 1
-    }
-
-    fun disableUndo() {
-        if (_undoEnabled) {
-            _undoEnabled = false
-            _undosAvailable.value = false
-            _undoStates.clear()
-        }
-    }
-
-    fun enableUndo() {
-        if (!_undoEnabled) {
-            // Don't set _undosAvailable just yet since it's meant for updating UI
-            _undoEnabled = true
-            // Do an initial state save
-            _sounds.value?.let { addUndoState(it) }
-        }
+        if (_undoStates.size > MAX_UNDO_STATES) _undoStates.removeFirst()
+        _undoAvailable.value = _undoStates.size > 1
     }
 
     fun undo() = viewModelScope.launch(Dispatchers.IO) {
@@ -214,7 +197,7 @@ class SoundViewModel : ViewModel() {
         if (_undoStates.size > 1) {
             _undoStates.removeLast()
             repository.update(_undoStates.removeLast())
-            if (_undoStates.size <= 1) _undosAvailable.postValue(false)
+            if (_undoStates.size <= 1) _undoAvailable.postValue(false)
         }
     }
 
@@ -226,5 +209,6 @@ class SoundViewModel : ViewModel() {
 
     companion object {
         const val LOG_TAG = "SoundViewModel"
+        const val MAX_UNDO_STATES = 20
     }
 }
