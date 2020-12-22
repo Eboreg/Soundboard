@@ -13,15 +13,17 @@ class SoundRepository(private val soundDao: SoundDao) {
 
     fun get(soundId: Int?) = soundId?.let { soundDao.get(it) }
 
-    fun getLiveData(soundId: Int?) = soundId?.let { soundDao.getLiveData(soundId) } ?: liveData { }
+    fun getLive(soundId: Int?) = soundId?.let { soundDao.getLive(soundId) } ?: liveData { }
 
     fun getMaxOrder(categoryId: Int) = soundDao.getMaxOrder(categoryId) ?: 0
-
-    fun getList(soundIds: List<Int>?) = soundIds?.let { soundDao.get(it) } ?: emptyList()
 
     fun delete(soundIds: List<Int>?) {
         if (soundIds != null) soundDao.delete(soundIds)
     }
 
-    fun list() = soundDao.list()
+    fun list(soundIds: List<Int>?) = soundIds?.let { soundDao.list(it) } ?: emptyList()
+
+    fun listByCategory(categoryId: Int) = soundDao.listByCategory(categoryId)
+
+    fun listLive() = soundDao.listLive()
 }

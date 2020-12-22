@@ -8,6 +8,7 @@ import android.os.Parcelable
 import android.provider.OpenableColumns
 import android.util.Log
 import androidx.room.*
+import us.huseli.soundboard.SoundPlayer
 import java.util.*
 
 @Entity(
@@ -82,6 +83,43 @@ data class Sound(
     override fun describeContents(): Int = 0
 
     override fun hashCode(): Int = id ?: 0
+
+
+    class Comparator(private val sortBy: SortParameter, private val sortOrder: SortOrder, private val players: HashMap<Sound, SoundPlayer>) : java.util.Comparator<Sound> {
+        override fun compare(o1: Sound, o2: Sound): Int {
+            val s1 = if (sortOrder == SortOrder.ASCENDING) o1 else o2
+            val s2 = if (sortOrder == SortOrder.ASCENDING) o2 else o1
+            // Why would this be unreachable code?
+            return when (sortBy) {
+                SortParameter.NAME -> {
+                    return when {
+                        s1.name.toLowerCase(Locale.ROOT) > s2.name.toLowerCase(Locale.ROOT) -> 1
+                        s1.name.equals(s2.name, ignoreCase = true) -> 0
+                        else -> -1
+                    }
+                }
+                SortParameter.DURATION -> {
+                    return when {
+                        players[s1]?.duration ?: 0 > players[s2]?.duration ?: 0 -> 1
+                        players[s1]?.duration ?: 0 == players[s2]?.duration ?: 0 -> 0
+                        else -> -1
+                    }
+                }
+                SortParameter.TIME_ADDED -> {
+                    return when {
+                        s1.added > s2.added -> 1
+                        s1.added == s2.added -> 0
+                        else -> 1
+                    }
+                }
+            }
+        }
+    }
+
+
+    enum class SortOrder { ASCENDING, DESCENDING }
+
+    enum class SortParameter { NAME, DURATION, TIME_ADDED }
 
     companion object CREATOR : Parcelable.Creator<Sound> {
         override fun createFromParcel(parcel: Parcel) = Sound(parcel)

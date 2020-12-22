@@ -52,4 +52,16 @@
     <string name="toggle_filter">Toggle filtering</string>
     <string name="close_filter">Close filter</string>
     <string name="undo">Undo</string>
+    <string name="reorder_sounds_in_category">Reorder sounds in category</string>
+    <string name="sort_category_dialog_title">Sort category: %1$s</string>
+    <string name="sort">Sort</string>
+    <string name="change_sort_order">Change sort order</string>
+    <string name="by_name">By name</string>
+    <string name="by_duration">By duration</string>
+    <string name="by_add_date">By add date</string>
+    <string name="sort_by_name">Sort by name</string>
+    <string name="sort_by_duration">Sort by duration</string>
+    <string name="sort_by_time_added">Sort by time added</string>
+    <string name="ascending">Ascending</string>
+    <string name="descending">Descending</string>
 </resources>

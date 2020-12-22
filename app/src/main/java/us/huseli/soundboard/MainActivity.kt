@@ -265,8 +265,11 @@ class MainActivity :
     override fun showCategoryDeleteDialog(id: Int, name: String, soundCount: Int) =
             showDialogFragment(DeleteCategoryFragment.newInstance(id, name, soundCount, categories.size))
 
-    override fun showCategoryEditDialog(categoryId: Int) =
-            showDialogFragment(EditCategoryDialogFragment.newInstance(categoryId, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)), CATEGORY_EDIT_DIALOG_TAG)
+    override fun showCategoryEditDialog(id: Int) =
+            showDialogFragment(EditCategoryDialogFragment.newInstance(id, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)), CATEGORY_EDIT_DIALOG_TAG)
+
+    override fun showCategorySortDialog(id: Int, name: String) =
+            showDialogFragment(SortCategoryDialogFragment.newInstance(id, name))
 
     override fun showToast(text: CharSequence) {
         toast?.cancel()

@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class SoundEditViewModel(private val soundId: Int) : BaseSoundEditViewModel() {
-    private val sound = repository.getLiveData(soundId)
+    private val sound = repository.getLive(soundId)
 
     override val name = sound.map { it?.name ?: "" }
     override fun setName(value: String) {

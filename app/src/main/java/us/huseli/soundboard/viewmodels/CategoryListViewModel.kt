@@ -17,19 +17,18 @@ class CategoryListViewModel : ViewModel() {
     val categories = repository.categories
     val categoriesWithEmpty = categories.map { listOf(emptyCategory) + it }
 
-    fun saveOrder(categories: List<Category>) = viewModelScope.launch(Dispatchers.IO) {
-        repository.saveOrder(categories)
-    }
-
     fun create(name: String) = viewModelScope.launch(Dispatchers.IO) {
-        /**
-         * Used in MainActivity.onCreate() to create empty default category if there are none
-         */
+        /** Used in MainActivity.onCreate() to create empty default category if there are none */
         repository.insert(Category(name, GlobalApplication.application.getColorHelper().randomColor(repository.getUsedColors())))
     }
 
-    // Used by DeleteCategoryFragment
+    /** Used by DeleteCategoryFragment */
     fun delete(id: Int) = viewModelScope.launch(Dispatchers.IO) { repository.delete(id) }
 
     fun getCategoryEditViewModel(id: Int) = CategoryEditViewModel(id)
+
+    fun saveOrder(categories: List<Category>) = viewModelScope.launch(Dispatchers.IO) {
+        /** Save .order of all categories as set right now */
+        repository.saveOrder(categories)
+    }
 }

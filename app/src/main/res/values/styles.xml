@@ -5,6 +5,11 @@
         <item name="android:textColor">?attr/colorOnSecondary</item>
     </style>
 
+    <style name="Soundboard.Button.Subdued" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/secondary_subdued</item>
+        <item name="android:textColor">@color/on_secondary_subdued</item>
+    </style>
+
     <style name="Soundboard.ActionBar.Theme" parent="ThemeOverlay.AppCompat.ActionBar">
         <item name="colorControlNormal">@color/on_secondary_subdued</item>
     </style>

@@ -23,7 +23,7 @@ class SoundViewModel : ViewModel() {
     private val _filterEnabled = MutableLiveData(false)
     private val _filterTerm = MutableLiveData("")
     private val _reorderEnabled = MutableLiveData(false)
-    private val _sounds = repository.list().map {
+    private val _sounds = repository.listLive().map {
         addUndoState(it)
         it
     }
@@ -53,6 +53,11 @@ class SoundViewModel : ViewModel() {
                 //_players[sound.uri] = SoundPlayer(context, sound.uri, sound.volume)
             }
         }
+    }
+
+    fun sort(categoryId: Int, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) = viewModelScope.launch(Dispatchers.IO) {
+        val sounds = repository.listByCategory(categoryId).toMutableList().sortedWith(Sound.Comparator(sortBy, sortOrder, _players))
+        update(sounds, categoryId)
     }
 
     fun update(sounds: List<Sound>, categoryId: Int) = viewModelScope.launch(Dispatchers.IO) {

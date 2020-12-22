@@ -3,5 +3,6 @@
     <color name="primary">@color/grey_400</color>
     <color name="primaryVariant">@color/grey_700</color>
     <color name="onPrimary">@color/black</color>
-    <color name="secondary">@color/blue_grey_900</color>
+    <color name="secondary">@color/blue_grey_400</color>
+    <color name="onSecondary">@color/black</color>
 </resources>

@@ -115,6 +115,7 @@ class CategoryAdapter(
 
             binding.categoryEditButton.setOnClickListener(this)
             binding.categoryDeleteButton.setOnClickListener(this)
+            binding.categorySortButton.setOnClickListener(this)
             binding.root.setOnDragListener(soundDragListener)
 
             binding.soundList.apply {
@@ -211,7 +212,9 @@ class CategoryAdapter(
                 category.id?.also { catId ->
                     when (v) {
                         binding.categoryEditButton -> activity.showCategoryEditDialog(catId)
-                        binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(catId, category.name, soundCount ?: 0)
+                        binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(catId, category.name, soundCount
+                                ?: 0)
+                        binding.categorySortButton -> activity.showCategorySortDialog(catId, category.name)
                     }
                 }
             } ?: run {
