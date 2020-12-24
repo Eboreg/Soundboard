@@ -1,21 +1,10 @@
-Secondary colours on dark mode is a little too bright, should insert a "tertiary" colour scheme.
-On this one, the lighter darkmode background (for buttnons etc), and their textcolorus, will be set
-without compromising ths other test.
+Can't seem to undo adding a sound, or deleting it
 
 
 Also enable undo for category changes
 
 
-Buttons in dark mode: make background lighter and text black?
-
-
-Volume slider in dark mode: make same colour as text
-
-
 Can the responsiveness (time from soundcard press to sound playing) be improved further?
-
-
-Maybe do zoom a bit more sensitive (so you don't have to pinch so "far")
 
 
 Check for stuff that could be done in worker threads

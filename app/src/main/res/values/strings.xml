@@ -61,4 +61,5 @@
     <string name="ascending">Ascending</string>
     <string name="descending">Descending</string>
     <string name="cannot_enable_filter">Cannot enable filter while reordering is enabled</string>
+    <string name="undid">Undid!</string>
 </resources>

@@ -107,10 +107,10 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
     private inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector?): Boolean {
             detector?.scaleFactor?.let { scaleFactor ->
-                if (scaleFactor <= 0.7) {
+                if (scaleFactor <= 0.8) {
                     (requireActivity() as ZoomInterface).zoomOut()
                     return true
-                } else if (scaleFactor >= 1.4) {
+                } else if (scaleFactor >= 1.3) {
                     (requireActivity() as ZoomInterface).zoomIn()
                     return true
                 }

@@ -8,6 +8,10 @@
         <item name="android:textColor">@color/alert_dialog_button</item>
     </style>
 
+    <style name="Soundboard.Style.Button.TextButton.Negative" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">@color/color_on_surface_subdued</item>
+    </style>
+
     <style name="Soundboard.Style.Toolbar" parent="Widget.MaterialComponents.Toolbar">
         <item name="android:background">?attr/colorPrimary</item>
         <item name="android:elevation" tools:targetApi="lollipop">0dp</item>

@@ -228,7 +228,7 @@ class MainActivity :
             R.id.action_set_repress_mode -> appViewModel.cycleRepressMode()
             R.id.action_toggle_filter -> toggleFilterEnabled()
             R.id.action_toggle_reorder -> soundViewModel.toggleReorderEnabled()
-            R.id.action_undo -> soundViewModel.undo()
+            R.id.action_undo -> undo()
             R.id.action_zoom_in -> zoomIn()
             R.id.action_zoom_out -> zoomOut()
         }
@@ -340,8 +340,14 @@ class MainActivity :
         val undoItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_undo)
                 ?: binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_undo)
         when (value) {
-            true -> undoItem?.icon?.alpha = 255
-            else -> undoItem?.icon?.alpha = 128
+            true -> {
+                undoItem?.isEnabled = true
+                undoItem?.icon?.alpha = 255
+            }
+            else -> {
+                undoItem?.isEnabled = false
+                undoItem?.icon?.alpha = 128
+            }
         }
     }
 
@@ -437,6 +443,11 @@ class MainActivity :
     private fun toggleFilterEnabled() {
         if (reorderEnabled == true) showToast(R.string.cannot_enable_filter)
         else soundViewModel.toggleFilterEnabled()
+    }
+
+    private fun undo() {
+        soundViewModel.undo()
+        showToast(R.string.undid)
     }
 
 
