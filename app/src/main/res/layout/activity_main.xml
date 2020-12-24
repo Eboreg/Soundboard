@@ -30,7 +30,7 @@
             android:id="@+id/filterBar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:theme="@style/Soundboard.Toolbar"
+            android:theme="@style/Soundboard.Style.Toolbar"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

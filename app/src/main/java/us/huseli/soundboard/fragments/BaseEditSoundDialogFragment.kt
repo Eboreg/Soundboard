@@ -1,6 +1,5 @@
 package us.huseli.soundboard.fragments
 
-import android.app.Dialog
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import us.huseli.soundboard.R
 import us.huseli.soundboard.adapters.CategorySpinnerAdapter
 import us.huseli.soundboard.data.Category
@@ -23,7 +23,7 @@ abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSou
 
     open fun getCategories() = categoryListViewModel.categories
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+    override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         val inflater = LayoutInflater.from(requireContext())
         binding = FragmentEditSoundBinding.inflate(inflater).also {
             it.viewModel = viewModel
@@ -31,7 +31,7 @@ abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSou
         return super.onCreateDialog(savedInstanceState)
     }
 
-    override fun configureDialog(builder: AlertDialog.Builder) {
+    override fun configureDialog(builder: MaterialAlertDialogBuilder) {
         super.configureDialog(builder)
         binding?.let { builder.setView(it.root) }
     }

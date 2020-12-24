@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
     android:padding="2dp"
-    android:theme="@style/Soundboard.Toolbar"
+    android:theme="@style/Soundboard.Style.Toolbar"
     tools:ignore="Overdraw">
 
     <ImageView
@@ -27,7 +27,6 @@
         android:id="@+id/actionbar_toolbar"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:theme="@style/Soundboard.Toolbar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/actionbar_logo"

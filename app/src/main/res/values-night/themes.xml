@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Soundboard.Theme" parent="Base.Soundboard.Theme">
+        <item name="colorPrimary">@color/blue_grey_700</item>
+        <item name="colorPrimaryDark">@color/blue_grey_900</item>
+        <item name="colorPrimaryVariant">@color/blue_grey_500</item>
+        <item name="colorOnPrimary">@color/dark_bg_light_primary_text</item>
+        <item name="colorSecondary">@color/teal_700</item>
+        <item name="colorSecondaryVariant">@color/teal_900</item>
+        <item name="colorOnSecondary">@color/dark_bg_light_primary_text</item>
+        <item name="colorOnSurface">@color/dark_bg_light_primary_text</item>
+    </style>
+</resources>

@@ -1,25 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="MaterialTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryVariant">@color/primaryVariant</item>
-        <item name="colorOnPrimary">@color/onPrimary</item>
-        <item name="colorSecondary">@color/secondary</item>
-        <item name="colorSecondaryVariant">@color/secondaryVariant</item>
-        <item name="colorOnSecondary">@color/onSecondary</item>
-        <item name="colorControlNormal">@color/on_secondary_subdued</item>
-
-        <item name="materialButtonStyle">@style/Soundboard.Button</item>
-
-        <item name="android:statusBarColor" tools:targetApi="lollipop">?attr/colorSecondary</item>
-        <item name="android:navigationBarColor" tools:targetApi="lollipop">?attr/colorSecondary
-        </item>
+    <style name="Base.Soundboard.Theme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:statusBarColor" tools:targetApi="lollipop">?attr/colorPrimary</item>
+        <item name="android:navigationBarColor" tools:targetApi="lollipop">?attr/colorPrimary</item>
 
         <item name="actionBarSize">@dimen/actionbar_height</item>
-        <item name="actionBarStyle">@style/Soundboard.Toolbar</item>
-        <item name="actionBarTheme">@style/Soundboard.ActionBar.Theme</item>
-        <item name="actionModeStyle">@style/Soundboard.ActionMode</item>
+        <item name="actionBarStyle">@style/Soundboard.Style.Toolbar</item>
+        <item name="actionModeStyle">@style/Soundboard.Style.ActionMode</item>
+
+        <item name="alertDialogTheme">@style/Soundboard.Theme.AlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/Soundboard.Theme.AlertDialog</item>
+
         <item name="windowActionModeOverlay">true</item>
+    </style>
+
+    <style name="Soundboard.Theme" parent="Base.Soundboard.Theme">
+        <item name="colorPrimary">@color/blue_grey_200</item>
+        <item name="colorPrimaryDark">@color/blue_grey_500</item>
+        <item name="colorPrimaryVariant">@color/blue_grey_100</item>
+        <item name="colorOnPrimary">@color/light_bg_dark_primary_text</item>
+        <item name="colorSecondary">@color/teal_500</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorOnSurface">@color/light_bg_dark_primary_text</item>
+        <item name="colorAccent">@color/teal_300</item>
+    </style>
+
+    <style name="Soundboard.Theme.AlertDialog" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
+        <item name="buttonBarButtonStyle">@style/Soundboard.Style.Button.TextButton</item>
     </style>
 </resources>

@@ -1,7 +1,7 @@
 package us.huseli.soundboard.fragments
 
-import android.app.Dialog
 import android.os.Bundle
+import androidx.appcompat.app.AlertDialog
 import us.huseli.soundboard.R
 import us.huseli.soundboard.viewmodels.SoundDeleteViewModel
 
@@ -15,7 +15,7 @@ class DeleteSoundFragment : BaseSoundDialogFragment() {
     override fun getTitle() =
             resources.getQuantityString(R.plurals.delete_sound_title, soundIds?.size ?: 0)
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+    override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         soundIds = requireArguments().getIntegerArrayList(ARG_IDS)
         soundName = requireArguments().getString(ARG_NAME)
         return super.onCreateDialog(savedInstanceState)

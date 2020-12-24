@@ -1,23 +1,23 @@
 package us.huseli.soundboard.fragments
 
-import android.app.AlertDialog
-import android.app.Dialog
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import us.huseli.soundboard.R
 import us.huseli.soundboard.databinding.FragmentEasterEggBinding
 
 class EasterEggFragment : DialogFragment() {
     var binding: FragmentEasterEggBinding? = null
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+    override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         val inflater = LayoutInflater.from(requireContext())
         // binding = FragmentEasterEggBinding.inflate(inflater, easter_egg_fragment, false)
         binding = FragmentEasterEggBinding.inflate(inflater)
 
-        return AlertDialog.Builder(requireContext()).run {
+        return MaterialAlertDialogBuilder(requireContext()).run {
             setTitle("HALLON!!!")
             setView(binding?.root)
             setPositiveButton("Hockeyklubba") { _, _ -> MediaPlayer.create(requireContext(), R.raw.hallon3).start() }

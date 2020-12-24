@@ -1,14 +1,14 @@
 package us.huseli.soundboard.fragments
 
-import android.app.AlertDialog
-import android.app.Dialog
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jaredrummler.android.colorpicker.ColorPickerDialog
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import us.huseli.soundboard.GlobalApplication
@@ -23,14 +23,14 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
     internal abstract var viewModel: BaseCategoryEditViewModel?
     internal abstract val title: Int
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+    override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         val inflater = LayoutInflater.from(requireContext())
         binding = FragmentEditCategoryBinding.inflate(inflater)
         // this.binding = binding
         binding?.viewModel = viewModel
         binding?.selectColorButton?.setOnClickListener { onSelectColourClick() }
 
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
                 .setTitle(title)
                 .setView(binding?.root)
                 .setPositiveButton(R.string.save, null)

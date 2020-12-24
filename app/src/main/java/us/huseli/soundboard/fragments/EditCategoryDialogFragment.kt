@@ -1,9 +1,9 @@
 package us.huseli.soundboard.fragments
 
-import android.app.AlertDialog
-import android.app.Dialog
 import android.os.Bundle
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import us.huseli.soundboard.R
 import us.huseli.soundboard.viewmodels.BaseCategoryEditViewModel
 import us.huseli.soundboard.viewmodels.CategoryListViewModel
@@ -15,12 +15,12 @@ class EditCategoryDialogFragment : BaseCategoryDialogFragment() {
     override var viewModel: BaseCategoryEditViewModel? = null
     override val title = R.string.edit_category
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+    override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         return try {
             viewModel = categoryListViewModel.getCategoryEditViewModel(categoryId)
             super.onCreateDialog(savedInstanceState)
         } catch (e: NullPointerException) {
-            AlertDialog.Builder(requireContext()).run {
+            MaterialAlertDialogBuilder(requireContext()).run {
                 setMessage(R.string.data_not_fetched_yet)
                 create()
             }

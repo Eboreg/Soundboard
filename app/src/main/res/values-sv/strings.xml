@@ -52,4 +52,13 @@
     <string name="toggle_filter">Filter på/av</string>
     <string name="close_filter">Stäng filtrering</string>
     <string name="undo">Ångra</string>
+    <string name="reorder_sounds_in_category">Sortera om ljud i kategorin</string>
+    <string name="sort_category_dialog_title">Sortera kategori: %1$s</string>
+    <string name="sort">Sortera</string>
+    <string name="by_name">Efter namn</string>
+    <string name="by_duration">Efter längd</string>
+    <string name="by_add_date">Efter tilläggsdatum</string>
+    <string name="ascending">Stigande</string>
+    <string name="descending">Fallande</string>
+    <string name="cannot_enable_filter">Kan inte aktivera filter medan omsortering är aktiv</string>
 </resources>

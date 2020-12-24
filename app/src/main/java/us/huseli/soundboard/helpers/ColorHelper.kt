@@ -30,6 +30,6 @@ class ColorHelper(private val resources: Resources) {
     // Luminance >= 0.6: Black text, otherwise white
     fun getTextColorForBackgroundColor(backgroundColor: Int) =
             if (getLuminance(backgroundColor) >= 0.6)
-                ResourcesCompat.getColor(resources, R.color.black_subdued, null) else
-                ResourcesCompat.getColor(resources, R.color.white_subdued, null)
+                ResourcesCompat.getColor(resources, R.color.black, null) else
+                ResourcesCompat.getColor(resources, R.color.white, null)
 }

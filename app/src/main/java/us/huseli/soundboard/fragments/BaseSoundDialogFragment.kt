@@ -1,10 +1,10 @@
 package us.huseli.soundboard.fragments
 
-import android.app.Dialog
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import us.huseli.soundboard.R
 import us.huseli.soundboard.viewmodels.SoundViewModel
 
@@ -15,8 +15,8 @@ abstract class BaseSoundDialogFragment : DialogFragment() {
 
     internal open fun getTitle(): CharSequence? = title?.let { getText(it) }
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = AlertDialog.Builder(requireContext()).run {
+    override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
+        val dialog = MaterialAlertDialogBuilder(requireContext()).run {
             configureDialog(this)
             create()
         }
@@ -32,7 +32,7 @@ abstract class BaseSoundDialogFragment : DialogFragment() {
         dismiss()
     }
 
-    internal open fun configureDialog(builder: AlertDialog.Builder) {
+    internal open fun configureDialog(builder: MaterialAlertDialogBuilder) {
         builder.apply {
             getTitle()?.let { setTitle(it) }
             getMessage()?.let { setMessage(it) }

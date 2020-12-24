@@ -226,7 +226,7 @@ class MainActivity :
             R.id.action_add_sound -> startAddSoundActivity()
             // R.id.action_reinit_failed_sounds -> reinitFailedSounds()
             R.id.action_set_repress_mode -> appViewModel.cycleRepressMode()
-            R.id.action_toggle_filter -> soundViewModel.toggleFilterEnabled()
+            R.id.action_toggle_filter -> toggleFilterEnabled()
             R.id.action_toggle_reorder -> soundViewModel.toggleReorderEnabled()
             R.id.action_undo -> soundViewModel.undo()
             R.id.action_zoom_in -> zoomIn()
@@ -236,16 +236,6 @@ class MainActivity :
     }
 
     override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?) = false
-
-    private fun onUndosAvailableChange(value: Boolean?) {
-        // There are 1 or more undos in the queue
-        val undoItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_undo)
-                ?: binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_undo)
-        when (value) {
-            true -> undoItem?.icon?.alpha = 255
-            else -> undoItem?.icon?.alpha = 128
-        }
-    }
 
 
     /**
@@ -304,14 +294,12 @@ class MainActivity :
 
     private fun onReorderEnabledChange(value: Boolean) {
         val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_reorder)
-        val toggleFilterItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_filter)
 //        val undoItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_undo)
 //                ?: binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_undo)
         if (value) {
             if (reorderEnabled != null) showToast(R.string.reordering_enabled)
             item?.icon?.alpha = 255
             filterWasEnabled = filterEnabled
-            toggleFilterItem?.isVisible = false
             soundViewModel.disableFilter()
             //soundViewModel.enableUndo()
             //undoItem?.isVisible = true
@@ -319,7 +307,6 @@ class MainActivity :
         } else {
             if (reorderEnabled != null) showToast(R.string.reordering_disabled)
             item?.icon?.alpha = 128
-            toggleFilterItem?.isVisible = true
             if (filterWasEnabled) soundViewModel.enableFilter()
             //soundViewModel.disableUndo()
             //undoItem?.isVisible = false
@@ -345,6 +332,16 @@ class MainActivity :
         else {
             actionMode?.finish()
             null
+        }
+    }
+
+    private fun onUndosAvailableChange(value: Boolean?) {
+        // There are 1 or more undos in the queue
+        val undoItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_undo)
+                ?: binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_undo)
+        when (value) {
+            true -> undoItem?.icon?.alpha = 255
+            else -> undoItem?.icon?.alpha = 128
         }
     }
 
@@ -435,6 +432,11 @@ class MainActivity :
         intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
         if (intent.resolveActivity(packageManager) != null) startActivityForResult(intent, REQUEST_SOUND_GET)
+    }
+
+    private fun toggleFilterEnabled() {
+        if (reorderEnabled == true) showToast(R.string.cannot_enable_filter)
+        else soundViewModel.toggleFilterEnabled()
     }
 
 

@@ -1,26 +1,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="Soundboard.Button" parent="Widget.MaterialComponents.Button">
-        <item name="backgroundTint">?attr/colorSecondary</item>
-        <item name="android:textColor">?attr/colorOnSecondary</item>
+    <style name="Soundboard.Style.ActionMode" parent="Widget.AppCompat.ActionMode">
+        <item name="background">?attr/colorPrimary</item>
     </style>
 
-    <style name="Soundboard.Button.Subdued" parent="Widget.MaterialComponents.Button">
-        <item name="backgroundTint">@color/secondary_subdued</item>
-        <item name="android:textColor">@color/on_secondary_subdued</item>
+    <style name="Soundboard.Style.Button.TextButton" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">@color/alert_dialog_button</item>
     </style>
 
-    <style name="Soundboard.ActionBar.Theme" parent="ThemeOverlay.AppCompat.ActionBar">
-        <item name="colorControlNormal">@color/on_secondary_subdued</item>
-    </style>
-
-    <style name="Soundboard.Toolbar" parent="Widget.MaterialComponents.Toolbar">
-        <item name="android:background">?attr/colorSecondary</item>
+    <style name="Soundboard.Style.Toolbar" parent="Widget.MaterialComponents.Toolbar">
+        <item name="android:background">?attr/colorPrimary</item>
         <item name="android:elevation" tools:targetApi="lollipop">0dp</item>
         <item name="android:minHeight">?attr/actionBarSize</item>
     </style>
 
-    <style name="Soundboard.ActionMode" parent="Widget.AppCompat.ActionMode">
-        <item name="background">?attr/colorSecondary</item>
-    </style>
 </resources>
