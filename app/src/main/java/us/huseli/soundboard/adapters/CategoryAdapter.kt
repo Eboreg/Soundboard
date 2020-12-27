@@ -13,7 +13,6 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.RecyclerView
 import us.huseli.soundboard.R
 import us.huseli.soundboard.adapters.common.LifecycleAdapter
 import us.huseli.soundboard.adapters.common.LifecycleViewHolder
@@ -25,19 +24,19 @@ import us.huseli.soundboard.helpers.CategoryItemDragHelperCallback
 import us.huseli.soundboard.helpers.SoundDragListener
 import us.huseli.soundboard.helpers.SoundScroller
 import us.huseli.soundboard.interfaces.EditCategoryInterface
-import us.huseli.soundboard.interfaces.ToastInterface
+import us.huseli.soundboard.interfaces.SnackbarInterface
 import us.huseli.soundboard.viewmodels.*
 import java.util.*
 
 class CategoryAdapter(
         private val appViewModel: AppViewModel,
         private val initialSpanCount: Int,
-        private val soundViewModel: SoundViewModel,
+        private val soundListViewModel: SoundListViewModel,
         private val categoryListViewModel: CategoryListViewModel,
         private val viewModelStoreOwner: ViewModelStoreOwner,
         private val soundScroller: SoundScroller) :
         LifecycleAdapter<Category, CategoryAdapter.CategoryViewHolder>(DiffCallback()) {
-    private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 200) }
+    // private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 200) }
     internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
 
     @SuppressLint("ClickableViewAccessibility")
@@ -99,18 +98,20 @@ class CategoryAdapter(
         private val soundAdapter: SoundAdapter
         private val soundDragListener: SoundDragListener
         private val soundScroller = adapter.soundScroller
-        private val soundViewModel = adapter.soundViewModel
-        private val soundViewPool = adapter.soundViewPool
+        private val soundViewModel = adapter.soundListViewModel
+
+        // private val soundViewPool = adapter.soundViewPool
         private val viewModelStoreOwner = adapter.viewModelStoreOwner
 
         private var category: Category? = null
+        private var categoryViewModel: CategoryViewModel? = null
         private var isCollapsed: Boolean? = null
         private var soundCount: Int? = null
 
         override val lifecycleRegistry = LifecycleRegistry(this)
 
         init {
-            soundAdapter = SoundAdapter(binding.soundList, soundViewModel, appViewModel)
+            soundAdapter = SoundAdapter(binding.soundList, soundViewModel, appViewModel, viewModelStoreOwner)
             soundDragListener = SoundDragListener(soundAdapter, this, soundScroller)
 
             binding.categoryEditButton.setOnClickListener(this)
@@ -123,8 +124,8 @@ class CategoryAdapter(
                 layoutManager = GridLayoutManager(context, initialSpanCount).also { lm ->
                     appViewModel.spanCount.observe(this@CategoryViewHolder) { lm.spanCount = it }
                 }
-                setRecycledViewPool(soundViewPool)
-                setItemViewCacheSize(20)
+                // setRecycledViewPool(soundViewPool)
+                // setItemViewCacheSize(20)
                 isNestedScrollingEnabled = false
             }
         }
@@ -137,17 +138,21 @@ class CategoryAdapter(
                 return
             }
 
+            // Stop any old observers
+            categoryViewModel?.backgroundColor?.removeObservers(this)
+            categoryViewModel?.collapsed?.removeObservers(this)
+
             val viewModelFactory = CategoryViewModelFactory(categoryId)
-            val categoryViewModel = ViewModelProvider(viewModelStoreOwner, viewModelFactory).get(
-                    category.id.toString(), CategoryViewModel::class.java)
+            categoryViewModel = ViewModelProvider(viewModelStoreOwner, viewModelFactory).get(
+                    categoryId.toString(), CategoryViewModel::class.java)
 
             binding.categoryViewModel = categoryViewModel
             soundAdapter.categoryViewModel = categoryViewModel
 
-            categoryViewModel.backgroundColor.observe(this) { color ->
+            categoryViewModel?.backgroundColor?.observe(this) { color ->
                 if (color != null) binding.categoryHeader.setBackgroundColor(color)
             }
-            categoryViewModel.collapsed.observe(this) { collapsed ->
+            categoryViewModel?.collapsed?.observe(this) { collapsed ->
                 // Without this if, unnecessary animations are triggered on all categories?!
                 if (collapsed != isCollapsed) {
                     if (!soundDragListener.isDragging) soundDragListener.wasCollapsed = collapsed
@@ -188,7 +193,7 @@ class CategoryAdapter(
 
         @Suppress("unused")
         private fun submitListWithInvalidSound(sounds: List<Sound>) {
-            val invalidSound = Sound(666, category?.id, "fail", Uri.fromParts("content", "//com.android.externalstorage.documents/document/0000-0000:Music/Soundboard/Uh! Sorry!.flac", null), 10, 100, Date())
+            val invalidSound = Sound(666, category?.id, "fail", Uri.fromParts("content", "//com.android.externalstorage.documents/document/0000-0000:Music/Soundboard/Uh! Sorry!.flac", null), 10, 100, Date(), -1, null)
             val mutableSounds = sounds.toMutableList()
             mutableSounds.add(invalidSound)
             soundCount = mutableSounds.count()
@@ -218,7 +223,7 @@ class CategoryAdapter(
                     }
                 }
             } ?: run {
-                (activity as ToastInterface).showToast(R.string.not_initialized_yet)
+                (activity as SnackbarInterface).showSnackbar(R.string.not_initialized_yet)
             }
         }
 

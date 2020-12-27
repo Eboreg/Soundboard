@@ -1,3 +1,27 @@
+Only add to undo queue when something has actually changed
+
+
+Android has a limit of 128 persisted URI grants! https://stackoverflow.com/questions/30802971/android-max-number-of-persistable-uri-permission-granted-to-an-app-is-limited-to?rq=1
+So after 128 sounds have been added, any additional X added sounds will mean that the first added
+X number of sounds will no longer have persisted URI grants.
+Apparently, in Android 11 it's changed to 512: https://issuetracker.google.com/issues/149315521#comment7
+But it has to be addressed somehow.
+Option 1: Don't request persisted grant when number of sounds >= 128, warn user about it
+Option 2: Copy all added sounds to app storage
+Option 3: Use ACTION_OPEN_DOCUMENT_TREE; needs to be researched and only works with API >= 21:
+    https://developer.android.com/reference/android/content/Intent#ACTION_OPEN_DOCUMENT_TREE
+Went for option 2!
+
+
+Refactor so add/edit multiple sounds name view show number of sounds selected
+
+
+Show some progress indicator while loading sounds (not only on app init but also reorder etc)
+
+
+Change duplicate add fragment so buttons are the same colour
+
+
 Can't seem to undo adding a sound, or deleting it
 
 

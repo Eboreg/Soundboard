@@ -18,15 +18,13 @@ class SoundAddViewModel : BaseSoundEditViewModel() {
     override val volume: LiveData<Int>
         get() = _volume
 
-    val duplicate: Sound?
-        get() = if (_duplicates.size == 1) _duplicates[0] else null
     val duplicateName: String
         get() = if (_duplicates.size == 1) _duplicates[0].name else ""
     val duplicates: List<Sound>
         get() = _duplicates
     val duplicateCount: Int
         get() = _duplicates.size
-    val isDuplicate: Boolean
+    val hasDuplicates: Boolean
         get() = _duplicates.isNotEmpty()
     val sounds: List<Sound>
         get() = _sounds
@@ -47,14 +45,18 @@ class SoundAddViewModel : BaseSoundEditViewModel() {
     private fun setup(sounds: List<Sound>, allSounds: List<Sound>, name: String, volume: Int) {
         _sounds.clear()
         _sounds.addAll(sounds)
-        _duplicates = allSounds.filter { sound -> sound.uri in sounds.map { it.uri } }
+        _duplicates = allSounds.filter { sound ->
+            sound.checksum != null && sound.checksum in sounds.mapNotNull { it.checksum }
+        }
         onDuplicateStrategyChange()
         setName(name)
         setVolume(volume)
     }
 
-    fun setup(sounds: List<Sound>, allSounds: List<Sound>, name: String) =
-            setup(sounds, allSounds, name, 100)
+    fun setup(sounds: List<Sound>, allSounds: List<Sound>, multipleSoundsString: String) {
+        if (sounds.size == 1) setup(sounds, allSounds, sounds[0].name, sounds[0].volume)
+        else setup(sounds, allSounds, multipleSoundsString, 100)
+    }
 
     fun setup(sound: Sound, allSounds: List<Sound>) =
             setup(listOf(sound), allSounds, sound.name, sound.volume)
@@ -74,15 +76,21 @@ class SoundAddViewModel : BaseSoundEditViewModel() {
         _sounds.forEach { sound ->
             when (duplicateStrategy) {
                 DuplicateStrategy.UPDATE -> {
-                    _duplicates.find { it.uri == sound.uri }?.let {
-                        // Duplicate is found and we want to update it
-                        it.volume = sound.volume
-                        it.categoryId = sound.categoryId
-                        repository.update(it)
-                    } ?: run { repository.insert(sound) }
+                    _duplicates.find { it.checksum == sound.checksum }?.let { duplicate ->
+                        /**
+                         * Duplicate is found and we want to update it. We have to do this by
+                         * deleting the duplicate and putting the new sound in its place, though,
+                         * because it's the new Uri that has been granted access permissions, and
+                         * Sound.uri is read-only.
+                         */
+                        sound.order = duplicate.order
+                        repository.delete(duplicate)
+                    }
+                    //repository.insert(sound)
+                    repository.insert(Sound.createFromTemporary(sound))
                 }
-                DuplicateStrategy.SKIP -> if (_duplicates.find { it.uri == sound.uri } == null) repository.insert(sound)
-                DuplicateStrategy.ADD -> repository.insert(sound)
+                DuplicateStrategy.SKIP -> if (_duplicates.find { it.checksum == sound.checksum } == null) repository.insert(Sound.createFromTemporary(sound))
+                DuplicateStrategy.ADD -> repository.insert(Sound.createFromTemporary(sound))
             }
         }
     }

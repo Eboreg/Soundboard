@@ -1,14 +1,17 @@
 package us.huseli.soundboard.data
 
 import android.content.ContentResolver
-import android.content.Intent
+import android.content.Context
 import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.OpenableColumns
 import android.util.Log
+import androidx.core.net.toUri
 import androidx.room.*
-import us.huseli.soundboard.SoundPlayer
+import us.huseli.soundboard.GlobalApplication
+import us.huseli.soundboard.helpers.MD5
+import java.io.File
 import java.util.*
 
 @Entity(
@@ -25,43 +28,28 @@ data class Sound(
         val uri: Uri,
         var order: Int,
         var volume: Int,
-        val added: Date
-) : Parcelable {
+        val added: Date,
+        var duration: Int,
+        var checksum: String?,
+        @Ignore var path: String?) : Parcelable {
+
     constructor(parcel: Parcel) : this(
-            parcel.readValue(Int::class.java.classLoader) as? Int,
-            parcel.readValue(Int::class.java.classLoader) as? Int,
-            parcel.readString() ?: "",
-            parcel.readParcelable(Uri::class.java.classLoader)!!,
-            parcel.readInt(),
-            parcel.readInt(),
-            parcel.readSerializable() as Date) {
+            parcel.readValue(Int::class.java.classLoader) as? Int,  // id
+            parcel.readValue(Int::class.java.classLoader) as? Int,  // categoryId
+            parcel.readString() ?: "",  // name
+            parcel.readParcelable(Uri::class.java.classLoader)!!,  // uri
+            parcel.readInt(),  // order
+            parcel.readInt(),  // volume
+            parcel.readSerializable() as Date,  // added
+            parcel.readInt(),  // duration
+            parcel.readString(),  // checksum
+            parcel.readString()  // path
+    ) {
         Log.d("SOUND", "Create Sound though Parcelable constructor: $this")
     }
 
-    @Ignore
-    constructor(uri: Uri, flags: Int, contentResolver: ContentResolver) :
-            this(null, null, "", uri, 0, 100, Date()) {
-        /**
-         * Used in MainActivity.onActivityResult when new sounds are added
-         *
-         * FLAG_GRANT_READ_URI_PERMISSION is not one of the permissions we are requesting
-         * here, so bitwise-AND it away
-         */
-        contentResolver.takePersistableUriPermission(uri, flags and Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        // Try to set sound name based on filename:
-        when (val cursor = contentResolver.query(uri, null, null, null, null)) {
-            null -> name = ""
-            else -> {
-                cursor.moveToFirst()
-                var filename = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                if (filename.contains("."))
-                    filename = filename.substring(0, filename.lastIndexOf("."))
-                name = filename
-                cursor.close()
-            }
-        }
-        Log.d("SOUND", "Create Sound though new sound constructor: $this")
-    }
+    constructor(id: Int?, categoryId: Int?, name: String, uri: Uri, order: Int, volume: Int, added: Date, duration: Int, checksum: String?) :
+            this(id, categoryId, name, uri, order, volume, added, duration, checksum, uri.path)
 
     override fun equals(other: Any?) = other is Sound && other.id == id
 
@@ -78,38 +66,55 @@ data class Sound(
         parcel.writeInt(order)
         parcel.writeInt(volume)
         parcel.writeSerializable(added)
+        parcel.writeInt(duration)
+        parcel.writeString(checksum)
+        parcel.writeString(path)
     }
 
     override fun describeContents(): Int = 0
 
     override fun hashCode(): Int = id ?: 0
 
+    fun copyData(contentResolver: ContentResolver, context: Context) {
+        val inputStream = contentResolver.openInputStream(uri)
+                ?: throw Exception("File provider returned null")
+        val filename = checksum ?: uri.hashCode().toString().replace("-", "_")
+        val outputStream = context.openFileOutput(filename, Context.MODE_PRIVATE)
+        val buf = ByteArray(1024)
+        var len: Int
+        while (inputStream.read(buf).also { len = it } > 0) {
+            outputStream.write(buf, 0, len)
+        }
+        outputStream.close()
+        inputStream.close()
 
-    class Comparator(private val sortBy: SortParameter, private val sortOrder: SortOrder, private val players: HashMap<Sound, SoundPlayer>) : java.util.Comparator<Sound> {
+    }
+
+
+    class Comparator(private val sortBy: SortParameter, private val sortOrder: SortOrder) : java.util.Comparator<Sound> {
         override fun compare(o1: Sound, o2: Sound): Int {
             val s1 = if (sortOrder == SortOrder.ASCENDING) o1 else o2
             val s2 = if (sortOrder == SortOrder.ASCENDING) o2 else o1
-            // Why would this be unreachable code?
             return when (sortBy) {
                 SortParameter.NAME -> {
-                    return when {
+                    when {
                         s1.name.toLowerCase(Locale.ROOT) > s2.name.toLowerCase(Locale.ROOT) -> 1
                         s1.name.equals(s2.name, ignoreCase = true) -> 0
                         else -> -1
                     }
                 }
                 SortParameter.DURATION -> {
-                    return when {
-                        players[s1]?.duration ?: 0 > players[s2]?.duration ?: 0 -> 1
-                        players[s1]?.duration ?: 0 == players[s2]?.duration ?: 0 -> 0
+                    when {
+                        s1.duration > s2.duration -> 1
+                        s1.duration == s2.duration -> 0
                         else -> -1
                     }
                 }
                 SortParameter.TIME_ADDED -> {
-                    return when {
+                    when {
                         s1.added > s2.added -> 1
                         s1.added == s2.added -> 0
-                        else -> 1
+                        else -> -1
                     }
                 }
             }
@@ -125,5 +130,89 @@ data class Sound(
         override fun createFromParcel(parcel: Parcel) = Sound(parcel)
 
         override fun newArray(size: Int): Array<Sound?> = arrayOfNulls(size)
+
+        private fun create(originalUri: Uri, contentResolver: ContentResolver, context: Context, originalSound: Sound?): Sound {
+            val inputStream = contentResolver.openInputStream(originalUri)
+                    ?: throw Exception("File provider returned null")
+            val checksum = MD5.calculate(inputStream)
+                    ?: throw Exception("MD5.calculate returned null")
+
+            val outputStream = context.openFileOutput(checksum, Context.MODE_PRIVATE)
+            val buf = ByteArray(1024)
+            var len: Int
+            while (inputStream.read(buf).also { len = it } > 0) {
+                outputStream.write(buf, 0, len)
+            }
+            outputStream.close()
+            inputStream.close()
+
+            val newUri = File(context.filesDir, checksum).toUri()
+            val name: String
+
+            when (val cursor = contentResolver.query(originalUri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)) {
+                null -> name = ""
+                else -> {
+                    cursor.moveToFirst()
+                    name = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)).let {
+                        if (it.contains(".")) it.substring(0, it.lastIndexOf("."))
+                        else it
+                    }
+                    cursor.close()
+                }
+            }
+            return if (originalSound != null)
+                Sound(null, originalSound.categoryId, originalSound.name, newUri, originalSound.volume, originalSound.order, originalSound.added, originalSound.duration, checksum)
+            else
+                Sound(null, null, name, newUri, -1, 100, Date(), -1, checksum)
+        }
+
+        fun createTemporary(uri: Uri): Sound {
+            /** Create Sound object from non-local URI, not to be saved to DB */
+            val application = GlobalApplication.application
+            val inputStream = application.contentResolver.openInputStream(uri)
+                    ?: throw Exception("File provider returned null")
+            val checksum = MD5.calculate(inputStream)
+                    ?: throw Exception("MD5.calculate returned null")
+            inputStream.close()
+
+            val name: String
+
+            when (val cursor = application.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)) {
+                null -> name = ""
+                else -> {
+                    cursor.moveToFirst()
+                    name = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)).let {
+                        if (it.contains(".")) it.substring(0, it.lastIndexOf("."))
+                        else it
+                    }
+                    cursor.close()
+                }
+            }
+
+            return Sound(null, null, name, uri, -1, 100, Date(), -1, checksum)
+        }
+
+        fun createFromTemporary(tempSound: Sound): Sound {
+            /** Copy data to local storage and return new Sound object to be saved to DB */
+            val application = GlobalApplication.application
+            val inputStream = application.contentResolver.openInputStream(tempSound.uri)
+                    ?: throw Exception("File provider returned null")
+
+            /** Some paranoid extra measures */
+            val filename = tempSound.checksum ?: MD5.calculate(inputStream)
+            ?: throw Exception("MD5.calculate returned null")
+            val outputStream = application.applicationContext.openFileOutput(filename, Context.MODE_PRIVATE)
+            val buf = ByteArray(1024)
+            var len: Int
+            while (inputStream.read(buf).also { len = it } > 0) {
+                outputStream.write(buf, 0, len)
+            }
+            outputStream.close()
+            inputStream.close()
+
+            val uri = File(application.applicationContext.filesDir, filename).toUri()
+
+            return Sound(null, tempSound.categoryId, tempSound.name, uri, tempSound.order, tempSound.volume, tempSound.added, tempSound.duration, tempSound.checksum)
+        }
     }
 }

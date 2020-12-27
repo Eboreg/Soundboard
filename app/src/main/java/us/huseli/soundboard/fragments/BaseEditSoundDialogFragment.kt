@@ -5,10 +5,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import us.huseli.soundboard.R
 import us.huseli.soundboard.adapters.CategorySpinnerAdapter
 import us.huseli.soundboard.data.Category
@@ -53,7 +53,7 @@ abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSou
         binding?.let { binding ->
             val soundName = binding.soundName.text.toString().trim()
             if (soundName.isEmpty()) {
-                Toast.makeText(requireContext(), R.string.name_cannot_be_empty, Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show()
             } else {
                 viewModel?.let { viewModel ->
                     viewModel.setVolume(binding.volume.progress)

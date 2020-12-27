@@ -7,7 +7,7 @@
 
         <variable
             name="soundViewModel"
-            type="us.huseli.soundboard.viewmodels.SoundViewModel" />
+            type="us.huseli.soundboard.viewmodels.SoundListViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -74,16 +74,23 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/category_list_container"
-            android:name="us.huseli.soundboard.fragments.CategoryListFragment"
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/app_coordinator"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintBottom_toTopOf="@id/bottombar"
+            app:layout_constraintBottom_toTopOf="@+id/bottombar"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/filterBar"
-            tools:layout="@layout/fragment_category_list" />
+            app:layout_constraintTop_toBottomOf="@+id/filterBar">
+
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/category_list_container"
+                android:name="us.huseli.soundboard.fragments.CategoryListFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:layout="@layout/fragment_category_list" />
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
         <include
             android:id="@+id/bottombar"
@@ -95,4 +102,5 @@
             app:layout_constraintStart_toStartOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </layout>

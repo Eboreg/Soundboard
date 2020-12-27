@@ -4,30 +4,32 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.DocumentsContract
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
+import androidx.core.content.edit
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import com.google.android.material.snackbar.Snackbar
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.ActivityMainBinding
 import us.huseli.soundboard.fragments.*
 import us.huseli.soundboard.interfaces.EditCategoryInterface
-import us.huseli.soundboard.interfaces.ToastInterface
+import us.huseli.soundboard.interfaces.SnackbarInterface
 import us.huseli.soundboard.interfaces.ZoomInterface
 import us.huseli.soundboard.viewmodels.*
 
@@ -35,12 +37,12 @@ class MainActivity :
         AppCompatActivity(),
         EditCategoryInterface,
         ColorPickerDialogListener,
-        ToastInterface,
+        SnackbarInterface,
         ZoomInterface,
         ActionMode.Callback {
     private val categoryListViewModel by viewModels<CategoryListViewModel>()
     private val appViewModel by viewModels<AppViewModel>()
-    private val soundViewModel by viewModels<SoundViewModel>()
+    private val soundViewModel by viewModels<SoundListViewModel>()
     private val soundAddViewModel by viewModels<SoundAddViewModel>()
     private val soundEditMultipleViewModel by viewModels<SoundEditMultipleViewModel>()
 
@@ -52,11 +54,10 @@ class MainActivity :
     private var reorderEnabled: Boolean? = null
     private var repressMode: SoundPlayer.RepressMode? = null
     private var sounds = emptyList<Sound>()  // used for soundAddViewModel
-    private var toast: Toast? = null
 
     private lateinit var binding: ActivityMainBinding
 
-    /** Overridden Android methods */
+    /********* OVERRIDDEN ANDROID METHODS **********/
     override fun onActionItemClicked(mode: ActionMode?, item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.select_all_sounds -> {
@@ -97,62 +98,51 @@ class MainActivity :
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        // We have returned from file chooser dialog
-        if (requestCode == REQUEST_SOUND_GET && resultCode == Activity.RESULT_OK && data != null) {
-            if (data.clipData != null) {
+        if (requestCode == REQUEST_SOUND_ADD && resultCode == Activity.RESULT_OK && data != null) {
+            // We have returned from file chooser dialog
+            val sounds = mutableListOf<Sound>()
+            val uris = mutableListOf<Uri>()
+
+            data.clipData?.let { clipData ->
                 // Multiple items selected; from data.clipData we get Uri:s
-                data.clipData?.let { clipData ->
-                    val sounds = mutableListOf<Sound>()
-                    for (i in 0 until clipData.itemCount) {
-                        sounds.add(Sound(clipData.getItemAt(i).uri, data.flags, contentResolver))
-                    }
-                    soundAddViewModel.setup(sounds, this.sounds, getString(R.string.multiple_sounds_selected))
-                    if (soundAddViewModel.isDuplicate) {
-                        val fragment = AddDuplicateSoundDialogFragment.newInstance(true).apply {
-                            setOnAddDuplicateListener {
-                                soundAddViewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.ADD
-                                showDialogFragment(AddMultipleSoundDialogFragment())
-                            }
-                            setOnUpdateExistingListener {
-                                soundAddViewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.UPDATE
-                                showDialogFragment(AddMultipleSoundDialogFragment())
-                            }
-                            setOnSkipDuplicatesListener {
-                                soundAddViewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.SKIP
-                                when (soundAddViewModel.sounds.size) {
-                                    0 -> showToast(R.string.no_sounds_to_add)
-                                    1 -> showDialogFragment(AddSoundDialogFragment())
-                                    else -> showDialogFragment(AddMultipleSoundDialogFragment())
-                                }
-                            }
-                        }
-                        showDialogFragment(fragment)
-                    } else showDialogFragment(AddMultipleSoundDialogFragment())
+                for (i in 0 until clipData.itemCount) {
+                    uris.add(clipData.getItemAt(i).uri)
                 }
-            } else {
-                // One item selected; data.data is a Uri
-                data.data?.let { uri ->
-                    val sound = Sound(uri, data.flags, contentResolver)
-                    soundAddViewModel.setup(sound, sounds)
-                    //soundAddViewModel.setup(sound, sounds)
-                    if (soundAddViewModel.isDuplicate) {
-                        val fragment = AddDuplicateSoundDialogFragment().apply {
-                            setOnAddDuplicateListener { showDialogFragment(AddSoundDialogFragment()) }
-                            setOnUpdateExistingListener {
-                                it?.let { sound -> showEditSoundDialogFragment(sound) }
-                            }
-                        }
-                        showDialogFragment(fragment)
-                    } else showDialogFragment(AddSoundDialogFragment())
+            } ?: run {
+                // Just one item selected
+                data.data?.let { uris.add(it) }
+            }
+
+            uris.forEach { uri ->
+                /**
+                 * 1. Create Sound with original URI, don't copy any data
+                 * 2. Send sounds to soundAddViewModel.setup()
+                 * 3. Check for duplicates via Sound.checksum
+                 * 4. In Add*SoundDialogFragment.save(), do copy data and save with new uri
+                 */
+                try {
+                    sounds.add(Sound.createTemporary(uri))
+                } catch (e: Exception) {
+                    showSnackbar("Could not add ${uri.lastPathSegment}: $e")
                 }
             }
+
+            soundAddViewModel.setup(sounds, this.sounds, getString(R.string.multiple_sounds_selected))
+
+            when {
+                soundAddViewModel.hasDuplicates -> showDialogFragment(AddDuplicateSoundDialogFragment())
+                sounds.isEmpty() -> showSnackbar(R.string.no_sounds_to_add)
+                sounds.size > 1 -> showDialogFragment(AddMultipleSoundDialogFragment())
+                else -> showDialogFragment(AddSoundDialogFragment())
+            }
         }
+
         // We have returned from failed sound reinit dialog
         else if (requestCode == REQUEST_SOUND_REINIT && resultCode == Activity.RESULT_OK && data != null) {
             data.data?.let { uri ->
                 (data.extras?.get(EXTRA_SOUND_ID) as? Int)?.let { soundId ->
                     // soundId = id of sound to replace
-                    val sound = Sound(uri, data.flags, contentResolver)
+                    val sound = Sound.createTemporary(uri)
                     soundViewModel.replaceSound(soundId, sound, this)
                 }
             }
@@ -162,9 +152,16 @@ class MainActivity :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Log.d(LOG_TAG, "width=${windowManager.currentWindowMetrics.bounds.width()}, height=${windowManager.currentWindowMetrics.bounds.height()}")
+        val pInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
+        val prefs = getPreferences(Context.MODE_PRIVATE)
+        val lastVersion = prefs.getLong(PREF_LAST_VERSION, 0)
+        val currentVersion = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) pInfo.longVersionCode else pInfo.versionCode.toLong()
+        if (lastVersion < currentVersion) onAppVersionUpgraded(lastVersion, currentVersion)
+        prefs.edit {
+            putLong(PREF_LAST_VERSION, currentVersion)
+            apply()
         }
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         binding.soundViewModel = soundViewModel
         setContentView(binding.root)
@@ -190,10 +187,7 @@ class MainActivity :
 
         soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
 
-        soundViewModel.sounds.observe(this) {
-            sounds = it
-            //soundViewModel.initPlayers(it, this)
-        }
+        soundViewModel.sounds.observe(this) { sounds = it }
 
         categoryListViewModel.categories.observe(this) {
             // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment
@@ -238,9 +232,7 @@ class MainActivity :
     override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?) = false
 
 
-    /**
-     * Overridden 3rd party methods
-     */
+    /********* OVERRIDDEN 3RD PARTY METHODS **********/
     override fun onColorSelected(dialogId: Int, color: Int) {
         // Have to do this just because ColorPickerDialog won't accept a Fragment as context :/
         (supportFragmentManager.findFragmentByTag(DIALOG_TAGS[dialogId]) as ColorPickerDialogListener).onColorSelected(dialogId, color)
@@ -249,9 +241,7 @@ class MainActivity :
     override fun onDialogDismissed(dialogId: Int) = Unit
 
 
-    /**
-     * Overridden own methods
-     */
+    /********* OVERRIDDEN OWN METHODS **********/
     override fun showCategoryDeleteDialog(id: Int, name: String, soundCount: Int) =
             showDialogFragment(DeleteCategoryFragment.newInstance(id, name, soundCount, categories.size))
 
@@ -261,21 +251,29 @@ class MainActivity :
     override fun showCategorySortDialog(id: Int, name: String) =
             showDialogFragment(SortCategoryDialogFragment.newInstance(id, name))
 
-    override fun showToast(text: CharSequence) {
-        toast?.cancel()
-        toast = Toast.makeText(this, text, Toast.LENGTH_SHORT).apply { show() }
+    override fun showSnackbar(text: CharSequence) {
+        Snackbar.make(binding.appCoordinator, text, Snackbar.LENGTH_SHORT).show()
     }
 
-    override fun showToast(textResource: Int) = showToast(getText(textResource))
+    override fun showSnackbar(textResource: Int) = showSnackbar(getText(textResource))
 
-    override fun zoomIn() = appViewModel.zoomIn()?.let { showToast(getString(R.string.zoom_level_percent, it)) }
+    override fun zoomIn() = appViewModel.zoomIn()?.let { showSnackbar(getString(R.string.zoom_level_percent, it)) }
 
-    override fun zoomOut() = appViewModel.zoomOut()?.let { showToast(getString(R.string.zoom_level_percent, it)) }
+    override fun zoomOut() = appViewModel.zoomOut()?.let { showSnackbar(getString(R.string.zoom_level_percent, it)) }
 
 
-    /**
-     * Own methods
-     */
+    /********* OWN METHODS **********/
+    private fun onAppVersionUpgraded(from: Long, to: Long) {
+        if (from in 1..5 && to >= 6) {
+            /** From 6, sounds are stored in app local storage */
+            soundViewModel.moveFilesToLocalStorage()
+        }
+        if (from in 1..6 && to >= 7) {
+            /** From 7, checksums for sounds are stored */
+            soundViewModel.saveChecksums()
+        }
+    }
+
     private fun onFilterEnabledChange(value: Boolean) {
         filterEnabled = value
         val manager = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
@@ -294,22 +292,15 @@ class MainActivity :
 
     private fun onReorderEnabledChange(value: Boolean) {
         val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_reorder)
-//        val undoItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_undo)
-//                ?: binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_undo)
         if (value) {
-            if (reorderEnabled != null) showToast(R.string.reordering_enabled)
+            if (reorderEnabled != null) showSnackbar(R.string.reordering_enabled)
             item?.icon?.alpha = 255
             filterWasEnabled = filterEnabled
             soundViewModel.disableFilter()
-            //soundViewModel.enableUndo()
-            //undoItem?.isVisible = true
-            //undoItem?.icon?.alpha = 128
         } else {
-            if (reorderEnabled != null) showToast(R.string.reordering_disabled)
+            if (reorderEnabled != null) showSnackbar(R.string.reordering_disabled)
             item?.icon?.alpha = 128
             if (filterWasEnabled) soundViewModel.enableFilter()
-            //soundViewModel.disableUndo()
-            //undoItem?.isVisible = false
         }
         reorderEnabled = value  // Has to come last
     }
@@ -322,7 +313,7 @@ class MainActivity :
         }
         binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_set_repress_mode)?.icon = icon
         binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_set_repress_mode)?.icon = icon
-        if (this.repressMode != null) showToast(getString(R.string.on_repress, mode))
+        if (this.repressMode != null) showSnackbar(getString(R.string.on_repress, mode))
         this.repressMode = mode
     }
 
@@ -414,9 +405,9 @@ class MainActivity :
         }
     }
 
-    private fun showDialogFragment(fragment: Fragment) = showDialogFragment(fragment, null)
+    internal fun showDialogFragment(fragment: Fragment) = showDialogFragment(fragment, null)
 
-    private fun showEditSoundDialogFragment(sound: Sound) {
+    internal fun showEditSoundDialogFragment(sound: Sound) {
         var categoryIndex = categories.map { it.id }.indexOf(sound.categoryId)
         if (categoryIndex == -1) categoryIndex = 0
         sound.id?.let { soundId ->
@@ -426,38 +417,33 @@ class MainActivity :
 
     @SuppressLint("QueryPermissionsNeeded")
     private fun startAddSoundActivity() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                    Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
-        else
-            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         intent.type = "audio/*"
         intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-        if (intent.resolveActivity(packageManager) != null) startActivityForResult(intent, REQUEST_SOUND_GET)
+        if (intent.resolveActivity(packageManager) != null) startActivityForResult(intent, REQUEST_SOUND_ADD)
     }
 
     private fun toggleFilterEnabled() {
-        if (reorderEnabled == true) showToast(R.string.cannot_enable_filter)
+        if (reorderEnabled == true) showSnackbar(R.string.cannot_enable_filter)
         else soundViewModel.toggleFilterEnabled()
     }
 
     private fun undo() {
         soundViewModel.undo()
-        showToast(R.string.undid)
+        showSnackbar(R.string.undid)
     }
 
 
     companion object {
-        const val REQUEST_SOUND_GET = 1
+        const val REQUEST_SOUND_ADD = 1
         const val REQUEST_SOUND_REINIT = 2
         const val EXTRA_SOUND_ID = "soundId"
         const val CATEGORY_ADD_DIALOG_TAG = "categoryAddDialog"
         const val CATEGORY_EDIT_DIALOG_TAG = "categoryEditDialog"
         const val LOG_TAG = "MainActity"
+        const val PREF_LAST_VERSION = "lastRunVersionCode"
         val DIALOG_TAGS = listOf(CATEGORY_ADD_DIALOG_TAG, CATEGORY_EDIT_DIALOG_TAG)
     }
 }

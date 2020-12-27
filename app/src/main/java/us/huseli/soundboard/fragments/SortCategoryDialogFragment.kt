@@ -9,14 +9,14 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import us.huseli.soundboard.R
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.FragmentSortCategoryBinding
-import us.huseli.soundboard.viewmodels.SoundViewModel
+import us.huseli.soundboard.viewmodels.SoundListViewModel
 
 class SortCategoryDialogFragment : DialogFragment() {
     private var binding: FragmentSortCategoryBinding? = null
 
     private val categoryId by lazy { requireArguments().getInt(ARG_ID) }
     private val name by lazy { requireArguments().getString(ARG_NAME) }
-    private val soundViewModel by activityViewModels<SoundViewModel>()
+    private val soundViewModel by activityViewModels<SoundListViewModel>()
 
     private var sortBy: Sound.SortParameter? = null
     private var sortOrder = Sound.SortOrder.ASCENDING
@@ -56,24 +56,6 @@ class SortCategoryDialogFragment : DialogFragment() {
 
         return dialog
     }
-
-/*
-    override fun onSaveInstanceState(outState: Bundle) {
-        binding?.let {
-            sortBy?.let { outState.putString(ARG_SORT_BY, it.name) }
-            outState.putString(ARG_SORT_ORDER, sortOrder.name)
-        }
-        super.onSaveInstanceState(outState)
-    }
-
-    override fun onViewStateRestored(savedInstanceState: Bundle?) {
-        savedInstanceState?.let { state ->
-            state.getString(ARG_SORT_BY)?.let { sortBy = CategoryListViewModel.Sort.valueOf(it) }
-            state.getString(ARG_SORT_ORDER)?.let { sortOrder = CategoryListViewModel.SortOrder.valueOf(it) }
-        }
-        super.onViewStateRestored(savedInstanceState)
-    }
-*/
 
 
     companion object {

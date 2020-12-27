@@ -8,10 +8,13 @@ import kotlinx.coroutines.launch
 import us.huseli.soundboard.GlobalApplication
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.CategoryRepository
+import us.huseli.soundboard.data.SoundRepository
 import us.huseli.soundboard.data.SoundboardDatabase
 
 class CategoryListViewModel : ViewModel() {
-    private val repository = CategoryRepository(SoundboardDatabase.getInstance(GlobalApplication.application).categoryDao())
+    private val database = SoundboardDatabase.getInstance(GlobalApplication.application)
+    private val repository = CategoryRepository(database.categoryDao())
+    private val soundRepository = SoundRepository(database.soundDao())
     private val emptyCategory = Category("(Unchanged)")
 
     val categories = repository.categories
@@ -23,7 +26,10 @@ class CategoryListViewModel : ViewModel() {
     }
 
     /** Used by DeleteCategoryFragment */
-    fun delete(id: Int) = viewModelScope.launch(Dispatchers.IO) { repository.delete(id) }
+    fun delete(id: Int) = viewModelScope.launch(Dispatchers.IO) {
+        soundRepository.deleteByCategory(id)
+        repository.delete(id)
+    }
 
     fun getCategoryEditViewModel(id: Int) = CategoryEditViewModel(id)
 

@@ -19,7 +19,10 @@ class CategoryViewModel(val categoryId: Int) : ViewModel() {
     val name = _category.map { it?.name }
     val backgroundColor = _category.map { it?.backgroundColor }
     val textColor = backgroundColor.map { bgc ->
-        if (bgc != null) GlobalApplication.application.getColorHelper().getTextColorForBackgroundColor(bgc) else null
+        if (bgc != null) GlobalApplication.application.getColorHelper().getColorOnBackgroundColor(bgc) else null
+    }
+    val secondaryTextColor = backgroundColor.map { bgc ->
+        if (bgc != null) GlobalApplication.application.getColorHelper().getSecondaryColorOnBackgroundColor(bgc) else null
     }
     val collapsed = _category.map { it?.collapsed ?: false }
 

@@ -6,10 +6,10 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import us.huseli.soundboard.R
-import us.huseli.soundboard.viewmodels.SoundViewModel
+import us.huseli.soundboard.viewmodels.SoundListViewModel
 
 abstract class BaseSoundDialogFragment : DialogFragment() {
-    internal val soundViewModel by activityViewModels<SoundViewModel>()
+    internal val soundViewModel by activityViewModels<SoundListViewModel>()
     internal open val positiveButtonText = R.string.save
     internal open val title: Int? = null
 

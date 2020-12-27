@@ -14,7 +14,6 @@ class EasterEggFragment : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         val inflater = LayoutInflater.from(requireContext())
-        // binding = FragmentEasterEggBinding.inflate(inflater, easter_egg_fragment, false)
         binding = FragmentEasterEggBinding.inflate(inflater)
 
         return MaterialAlertDialogBuilder(requireContext()).run {

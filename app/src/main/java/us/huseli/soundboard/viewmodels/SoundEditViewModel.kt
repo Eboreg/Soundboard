@@ -8,12 +8,12 @@ import kotlinx.coroutines.launch
 class SoundEditViewModel(private val soundId: Int) : BaseSoundEditViewModel() {
     private val sound = repository.getLive(soundId)
 
-    override val name = sound.map { it?.name ?: "" }
+    override val name = sound.map { it.name }
     override fun setName(value: String) {
         sound.value?.name = value
     }
 
-    override val volume = sound.map { it?.volume ?: 100 }
+    override val volume = sound.map { it.volume }
     override fun setVolume(value: Int) {
         sound.value?.volume = value
     }

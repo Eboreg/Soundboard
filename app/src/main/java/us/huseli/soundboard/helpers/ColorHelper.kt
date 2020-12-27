@@ -28,8 +28,13 @@ class ColorHelper(private val resources: Resources) {
     }
 
     // Luminance >= 0.6: Black text, otherwise white
-    fun getTextColorForBackgroundColor(backgroundColor: Int) =
+    fun getColorOnBackgroundColor(backgroundColor: Int) =
             if (getLuminance(backgroundColor) >= 0.6)
                 ResourcesCompat.getColor(resources, R.color.black, null) else
                 ResourcesCompat.getColor(resources, R.color.white, null)
+
+    fun getSecondaryColorOnBackgroundColor(backgroundColor: Int) =
+            if (getLuminance(backgroundColor) >= 0.6)
+                ResourcesCompat.getColor(resources, R.color.light_bg_dark_secondary_text, null) else
+                ResourcesCompat.getColor(resources, R.color.dark_bg_light_secondary_text, null)
 }

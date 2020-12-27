@@ -5,10 +5,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.jaredrummler.android.colorpicker.ColorPickerDialog
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import us.huseli.soundboard.GlobalApplication
@@ -26,7 +26,6 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         val inflater = LayoutInflater.from(requireContext())
         binding = FragmentEditCategoryBinding.inflate(inflater)
-        // this.binding = binding
         binding?.viewModel = viewModel
         binding?.selectColorButton?.setOnClickListener { onSelectColourClick() }
 
@@ -42,7 +41,7 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val catName = binding?.categoryName?.text.toString().trim()
                 if (catName.isEmpty())
-                    Toast.makeText(requireContext(), R.string.name_cannot_be_empty, Toast.LENGTH_SHORT).show()
+                    binding?.root?.let { Snackbar.make(it, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show() }
                 else {
                     viewModel?.apply {
                         setName(catName)

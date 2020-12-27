@@ -13,24 +13,31 @@ interface SoundDao {
     fun delete(soundId: Int)
 
     @Transaction
-    fun delete(soundIds: List<Int>) {
-        soundIds.forEach { delete(it) }
-    }
+    fun delete(soundIds: List<Int>) = soundIds.forEach { delete(it) }
 
     @Query("SELECT * FROM Sound WHERE id = :soundId")
     fun get(soundId: Int): Sound?
 
     @Query("SELECT * FROM Sound WHERE id = :soundId")
-    fun getLive(soundId: Int): LiveData<Sound?>
+    fun getLive(soundId: Int): LiveData<Sound>
 
     @Query("SELECT MAX(`order`) FROM Sound WHERE categoryId = :categoryId")
     fun getMaxOrder(categoryId: Int): Int?
 
+    @Transaction
     fun insert(sound: Sound) {
-        val maxOrder = sound.categoryId?.let { categoryId -> getMaxOrder(categoryId) } ?: -1
-        sound.order = maxOrder + 1
+        if (sound.order == -1) {
+            val maxOrder = sound.categoryId?.let { categoryId -> getMaxOrder(categoryId) } ?: -1
+            sound.order = maxOrder + 1
+        }
         _insert(sound)
     }
+
+    @Transaction
+    fun insert(sounds: List<Sound>) = sounds.forEach { insert(it) }
+
+    @Query("SELECT * FROM Sound")
+    fun list(): List<Sound>
 
     @Query("SELECT * FROM Sound WHERE id IN (:soundIds)")
     fun list(soundIds: List<Int>): List<Sound>

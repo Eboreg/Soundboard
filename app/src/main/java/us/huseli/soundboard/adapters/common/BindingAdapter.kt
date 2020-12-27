@@ -17,4 +17,3 @@ fun setDrawableColor(view: ImageView, color: Int?) {
         }
     }
 }
-

@@ -2,7 +2,9 @@ package us.huseli.soundboard
 
 import android.app.Application
 import android.os.StrictMode
+import android.util.Log
 import androidx.databinding.library.BuildConfig
+import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.helpers.ColorHelper
 
 class GlobalApplication : Application() {
@@ -19,6 +21,14 @@ class GlobalApplication : Application() {
 
     fun getColorHelper(): ColorHelper {
         return colorHelper ?: run { ColorHelper(resources).also { colorHelper = it } }
+    }
+
+    fun deleteSound(sound: Sound) {
+        try {
+            applicationContext.deleteFile(sound.uri.lastPathSegment)
+        } catch (e: Exception) {
+            Log.w(LOG_TAG, e.toString())
+        }
     }
 
     companion object {
