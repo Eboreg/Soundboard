@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class SoundEditViewModel(private val soundId: Int) : BaseSoundEditViewModel() {
+class SoundEditViewModel(soundId: Int) : BaseSoundEditViewModel() {
     private val sound = repository.getLive(soundId)
 
     override val name = sound.map { it.name }
@@ -33,6 +33,4 @@ class SoundEditViewModel(private val soundId: Int) : BaseSoundEditViewModel() {
             repository.update(sound)
         }
     }
-
-    fun delete() = viewModelScope.launch(Dispatchers.IO) { repository.delete(soundId) }
 }

@@ -13,10 +13,14 @@ data class Category(
         var order: Int,
         var collapsed: Boolean = false
 ) {
-    constructor(name: String, backgroundColor: Int, order: Int): this(null, name, backgroundColor, order, false)
-    @Ignore constructor(name: String, backgroundColor: Int): this(name, backgroundColor, 0)
-    @Ignore constructor(name: String): this(name, Color.DKGRAY)
+    constructor(name: String, backgroundColor: Int, order: Int) : this(null, name, backgroundColor, order, false)
+    @Ignore
+    constructor(name: String, backgroundColor: Int) : this(name, backgroundColor, 0)
+    @Ignore
+    constructor(name: String) : this(name, Color.DKGRAY)
 
     override fun toString() = name
 
+    override fun equals(other: Any?) = other is Category && other.id == id
+    override fun hashCode() = id ?: 0
 }

@@ -42,7 +42,7 @@ class MainActivity :
         ActionMode.Callback {
     private val categoryListViewModel by viewModels<CategoryListViewModel>()
     private val appViewModel by viewModels<AppViewModel>()
-    private val soundViewModel by viewModels<SoundListViewModel>()
+    private val soundViewModel by viewModels<SoundViewModel>()
     private val soundAddViewModel by viewModels<SoundAddViewModel>()
     private val soundEditMultipleViewModel by viewModels<SoundEditMultipleViewModel>()
 
@@ -194,6 +194,8 @@ class MainActivity :
             categories = it
             if (it.isEmpty()) categoryListViewModel.create(getString(R.string.default_category))
         }
+
+        appViewModel.deleteOrphans()
     }
 
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
@@ -208,7 +210,7 @@ class MainActivity :
         appViewModel.zoomInPossible.observe(this) { onZoomInPossibleChange(it) }
         soundViewModel.filterEnabled.observe(this) { onFilterEnabledChange(it) }
         soundViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
-        soundViewModel.undoAvailable.observe(this) { onUndosAvailableChange(it) }
+        appViewModel.undosAvailable.observe(this) { onUndosAvailableChange(it) }
         return true
     }
 
@@ -376,7 +378,6 @@ class MainActivity :
     }
 
     private fun setupBottomBar() {
-        //binding.bottombar.bottombarToolbar.inflateMenu(R.menu.bottom_menu)
         binding.bottombar.bottombarToolbar?.setOnMenuItemClickListener { onOptionsItemSelected(it) }
     }
 
@@ -431,7 +432,7 @@ class MainActivity :
     }
 
     private fun undo() {
-        soundViewModel.undo()
+        appViewModel.undo()
         showSnackbar(R.string.undid)
     }
 

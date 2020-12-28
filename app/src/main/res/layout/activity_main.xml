@@ -7,7 +7,7 @@
 
         <variable
             name="soundViewModel"
-            type="us.huseli.soundboard.viewmodels.SoundListViewModel" />
+            type="us.huseli.soundboard.viewmodels.SoundViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

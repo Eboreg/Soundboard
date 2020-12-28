@@ -22,6 +22,7 @@ class DeleteSoundFragment : BaseSoundDialogFragment() {
     }
 
     override fun onPositiveButtonClick() {
+        appViewModel.pushSoundUndoState()
         SoundDeleteViewModel().delete(soundIds)
         super.onPositiveButtonClick()
     }

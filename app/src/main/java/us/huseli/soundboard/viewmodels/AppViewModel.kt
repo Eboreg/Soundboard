@@ -2,7 +2,11 @@ package us.huseli.soundboard.viewmodels
 
 import android.content.res.Configuration
 import androidx.lifecycle.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import us.huseli.soundboard.GlobalApplication
 import us.huseli.soundboard.SoundPlayer
+import us.huseli.soundboard.data.*
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -10,13 +14,20 @@ class AppViewModel : ViewModel() {
     companion object {
         const val DEFAULT_SPANCOUNT_LANDSCAPE = 8
         const val DEFAULT_SPANCOUNT_PORTRAIT = 4
+        const val MAX_UNDO_STATES = 20
     }
+
+    private val database = SoundboardDatabase.getInstance(GlobalApplication.application)
+    private val categoryRepository = CategoryRepository(database.categoryDao())
+    private val soundRepository = SoundRepository(database.soundDao())
+    private val undoStates = mutableListOf<UndoState>()
 
     private val _orientation = MutableLiveData<Int>()
     private val _repressMode = MutableLiveData(SoundPlayer.RepressMode.STOP)
     private val _screenRatio = MutableLiveData<Double>()  // (width / height) in portrait mode
     private val _spanCountLandscape = MutableLiveData<Int>()
     private val _spanCountPortrait = MutableLiveData<Int>()
+    private val _undosAvailable = MutableLiveData(false)
 
     val repressMode: LiveData<SoundPlayer.RepressMode>
         get() = _repressMode
@@ -30,6 +41,9 @@ class AppViewModel : ViewModel() {
             else -> _spanCountLandscape
         }
     }
+
+    val undosAvailable: LiveData<Boolean>
+        get() = _undosAvailable
 
     val zoomInPossible = spanCount.map { it != null && it > 1 }
 
@@ -47,29 +61,36 @@ class AppViewModel : ViewModel() {
         } ?: SoundPlayer.RepressMode.STOP
     }
 
+    fun deleteOrphans() = viewModelScope.launch(Dispatchers.IO) {
+        val sounds = soundRepository.list()
+        GlobalApplication.application.soundDir?.listFiles()?.forEach { file ->
+            if (!sounds.map { it.uri.lastPathSegment }.contains(file.name))
+                file.delete()
+        }
+    }
+
+    fun pushCategoryUndoState() = viewModelScope.launch(Dispatchers.IO) {
+        pushUndoState(null, categoryRepository.list())
+    }
+
+    fun pushSoundUndoState() = viewModelScope.launch(Dispatchers.IO) {
+        pushUndoState(soundRepository.list(), null)
+    }
+
+    fun pushUndoState() = viewModelScope.launch(Dispatchers.IO) {
+        pushUndoState(soundRepository.list(), categoryRepository.list())
+    }
+
+    fun undo() = viewModelScope.launch(Dispatchers.IO) {
+        undoStates.removeLastOrNull()?.also {
+            if (it.categories != null) categoryRepository.reset(it.categories)
+            if (it.sounds != null) soundRepository.reset(it.sounds)
+        }
+        if (undoStates.isEmpty()) _undosAvailable.postValue(false)
+    }
+
 
     /** PRIVATE METHODS */
-
-    @Suppress("LocalVariableName")
-    fun setup(orientation: Int, screenWidthDp: Int, screenHeightDp: Int, landscapeSpanCount: Int): Int {
-        /**
-         * Returns actual span count for the current screen orientation
-         */
-        val _landscapeSpanCount = if (landscapeSpanCount > 0) landscapeSpanCount else DEFAULT_SPANCOUNT_LANDSCAPE
-        _orientation.value = orientation
-
-        val ratio = when (orientation) {
-            Configuration.ORIENTATION_LANDSCAPE -> screenHeightDp.toDouble() / screenWidthDp
-            else -> screenWidthDp.toDouble() / screenHeightDp
-        }
-        _screenRatio.value = ratio
-
-        _spanCountLandscape.value = _landscapeSpanCount
-        val _portraitSpanCount = landscapeSpanCountToPortrait(_landscapeSpanCount, ratio)
-        _spanCountPortrait.value = _portraitSpanCount
-
-        return if (orientation == Configuration.ORIENTATION_LANDSCAPE) _landscapeSpanCount else _portraitSpanCount
-    }
 
     private fun getZoomPercent(): Int? {
         return when (_orientation.value) {
@@ -91,6 +112,44 @@ class AppViewModel : ViewModel() {
 
     private fun portraitSpanCountToLandscape(spanCount: Int): Int? =
             _screenRatio.value?.let { ratio -> (spanCount / ratio).roundToInt() }
+
+    private fun pushUndoState(sounds: List<Sound>?, categories: List<Category>?) {
+        if (sounds != null || categories != null) {
+            undoStates.add(UndoState(sounds, categories))
+            _undosAvailable.postValue(true)
+            if (undoStates.size > MAX_UNDO_STATES) {
+                val removedState = undoStates.removeFirst()
+                val nextState = undoStates.first()
+                if (removedState.sounds != null && nextState.sounds != null)
+                    removedState.sounds.subtract(nextState.sounds).forEach {
+                        GlobalApplication.application.soundDir?.listFiles()?.forEach { file ->
+                            if (file.name == it.uri.lastPathSegment) file.delete()
+                        }
+                    }
+            }
+        }
+    }
+
+    @Suppress("LocalVariableName")
+    fun setup(orientation: Int, screenWidthDp: Int, screenHeightDp: Int, landscapeSpanCount: Int): Int {
+        /**
+         * Returns actual span count for the current screen orientation
+         */
+        val _landscapeSpanCount = if (landscapeSpanCount > 0) landscapeSpanCount else DEFAULT_SPANCOUNT_LANDSCAPE
+        _orientation.value = orientation
+
+        val ratio = when (orientation) {
+            Configuration.ORIENTATION_LANDSCAPE -> screenHeightDp.toDouble() / screenWidthDp
+            else -> screenWidthDp.toDouble() / screenHeightDp
+        }
+        _screenRatio.value = ratio
+
+        _spanCountLandscape.value = _landscapeSpanCount
+        val _portraitSpanCount = landscapeSpanCountToPortrait(_landscapeSpanCount, ratio)
+        _spanCountPortrait.value = _portraitSpanCount
+
+        return if (orientation == Configuration.ORIENTATION_LANDSCAPE) _landscapeSpanCount else _portraitSpanCount
+    }
 
     private fun zoom(factor: Int): Int? {
         // factor -1 = spanCount += -1 = zoom in
@@ -114,4 +173,7 @@ class AppViewModel : ViewModel() {
         }
         return getZoomPercent()
     }
+
+
+    class UndoState(val sounds: List<Sound>?, val categories: List<Category>?)
 }

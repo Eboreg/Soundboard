@@ -88,6 +88,7 @@ abstract class BaseEditSoundDialogFragment<VM: BaseSoundEditViewModel> : BaseSou
 
     internal open fun save() {
         viewModel?.apply {
+            appViewModel.pushSoundUndoState()
             save()
         } ?: run {
             Log.e(LOG_TAG, "save: viewModel is null")

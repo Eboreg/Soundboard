@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.jaredrummler.android.colorpicker.ColorPickerDialog
@@ -14,12 +15,14 @@ import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import us.huseli.soundboard.GlobalApplication
 import us.huseli.soundboard.R
 import us.huseli.soundboard.databinding.FragmentEditCategoryBinding
+import us.huseli.soundboard.viewmodels.AppViewModel
 import us.huseli.soundboard.viewmodels.BaseCategoryEditViewModel
 
 abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogListener {
     private val dialogId by lazy { requireArguments().getInt(ARG_DIALOG_ID) }
     private var binding: FragmentEditCategoryBinding? = null
 
+    internal val appViewModel by activityViewModels<AppViewModel>()
     internal abstract var viewModel: BaseCategoryEditViewModel?
     internal abstract val title: Int
 
@@ -44,6 +47,7 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
                     binding?.root?.let { Snackbar.make(it, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show() }
                 else {
                     viewModel?.apply {
+                        appViewModel.pushCategoryUndoState()
                         setName(catName)
                         save()
                         dismiss()

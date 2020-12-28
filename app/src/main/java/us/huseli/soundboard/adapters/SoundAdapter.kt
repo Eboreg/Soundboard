@@ -37,7 +37,7 @@ import kotlin.math.roundToInt
 
 class SoundAdapter(
         private val recyclerView: RecyclerView,
-        private val soundListViewModel: SoundListViewModel,
+        private val soundViewModel: SoundViewModel,
         private val appViewModel: AppViewModel,
         private val viewModelStoreOwner: ViewModelStoreOwner) :
         LifecycleAdapter<Sound, SoundAdapter.SoundViewHolder>(DiffCallback()) {
@@ -123,7 +123,8 @@ class SoundAdapter(
             else -> for (i in fromPosition downTo toPosition + 1) Collections.swap(sounds, i, i - 1)
         }
 
-        categoryViewModel?.let { soundListViewModel.update(sounds, it.categoryId) }
+        appViewModel.pushSoundUndoState()
+        categoryViewModel?.let { soundViewModel.update(sounds, it.categoryId) }
     }
 
     fun isEmpty() = currentList.isEmpty()
@@ -170,7 +171,7 @@ class SoundAdapter(
     private fun selectAllInBetween(sound: Sound) {
         // Select all sound between `sound` and last selected one (if any).
         categoryViewModel?.categoryId?.let { categoryId ->
-            soundListViewModel.getLastSelected(categoryId, sound)?.let { lastSelected ->
+            soundViewModel.getLastSelected(categoryId, sound)?.let { lastSelected ->
                 // TODO: Are these always consistent with adapter/layout positions?
                 val pos1 = currentList.indexOf(sound)
                 val pos2 = currentList.indexOf(lastSelected)
@@ -199,7 +200,7 @@ class SoundAdapter(
             View.OnLongClickListener,
             View.OnTouchListener,
             SoundPlayer.OnStateChangeListener,
-            SoundListViewModel.OnSelectAllListener,
+            SoundViewModel.OnSelectAllListener,
             LifecycleViewHolder(binding.root) {
         @Suppress("PrivatePropertyName")
         private val LOG_TAG = "SoundViewHolder"
@@ -208,7 +209,7 @@ class SoundAdapter(
         private val clickAnimator = (AnimatorInflater.loadAnimator(context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
             setTarget(binding.soundCard)
         }
-        private val soundViewModel = adapter.soundListViewModel
+        private val soundViewModel = adapter.soundViewModel
         private val viewModelStoreOwner = adapter.viewModelStoreOwner
 
         private var longClickAnimator: SoundItemLongClickAnimator? = null
@@ -278,7 +279,7 @@ class SoundAdapter(
             sound?.let { sound ->
                 if (sound.duration != value) {
                     sound.duration = value
-                    soundViewModel.update(sound)
+                    soundViewModel.updateDuration(sound, value)
                 }
             }
             if (value > -1) {

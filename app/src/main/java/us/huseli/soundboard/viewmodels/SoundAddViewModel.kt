@@ -73,6 +73,7 @@ class SoundAddViewModel : BaseSoundEditViewModel() {
     override fun setCategoryId(value: Int) = _sounds.forEach { it.categoryId = value }
 
     override fun save() = viewModelScope.launch(Dispatchers.IO) {
+        //GlobalApplication.pushUndoState(_sounds, null)
         _sounds.forEach { sound ->
             when (duplicateStrategy) {
                 DuplicateStrategy.UPDATE -> {

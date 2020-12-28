@@ -9,14 +9,16 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import us.huseli.soundboard.R
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.FragmentSortCategoryBinding
-import us.huseli.soundboard.viewmodels.SoundListViewModel
+import us.huseli.soundboard.viewmodels.AppViewModel
+import us.huseli.soundboard.viewmodels.SoundViewModel
 
 class SortCategoryDialogFragment : DialogFragment() {
     private var binding: FragmentSortCategoryBinding? = null
 
+    private val appViewModel by activityViewModels<AppViewModel>()
     private val categoryId by lazy { requireArguments().getInt(ARG_ID) }
     private val name by lazy { requireArguments().getString(ARG_NAME) }
-    private val soundViewModel by activityViewModels<SoundListViewModel>()
+    private val soundViewModel by activityViewModels<SoundViewModel>()
 
     private var sortBy: Sound.SortParameter? = null
     private var sortOrder = Sound.SortOrder.ASCENDING
@@ -44,7 +46,10 @@ class SortCategoryDialogFragment : DialogFragment() {
             setTitle(resources.getString(R.string.sort_category_dialog_title, name))
             setView(binding?.root)
             setPositiveButton(R.string.sort) { _, _ ->
-                sortBy?.let { sortBy -> soundViewModel.sort(categoryId, sortBy, sortOrder) }
+                sortBy?.let { sortBy ->
+                    appViewModel.pushSoundUndoState()
+                    soundViewModel.sort(categoryId, sortBy, sortOrder)
+                }
             }
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
             create()

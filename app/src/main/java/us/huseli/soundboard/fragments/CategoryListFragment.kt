@@ -16,12 +16,12 @@ import us.huseli.soundboard.helpers.SoundScroller
 import us.huseli.soundboard.interfaces.ZoomInterface
 import us.huseli.soundboard.viewmodels.AppViewModel
 import us.huseli.soundboard.viewmodels.CategoryListViewModel
-import us.huseli.soundboard.viewmodels.SoundListViewModel
+import us.huseli.soundboard.viewmodels.SoundViewModel
 
 class CategoryListFragment : Fragment(), View.OnTouchListener {
     private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
     private val appViewModel by activityViewModels<AppViewModel>()
-    private val soundViewModel by activityViewModels<SoundListViewModel>()
+    private val soundViewModel by activityViewModels<SoundViewModel>()
     private val preferences: SharedPreferences by lazy { requireActivity().getPreferences(Context.MODE_PRIVATE) }
     private val scaleGestureDetector by lazy { ScaleGestureDetector(requireContext(), ScaleListener()) }
 

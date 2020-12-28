@@ -9,6 +9,7 @@ import us.huseli.soundboard.data.SoundboardDatabase
 abstract class BaseSoundEditViewModel : ViewModel() {
     internal val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application).soundDao())
 
+    //abstract fun hasChanged(): Boolean
     abstract fun setName(value: String)
     abstract fun setVolume(value: Int)
     abstract fun setCategoryId(value: Int): Any?

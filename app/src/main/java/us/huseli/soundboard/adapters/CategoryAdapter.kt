@@ -31,7 +31,7 @@ import java.util.*
 class CategoryAdapter(
         private val appViewModel: AppViewModel,
         private val initialSpanCount: Int,
-        private val soundListViewModel: SoundListViewModel,
+        private val soundViewModel: SoundViewModel,
         private val categoryListViewModel: CategoryListViewModel,
         private val viewModelStoreOwner: ViewModelStoreOwner,
         private val soundScroller: SoundScroller) :
@@ -66,8 +66,13 @@ class CategoryAdapter(
     }
 
     fun onItemsReordered() {
+        val previousOrder = currentList.map { it.order }
         currentList.forEachIndexed { index, item -> item.order = index }
-        categoryListViewModel.saveOrder(currentList)
+        val newOrder = currentList.map { it.order }
+        if (previousOrder != newOrder) {
+            appViewModel.pushCategoryUndoState()
+            categoryListViewModel.saveOrder(currentList)
+        }
     }
 
 
@@ -98,7 +103,7 @@ class CategoryAdapter(
         private val soundAdapter: SoundAdapter
         private val soundDragListener: SoundDragListener
         private val soundScroller = adapter.soundScroller
-        private val soundViewModel = adapter.soundListViewModel
+        private val soundViewModel = adapter.soundViewModel
 
         // private val soundViewPool = adapter.soundViewPool
         private val viewModelStoreOwner = adapter.viewModelStoreOwner

@@ -1,22 +1,11 @@
 package us.huseli.soundboard.data
 
-import us.huseli.soundboard.GlobalApplication
-
 class SoundRepository(private val soundDao: SoundDao) {
-
-    fun delete(sounds: List<Sound>) {
-        sounds.forEach { GlobalApplication.application.deleteSound(it) }
-        soundDao.delete(sounds.mapNotNull { it.id })
-    }
+    fun delete(sounds: List<Sound>) = soundDao.delete(sounds.mapNotNull { it.id })
 
     fun delete(sound: Sound) = delete(listOf(sound))
 
-    fun delete(soundIds: List<Int>?) = soundIds?.let { soundIds ->
-        list(soundIds).forEach { GlobalApplication.application.deleteSound(it) }
-        soundDao.delete(soundIds)
-    }
-
-    fun delete(soundId: Int) = delete(listOf(soundId))
+    fun delete(soundIds: List<Int>?) = soundIds?.let { soundDao.delete(it) }
 
     fun deleteByCategory(categoryId: Int) = delete(listByCategory(categoryId))
 
@@ -38,7 +27,14 @@ class SoundRepository(private val soundDao: SoundDao) {
 
     fun listLive() = soundDao.listLive()
 
+    /** Update/add sounds, delete the rest */
+    fun reset(sounds: List<Sound>) = soundDao.reset(sounds)
+
     fun update(sound: Sound) = soundDao.update(sound)
 
     fun update(sounds: List<Sound>) = soundDao.update(sounds)
+
+    fun updateDuration(sound: Sound, duration: Int) =
+            sound.id?.let { soundDao.updateDuration(it, duration) }
+
 }

@@ -7,7 +7,6 @@ import kotlinx.coroutines.*
 import us.huseli.soundboard.data.Sound
 import kotlin.math.pow
 
-//class SoundPlayer(private var context: Context?, private val uri: Uri, initVolume: Int) :
 class SoundPlayer(private val sound: Sound) :
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
     private var mediaPlayer: MediaPlayer? = null
@@ -18,7 +17,6 @@ class SoundPlayer(private val sound: Sound) :
     private var _state = State.INITIALIZING
     private var _duration: Int = -1  // In milliseconds
     private var _errorMessage = ""
-    private var _noPermission = false
     private var _previousVolume: Int? = null
 
     var repressMode = RepressMode.STOP
@@ -41,8 +39,6 @@ class SoundPlayer(private val sound: Sound) :
         get() = _errorMessage
     val state: State
         get() = _state
-    val noPermission: Boolean
-        get() = _noPermission
 
     init {
         scope.launch {
@@ -82,7 +78,6 @@ class SoundPlayer(private val sound: Sound) :
     }
 
     override fun onError(mp: MediaPlayer, what: Int, extra: Int): Boolean {
-        if (extra == MediaPlayer.MEDIA_ERROR_IO) _noPermission = true
         _errorMessage = when (extra) {
             MediaPlayer.MEDIA_ERROR_IO -> "IO error"
             MediaPlayer.MEDIA_ERROR_MALFORMED -> "Malformed bitstream"
@@ -132,7 +127,6 @@ class SoundPlayer(private val sound: Sound) :
 
     private fun createAndStartTempPlayer(): MediaPlayer {
         return MediaPlayer().apply {
-            //context?.let { context ->
             setDataSource(sound.uri.path)
             prepare()
             start()
@@ -143,7 +137,6 @@ class SoundPlayer(private val sound: Sound) :
                 if (!this@SoundPlayer.isPlaying()) changeState(State.READY)
             }
             changeState(State.PLAYING)
-            //}
         }
     }
 
@@ -167,7 +160,6 @@ class SoundPlayer(private val sound: Sound) :
 
     fun release() {
         scope.cancel()
-        //context = null
         stopAndClearTempPlayers()
         mediaPlayer?.release()
         onStateChangeListener = null
