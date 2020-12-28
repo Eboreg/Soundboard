@@ -34,6 +34,12 @@
         </item>
     </style>
 
+    <style name="Soundboard.Theme.AlertDialog.DuplicateSound">
+        <item name="buttonBarNegativeButtonStyle">
+            @style/Soundboard.Style.Button.TextButton
+        </item>
+    </style>
+
     <style name="Soundboard.Theme.AlertDialog.EqualButtons" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
         <item name="buttonBarButtonStyle">@style/Soundboard.Style.Button.TextButton</item>
     </style>

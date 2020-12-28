@@ -4,9 +4,6 @@ Refactor so add/edit multiple sounds name view show number of sounds selected
 Show some progress indicator while loading sounds (not only on app init but also reorder etc)
 
 
-Change duplicate add fragment so buttons are the same colour
-
-
 Can the responsiveness (time from soundcard press to sound playing) be improved further?
 
 
