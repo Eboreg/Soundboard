@@ -1,22 +1,63 @@
 package us.huseli.soundboard.viewmodels
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import us.huseli.soundboard.GlobalApplication
+import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.data.SoundRepository
 import us.huseli.soundboard.data.SoundboardDatabase
 
 abstract class BaseSoundEditViewModel : ViewModel() {
+    /** Implemented by SoundAddViewModel and SoundEditViewModel */
+    private val _name = MutableLiveData("")
+    private val _sounds = mutableListOf<Sound>()
+    private val _volume = MutableLiveData(100)
+    private var _multiple = false
+
     internal val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application).soundDao())
 
-    //abstract fun hasChanged(): Boolean
-    abstract fun setName(value: String)
-    abstract fun setVolume(value: Int)
+    internal var categoryIndex: Int? = null
+
+    internal val multiple: Boolean
+        get() = _multiple
+
+    val name: LiveData<String>
+        get() = _name
+
+    val sounds: List<Sound>
+        get() = _sounds
+
+    val volume: LiveData<Int>
+        get() = _volume
+
+    open fun setName(value: String) {
+        _name.value = value
+        if (!multiple) sounds.forEach { it.name = value }
+    }
+
+    open fun setup(sounds: List<Sound>, multipleSoundsString: String) {
+        _sounds.clear()
+        _sounds.addAll(sounds)
+        if (_sounds.size == 1) {
+            _multiple = false
+            setName(_sounds.first().name)
+            setVolume(_sounds.first().volume)
+        } else {
+            _multiple = true
+            setName(multipleSoundsString)
+            setVolume(100)
+        }
+    }
+
+    open fun setVolume(value: Int) {
+        _volume.value = value
+        sounds.forEach { it.volume = value }
+    }
+
+    internal fun removeSounds(predicate: (Sound) -> Boolean): Boolean = _sounds.removeAll(predicate)
+
     abstract fun setCategoryId(value: Int): Any?
     abstract fun save(): Any?
 
-    abstract val name: LiveData<String>
-    abstract val volume: LiveData<Int>
-
-    var categoryIndex: Int? = null
 }

@@ -6,5 +6,6 @@ import us.huseli.soundboard.viewmodels.SoundAddViewModel
 
 class AddSoundDialogFragment : BaseEditSoundDialogFragment<SoundAddViewModel>() {
     override val viewModel by activityViewModels<SoundAddViewModel>()
-    override val title = R.string.add_sound
+    override val title: Int
+        get() = if (viewModel.multiple) R.string.edit_sounds else R.string.edit_sound
 }

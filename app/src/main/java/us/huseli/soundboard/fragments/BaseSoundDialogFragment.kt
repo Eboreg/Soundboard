@@ -15,8 +15,8 @@ abstract class BaseSoundDialogFragment : DialogFragment() {
     internal open val positiveButtonText = R.string.save
     internal open val title: Int? = null
 
-    internal open fun getTitle(): CharSequence? = title?.let { getText(it) }
 
+    /** OVERRIDDEN STANDARD METHODS */
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         val dialog = MaterialAlertDialogBuilder(requireContext()).run {
             configureDialog(this)
@@ -29,11 +29,8 @@ abstract class BaseSoundDialogFragment : DialogFragment() {
         return dialog
     }
 
-    internal open fun onPositiveButtonClick() {
-        soundViewModel.disableSelect()
-        dismiss()
-    }
 
+    /** OWN METHODS */
     internal open fun configureDialog(builder: MaterialAlertDialogBuilder) {
         builder.apply {
             getTitle()?.let { setTitle(it) }
@@ -44,4 +41,12 @@ abstract class BaseSoundDialogFragment : DialogFragment() {
     }
 
     internal open fun getMessage(): CharSequence? = null
+
+    internal open fun getTitle(): CharSequence? = title?.let { getText(it) }
+
+    internal open fun onPositiveButtonClick() {
+        soundViewModel.disableSelect()
+        dismiss()
+    }
+
 }

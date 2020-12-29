@@ -44,7 +44,7 @@ class MainActivity :
     private val appViewModel by viewModels<AppViewModel>()
     private val soundViewModel by viewModels<SoundViewModel>()
     private val soundAddViewModel by viewModels<SoundAddViewModel>()
-    private val soundEditMultipleViewModel by viewModels<SoundEditMultipleViewModel>()
+    private val soundEditMultipleViewModel by viewModels<SoundEditViewModel>()
 
     private val actionbarLogoTouchTimes = mutableListOf<Long>()
     private var actionMode: ActionMode? = null
@@ -65,18 +65,7 @@ class MainActivity :
                 true
             }
             R.id.edit_sounds -> {
-                when {
-                    soundViewModel.selectedSounds.size == 1 -> {
-                        val sound = soundViewModel.selectedSounds.first()
-                        showEditSoundDialogFragment(sound)
-                    }
-                    soundViewModel.selectedSounds.size > 1 -> {
-                        val selectedSoundIds = soundViewModel.selectedSounds.mapNotNull { it.id }
-                        soundEditMultipleViewModel.setup(
-                                selectedSoundIds, getString(R.string.multiple_sounds_selected, selectedSoundIds.size))
-                        showDialogFragment(EditMultipleSoundDialogFragment())
-                    }
-                }
+                showEditSoundDialogFragment(soundViewModel.selectedSounds)
                 true
             }
             R.id.delete_sounds -> {
@@ -133,7 +122,6 @@ class MainActivity :
             when {
                 soundAddViewModel.hasDuplicates -> showDialogFragment(AddDuplicateSoundDialogFragment())
                 sounds.isEmpty() -> showSnackbar(R.string.no_sounds_to_add)
-                sounds.size > 1 -> showDialogFragment(AddMultipleSoundDialogFragment())
                 else -> showDialogFragment(AddSoundDialogFragment())
             }
         }
@@ -416,12 +404,19 @@ class MainActivity :
 
     internal fun showDialogFragment(fragment: Fragment) = showDialogFragment(fragment, null)
 
-    internal fun showEditSoundDialogFragment(sound: Sound) {
-        var categoryIndex = categories.map { it.id }.indexOf(sound.categoryId)
-        if (categoryIndex == -1) categoryIndex = 0
-        sound.id?.let { soundId ->
-            showDialogFragment(EditSoundDialogFragment.newInstance(soundId, categoryIndex))
+    private fun getCategoryIndex(selectedSounds: List<Sound>): Int {
+        return when (selectedSounds.size) {
+            1 -> categories.map { it.id }.indexOf(selectedSounds.first().categoryId).let { if (it > -1) it else 0 }
+            else -> 0
         }
+    }
+
+    internal fun showEditSoundDialogFragment(sound: Sound) = showEditSoundDialogFragment(listOf(sound))
+
+    private fun showEditSoundDialogFragment(sounds: List<Sound>) {
+        soundEditMultipleViewModel.setup(sounds, getString(R.string.multiple_sounds_selected, sounds.size))
+        val categoryIndex = getCategoryIndex(sounds)
+        showDialogFragment(EditSoundDialogFragment.newInstance(categoryIndex))
     }
 
     @SuppressLint("QueryPermissionsNeeded")

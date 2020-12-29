@@ -20,26 +20,18 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
     private fun onAddDuplicates() {
         viewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.ADD
         (requireActivity() as? MainActivity)?.apply {
-            when (viewModel.sounds.size) {
-                1 -> showDialogFragment(AddSoundDialogFragment())
-                else -> {
-                    viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
-                    showDialogFragment(AddMultipleSoundDialogFragment())
-                }
-            }
+            if (viewModel.sounds.size > 1) viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
+            showDialogFragment(AddSoundDialogFragment())
         }
     }
 
     private fun onSkipDuplicates() {
         viewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.SKIP
         (requireActivity() as? MainActivity)?.apply {
-            when (viewModel.sounds.size) {
-                0 -> showSnackbar(R.string.no_sounds_to_add)
-                1 -> showDialogFragment(AddSoundDialogFragment())
-                else -> {
-                    viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
-                    showDialogFragment(AddMultipleSoundDialogFragment())
-                }
+            if (viewModel.sounds.isEmpty()) showSnackbar(R.string.no_sounds_to_add)
+            else {
+                if (viewModel.sounds.size > 1) viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
+                showDialogFragment(AddSoundDialogFragment())
             }
         }
     }
@@ -53,7 +45,7 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
                 1 -> showEditSoundDialogFragment(viewModel.duplicates[0])
                 else -> {
                     viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
-                    showDialogFragment(AddMultipleSoundDialogFragment())
+                    showDialogFragment(AddSoundDialogFragment())
                 }
             }
         }

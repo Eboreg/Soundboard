@@ -248,13 +248,13 @@ class SoundAdapter(
 
             playerViewModel?.player?.observe(this) { newPlayer ->
                 if (newPlayer != null && newPlayer != player) {
-                    player = newPlayer
                     newPlayer.setOnStateChangeListener(this)
                     onSoundPlayerStateChange(newPlayer, newPlayer.state)
                     setDuration(newPlayer.duration)
                     appViewModel.repressMode.observe(this) { newPlayer.repressMode = it }
-                    this.sound?.volume?.let { newPlayer.volume = it }
+                    player = newPlayer
                 }
+                this.sound?.volume?.let { player?.volume = it }
             }
 
             categoryViewModel.backgroundColor.observe(this) { color ->

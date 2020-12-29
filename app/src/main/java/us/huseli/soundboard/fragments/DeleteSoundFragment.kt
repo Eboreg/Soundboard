@@ -8,7 +8,6 @@ import us.huseli.soundboard.viewmodels.SoundDeleteViewModel
 class DeleteSoundFragment : BaseSoundDialogFragment() {
     override val positiveButtonText = R.string.delete
 
-    // private var soundIds = emptyList<Int>()
     private var soundIds: List<Int>? = null
     private var soundName: String? = null
 
