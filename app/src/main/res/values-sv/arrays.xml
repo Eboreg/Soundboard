@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="nightModeEntries">
+        <item>Enhetsstandard</item>
+        <item>Natt</item>
+        <item>Dag</item>
+    </string-array>
+</resources>

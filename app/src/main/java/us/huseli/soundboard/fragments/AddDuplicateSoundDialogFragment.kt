@@ -22,7 +22,10 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
         (requireActivity() as? MainActivity)?.apply {
             when (viewModel.sounds.size) {
                 1 -> showDialogFragment(AddSoundDialogFragment())
-                else -> showDialogFragment(AddMultipleSoundDialogFragment())
+                else -> {
+                    viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
+                    showDialogFragment(AddMultipleSoundDialogFragment())
+                }
             }
         }
     }
@@ -33,7 +36,10 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
             when (viewModel.sounds.size) {
                 0 -> showSnackbar(R.string.no_sounds_to_add)
                 1 -> showDialogFragment(AddSoundDialogFragment())
-                else -> showDialogFragment(AddMultipleSoundDialogFragment())
+                else -> {
+                    viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
+                    showDialogFragment(AddMultipleSoundDialogFragment())
+                }
             }
         }
     }
@@ -45,7 +51,10 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
                 // TODO: Will not work with copying of data
                 // Have to use old sound from duplicates, and not new one from sounds:
                 1 -> showEditSoundDialogFragment(viewModel.duplicates[0])
-                else -> showDialogFragment(AddMultipleSoundDialogFragment())
+                else -> {
+                    viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
+                    showDialogFragment(AddMultipleSoundDialogFragment())
+                }
             }
         }
     }

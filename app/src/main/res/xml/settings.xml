@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+    <ListPreference
+        app:key="nightMode"
+        app:title="@string/night_day_mode"
+        app:entries="@array/nightModeEntries"
+        app:entryValues="@array/nightModeEntryValues"
+        app:defaultValue="default"
+        app:icon="@drawable/ic_night_day" />
+
+    <ListPreference
+        app:key="language"
+        app:title="@string/language"
+        app:icon="@drawable/ic_language" />
+
+</PreferenceScreen>

@@ -165,8 +165,9 @@ data class Sound(
                     ?: throw Exception("File provider returned null")
 
             /** Some paranoid extra measures */
-            val filename = tempSound.checksum ?: MD5.calculate(inputStream)
-            ?: throw Exception("MD5.calculate returned null")
+            val filename = tempSound.checksum
+                    ?: MD5.calculate(inputStream)
+                    ?: throw Exception("MD5.calculate returned null")
             val file = File(application.soundDir, filename)
             val outputStream = FileOutputStream(file)
             //val outputStream = application.applicationContext.openFileOutput(filename, Context.MODE_PRIVATE)

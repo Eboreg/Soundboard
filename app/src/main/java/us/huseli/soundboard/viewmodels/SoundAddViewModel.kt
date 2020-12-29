@@ -37,7 +37,7 @@ class SoundAddViewModel : BaseSoundEditViewModel() {
 
     private fun onDuplicateStrategyChange() {
         if (duplicateStrategy == DuplicateStrategy.SKIP) {
-            _sounds.removeAll { sound -> sound.uri in _duplicates.map { it.uri } }
+            _sounds.removeAll { sound -> sound.checksum in _duplicates.map { it.checksum } }
             if (_sounds.size == 1) setName(_sounds[0].name)
         }
     }
@@ -87,7 +87,6 @@ class SoundAddViewModel : BaseSoundEditViewModel() {
                         sound.order = duplicate.order
                         repository.delete(duplicate)
                     }
-                    //repository.insert(sound)
                     repository.insert(Sound.createFromTemporary(sound))
                 }
                 DuplicateStrategy.SKIP -> if (_duplicates.find { it.checksum == sound.checksum } == null) repository.insert(Sound.createFromTemporary(sound))

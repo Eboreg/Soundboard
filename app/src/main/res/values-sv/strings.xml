@@ -33,7 +33,7 @@
     <string name="not_initialized_yet">Inte färdiginläst än!</string>
     <string name="default_category">Standard</string>
     <string name="add_sounds">Lägg till ljud</string>
-    <string name="multiple_sounds_selected">(Flera ljud valda)</string>
+    <string name="multiple_sounds_selected">(%1$d ljud valda)</string>
     <string name="collapse_expand_category">Fäll ihop/upp kategori</string>
     <string name="playing">Spelar</string>
     <string name="load_failed">Kunde inte ladda</string>
@@ -62,4 +62,7 @@
     <string name="descending">Fallande</string>
     <string name="cannot_enable_filter">Kan inte aktivera filter medan omsortering är aktiv</string>
     <string name="undid">Ångrade!</string>
+    <string name="night_day_mode">Natt-/dag-läge</string>
+    <string name="language">Språk</string>
+    <string name="settings">Inställningar</string>
 </resources>

@@ -71,8 +71,9 @@ class MainActivity :
                         showEditSoundDialogFragment(sound)
                     }
                     soundViewModel.selectedSounds.size > 1 -> {
+                        val selectedSoundIds = soundViewModel.selectedSounds.mapNotNull { it.id }
                         soundEditMultipleViewModel.setup(
-                                soundViewModel.selectedSounds.mapNotNull { it.id }, getString(R.string.multiple_sounds_selected))
+                                selectedSoundIds, getString(R.string.multiple_sounds_selected, selectedSoundIds.size))
                         showDialogFragment(EditMultipleSoundDialogFragment())
                     }
                 }
@@ -127,7 +128,7 @@ class MainActivity :
                 }
             }
 
-            soundAddViewModel.setup(sounds, this.sounds, getString(R.string.multiple_sounds_selected))
+            soundAddViewModel.setup(sounds, this.sounds, getString(R.string.multiple_sounds_selected, sounds.size))
 
             when {
                 soundAddViewModel.hasDuplicates -> showDialogFragment(AddDuplicateSoundDialogFragment())
@@ -155,6 +156,8 @@ class MainActivity :
         val pInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
         val prefs = getPreferences(Context.MODE_PRIVATE)
         val lastVersion = prefs.getLong(PREF_LAST_VERSION, 0)
+
+        @Suppress("DEPRECATION")
         val currentVersion = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) pInfo.longVersionCode else pInfo.versionCode.toLong()
         if (lastVersion < currentVersion) onAppVersionUpgraded(lastVersion, currentVersion)
         prefs.edit {
@@ -199,13 +202,17 @@ class MainActivity :
     }
 
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+        /** Inflates sound action menu when sounds are selected */
         mode.menuInflater.inflate(R.menu.actionmode_menu, menu)
         return true
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        /** Inflates top menu */
         menuInflater.inflate(R.menu.appbar_menu, menu)
-        // This has to be done here, because the callback requires the menu to exist
+        // On wider screens, also inflate "bottom menu" here
+        if (resources.configuration.screenWidthDp >= 480) menuInflater.inflate(R.menu.bottom_menu, menu)
+        // This has to be done here, because the callbacks require the menu to exist
         appViewModel.repressMode.observe(this) { onRepressModeChange(it) }
         appViewModel.zoomInPossible.observe(this) { onZoomInPossibleChange(it) }
         soundViewModel.filterEnabled.observe(this) { onFilterEnabledChange(it) }
@@ -222,6 +229,7 @@ class MainActivity :
             R.id.action_add_sound -> startAddSoundActivity()
             // R.id.action_reinit_failed_sounds -> reinitFailedSounds()
             R.id.action_set_repress_mode -> appViewModel.cycleRepressMode()
+            // R.id.action_settings -> showDialogFragment(SettingsFragment())
             R.id.action_toggle_filter -> toggleFilterEnabled()
             R.id.action_toggle_reorder -> soundViewModel.toggleReorderEnabled()
             R.id.action_undo -> undo()
@@ -399,11 +407,11 @@ class MainActivity :
             showDialogFragment(AddCategoryDialogFragment.newInstance(DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG)), CATEGORY_ADD_DIALOG_TAG)
 
     private fun showDialogFragment(fragment: Fragment, tag: String?) {
-        supportFragmentManager.beginTransaction().apply {
-            add(fragment, tag)
-            show(fragment)
-            commit()
-        }
+        supportFragmentManager
+                .beginTransaction()
+                .add(fragment, tag)
+                .show(fragment)
+                .commit()
     }
 
     internal fun showDialogFragment(fragment: Fragment) = showDialogFragment(fragment, null)

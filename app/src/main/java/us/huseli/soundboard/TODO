@@ -1,4 +1,10 @@
-Refactor so add/edit multiple sounds name view show number of sounds selected
+Look at backup_descriptor.xml stuff
+
+
+Mash the different Add/Edit dialog fragments together if possible
+
+
+Settings fragment: set app language, night mode
 
 
 Show some progress indicator while loading sounds (not only on app init but also reorder etc)

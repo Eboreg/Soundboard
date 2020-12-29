@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu
+<menu xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
@@ -7,21 +7,31 @@
         android:icon="@drawable/ic_add_sound"
         android:title="@string/add_sound"
         android:orderInCategory="0"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction" />
 
     <item
         android:id="@+id/action_toggle_reorder"
         android:icon="@drawable/ic_reorder"
         android:title="@string/reorder"
         android:orderInCategory="1"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/action_toggle_filter"
         android:icon="@drawable/ic_filter"
         android:title="@string/toggle_filter"
         android:orderInCategory="2"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
+
+    <!--
+        <item
+            android:id="@+id/action_settings"
+            android:icon="@drawable/ic_settings"
+            android:title="@string/settings"
+            android:orderInCategory="3"
+            app:showAsAction="always" />
+    -->
 
     <!--
         <item

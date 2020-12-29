@@ -33,7 +33,7 @@
     <string name="not_initialized_yet">Not initialized yet!</string>
     <string name="default_category">Default</string>
     <string name="add_sounds">Add sounds</string>
-    <string name="multiple_sounds_selected">(Multiple sounds selected)</string>
+    <string name="multiple_sounds_selected" tools:ignore="PluralsCandidate">(%1$d sounds selected)</string>
     <string name="collapse_expand_category">Collapse/expand category</string>
     <string name="playing">Playing</string>
     <string name="load_failed">Load failed</string>
@@ -62,4 +62,7 @@
     <string name="descending">Descending</string>
     <string name="cannot_enable_filter">Cannot enable filter while reordering is enabled</string>
     <string name="undid">Undid!</string>
+    <string name="night_day_mode">Night/day mode</string>
+    <string name="language">Language</string>
+    <string name="settings">Settings</string>
 </resources>
