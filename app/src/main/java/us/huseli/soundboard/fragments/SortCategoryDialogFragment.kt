@@ -66,8 +66,6 @@ class SortCategoryDialogFragment : DialogFragment() {
     companion object {
         const val ARG_ID = "id"
         const val ARG_NAME = "name"
-        const val ARG_SORT_BY = "sortBy"
-        const val ARG_SORT_ORDER = "sortOrder"
 
         @JvmStatic
         fun newInstance(categoryId: Int, categoryName: String): SortCategoryDialogFragment {

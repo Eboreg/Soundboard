@@ -12,9 +12,6 @@ import us.huseli.soundboard.databinding.FragmentAddDuplicateSoundBinding
 import us.huseli.soundboard.viewmodels.SoundAddViewModel
 
 class AddDuplicateSoundDialogFragment : DialogFragment() {
-    private var onAddDuplicateListener: () -> Unit = {}
-    private var onSkipDuplicatesListener: () -> Unit = {}
-    private var onUpdateExistingListener: () -> Unit = {}
     private val viewModel by activityViewModels<SoundAddViewModel>()
 
     private fun onAddDuplicates() {
@@ -57,45 +54,11 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
         return MaterialAlertDialogBuilder(requireContext(), R.style.Soundboard_Theme_AlertDialog_DuplicateSound).run {
             setView(binding.root)
             setTitle(resources.getQuantityString(R.plurals.duplicate_sound_added, viewModel.duplicateCount))
-            setPositiveButton(resources.getQuantityString(R.plurals.add_duplicate, viewModel.duplicateCount)) { _, _ ->
-                onAddDuplicates()
-                onAddDuplicateListener()
-            }
-            setNeutralButton(R.string.update_existing) { _, _ ->
-                onUpdateExisting()
-                onUpdateExistingListener()
-            }
-            // if (arguments?.getBoolean(ARG_SHOW_SKIP) == true)
+            setPositiveButton(resources.getQuantityString(R.plurals.add_duplicate, viewModel.duplicateCount)) { _, _ -> onAddDuplicates() }
+            setNeutralButton(R.string.update_existing) { _, _ -> onUpdateExisting() }
             if (viewModel.sounds.size > 1)
-                setNegativeButton(R.string.skip) { _, _ ->
-                    onSkipDuplicates()
-                    onSkipDuplicatesListener()
-                }
+                setNegativeButton(R.string.skip) { _, _ -> onSkipDuplicates() }
             create()
-        }
-    }
-
-    fun setOnAddDuplicateListener(listener: () -> Unit) {
-        onAddDuplicateListener = listener
-    }
-
-    fun setOnSkipDuplicatesListener(listener: () -> Unit) {
-        onSkipDuplicatesListener = listener
-    }
-
-    fun setOnUpdateExistingListener(listener: () -> Unit) {
-        onUpdateExistingListener = listener
-    }
-
-
-    companion object {
-        const val ARG_SHOW_SKIP = "showSkipButton"
-
-        @JvmStatic
-        fun newInstance(showSkipButton: Boolean) = AddDuplicateSoundDialogFragment().apply {
-            arguments = Bundle().apply {
-                putBoolean(ARG_SHOW_SKIP, showSkipButton)
-            }
         }
     }
 }
