@@ -10,6 +10,7 @@ import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import us.huseli.soundboard.adapters.CategoryAdapter
 import us.huseli.soundboard.databinding.FragmentCategoryListBinding
 import us.huseli.soundboard.helpers.SoundScroller
@@ -86,9 +87,14 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
                 binding.categoryList.apply {
                     categoryAdapter.itemTouchHelper.attachToRecyclerView(this)
                     adapter = categoryAdapter
+                    layoutManager = LayoutManager(requireContext()).apply {
+                        isItemPrefetchEnabled = true
+                    }
+/*
                     layoutManager = LinearLayoutManager(requireContext()).apply {
                         isItemPrefetchEnabled = true
                     }
+*/
                     setOnTouchListener(this@CategoryListFragment)
                 }
 
@@ -116,6 +122,16 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
                 }
             }
             return super.onScale(detector)
+        }
+    }
+
+    inner class LayoutManager(context: Context) : LinearLayoutManager(context) {
+        override fun onLayoutChildren(recycler: RecyclerView.Recycler?, state: RecyclerView.State?) {
+            super.onLayoutChildren(recycler, state)
+            val itemsShown = findLastVisibleItemPosition() - findFirstVisibleItemPosition() + 1
+            state?.itemCount?.let { itemCount ->
+                binding?.progressBar?.visibility = if (itemCount == 0 || itemCount == itemsShown) View.GONE else View.VISIBLE
+            }
         }
     }
 

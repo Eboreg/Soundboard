@@ -1,6 +1,7 @@
 package us.huseli.soundboard.adapters
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,9 +11,7 @@ import android.view.ViewGroup
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.*
 import us.huseli.soundboard.R
 import us.huseli.soundboard.adapters.common.LifecycleAdapter
 import us.huseli.soundboard.adapters.common.LifecycleViewHolder
@@ -126,7 +125,12 @@ class CategoryAdapter(
 
             binding.soundList.apply {
                 this.adapter = soundAdapter
+/*
                 layoutManager = GridLayoutManager(context, initialSpanCount).also { lm ->
+                    appViewModel.spanCount.observe(this@CategoryViewHolder) { lm.spanCount = it }
+                }
+*/
+                layoutManager = LayoutManager(context, initialSpanCount).also { lm ->
                     appViewModel.spanCount.observe(this@CategoryViewHolder) { lm.spanCount = it }
                 }
                 // setRecycledViewPool(soundViewPool)
@@ -243,7 +247,19 @@ class CategoryAdapter(
             val hashCode = Integer.toHexString(System.identityHashCode(this))
             return "CategoryAdapter.ViewHolder $hashCode <adapterPosition=$adapterPosition, category=$category>"
         }
+
+
+        inner class LayoutManager(context: Context, initialSpanCount: Int) : GridLayoutManager(context, initialSpanCount) {
+            override fun onLayoutChildren(recycler: RecyclerView.Recycler?, state: RecyclerView.State?) {
+                super.onLayoutChildren(recycler, state)
+                val itemsShown = findLastVisibleItemPosition() - findFirstVisibleItemPosition() + 1
+                state?.itemCount?.let { itemCount ->
+                    binding.progressBar.visibility = if (itemCount == 0 || itemCount == itemsShown) View.GONE else View.VISIBLE
+                }
+            }
+        }
     }
+
 
     companion object {
         const val LOG_TAG = "CategoryAdapter"

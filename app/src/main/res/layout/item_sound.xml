@@ -67,21 +67,19 @@
                     tools:text="Sound name"
                     tools:textColor="@color/white" />
 
-                <ProgressBar
+                <ImageView
                     android:id="@+id/sound_loading"
-                    style="@android:style/Widget.ProgressBar.Large"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_margin="@dimen/margin_normal"
-                    android:indeterminate="true"
-                    android:indeterminateBehavior="cycle"
-                    android:indeterminateOnly="true"
                     android:visibility="invisible"
+                    android:alpha="0.5"
+                    app:drawableColor="@{categoryViewModel.textColor}"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    tools:drawableColor="@color/white" />
+                    app:srcCompat="@drawable/ic_hourglass"
+                    android:contentDescription="@string/loading" />
 
                 <ImageView
                     android:id="@+id/play_icon"

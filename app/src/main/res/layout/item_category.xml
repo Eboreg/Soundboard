@@ -129,6 +129,14 @@
             tools:listitem="@layout/item_sound"
             tools:spanCount="4" />
 
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:indeterminate="true"
+            android:indeterminateOnly="true" />
+
         <TextView
             android:id="@+id/emptyCategoryDropContainer"
             android:layout_width="match_parent"
@@ -137,8 +145,7 @@
             android:padding="@dimen/margin_small"
             android:text="@string/add_sound_here"
             android:textAlignment="center"
-            android:visibility="gone"
-            tools:visibility="visible" />
+            android:visibility="gone" />
 
     </LinearLayout>
 </layout>
