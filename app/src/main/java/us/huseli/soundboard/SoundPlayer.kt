@@ -1,35 +1,35 @@
 package us.huseli.soundboard
 
-import android.media.MediaPlayer
-import android.os.Build
 import android.util.Log
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import us.huseli.soundboard.data.Sound
-import kotlin.math.pow
+import us.huseli.soundboard.helpers.AudioFile
 
-class SoundPlayer(private val sound: Sound) :
-        MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
-    private var mediaPlayer: MediaPlayer? = null
-    private val tempMediaPlayers = mutableListOf<MediaPlayer>()
+class SoundPlayer(private val sound: Sound, val path: String) {
+    private val audioFile: AudioFile?
+    private val tempAudioFiles = mutableListOf<AudioFile>()
 
-    private var onStateChangeListener: OnStateChangeListener? = null
-    private val scope = CoroutineScope(Job() + Dispatchers.IO)
-    private var _state = State.INITIALIZING
-    private var _duration: Int = -1  // In milliseconds
+    private var listener: Listener? = null
+    private val scope = CoroutineScope(Job() + Dispatchers.Default)
+
+    private var _duration: Int = -1
     private var _errorMessage = ""
-    private var _previousVolume: Int? = null
+    private var _state = State.INITIALIZING
+        set(value) {
+            field = value
+            Log.d(LOG_TAG, "state change: this=$this, uri=$sound, onStateChangeListener=$listener, state=$value")
+            listener?.onSoundPlayerStateChange(this, state)
+        }
 
     var repressMode = RepressMode.STOP
     var volume: Int? = null
         set(value) {
-            if (value != null && value != _previousVolume) {
+            if (value != null) {
                 field = value
-                mediaPlayer?.let {
-                    _previousVolume = value
-                    // MediaPlayer works with log values for some reason
-                    val mpVolume = (100.0.pow((if (value <= 100) value else 100) / 100.0) / 100).toFloat()
-                    it.setVolume(mpVolume, mpVolume)
-                }
+                audioFile?.setVolume(value)
             }
         }
 
@@ -41,32 +41,53 @@ class SoundPlayer(private val sound: Sound) :
         get() = _state
 
     init {
-        scope.launch {
-            Log.i(LOG_TAG, "init: uri=$sound")
-            mediaPlayer = MediaPlayer().also { mediaPlayer ->
-                mediaPlayer.setOnPreparedListener(this@SoundPlayer)
-                mediaPlayer.setOnErrorListener(this@SoundPlayer)
-                // Because mediaPlayer was null at object creation:
-                volume = sound.volume
-                try {
-                    @Suppress("BlockingMethodInNonBlockingContext")
-                    mediaPlayer.setDataSource(sound.uri.path)
-                    //mediaPlayer.setDataSource(context!!, uri)
-                    mediaPlayer.prepareAsync()
-                } catch (e: Exception) {
-                    _errorMessage = if (e.cause != null) e.cause.toString() else e.toString()
-                    changeState(State.ERROR)
-                }
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    mediaPlayer.setOnMediaTimeDiscontinuityListener { _, mts ->
-                        if (mts.mediaClockRate > 0.0) changeState(State.PLAYING)
-                    }
-                }
+        Log.i(LOG_TAG, "init: uri=$sound, path=$path")
+        audioFile = try {
+            AudioFile(path, sound.name) {
+                _duration = it.duration.toInt()
+                _state = State.READY
+            }.setOnReadyListener {
+                if (!isPlaying()) _state = State.READY
+            }.setOnStopListener {
+                if (!isPlaying()) _state = State.STOPPED
+            }.setOnErrorListener { _, errorType ->
+                _state = State.ERROR
+                _errorMessage = errorMessageFromType(errorType)
+            }.setOnWarningListener { _, errorType ->
+                listener?.onSoundPlayerWarning(errorMessageFromType(errorType))
+            }.setOnPlayListener {
+                _state = State.PLAYING
             }
+        } catch (e: AudioFile.AudioFileException) {
+            _errorMessage = errorMessageFromType(e.errorType)
+            _state = State.ERROR
+            null
+        } catch (e: Exception) {
+            _errorMessage = "Error initializing ${sound.name}"
+            _state = State.ERROR
+            null
+        }
+        volume = sound.volume
+    }
+
+    private fun errorMessageFromType(errorType: AudioFile.Error): String {
+        return when (errorType) {
+            AudioFile.Error.BUILD_AUDIO_TRACK -> "Error building audio track"
+            AudioFile.Error.CODEC -> "Codec error"
+            AudioFile.Error.CODEC_GET_WRITE_OUTPUT_BUFFER -> "Error getting/writing codec output buffer"
+            AudioFile.Error.CODEC_START -> "Error starting codec"
+            AudioFile.Error.CODEC_WRONG_STATE -> "Wrong codec state"
+            AudioFile.Error.GET_MEDIA_TYPE -> "Could not get media type"
+            AudioFile.Error.GET_MIME_TYPE -> "Could not get MIME type"
+            AudioFile.Error.NO_SUITABLE_CODEC -> "Could not find a suitable codec"
+            AudioFile.Error.OUTPUT -> "Error outputting audio"
+            AudioFile.Error.OUTPUT_BAD_VALUE -> "Audio output: bad value"
+            AudioFile.Error.OUTPUT_DEAD_OBJECT -> "Audio output: dead object"
+            AudioFile.Error.OUTPUT_NOT_PROPERLY_INITIALIZED -> "Audio output: not properly initialized"
         }
     }
 
+/*
     override fun onPrepared(mp: MediaPlayer) {
         _duration = mp.duration
         mp.setOnCompletionListener {
@@ -76,7 +97,9 @@ class SoundPlayer(private val sound: Sound) :
         }
         changeState(State.READY)
     }
+*/
 
+/*
     override fun onError(mp: MediaPlayer, what: Int, extra: Int): Boolean {
         _errorMessage = when (extra) {
             MediaPlayer.MEDIA_ERROR_IO -> "IO error"
@@ -88,81 +111,71 @@ class SoundPlayer(private val sound: Sound) :
         changeState(State.ERROR)
         return true
     }
+*/
 
-    private fun isPlaying() = mediaPlayer?.isPlaying == true || tempMediaPlayers.any { it.isPlaying }
+    private fun isPlaying(): Boolean =
+            audioFile?.isPlaying == true || tempAudioFiles.any { it.isPlaying }
 
-    private fun changeState(state: State) {
-        Log.d(LOG_TAG, "changeState: this=$this, uri=$sound, onStateChangeListeners=$onStateChangeListener, state=$state")
-        _state = state
-        onStateChangeListener?.onSoundPlayerStateChange(this, state)
-    }
+    // private fun isPlaying() = mediaPlayer?.isPlaying == true || tempMediaPlayers.any { it.isPlaying }
 
     fun togglePlay() {
-        mediaPlayer?.also { mediaPlayer ->
-            if (_state == State.PLAYING) {
-                when (repressMode) {
-                    RepressMode.STOP -> {
-                        mediaPlayer.pause()
-                        stopAndClearTempPlayers()
-                        changeState(State.STOPPED)
-                        mediaPlayer.seekTo(0)
-                    }
-                    RepressMode.RESTART -> {
-                        mediaPlayer.seekTo(0)
-                        changeState(State.PLAYING)
-                    }
-                    RepressMode.OVERLAP -> {
-                        // TODO: adjust volumes?
-                        createAndStartTempPlayer()
-                    }
+        if (_state == State.PLAYING) {
+            when (repressMode) {
+                RepressMode.STOP -> {
+                    _state = State.STOPPED
+                    audioFile?.stop()
+                    stopAndClearTempPlayers()
+                    //mediaPlayer.seekTo(0)
                 }
-            } else {
-                mediaPlayer.start()
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                    changeState(State.PLAYING)
+                RepressMode.RESTART -> {
+                    audioFile?.restart()
+                    // _state = State.PLAYING
+                }
+                RepressMode.OVERLAP -> {
+                    // TODO: adjust volumes?
+                    createAndStartTempPlayer()
                 }
             }
+        } else {
+            audioFile?.play()
+            // mediaPlayer.start()
+            // _state = State.PLAYING
         }
     }
 
-    private fun createAndStartTempPlayer(): MediaPlayer {
-        return MediaPlayer().apply {
-            setDataSource(sound.uri.path)
-            prepare()
-            start()
-            tempMediaPlayers.add(this)
-            setOnCompletionListener {
-                release()
-                tempMediaPlayers.remove(this)
-                if (!this@SoundPlayer.isPlaying()) changeState(State.READY)
+    private fun createAndStartTempPlayer() {
+        AudioFile(path, sound.name).let {
+            it.play()
+            tempAudioFiles.add(it)
+            it.setOnPlayListener {
+                _state = State.PLAYING
             }
-            changeState(State.PLAYING)
+            it.setOnStopListener { audioFile ->
+                audioFile.release()
+                tempAudioFiles.remove(audioFile)
+                if (!isPlaying()) _state = State.READY
+            }
         }
     }
 
     private fun stopAndClearTempPlayers() {
-        tempMediaPlayers.forEach {
+        tempAudioFiles.forEach {
             it.stop()
             it.release()
         }
-        tempMediaPlayers.clear()
+        tempAudioFiles.clear()
     }
 
-    fun setOnStateChangeListener(listener: OnStateChangeListener) {
-        onStateChangeListener = listener
-        Log.i(LOG_TAG, "addOnStateChangeListener: this=$this, uri=$sound, listener=$listener")
-    }
-
-    fun removeOnStateChangeListener() {
-        onStateChangeListener = null
-        Log.i(LOG_TAG, "removeOnStateChangeListener: this=$this, uri=$sound")
+    fun setListener(listener: Listener?) {
+        this.listener = listener
+        Log.i(LOG_TAG, "setListener: this=$this, uri=$sound, listener=$listener")
     }
 
     fun release() {
         scope.cancel()
         stopAndClearTempPlayers()
-        mediaPlayer?.release()
-        onStateChangeListener = null
+        audioFile?.release()
+        listener = null
     }
 
     override fun equals(other: Any?): Boolean {
@@ -176,11 +189,14 @@ class SoundPlayer(private val sound: Sound) :
     override fun hashCode() = sound.id.hashCode()
 
 
-    interface OnStateChangeListener {
+    interface Listener {
         fun onSoundPlayerStateChange(player: SoundPlayer, state: State): Any?
+        fun onSoundPlayerWarning(message: String): Any?
     }
 
-    enum class State { INITIALIZING, READY, STOPPED, PLAYING, ERROR }
+    // Keeping STOPPED just because there may be a tiny time gap between a sound stopping and it
+    // becoming READY again
+    enum class State { INITIALIZING, READY, STOPPED, PLAYING, ERROR, }
 
     enum class RepressMode { STOP, RESTART, OVERLAP }
 

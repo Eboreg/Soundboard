@@ -1,3 +1,69 @@
+On "instant replay" stop mode, make sure everything is completely initialized before running play() again
+
+
+Allow volume up to 120, mark this with red in sound card's progressbar
+
+
+Candidates to run on background thread
+High gain:
+* AudioFile.writeAudioTrack  -- done, but only for encoded audio
+* CodecCallback.putOutputBuffer (ByteBuffer.put() eats surprisingly much CPU)  -- done
+Lesser gain:
+* SoundViewHolder.setDuration
+* CodecCallback.on*
+* SoundPlayer.togglePlay
+
+
+Count sound playback as started on first instance of onInputBufferAvailable()?  -- testing this
+
+
+Q: Some sounds (especially short ones) don't play? writeAudioTrack() gets called once but then nothing.
+A: "If you don't call write() first, or if you call write() but with an insufficient amount of data,
+then the track will be in underrun state at play(). In this case, playback will not actually start
+playing until the data path is filled to a device-specific minimum level."
+-- https://developer.android.com/reference/kotlin/android/media/AudioTrack#play
+
+Maybe need to send it at least BUFFER_SIZE bytes? Trying padding last buffer with zeros.
+Padding seems to work! \o/
+
+Q: After playing some sounds it gets all choppy, is something hogging CPU/memory?
+A: It was softStop eternally waiting for playback to start, which it didn't because of above.
+
+
+Error on manual stop:
+2021-01-15 04:12:50.886 10813-10813 E/MediaCodec: getBufferAndFormat - invalid operation (the index 1 is not owned by client)
+2021-01-15 04:12:50.896 10813-10813 E/AudioFile: CODEC: Error getting/writing output buffer (java.lang.IllegalStateException)
+    java.lang.IllegalStateException
+        at android.media.MediaCodec.getBuffer(Native Method)
+        at android.media.MediaCodec.getOutputBuffer(MediaCodec.java:3270)
+        at us.huseli.soundboard.helpers.AudioFile$CodecCallback.onOutputBufferAvailable(AudioFile.kt:431)
+        at android.media.MediaCodec$EventHandler.handleCallback(MediaCodec.java:1749)
+        at android.media.MediaCodec$EventHandler.handleMessage(MediaCodec.java:1696)
+        at android.os.Handler.dispatchMessage(Handler.java:107)
+        at android.os.Looper.loop(Looper.java:237)
+        at android.app.ActivityThread.main(ActivityThread.java:8167)
+        at java.lang.reflect.Method.invoke(Native Method)
+        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:496)
+        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1100)
+
+
+Why are there underruns? Seem to correlate to this:
+2021-01-14 03:54:25.792 13390-28953 I/ACodec: [OMX.SEC.flac.dec] ExecutingState flushing now (codec owns 0/5 input, 2/9 output).
+(Number of overruns after one of this gets incremented by number of non-codec-owned outputs)
+UPDATE: No, they don't seem to correlate.
+
+
+AudioFile:
+We need to somehow:
+1. Know when the audio priming is ready (all priming data has been read from codec AND fed into audioTrack)
+2. Then, and at no time before, run codec.flush()
+
+On user initiated stop: do forceStop() which cuts playback and cancels codec etc
+After playback has run its length and has not been stopped by user:
+1. Somehow check if CodecCallback is still doing decoding/playback queuing
+2. When it's not: do the stop stuff
+
+
 Look at backup_descriptor.xml stuff
 
 

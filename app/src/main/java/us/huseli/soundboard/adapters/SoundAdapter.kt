@@ -64,7 +64,7 @@ class SoundAdapter(
 
     override fun onBindViewHolder(holder: SoundViewHolder, position: Int) {
         val item = getItem(position)
-        Log.d(LOG_TAG, "onBindViewHolder: item=$item, holder=$holder, position=$position, adapter=$this")
+        Log.d(LOG_TAG, "onBindViewHolder: item=$item, holder=$holder, position=$position")
         categoryViewModel?.let { holder.bind(item, it) }
                 ?: run { Log.e(LOG_TAG, "onBindViewHolder: categoryViewModel is null") }
     }
@@ -72,7 +72,7 @@ class SoundAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SoundViewHolder {
         val binding = ItemSoundBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val holder = SoundViewHolder(binding, parent.context, this)
-        Log.d(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
+        // Log.d(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
         binding.lifecycleOwner = holder
 
         return holder
@@ -199,7 +199,7 @@ class SoundAdapter(
             View.OnClickListener,
             View.OnLongClickListener,
             View.OnTouchListener,
-            SoundPlayer.OnStateChangeListener,
+            SoundPlayer.Listener,
             SoundViewModel.OnSelectAllListener,
             LifecycleViewHolder(binding.root) {
         @Suppress("PrivatePropertyName")
@@ -248,7 +248,7 @@ class SoundAdapter(
 
             playerViewModel?.player?.observe(this) { newPlayer ->
                 if (newPlayer != null && newPlayer != player) {
-                    newPlayer.setOnStateChangeListener(this)
+                    newPlayer.setListener(this)
                     onSoundPlayerStateChange(newPlayer, newPlayer.state)
                     setDuration(newPlayer.duration)
                     appViewModel.repressMode.observe(this) { newPlayer.repressMode = it }
@@ -361,6 +361,8 @@ class SoundAdapter(
             }
         }
 
+        override fun onSoundPlayerWarning(message: String) = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+
         override fun onSoundPlayerStateChange(player: SoundPlayer, state: SoundPlayer.State) {
             /**
              * This will likely be called from a non-UI thread, hence View.post()
@@ -371,13 +373,16 @@ class SoundAdapter(
                     playerTimer?.start()
                     binding.playIcon.visibility = View.VISIBLE
                 } else binding.playIcon.visibility = View.INVISIBLE
-                if (state == SoundPlayer.State.STOPPED) {
+                if (state == SoundPlayer.State.STOPPED || state == SoundPlayer.State.READY) {
                     playerTimer?.apply {
                         cancel()
                         onFinish()
                     }
                 }
                 binding.failIcon.visibility = if (state == SoundPlayer.State.ERROR) View.VISIBLE else View.INVISIBLE
+
+                // At the moment a sound is only INITIALIZING just when it's created, but maybe in
+                // the future there will be some re-initialization
                 if (state == SoundPlayer.State.INITIALIZING) {
                     binding.soundLoading.visibility = View.VISIBLE
                     binding.soundName.visibility = View.INVISIBLE
@@ -421,7 +426,7 @@ class SoundAdapter(
         fun release() {
             soundViewModel.removeOnSelectAllListener(this)
             playerViewModel?.player?.removeObservers(this)
-            player?.removeOnStateChangeListener()
+            player?.setListener(null)
         }
     }
 }

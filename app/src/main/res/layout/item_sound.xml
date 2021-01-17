@@ -60,10 +60,12 @@
                     android:text="@{sound.name}"
                     android:textAlignment="center"
                     android:textColor="@{categoryViewModel.textColor}"
+                    android:visibility="invisible"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
+                    tools:visibility="visible"
                     tools:text="Sound name"
                     tools:textColor="@color/white" />
 
@@ -71,7 +73,6 @@
                     android:id="@+id/sound_loading"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:visibility="invisible"
                     android:alpha="0.5"
                     app:drawableColor="@{categoryViewModel.textColor}"
                     app:layout_constraintBottom_toTopOf="@+id/volume_bar"
@@ -79,6 +80,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:srcCompat="@drawable/ic_hourglass"
+                    tools:visibility="invisible"
                     android:contentDescription="@string/loading" />
 
                 <ImageView

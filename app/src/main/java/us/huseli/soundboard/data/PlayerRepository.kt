@@ -1,16 +1,19 @@
 package us.huseli.soundboard.data
 
 import androidx.lifecycle.liveData
+import kotlinx.coroutines.Dispatchers
 import us.huseli.soundboard.SoundPlayer
 
 class PlayerRepository {
     private val _players = HashMap<Sound, SoundPlayer>()
 
-    private fun addOrUpdate(sound: Sound): SoundPlayer {
-        return _players[sound] ?: SoundPlayer(sound).also { _players[sound] = it }
+    private fun addOrUpdate(sound: Sound): SoundPlayer? {
+        return sound.uri.path?.let { path ->
+            _players[sound] ?: SoundPlayer(sound, path).also { _players[sound] = it }
+        }
     }
 
-    fun get(sound: Sound?) = liveData {
+    fun get(sound: Sound?) = liveData(Dispatchers.Default) {
         emit(sound?.let { addOrUpdate(sound) })
     }
 }

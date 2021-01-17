@@ -42,7 +42,7 @@ class CategoryAdapter(
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         val item = getItem(position)
-        Log.i(LOG_TAG, "onBindViewHolder: item=$item, holder=$holder, position=$position, adapter=$this")
+        Log.d(LOG_TAG, "onBindViewHolder: item=$item, holder=$holder, position=$position, adapter=$this")
         holder.binding.categoryMoveButton.setOnTouchListener { _, motionEvent ->
             if (motionEvent.action == MotionEvent.ACTION_DOWN) itemTouchHelper.startDrag(holder)
             return@setOnTouchListener false
@@ -53,7 +53,7 @@ class CategoryAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
         val binding = ItemCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val holder = CategoryViewHolder(binding, this)
-        Log.d(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
+        // Log.d(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
         binding.lifecycleOwner = holder
 
         return holder
@@ -173,7 +173,7 @@ class CategoryAdapter(
 
             soundViewModel.sounds.observe(this) { allSounds ->
                 val sounds = allSounds.filter { sound -> sound.categoryId == category.id }
-                Log.d(LOG_TAG, "ViewHolder sound list observer: viewHolder=$this, category=$category, sounds=$sounds")
+                // Log.d(LOG_TAG, "ViewHolder sound list observer: viewHolder=$this, category=$category, sounds=$sounds")
 
                 // TODO: Remove test call + method when not needed
                 // submitListWithInvalidSound(sounds)

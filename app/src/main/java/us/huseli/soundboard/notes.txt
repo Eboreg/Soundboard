@@ -1,3 +1,197 @@
+input index=1, sampleSize=8xxx
+input index=2, sampleSize=8755
+input index=3, sampleSize=9592
+input index=4, sampleSize=9125
+input index=0, sampleSize=7467
+input index=1, sampleSize=6082
+input index=2, sampleSize=-1
+output index=1, presentationTimeUs = 92879
+                size = 16384
+output index=0, presentationTimeUs = 0
+                size = 16384
+output index=2, presentationTimeUs = 185759
+                size = 16384
+output index=3, presentationTimeUs = 278639
+                size = 16384
+
+
+
+
+2021-01-04 21:03:36.389 5759-5759 D/AudioFile: codec.getInputBuffer(0): enqueued name=Hallon Hallon!!, sampleTime=464399, sampleSize=9028, extractMode=REGULAR
+2021-01-04 21:03:36.518 5759-5759 D/AudioFile: codec.getOutputBuffer(0): wrote name=Hallon Hallon!!, presentationTimeUs=464399, size=16384, extractMode=REGULAR
+2021-01-04 21:03:36.391 5759-5759 D/AudioFile: codec.getInputBuffer(1): enqueued name=Hallon Hallon!!, sampleTime=557278, sampleSize=9009, extractMode=REGULAR
+2021-01-04 21:03:36.583 5759-5759 D/AudioFile: codec.getOutputBuffer(1): wrote name=Hallon Hallon!!, presentationTimeUs=557278, size=16384, extractMode=REGULAR
+2021-01-04 21:03:36.393 5759-5759 D/AudioFile: codec.getInputBuffer(2): enqueued name=Hallon Hallon!!, sampleTime=650158, sampleSize=8752, extractMode=REGULAR
+2021-01-04 21:03:36.663 5759-5759 D/AudioFile: codec.getOutputBuffer(2): wrote name=Hallon Hallon!!, presentationTimeUs=650158, size=16384, extractMode=REGULAR
+2021-01-04 21:03:36.394 5759-5759 D/AudioFile: codec.getInputBuffer(3): enqueued name=Hallon Hallon!!, sampleTime=743038, sampleSize=8306, extractMode=REGULAR
+2021-01-04 21:03:36.823 5759-5759 D/AudioFile: codec.getOutputBuffer(3): wrote name=Hallon Hallon!!, presentationTimeUs=743038, size=16384, extractMode=REGULAR
+2021-01-04 21:03:36.398 5759-5759 D/AudioFile: codec.getInputBuffer(4): enqueued name=Hallon Hallon!!, sampleTime=835918, sampleSize=8055, extractMode=REGULAR
+2021-01-04 21:03:36.904 5759-5759 D/AudioFile: codec.getOutputBuffer(4): wrote name=Hallon Hallon!!, presentationTimeUs=835918, size=16384, extractMode=REGULAR
+2021-01-04 21:03:36.399 5759-5759 D/AudioFile: codec.getInputBuffer(0): enqueued name=Hallon Hallon!!, sampleTime=928798, sampleSize=7784, extractMode=REGULAR
+2021-01-04 21:03:36.985 5759-5759 D/AudioFile: codec.getOutputBuffer(5): wrote name=Hallon Hallon!!, presentationTimeUs=928798, size=16384, extractMode=REGULAR
+
+2021-01-04 21:03:36.518 5759-5759 D/AudioFile: codec.getOutputBuffer(0) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:36.536 5759-5759 D/AudioFile: codec.getInputBuffer(1): enqueued name=Hallon Hallon!!, sampleTime=1021678, sampleSize=7426, extractMode=REGULAR
+2021-01-04 21:03:37.104 5759-5759 D/AudioFile: codec.getOutputBuffer(6): wrote name=Hallon Hallon!!, presentationTimeUs=1021678, size=16384, extractMode=REGULAR
+2021-01-04 21:03:36.583 5759-5759 D/AudioFile: codec.getOutputBuffer(1) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:36.584 5759-5759 D/AudioFile: codec.getInputBuffer(2): enqueued name=Hallon Hallon!!, sampleTime=1114557, sampleSize=6999, extractMode=REGULAR
+2021-01-04 21:03:37.183 5759-5759 D/AudioFile: codec.getOutputBuffer(7): wrote name=Hallon Hallon!!, presentationTimeUs=1114557, size=16384, extractMode=REGULAR
+2021-01-04 21:03:36.663 5759-5759 D/AudioFile: codec.getOutputBuffer(2) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:36.664 5759-5759 D/AudioFile: codec.getInputBuffer(3): enqueued name=Hallon Hallon!!, sampleTime=1207437, sampleSize=6346, extractMode=REGULAR
+2021-01-04 21:03:37.263 5759-5759 D/AudioFile: codec.getOutputBuffer(8): wrote name=Hallon Hallon!!, presentationTimeUs=1207437, size=16384, extractMode=REGULAR
+2021-01-04 21:03:36.823 5759-5759 D/AudioFile: codec.getOutputBuffer(3) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:36.824 5759-5759 D/AudioFile: codec.getInputBuffer(4): enqueued name=Hallon Hallon!!, sampleTime=1300317, sampleSize=5424, extractMode=REGULAR
+2021-01-04 21:03:37.343 5759-5759 D/AudioFile: codec.getOutputBuffer(0): wrote name=Hallon Hallon!!, presentationTimeUs=1300317, size=16384, extractMode=REGULAR
+2021-01-04 21:03:36.904 5759-5759 D/AudioFile: codec.getOutputBuffer(4) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:36.906 5759-5759 D/AudioFile: codec.getInputBuffer(0): enqueued name=Hallon Hallon!!, sampleTime=1393197, sampleSize=4803, extractMode=REGULAR
+2021-01-04 21:03:37.423 5759-5759 D/AudioFile: codec.getOutputBuffer(1): wrote name=Hallon Hallon!!, presentationTimeUs=1393197, size=16384, extractMode=REGULAR
+2021-01-04 21:03:36.986 5759-5759 D/AudioFile: codec.getOutputBuffer(5) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:37.027 5759-5759 D/AudioFile: codec.getInputBuffer(1): enqueued name=Hallon Hallon!!, sampleTime=1486077, sampleSize=4510, extractMode=REGULAR
+2021-01-04 21:03:37.503 5759-5759 D/AudioFile: codec.getOutputBuffer(2): wrote name=Hallon Hallon!!, presentationTimeUs=1486077, size=16384, extractMode=REGULAR
+2021-01-04 21:03:37.104 5759-5759 D/AudioFile: codec.getOutputBuffer(6) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:37.105 5759-5759 D/AudioFile: codec.getInputBuffer(2): enqueued name=Hallon Hallon!!, sampleTime=1578956, sampleSize=4351, extractMode=REGULAR
+2021-01-04 21:03:37.663 5759-5759 D/AudioFile: codec.getOutputBuffer(3): wrote name=Hallon Hallon!!, presentationTimeUs=1578956, size=16384, extractMode=REGULAR
+2021-01-04 21:03:37.184 5759-5759 D/AudioFile: codec.getOutputBuffer(7) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:37.187 5759-5759 D/AudioFile: codec.getInputBuffer(3): enqueued name=Hallon Hallon!!, sampleTime=1671836, sampleSize=4203, extractMode=REGULAR
+2021-01-04 21:03:37.743 5759-5759 D/AudioFile: codec.getOutputBuffer(4): wrote name=Hallon Hallon!!, presentationTimeUs=1671836, size=16384, extractMode=REGULAR
+2021-01-04 21:03:37.263 5759-5759 D/AudioFile: codec.getOutputBuffer(8) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:37.264 5759-5759 D/AudioFile: codec.getInputBuffer(4): enqueued name=Hallon Hallon!!, sampleTime=1764716, sampleSize=4037, extractMode=REGULAR
+2021-01-04 21:03:37.823 5759-5759 D/AudioFile: codec.getOutputBuffer(5): wrote name=Hallon Hallon!!, presentationTimeUs=1764716, size=16384, extractMode=REGULAR
+2021-01-04 21:03:37.343 5759-5759 D/AudioFile: codec.getOutputBuffer(0) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:37.344 5759-5759 D/AudioFile: codec.getInputBuffer(0): enqueued name=Hallon Hallon!!, sampleTime=1857596, sampleSize=3926, extractMode=REGULAR
+2021-01-04 21:03:37.903 5759-5759 D/AudioFile: codec.getOutputBuffer(6): wrote name=Hallon Hallon!!, presentationTimeUs=1857596, size=16384, extractMode=REGULAR
+2021-01-04 21:03:37.424 5759-5759 D/AudioFile: codec.getOutputBuffer(1) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:37.427 5759-5759 D/AudioFile: codec.getInputBuffer(1): enqueued name=Hallon Hallon!!, sampleTime=1950476, sampleSize=3821, extractMode=REGULAR
+2021-01-04 21:03:37.983 5759-5759 D/AudioFile: codec.getOutputBuffer(7): wrote name=Hallon Hallon!!, presentationTimeUs=1950476, size=16384, extractMode=REGULAR
+2021-01-04 21:03:37.503 5759-5759 D/AudioFile: codec.getOutputBuffer(2) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:37.504 5759-5759 D/AudioFile: codec.getInputBuffer(2): enqueued name=Hallon Hallon!!, sampleTime=2043356, sampleSize=3726, extractMode=REGULAR
+2021-01-04 21:03:38.063 5759-5759 D/AudioFile: codec.getOutputBuffer(8): wrote name=Hallon Hallon!!, presentationTimeUs=2043356, size=16384, extractMode=REGULAR
+2021-01-04 21:03:37.664 5759-5759 D/AudioFile: codec.getOutputBuffer(3) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:37.665 5759-5759 D/AudioFile: codec.getInputBuffer(3): enqueued name=Hallon Hallon!!, sampleTime=2136235, sampleSize=2882, extractMode=REGULAR
+2021-01-04 21:03:38.143 5759-5759 D/AudioFile: codec.getOutputBuffer(0): wrote name=Hallon Hallon!!, presentationTimeUs=2136235, size=13060, extractMode=REGULAR
+
+2021-01-04 21:03:37.744 5759-5759 D/AudioFile: codec.getOutputBuffer(4) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:37.746 5759-5759 D/AudioFile: codec.getInputBuffer(4): enqueued name=Hallon Hallon!!, sampleTime=-1, sampleSize=-1, extractMode=REGULAR
+2021-01-04 21:03:37.823 5759-5759 D/AudioFile: codec.getOutputBuffer(5) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:37.824 5759-5759 D/AudioFile: codec.getInputBuffer(0): enqueued name=Hallon Hallon!!, sampleTime=-1, sampleSize=-1, extractMode=REGULAR
+2021-01-04 21:03:37.904 5759-5759 D/AudioFile: codec.getOutputBuffer(6) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:37.904 5759-5759 D/AudioFile: codec.getInputBuffer(1): enqueued name=Hallon Hallon!!, sampleTime=-1, sampleSize=-1, extractMode=REGULAR
+2021-01-04 21:03:37.983 5759-5759 D/AudioFile: codec.getOutputBuffer(7) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:37.984 5759-5759 D/AudioFile: codec.getInputBuffer(2): enqueued name=Hallon Hallon!!, sampleTime=-1, sampleSize=-1, extractMode=REGULAR
+2021-01-04 21:03:38.063 5759-5759 D/AudioFile: codec.getOutputBuffer(8) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:38.065 5759-5759 D/AudioFile: codec.getInputBuffer(3): enqueued name=Hallon Hallon!!, sampleTime=-1, sampleSize=-1, extractMode=REGULAR
+2021-01-04 21:03:38.144 5759-5759 D/AudioFile: codec.getOutputBuffer(0) returned null [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:38.144 5759-5759 D/AudioFile: codec.getOutputBuffer(1): wrote name=Hallon Hallon!!, presentationTimeUs=-1, size=0, extractMode=REGULAR
+2021-01-04 21:03:38.144 5759-5759 D/AudioFile: codec.getOutputBuffer(1): EOS reached, invoking onEndOfStreamCallback [name=Hallon Hallon!!, extractMode=REGULAR]
+2021-01-04 21:03:38.231 5759-5759 D/AudioFile: codec.getInputBuffer(0): enqueued name=Hallon Hallon!!, sampleTime=0, sampleSize=7511, extractMode=PRIME
+2021-01-04 21:03:38.231 5759-5759 D/AudioFile: codec.getInputBuffer(1): enqueued name=Hallon Hallon!!, sampleTime=92879, sampleSize=9133, extractMode=PRIME
+2021-01-04 21:03:38.233 5759-5759 D/AudioFile: codec.getInputBuffer(2): enqueued name=Hallon Hallon!!, sampleTime=185759, sampleSize=9341, extractMode=PRIME
+2021-01-04 21:03:38.235 5759-5759 D/AudioFile: codec.getInputBuffer(3): enqueued name=Hallon Hallon!!, sampleTime=278639, sampleSize=9111, extractMode=PRIME
+2021-01-04 21:03:38.237 5759-5759 D/AudioFile: codec.getInputBuffer(4): enqueued name=Hallon Hallon!!, sampleTime=371519, sampleSize=8688, extractMode=PRIME
+
+2021-01-04 21:03:38.240 5759-5759 D/AudioFile: codec.getOutputBuffer(0): wrote name=Hallon Hallon!!, presentationTimeUs=0, size=16384, extractMode=PRIME
+2021-01-04 21:03:38.240 5759-5759 D/AudioFile: codec.getOutputBuffer(0): flushAtSampleTime reached, flushing codec [name=Hallon Hallon!!, extractMode=PRIME]
+2021-01-04 21:03:38.241 5759-5759 D/AudioFile: codec.getOutputBuffer(1): wrote name=Hallon Hallon!!, presentationTimeUs=92879, size=16384, extractMode=PRIME
+2021-01-04 21:03:38.241 5759-5759 D/AudioFile: codec.getOutputBuffer(1): flushAtSampleTime reached, flushing codec [name=Hallon Hallon!!, extractMode=PRIME]
+2021-01-04 21:03:38.241 5759-5759 D/AudioFile: codec.getOutputBuffer(2): wrote name=Hallon Hallon!!, presentationTimeUs=185759, size=16384, extractMode=PRIME
+2021-01-04 21:03:38.242 5759-5759 D/AudioFile: codec.getOutputBuffer(2): flushAtSampleTime reached, flushing codec [name=Hallon Hallon!!, extractMode=PRIME]
+2021-01-04 21:03:38.242 5759-5759 D/AudioFile: codec.getOutputBuffer(3): wrote name=Hallon Hallon!!, presentationTimeUs=278639, size=16384, extractMode=PRIME
+2021-01-04 21:03:38.242 5759-5759 D/AudioFile: codec.getOutputBuffer(3): flushAtSampleTime reached, flushing codec [name=Hallon Hallon!!, extractMode=PRIME]
+2021-01-04 21:03:38.243 5759-5759 D/AudioFile: codec.getOutputBuffer(4): wrote name=Hallon Hallon!!, presentationTimeUs=371519, size=16384, extractMode=PRIME
+2021-01-04 21:03:38.244 5759-5759 D/AudioFile: codec.getOutputBuffer(4): flushAtSampleTime reached, flushing codec [name=Hallon Hallon!!, extractMode=PRIME]
+
+
+
+codec:
+After successfully configuring the component, call start.
+Call start also if the codec is configured in asynchronous mode, and it has just been flushed, to
+resume requesting input buffers.
+
+
+
+
+sampleSize 5226
+totalSize 19431
+
+                if (inputBufferIndex >= 0 && !inputEnded) {
+                    codec.getInputBuffer(inputBufferIndex)?.let { buffer ->
+                        val sampleSize = extractor.readSampleData(buffer, 0)
+                        if (sampleSize >= 0) {
+                            totalSize += sampleSize
+                            codec.queueInputBuffer(inputBufferIndex, 0, sampleSize, extractor.sampleTime, 0)
+                            extractor.advance()
+                        }
+                        // Check maxSize against probable totalSize after _next_ iteration:
+                        if (sampleSize < 0 || (maxSize != null && totalSize + sampleSize > maxSize)) {
+                            codec.queueInputBuffer(
+                                    inputBufferIndex, 0, 0, extractor.sampleTime,
+                                    MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                            inputEnded = true
+                        }
+                    }
+                }
+
+
+44100 Hz = 44100 frames/second
+1 second at 44100 Hz, 16 bit = 705600 bits = 88200 bytes
+1 second at 44100 Hz, 16 bit stereo = 88200 * 2 = 176400 bytes
+That is:
+bytes = seconds * hz * (bitdepth / 8) * channels
+Reverse:
+milliseconds = 1000 * bytes / (hz * (bitdepth / 8) * channels)
+100,000 bytes at 44.1kHz, 16 bit stereo = 100,000 / 176400 ~= 567 milliseconds
+
+bens radio:
+codecInputBuffers = {ByteBuffer[5]@12623}
+ 0 = {DirectByteBuffer@12631} "java.nio.DirectByteBuffer[pos=0 lim=524288 cap=524288]"
+ 1 = {DirectByteBuffer@12632} "java.nio.DirectByteBuffer[pos=0 lim=524288 cap=524288]"
+ 2 = {DirectByteBuffer@12633} "java.nio.DirectByteBuffer[pos=0 lim=524288 cap=524288]"
+ 3 = {DirectByteBuffer@12634} "java.nio.DirectByteBuffer[pos=0 lim=524288 cap=524288]"
+ 4 = {DirectByteBuffer@12635} "java.nio.DirectByteBuffer[pos=0 lim=524288 cap=524288]"
+codecOutputBuffers = {ByteBuffer[9]@12627}
+ 0 = {DirectByteBuffer@12641} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 1 = {DirectByteBuffer@12642} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 2 = {DirectByteBuffer@12643} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 3 = {DirectByteBuffer@12644} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 4 = {DirectByteBuffer@12645} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 5 = {DirectByteBuffer@12646} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 6 = {DirectByteBuffer@12647} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 7 = {DirectByteBuffer@12648} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 8 = {DirectByteBuffer@12649} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+
+ba dum:
+codecInputBuffers = {ByteBuffer[5]@12669}
+ 0 = {DirectByteBuffer@12671} "java.nio.DirectByteBuffer[pos=0 lim=524288 cap=524288]"
+ 1 = {DirectByteBuffer@12672} "java.nio.DirectByteBuffer[pos=0 lim=524288 cap=524288]"
+ 2 = {DirectByteBuffer@12673} "java.nio.DirectByteBuffer[pos=0 lim=524288 cap=524288]"
+ 3 = {DirectByteBuffer@12674} "java.nio.DirectByteBuffer[pos=0 lim=524288 cap=524288]"
+ 4 = {DirectByteBuffer@12675} "java.nio.DirectByteBuffer[pos=0 lim=524288 cap=524288]"
+codecOutputBuffers = {ByteBuffer[9]@12683}
+ 0 = {DirectByteBuffer@12692} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 1 = {DirectByteBuffer@12693} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 2 = {DirectByteBuffer@12694} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 3 = {DirectByteBuffer@12695} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 4 = {DirectByteBuffer@12696} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 5 = {DirectByteBuffer@12697} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 6 = {DirectByteBuffer@12698} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 7 = {DirectByteBuffer@12699} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+ 8 = {DirectByteBuffer@12700} "java.nio.DirectByteBuffer[pos=0 lim=294912 cap=294912]"
+
+
+orchesta hit (wav):
+codecInputBuffers = {ByteBuffer[4]@12714}
+ 0 = {DirectByteBuffer@12722} "java.nio.DirectByteBuffer[pos=0 lim=65536 cap=65536]"
+ 1 = {DirectByteBuffer@12723} "java.nio.DirectByteBuffer[pos=0 lim=65536 cap=65536]"
+ 2 = {DirectByteBuffer@12724} "java.nio.DirectByteBuffer[pos=0 lim=65536 cap=65536]"
+ 3 = {DirectByteBuffer@12725} "java.nio.DirectByteBuffer[pos=0 lim=65536 cap=65536]"
+codecOutputBuffers = {ByteBuffer[4]@12721}
+ 0 = {DirectByteBuffer@12726} "java.nio.DirectByteBuffer[pos=0 lim=1048576 cap=1048576]"
+ 1 = {DirectByteBuffer@12727} "java.nio.DirectByteBuffer[pos=0 lim=1048576 cap=1048576]"
+ 2 = {DirectByteBuffer@12728} "java.nio.DirectByteBuffer[pos=0 lim=1048576 cap=1048576]"
+ 3 = {DirectByteBuffer@12729} "java.nio.DirectByteBuffer[pos=0 lim=1048576 cap=1048576]"
+
+
+
 Före flytt:
 result = {ArrayList@11660}  size = 122
  0 = {Sound@12205} "Sound 36f1875 <id=1, name=Ah, Music, categoryId=6>"

@@ -65,4 +65,5 @@
     <string name="night_day_mode">Natt-/dag-läge</string>
     <string name="language">Språk</string>
     <string name="settings">Inställningar</string>
+    <string name="loading">Laddar …</string>
 </resources>

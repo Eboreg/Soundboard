@@ -1,3 +1,5 @@
+@file:Suppress("Annotator")
+
 package us.huseli.soundboard.fragments
 
 import android.os.Bundle
