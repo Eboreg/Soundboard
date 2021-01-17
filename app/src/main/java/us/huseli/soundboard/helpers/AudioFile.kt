@@ -525,7 +525,7 @@ open class AudioFile(
 
     companion object {
         // Try messing around until it runs good
-        const val BUFFER_SIZE = (0.5 * 44100 * 16 / 8).toInt()
+        const val BUFFER_SIZE = (1 * 44100 * 16 / 8).toInt()
 
         // Priming size; try changing around until it runs good
         const val PRIMING_SIZE = BUFFER_SIZE / 4
