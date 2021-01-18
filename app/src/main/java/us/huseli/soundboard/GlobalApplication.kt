@@ -4,9 +4,11 @@ import android.app.Application
 import android.content.Context
 import android.os.StrictMode
 import androidx.databinding.library.BuildConfig
+import dagger.hilt.android.HiltAndroidApp
 import us.huseli.soundboard.helpers.ColorHelper
 import java.io.File
 
+@HiltAndroidApp
 class GlobalApplication : Application() {
     var soundDir: File? = null
 
