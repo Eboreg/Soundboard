@@ -11,7 +11,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.nio.ByteBuffer
 
-open class AudioFile(
+class AudioFile(
         private val path: String, private val name: String, onInit: ((AudioFile) -> Unit)? = null) {
     /** name is really only for debugging purposes */
 

@@ -1,3 +1,6 @@
+When in sound select mode, disable and grey out category buttons to avoid confusion
+
+
 On "instant replay" stop mode, make sure everything is completely initialized before running play() again
 
 

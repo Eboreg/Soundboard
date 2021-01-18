@@ -10,4 +10,15 @@
         <item>night</item>
         <item>day</item>
     </string-array>
+
+    <string-array name="languageEntries">
+        <item>Device default</item>
+        <item>English</item>
+        <item>Swedish</item>
+    </string-array>
+    <string-array name="languageEntryValues">
+        <item>default</item>
+        <item>en</item>
+        <item>sv</item>
+    </string-array>
 </resources>

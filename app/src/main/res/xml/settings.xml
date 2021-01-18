@@ -1,16 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
     <ListPreference
         app:key="nightMode"
         app:title="@string/night_day_mode"
         app:entries="@array/nightModeEntries"
         app:entryValues="@array/nightModeEntryValues"
         app:defaultValue="default"
+        app:useSimpleSummaryProvider="true"
         app:icon="@drawable/ic_night_day" />
 
     <ListPreference
         app:key="language"
         app:title="@string/language"
+        app:useSimpleSummaryProvider="true"
+        app:entries="@array/languageEntries"
+        app:entryValues="@array/languageEntryValues"
         app:icon="@drawable/ic_language" />
+
+    <SeekBarPreference
+        app:key="bufferSize"
+        app:title="@string/audio_buffer_size"
+        app:icon="@drawable/ic_memory"
+        app:min="0"
+        android:max="8"
+        app:seekBarIncrement="1"
+        app:updatesContinuously="true" />
+
 
 </PreferenceScreen>

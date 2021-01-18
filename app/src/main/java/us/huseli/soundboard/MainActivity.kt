@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -16,12 +17,12 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.core.content.edit
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import us.huseli.soundboard.data.Category
@@ -32,14 +33,16 @@ import us.huseli.soundboard.interfaces.EditCategoryInterface
 import us.huseli.soundboard.interfaces.SnackbarInterface
 import us.huseli.soundboard.interfaces.ZoomInterface
 import us.huseli.soundboard.viewmodels.*
+import java.util.*
 
 class MainActivity :
-        AppCompatActivity(),
+        BaseActivity(),
         EditCategoryInterface,
         ColorPickerDialogListener,
         SnackbarInterface,
         ZoomInterface,
-        ActionMode.Callback {
+        ActionMode.Callback,
+        SharedPreferences.OnSharedPreferenceChangeListener {
     private val categoryListViewModel by viewModels<CategoryListViewModel>()
     private val appViewModel by viewModels<AppViewModel>()
     private val soundViewModel by viewModels<SoundViewModel>()
@@ -82,6 +85,14 @@ class MainActivity :
                 true
             }
             else -> false
+        }
+    }
+
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        sharedPreferences?.also {
+            when (key) {
+                "language" -> setLanguage(sharedPreferences.getString(key, "en"))
+            }
         }
     }
 
@@ -140,6 +151,8 @@ class MainActivity :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this)
 
         val pInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
         val prefs = getPreferences(Context.MODE_PRIVATE)
@@ -217,7 +230,10 @@ class MainActivity :
             R.id.action_add_sound -> startAddSoundActivity()
             // R.id.action_reinit_failed_sounds -> reinitFailedSounds()
             R.id.action_set_repress_mode -> appViewModel.cycleRepressMode()
-            // R.id.action_settings -> showDialogFragment(SettingsFragment())
+            R.id.action_settings -> {
+                val intent = Intent(this, SettingsActivity::class.java)
+                startActivity(intent)
+            }
             R.id.action_toggle_filter -> toggleFilterEnabled()
             R.id.action_toggle_reorder -> soundViewModel.toggleReorderEnabled()
             R.id.action_undo -> undo()

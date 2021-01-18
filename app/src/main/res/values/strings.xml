@@ -66,4 +66,6 @@
     <string name="language">Language</string>
     <string name="settings">Settings</string>
     <string name="loading">Loading …</string>
+    <string name="audio_buffer_size">Audio buffer size</string>
+    <string name="buffer_size_summary">If audio is too unresponsive, lower this. If audio is choppy, raise it.\nCurrent value = %1$d</string>
 </resources>

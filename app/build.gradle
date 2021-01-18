@@ -64,6 +64,7 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation libraries
+    implementation 'androidx.preference:preference-ktx:1.1.1'
     kapt librariesKapt
     testImplementation testLibraries
 }
