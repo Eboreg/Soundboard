@@ -18,14 +18,19 @@
         app:entryValues="@array/languageEntryValues"
         app:icon="@drawable/ic_language" />
 
-    <SeekBarPreference
-        app:key="bufferSize"
+    <us.huseli.soundboard.helpers.LongSummaryPreferenceCategory
+        app:key="bufferSizeCategory"
         app:title="@string/audio_buffer_size"
-        app:icon="@drawable/ic_memory"
-        app:min="0"
-        android:max="8"
-        app:seekBarIncrement="1"
-        app:updatesContinuously="true" />
+        app:summary="@string/buffer_size_summary">
+
+        <SeekBarPreference
+            app:key="bufferSize"
+            app:icon="@drawable/ic_memory"
+            app:min="0"
+            android:max="8"
+            app:seekBarIncrement="1"
+            app:updatesContinuously="true" />
+    </us.huseli.soundboard.helpers.LongSummaryPreferenceCategory>
 
 
 </PreferenceScreen>

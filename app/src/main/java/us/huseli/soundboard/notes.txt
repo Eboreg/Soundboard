@@ -1,3 +1,12 @@
+Gammal:
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name"
+            android:theme="@style/Soundboard.Theme">
+
+
+
+
 input index=1, sampleSize=8xxx
 input index=2, sampleSize=8755
 input index=3, sampleSize=9592

@@ -27,6 +27,8 @@
         <item name="colorAccent">@color/teal_300</item>
     </style>
 
+    <style name="Soundboard.Theme.Settings" parent="Theme.MaterialComponents.DayNight" />
+
     <style name="Soundboard.Theme.AlertDialog" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
         <item name="buttonBarButtonStyle">@style/Soundboard.Style.Button.TextButton</item>
         <item name="buttonBarNegativeButtonStyle">

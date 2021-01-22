@@ -45,9 +45,11 @@ class SettingsActivity : LocaleActivity(), SharedPreferences.OnSharedPreferenceC
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.settings, rootKey)
             findPreference<SeekBarPreference>("bufferSize")?.apply {
-                summary = getString(R.string.buffer_size_summary, seekbarValueToBufferSize(value))
+                //summary = getString(R.string.buffer_size_summary, seekbarValueToBufferSize(value))
+                summary = seekbarValueToBufferSize(value).toString()
                 onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
-                    summary = getString(R.string.buffer_size_summary, seekbarValueToBufferSize(newValue as Int))
+                    summary = seekbarValueToBufferSize(newValue as Int).toString()
+                    // summary = getString(R.string.buffer_size_summary, seekbarValueToBufferSize(newValue as Int))
                     true
                 }
             }
