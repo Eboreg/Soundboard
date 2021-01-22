@@ -11,16 +11,18 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.adapters.CategoryAdapter
 import us.huseli.soundboard.databinding.FragmentCategoryListBinding
 import us.huseli.soundboard.helpers.SoundScroller
 import us.huseli.soundboard.interfaces.ZoomInterface
 import us.huseli.soundboard.viewmodels.AppViewModel
-import us.huseli.soundboard.viewmodels.CategoryListViewModel
+import us.huseli.soundboard.viewmodels.CategoryViewModel
 import us.huseli.soundboard.viewmodels.SoundViewModel
 
+@AndroidEntryPoint
 class CategoryListFragment : Fragment(), View.OnTouchListener {
-    private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
+    private val categoryListViewModel by activityViewModels<CategoryViewModel>()
     private val appViewModel by activityViewModels<AppViewModel>()
     private val soundViewModel by activityViewModels<SoundViewModel>()
     private val preferences: SharedPreferences by lazy { requireActivity().getPreferences(Context.MODE_PRIVATE) }
@@ -90,11 +92,6 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
                     layoutManager = LayoutManager(requireContext()).apply {
                         isItemPrefetchEnabled = true
                     }
-/*
-                    layoutManager = LinearLayoutManager(requireContext()).apply {
-                        isItemPrefetchEnabled = true
-                    }
-*/
                     setOnTouchListener(this@CategoryListFragment)
                 }
 

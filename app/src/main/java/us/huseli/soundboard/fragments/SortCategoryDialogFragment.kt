@@ -6,12 +6,14 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.R
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.FragmentSortCategoryBinding
 import us.huseli.soundboard.viewmodels.AppViewModel
 import us.huseli.soundboard.viewmodels.SoundViewModel
 
+@AndroidEntryPoint
 class SortCategoryDialogFragment : DialogFragment() {
     private var binding: FragmentSortCategoryBinding? = null
 
@@ -47,7 +49,7 @@ class SortCategoryDialogFragment : DialogFragment() {
             setView(binding?.root)
             setPositiveButton(R.string.sort) { _, _ ->
                 sortBy?.let { sortBy ->
-                    appViewModel.pushSoundUndoState()
+                    appViewModel.pushSoundUndoState(requireContext())
                     soundViewModel.sort(categoryId, sortBy, sortOrder)
                 }
             }

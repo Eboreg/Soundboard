@@ -1,6 +1,10 @@
 package us.huseli.soundboard.data
 
-class CategoryRepository(private val categoryDao: CategoryDao) {
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class CategoryRepository @Inject constructor(private val categoryDao: CategoryDao) {
     val categories = categoryDao.listLive()
 
     // Used by CategoryListViewModel.delete()

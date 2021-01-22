@@ -19,7 +19,7 @@ interface SoundDao {
     fun get(soundId: Int): Sound?
 
     @Query("SELECT * FROM Sound WHERE id = :soundId")
-    fun getLive(soundId: Int): LiveData<Sound>
+    fun getLive(soundId: Int?): LiveData<Sound>
 
     @Query("SELECT MAX(`order`) FROM Sound WHERE categoryId = :categoryId")
     fun getMaxOrder(categoryId: Int): Int?

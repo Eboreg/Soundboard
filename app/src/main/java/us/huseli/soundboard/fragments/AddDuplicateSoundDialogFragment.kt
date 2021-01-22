@@ -8,43 +8,44 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import us.huseli.soundboard.MainActivity
+import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.R
 import us.huseli.soundboard.databinding.FragmentAddDuplicateSoundBinding
+import us.huseli.soundboard.interfaces.EditSoundInterface
+import us.huseli.soundboard.interfaces.SnackbarInterface
 import us.huseli.soundboard.viewmodels.SoundAddViewModel
 
+@AndroidEntryPoint
 class AddDuplicateSoundDialogFragment : DialogFragment() {
     private val viewModel by activityViewModels<SoundAddViewModel>()
 
     private fun onAddDuplicates() {
         viewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.ADD
-        (requireActivity() as? MainActivity)?.apply {
+        (requireActivity() as EditSoundInterface).apply {
             if (viewModel.sounds.size > 1) viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
-            showDialogFragment(AddSoundDialogFragment())
+            showSoundAddDialog()
         }
     }
 
     private fun onSkipDuplicates() {
         viewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.SKIP
-        (requireActivity() as? MainActivity)?.apply {
-            if (viewModel.sounds.isEmpty()) showSnackbar(R.string.no_sounds_to_add)
-            else {
-                if (viewModel.sounds.size > 1) viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
-                showDialogFragment(AddSoundDialogFragment())
-            }
+        if (viewModel.sounds.isEmpty()) (requireActivity() as SnackbarInterface).showSnackbar(R.string.no_sounds_to_add)
+        else {
+            if (viewModel.sounds.size > 1) viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
+            (requireActivity() as EditSoundInterface).showSoundAddDialog()
         }
     }
 
     private fun onUpdateExisting() {
         viewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.UPDATE
-        (requireActivity() as? MainActivity)?.apply {
+        (requireActivity() as EditSoundInterface).apply {
             when (viewModel.sounds.size) {
                 // TODO: Will not work with copying of data
                 // Have to use old sound from duplicates, and not new one from sounds:
-                1 -> showEditSoundDialogFragment(viewModel.duplicates[0])
+                1 -> showSoundEditDialog(viewModel.duplicates[0])
                 else -> {
                     viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
-                    showDialogFragment(AddSoundDialogFragment())
+                    showSoundAddDialog()
                 }
             }
         }

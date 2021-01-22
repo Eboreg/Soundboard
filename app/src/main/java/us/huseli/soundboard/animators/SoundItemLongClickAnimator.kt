@@ -4,12 +4,24 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.graphics.Color
 import androidx.cardview.widget.CardView
-import us.huseli.soundboard.GlobalApplication
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
+import us.huseli.soundboard.helpers.ColorHelper
 
 class SoundItemLongClickAnimator(view: CardView, originalColor: Int) {
+    @InstallIn(SingletonComponent::class)
+    @EntryPoint
+    interface SoundItemLongClickAnimatorEntryPoint {
+        fun colorHelper(): ColorHelper
+    }
+
     private val animateIn: ObjectAnimator?
     private val animateOut: ObjectAnimator?
-    private val flashColor = if (GlobalApplication.application.getColorHelper().getLuminance(originalColor) >= 0.9) Color.BLACK else Color.WHITE
+    private val colorHelper = EntryPointAccessors.fromApplication(
+            view.context, SoundItemLongClickAnimatorEntryPoint::class.java).colorHelper()
+    private val flashColor = if (colorHelper.getLuminance(originalColor) >= 0.9) Color.BLACK else Color.WHITE
 
     init {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {

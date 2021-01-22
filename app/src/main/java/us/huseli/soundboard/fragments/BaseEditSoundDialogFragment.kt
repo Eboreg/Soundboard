@@ -14,10 +14,10 @@ import us.huseli.soundboard.adapters.CategorySpinnerAdapter
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.databinding.FragmentEditSoundBinding
 import us.huseli.soundboard.viewmodels.BaseSoundEditViewModel
-import us.huseli.soundboard.viewmodels.CategoryListViewModel
+import us.huseli.soundboard.viewmodels.CategoryViewModel
 
 abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSoundDialogFragment() {
-    internal val categoryListViewModel by activityViewModels<CategoryListViewModel>()
+    internal val categoryListViewModel by activityViewModels<CategoryViewModel>()
     internal open var binding: FragmentEditSoundBinding? = null
     internal open var multiple = false
     internal abstract val viewModel: VM
@@ -32,8 +32,8 @@ abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSo
     }
 
     internal open fun save() {
-        appViewModel.pushSoundUndoState()
-        viewModel.save()
+        appViewModel.pushSoundUndoState(requireContext())
+        viewModel.save(requireContext())
     }
 
 

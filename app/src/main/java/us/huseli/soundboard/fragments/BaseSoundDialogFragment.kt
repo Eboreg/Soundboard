@@ -5,10 +5,12 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.R
 import us.huseli.soundboard.viewmodels.AppViewModel
 import us.huseli.soundboard.viewmodels.SoundViewModel
 
+@AndroidEntryPoint
 abstract class BaseSoundDialogFragment : DialogFragment() {
     internal val appViewModel by activityViewModels<AppViewModel>()
     internal val soundViewModel by activityViewModels<SoundViewModel>()

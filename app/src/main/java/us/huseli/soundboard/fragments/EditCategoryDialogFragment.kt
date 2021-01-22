@@ -2,22 +2,22 @@ package us.huseli.soundboard.fragments
 
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.R
-import us.huseli.soundboard.viewmodels.BaseCategoryEditViewModel
-import us.huseli.soundboard.viewmodels.CategoryListViewModel
+import us.huseli.soundboard.viewmodels.CategoryEditViewModel
 
+@AndroidEntryPoint
 class EditCategoryDialogFragment : BaseCategoryDialogFragment() {
-    private val categoryListViewModel by activityViewModels<CategoryListViewModel>()
     private val categoryId by lazy { requireArguments().getInt(ARG_ID) }
 
-    override var viewModel: BaseCategoryEditViewModel? = null
+    override val viewModel by viewModels<CategoryEditViewModel>()
     override val title = R.string.edit_category
 
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         return try {
-            viewModel = categoryListViewModel.getCategoryEditViewModel(categoryId)
+            viewModel.setCategoryId(categoryId)
             super.onCreateDialog(savedInstanceState)
         } catch (e: NullPointerException) {
             MaterialAlertDialogBuilder(requireContext()).run {

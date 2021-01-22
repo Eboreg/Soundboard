@@ -8,9 +8,8 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStoreOwner
 import androidx.recyclerview.widget.*
 import us.huseli.soundboard.R
 import us.huseli.soundboard.adapters.common.LifecycleAdapter
@@ -31,8 +30,8 @@ class CategoryAdapter(
         private val appViewModel: AppViewModel,
         private val initialSpanCount: Int,
         private val soundViewModel: SoundViewModel,
-        private val categoryListViewModel: CategoryListViewModel,
-        private val viewModelStoreOwner: ViewModelStoreOwner,
+        private val categoryViewModel: CategoryViewModel,
+        private val activity: FragmentActivity,
         private val soundScroller: SoundScroller) :
         LifecycleAdapter<Category, CategoryAdapter.CategoryViewHolder>(DiffCallback()) {
     // private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 200) }
@@ -69,8 +68,8 @@ class CategoryAdapter(
         currentList.forEachIndexed { index, item -> item.order = index }
         val newOrder = currentList.map { it.order }
         if (previousOrder != newOrder) {
-            appViewModel.pushCategoryUndoState()
-            categoryListViewModel.saveOrder(currentList)
+            appViewModel.pushCategoryUndoState(activity)
+            categoryViewModel.saveOrder(currentList)
         }
     }
 
@@ -81,7 +80,7 @@ class CategoryAdapter(
         }
 
         override fun areContentsTheSame(oldItem: Category, newItem: Category): Boolean {
-            return oldItem.name == newItem.name && oldItem.backgroundColor == newItem.backgroundColor
+            return oldItem.name == newItem.name && oldItem.backgroundColor == newItem.backgroundColor && oldItem.collapsed == newItem.collapsed
         }
     }
 
@@ -97,6 +96,7 @@ class CategoryAdapter(
         private val LOG_TAG = "CategoryViewHolder"
 
         private val appViewModel = adapter.appViewModel
+        private val categoryListViewModel = adapter.categoryViewModel
         private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
         private val initialSpanCount = adapter.initialSpanCount
         private val soundAdapter: SoundAdapter
@@ -104,37 +104,29 @@ class CategoryAdapter(
         private val soundScroller = adapter.soundScroller
         private val soundViewModel = adapter.soundViewModel
 
-        // private val soundViewPool = adapter.soundViewPool
-        private val viewModelStoreOwner = adapter.viewModelStoreOwner
+        private val activity = adapter.activity
 
         private var category: Category? = null
-        private var categoryViewModel: CategoryViewModel? = null
         private var isCollapsed: Boolean? = null
         private var soundCount: Int? = null
 
         override val lifecycleRegistry = LifecycleRegistry(this)
 
         init {
-            soundAdapter = SoundAdapter(binding.soundList, soundViewModel, appViewModel, viewModelStoreOwner)
+            soundAdapter = SoundAdapter(binding.soundList, soundViewModel, appViewModel, categoryListViewModel, activity)
             soundDragListener = SoundDragListener(soundAdapter, this, soundScroller)
 
             binding.categoryEditButton.setOnClickListener(this)
             binding.categoryDeleteButton.setOnClickListener(this)
             binding.categorySortButton.setOnClickListener(this)
+            binding.categoryCollapse.setOnClickListener(this)
             binding.root.setOnDragListener(soundDragListener)
 
             binding.soundList.apply {
                 this.adapter = soundAdapter
-/*
-                layoutManager = GridLayoutManager(context, initialSpanCount).also { lm ->
-                    appViewModel.spanCount.observe(this@CategoryViewHolder) { lm.spanCount = it }
-                }
-*/
                 layoutManager = LayoutManager(context, initialSpanCount).also { lm ->
                     appViewModel.spanCount.observe(this@CategoryViewHolder) { lm.spanCount = it }
                 }
-                // setRecycledViewPool(soundViewPool)
-                // setItemViewCacheSize(20)
                 isNestedScrollingEnabled = false
             }
         }
@@ -147,30 +139,12 @@ class CategoryAdapter(
                 return
             }
 
-            // Stop any old observers
-            categoryViewModel?.backgroundColor?.removeObservers(this)
-            categoryViewModel?.collapsed?.removeObservers(this)
+            binding.category = category
+            soundAdapter.category = category
 
-            val viewModelFactory = CategoryViewModelFactory(categoryId)
-            categoryViewModel = ViewModelProvider(viewModelStoreOwner, viewModelFactory).get(
-                    categoryId.toString(), CategoryViewModel::class.java)
+            if (category.collapsed != isCollapsed) onCollapseChanged(category.collapsed)
 
-            binding.categoryViewModel = categoryViewModel
-            soundAdapter.categoryViewModel = categoryViewModel
-
-            categoryViewModel?.backgroundColor?.observe(this) { color ->
-                if (color != null) binding.categoryHeader.setBackgroundColor(color)
-            }
-            categoryViewModel?.collapsed?.observe(this) { collapsed ->
-                // Without this if, unnecessary animations are triggered on all categories?!
-                if (collapsed != isCollapsed) {
-                    if (!soundDragListener.isDragging) soundDragListener.wasCollapsed = collapsed
-                    collapseButtonAnimator.animate(collapsed)
-                    binding.soundList.visibility = if (collapsed) View.GONE else View.VISIBLE
-                    isCollapsed = collapsed
-                }
-            }
-
+            binding.categoryHeader.setBackgroundColor(category.backgroundColor)
             soundViewModel.sounds.observe(this) { allSounds ->
                 val sounds = allSounds.filter { sound -> sound.categoryId == category.id }
                 // Log.d(LOG_TAG, "ViewHolder sound list observer: viewHolder=$this, category=$category, sounds=$sounds")
@@ -183,21 +157,15 @@ class CategoryAdapter(
                 }
                 soundAdapter.submitList(sounds)
             }
-            /*
-            soundViewModel.listByCategory(category.id).observe(this) { sounds ->
-                Log.d(LOG_TAG, "ViewHolder sound list observer: viewHolder=$this, category=$category, sounds=$sounds")
-
-                // TODO: Remove test call + method when not needed
-                // submitListWithInvalidSound(sounds)
-
-                soundCount = sounds.count().also {
-                    if (it > 20) binding.soundList.setItemViewCacheSize(it)
-                }
-                soundAdapter.submitList(sounds)
-            }
-             */
 
             soundViewModel.selectEnabled.observe(this) { soundAdapter.onSelectEnabledChange(it) }
+        }
+
+        private fun onCollapseChanged(value: Boolean) {
+            if (!soundDragListener.isDragging) soundDragListener.wasCollapsed = value
+            collapseButtonAnimator.animate(value)
+            binding.soundList.visibility = if (value) View.GONE else View.VISIBLE
+            isCollapsed = value
         }
 
         @Suppress("unused")
@@ -221,7 +189,7 @@ class CategoryAdapter(
 
         override fun onClick(v: View?) {
             // When icons in the category header are clicked
-            val activity = binding.root.context as EditCategoryInterface
+            val activity = activity as EditCategoryInterface
             category?.also { category ->
                 category.id?.also { catId ->
                     when (v) {
@@ -229,10 +197,16 @@ class CategoryAdapter(
                         binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(catId, category.name, soundCount
                                 ?: 0)
                         binding.categorySortButton -> activity.showCategorySortDialog(catId, category.name)
+                        binding.categoryCollapse -> {
+                            this.category?.let { category ->
+                                val collapsed = !category.collapsed
+                                category.id?.let { categoryListViewModel.setCollapsed(it, collapsed) }
+                            }
+                        }
                     }
                 }
             } ?: run {
-                (activity as SnackbarInterface).showSnackbar(R.string.not_initialized_yet)
+                (this.activity as SnackbarInterface).showSnackbar(R.string.not_initialized_yet)
             }
         }
 

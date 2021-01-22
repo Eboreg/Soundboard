@@ -10,7 +10,7 @@ import androidx.preference.SeekBarPreference
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-class SettingsActivity : BaseActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
+class SettingsActivity : LocaleActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this)

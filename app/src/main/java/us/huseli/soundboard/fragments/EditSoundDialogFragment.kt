@@ -3,9 +3,11 @@ package us.huseli.soundboard.fragments
 import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.activityViewModels
+import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.R
 import us.huseli.soundboard.viewmodels.SoundEditViewModel
 
+@AndroidEntryPoint
 class EditSoundDialogFragment : BaseEditSoundDialogFragment<SoundEditViewModel>() {
     override val viewModel by activityViewModels<SoundEditViewModel>()
     override val title: Int

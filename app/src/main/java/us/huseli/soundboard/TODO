@@ -1,3 +1,7 @@
+When starting app with category collapsed=true, audiofiles/soundplayers etc are not loaded until
+it is expanded. Load all straight away on background thread instead.
+
+
 When in sound select mode, disable and grey out category buttons to avoid confusion
 
 

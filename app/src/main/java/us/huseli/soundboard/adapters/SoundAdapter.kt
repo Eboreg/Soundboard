@@ -14,23 +14,31 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import us.huseli.soundboard.GlobalApplication
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import us.huseli.soundboard.R
 import us.huseli.soundboard.SoundPlayer
 import us.huseli.soundboard.adapters.common.LifecycleAdapter
 import us.huseli.soundboard.adapters.common.LifecycleViewHolder
 import us.huseli.soundboard.animators.SoundItemLongClickAnimator
+import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.DraggedSound
+import us.huseli.soundboard.data.PlayerRepository
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.ItemSoundBinding
+import us.huseli.soundboard.helpers.ColorHelper
 import us.huseli.soundboard.helpers.SoundPlayerTimer
-import us.huseli.soundboard.viewmodels.*
+import us.huseli.soundboard.viewmodels.AppViewModel
+import us.huseli.soundboard.viewmodels.CategoryViewModel
+import us.huseli.soundboard.viewmodels.SoundViewModel
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -39,14 +47,14 @@ class SoundAdapter(
         private val recyclerView: RecyclerView,
         private val soundViewModel: SoundViewModel,
         private val appViewModel: AppViewModel,
-        private val viewModelStoreOwner: ViewModelStoreOwner) :
+        private val categoryViewModel: CategoryViewModel,
+        private val activity: FragmentActivity) :
         LifecycleAdapter<Sound, SoundAdapter.SoundViewHolder>(DiffCallback()) {
     @Suppress("PrivatePropertyName")
     private val LOG_TAG = "SoundAdapter"
 
+    var category: Category? = null
     private var selectEnabled = false
-
-    var categoryViewModel: CategoryViewModel? = null
 
     init {
         setHasStableIds(true)
@@ -65,8 +73,8 @@ class SoundAdapter(
     override fun onBindViewHolder(holder: SoundViewHolder, position: Int) {
         val item = getItem(position)
         Log.d(LOG_TAG, "onBindViewHolder: item=$item, holder=$holder, position=$position")
-        categoryViewModel?.let { holder.bind(item, it) }
-                ?: run { Log.e(LOG_TAG, "onBindViewHolder: categoryViewModel is null") }
+        category?.let { holder.bind(item, it) }
+                ?: run { Log.e(LOG_TAG, "onBindViewHolder: category is null") }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SoundViewHolder {
@@ -78,8 +86,6 @@ class SoundAdapter(
         return holder
     }
 
-    //override fun onViewRecycled(holder: SoundViewHolder) = holder.release()
-
     override fun toString(): String {
         val hashCode = Integer.toHexString(System.identityHashCode(this))
         return "SoundAdapter $hashCode <currentList=$currentList>"
@@ -87,11 +93,11 @@ class SoundAdapter(
 
 
     /*********** OWN PUBLIC METHODS ***********/
-    fun collapseCategory() = categoryViewModel?.collapse()
+    fun collapseCategory() = categoryViewModel.collapse(category)
 
     fun containsSound(sound: Sound) = currentList.indexOf(sound) > -1
 
-    fun expandCategory() = categoryViewModel?.expand()
+    fun expandCategory() = categoryViewModel.expand(category)
 
     fun getAdapterPositionUnder(x: Float, y: Float): Int {
         recyclerView.findChildViewUnder(x, y)?.let { view ->
@@ -123,8 +129,8 @@ class SoundAdapter(
             else -> for (i in fromPosition downTo toPosition + 1) Collections.swap(sounds, i, i - 1)
         }
 
-        appViewModel.pushSoundUndoState()
-        categoryViewModel?.let { soundViewModel.update(sounds, it.categoryId) }
+        appViewModel.pushSoundUndoState(activity)
+        soundViewModel.update(sounds, category)
     }
 
     fun isEmpty() = currentList.isEmpty()
@@ -170,17 +176,15 @@ class SoundAdapter(
     /*********** PRIVATE METHODS ***********/
     private fun selectAllInBetween(sound: Sound) {
         // Select all sound between `sound` and last selected one (if any).
-        categoryViewModel?.categoryId?.let { categoryId ->
-            soundViewModel.getLastSelected(categoryId, sound)?.let { lastSelected ->
-                // TODO: Are these always consistent with adapter/layout positions?
-                val pos1 = currentList.indexOf(sound)
-                val pos2 = currentList.indexOf(lastSelected)
-                if (pos1 != -1 && pos2 != -1) {
-                    val start = if (pos1 < pos2) pos1 else pos2
-                    val end = if (start == pos1) pos2 else pos1
-                    for (pos in (start + 1) until end)
-                        (recyclerView.findViewHolderForLayoutPosition(pos) as? SoundViewHolder)?.select()
-                }
+        soundViewModel.getLastSelected(category, sound)?.let { lastSelected ->
+            // TODO: Are these always consistent with adapter/layout positions?
+            val pos1 = currentList.indexOf(sound)
+            val pos2 = currentList.indexOf(lastSelected)
+            if (pos1 != -1 && pos2 != -1) {
+                val start = if (pos1 < pos2) pos1 else pos2
+                val end = if (start == pos1) pos2 else pos1
+                for (pos in (start + 1) until end)
+                    (recyclerView.findViewHolderForLayoutPosition(pos) as? SoundViewHolder)?.select()
             }
         }
     }
@@ -202,6 +206,14 @@ class SoundAdapter(
             SoundPlayer.Listener,
             SoundViewModel.OnSelectAllListener,
             LifecycleViewHolder(binding.root) {
+
+        @InstallIn(SingletonComponent::class)
+        @EntryPoint
+        interface SoundViewHolderEntryPoint {
+            fun playerRepository(): PlayerRepository
+            fun colorHelper(): ColorHelper
+        }
+
         @Suppress("PrivatePropertyName")
         private val LOG_TAG = "SoundViewHolder"
 
@@ -210,12 +222,16 @@ class SoundAdapter(
             setTarget(binding.soundCard)
         }
         private val soundViewModel = adapter.soundViewModel
-        private val viewModelStoreOwner = adapter.viewModelStoreOwner
+        private val activity = adapter.activity
+        private val colorHelper = EntryPointAccessors.fromApplication(
+                activity.applicationContext, SoundViewHolderEntryPoint::class.java).colorHelper()
+        private val playerRepository = EntryPointAccessors.fromApplication(
+                activity.applicationContext, SoundViewHolderEntryPoint::class.java).playerRepository()
 
         private var longClickAnimator: SoundItemLongClickAnimator? = null
         private var player: SoundPlayer? = null
+        private var playerLiveData: LiveData<SoundPlayer?>? = null
         private var playerTimer: SoundPlayerTimer? = null
-        private var playerViewModel: PlayerViewModel? = null
         private var reorderEnabled = false
         private var sound: Sound? = null
 
@@ -228,7 +244,7 @@ class SoundAdapter(
             soundViewModel.addOnSelectAllListener(this)
         }
 
-        fun bind(sound: Sound, categoryViewModel: CategoryViewModel) {
+        fun bind(sound: Sound, category: Category) {
             this.sound = sound
             val soundId = sound.id
             if (soundId == null) {
@@ -237,41 +253,38 @@ class SoundAdapter(
             }
 
             binding.sound = sound
-            binding.categoryViewModel = categoryViewModel
+            binding.category = category
+            setBackgroundColor(category.backgroundColor)
 
             // Stop any old player observer
-            playerViewModel?.player?.removeObservers(this)
+            playerLiveData?.removeObservers(this)
 
-            val viewModelFactory = PlayerViewModelFactory(soundId)
-            playerViewModel = ViewModelProvider(viewModelStoreOwner, viewModelFactory).get(
-                    soundId.toString(), PlayerViewModel::class.java)
-
-            playerViewModel?.player?.observe(this) { newPlayer ->
-                if (newPlayer != null && newPlayer != player) {
-                    newPlayer.setListener(this)
-                    onSoundPlayerStateChange(newPlayer, newPlayer.state)
-                    setDuration(newPlayer.duration)
-                    appViewModel.repressMode.observe(this) { newPlayer.repressMode = it }
-                    player = newPlayer
-                }
-                this.sound?.volume?.let { player?.volume = it }
-            }
-
-            categoryViewModel.backgroundColor.observe(this) { color ->
-                if (color != null) {
-                    longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
-                    binding.volumeBar.progressDrawable.alpha = 150
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        binding.volumeBar.progressTintMode = PorterDuff.Mode.OVERLAY
-                        binding.volumeBar.progressTintList =
-                                if (GlobalApplication.application.getColorHelper().getLuminance(color) >= 0.6) ColorStateList.valueOf(Color.BLACK)
-                                else ColorStateList.valueOf(Color.WHITE)
+            playerLiveData = playerRepository.get(sound).also { liveData ->
+                liveData.observe(this) { newPlayer ->
+                    if (newPlayer != null && newPlayer != player) {
+                        newPlayer.setListener(this)
+                        onSoundPlayerStateChange(newPlayer, newPlayer.state)
+                        setDuration(newPlayer.duration)
+                        appViewModel.repressMode.observe(this) { newPlayer.repressMode = it }
+                        player = newPlayer
                     }
+                    this.sound?.volume?.let { player?.volume = it }
                 }
             }
 
             soundViewModel.reorderEnabled.observe(this) { value -> onReorderEnabledChange(value) }
             soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
+        }
+
+        private fun setBackgroundColor(color: Int) {
+            longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
+            binding.volumeBar.progressDrawable.alpha = 150
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                binding.volumeBar.progressTintMode = PorterDuff.Mode.OVERLAY
+                binding.volumeBar.progressTintList =
+                        if (colorHelper.getLuminance(color) >= 0.6) ColorStateList.valueOf(Color.BLACK)
+                        else ColorStateList.valueOf(Color.WHITE)
+            }
         }
 
         private fun setDuration(value: Int) {
@@ -425,7 +438,7 @@ class SoundAdapter(
 
         fun release() {
             soundViewModel.removeOnSelectAllListener(this)
-            playerViewModel?.player?.removeObservers(this)
+            playerLiveData?.removeObservers(this)
             player?.setListener(null)
         }
     }

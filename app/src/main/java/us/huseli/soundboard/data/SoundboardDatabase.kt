@@ -1,6 +1,6 @@
 package us.huseli.soundboard.data
 
-import android.app.Application
+import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -16,7 +16,6 @@ abstract class SoundboardDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
 
     companion object {
-        @Volatile private var instance: SoundboardDatabase? = null
 
         private val MIGRATION_4_5 = object: Migration(4, 5) {
             override fun migrate(database: SupportSQLiteDatabase) {
@@ -142,14 +141,8 @@ abstract class SoundboardDatabase : RoomDatabase() {
             }
         }
 
-        fun getInstance(application: Application): SoundboardDatabase {
-            return instance ?: synchronized(this) {
-                instance ?: buildDatabase(application).also { instance = it }
-            }
-        }
-
-        private fun buildDatabase(application: Application): SoundboardDatabase {
-            return Room.databaseBuilder(application, SoundboardDatabase::class.java, "sound_database")
+        fun buildDatabase(appContext: Context): SoundboardDatabase {
+            return Room.databaseBuilder(appContext, SoundboardDatabase::class.java, "sound_database")
                     .addMigrations(MIGRATION_4_5)
                     .addMigrations(MIGRATION_5_6)
                     .addMigrations(MIGRATION_6_7)

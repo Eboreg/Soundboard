@@ -9,7 +9,7 @@ import android.provider.OpenableColumns
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.room.*
-import us.huseli.soundboard.GlobalApplication
+import us.huseli.soundboard.Constants
 import us.huseli.soundboard.helpers.MD5
 import java.io.File
 import java.io.FileOutputStream
@@ -132,10 +132,10 @@ data class Sound(
 
         override fun newArray(size: Int): Array<Sound?> = arrayOfNulls(size)
 
-        fun createTemporary(uri: Uri): Sound {
+        fun createTemporary(uri: Uri, context: Context): Sound {
             /** Create Sound object from non-local URI, not to be saved to DB */
-            val application = GlobalApplication.application
-            val inputStream = application.contentResolver.openInputStream(uri)
+            // val application = GlobalApplication.application
+            val inputStream = context.contentResolver.openInputStream(uri)
                     ?: throw Exception("File provider returned null")
             val checksum = MD5.calculate(inputStream)
                     ?: throw Exception("MD5.calculate returned null")
@@ -143,7 +143,7 @@ data class Sound(
 
             val name: String
 
-            when (val cursor = application.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)) {
+            when (val cursor = context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)) {
                 null -> name = ""
                 else -> {
                     cursor.moveToFirst()
@@ -158,17 +158,18 @@ data class Sound(
             return Sound(null, null, name, uri, -1, 100, Date(), -1, checksum)
         }
 
-        fun createFromTemporary(tempSound: Sound): Sound {
+        fun createFromTemporary(tempSound: Sound, context: Context): Sound {
             /** Copy data to local storage and return new Sound object to be saved to DB */
-            val application = GlobalApplication.application
-            val inputStream = application.contentResolver.openInputStream(tempSound.uri)
+            // val application = GlobalApplication.application
+            val inputStream = context.contentResolver.openInputStream(tempSound.uri)
                     ?: throw Exception("File provider returned null")
 
             /** Some paranoid extra measures */
             val filename = tempSound.checksum
                     ?: MD5.calculate(inputStream)
                     ?: throw Exception("MD5.calculate returned null")
-            val file = File(application.soundDir, filename)
+            //val file = File(context.soundDir, filename)
+            val file = File(context.getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE), filename)
             val outputStream = FileOutputStream(file)
             //val outputStream = application.applicationContext.openFileOutput(filename, Context.MODE_PRIVATE)
             val buf = ByteArray(1024)

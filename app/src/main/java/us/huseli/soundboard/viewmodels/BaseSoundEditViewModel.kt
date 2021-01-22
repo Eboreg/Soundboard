@@ -1,12 +1,10 @@
 package us.huseli.soundboard.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import us.huseli.soundboard.GlobalApplication
 import us.huseli.soundboard.data.Sound
-import us.huseli.soundboard.data.SoundRepository
-import us.huseli.soundboard.data.SoundboardDatabase
 
 abstract class BaseSoundEditViewModel : ViewModel() {
     /** Implemented by SoundAddViewModel and SoundEditViewModel */
@@ -14,8 +12,6 @@ abstract class BaseSoundEditViewModel : ViewModel() {
     private val _sounds = mutableListOf<Sound>()
     private val _volume = MutableLiveData(100)
     private var _multiple = false
-
-    internal val repository = SoundRepository(SoundboardDatabase.getInstance(GlobalApplication.application).soundDao())
 
     internal var categoryIndex: Int? = null
 
@@ -58,6 +54,6 @@ abstract class BaseSoundEditViewModel : ViewModel() {
     internal fun removeSounds(predicate: (Sound) -> Boolean): Boolean = _sounds.removeAll(predicate)
 
     abstract fun setCategoryId(value: Int): Any?
-    abstract fun save(): Any?
+    abstract fun save(context: Context): Any?
 
 }

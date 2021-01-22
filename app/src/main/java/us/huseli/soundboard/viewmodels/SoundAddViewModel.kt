@@ -1,11 +1,14 @@
 package us.huseli.soundboard.viewmodels
 
+import android.content.Context
+import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.data.Sound
+import us.huseli.soundboard.data.SoundRepository
 
-class SoundAddViewModel : BaseSoundEditViewModel() {
+class SoundAddViewModel @ViewModelInject constructor(private val repository: SoundRepository) : BaseSoundEditViewModel() {
     private var _duplicates = emptyList<Sound>()
     val duplicateName: String
         get() = if (_duplicates.size == 1) _duplicates[0].name else ""
@@ -39,7 +42,7 @@ class SoundAddViewModel : BaseSoundEditViewModel() {
 
     override fun setCategoryId(value: Int) = sounds.forEach { it.categoryId = value }
 
-    override fun save() = viewModelScope.launch(Dispatchers.IO) {
+    override fun save(context: Context) = viewModelScope.launch(Dispatchers.IO) {
         sounds.forEach { sound ->
             when (duplicateStrategy) {
                 DuplicateStrategy.UPDATE -> {
@@ -53,10 +56,11 @@ class SoundAddViewModel : BaseSoundEditViewModel() {
                         sound.order = duplicate.order
                         repository.delete(duplicate)
                     }
-                    repository.insert(Sound.createFromTemporary(sound))
+                    repository.insert(Sound.createFromTemporary(sound, context))
                 }
-                DuplicateStrategy.SKIP -> if (_duplicates.find { it.checksum == sound.checksum } == null) repository.insert(Sound.createFromTemporary(sound))
-                DuplicateStrategy.ADD -> repository.insert(Sound.createFromTemporary(sound))
+                DuplicateStrategy.SKIP -> if (_duplicates.find { it.checksum == sound.checksum } == null)
+                    repository.insert(Sound.createFromTemporary(sound, context))
+                DuplicateStrategy.ADD -> repository.insert(Sound.createFromTemporary(sound, context))
             }
         }
     }

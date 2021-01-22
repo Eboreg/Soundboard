@@ -8,13 +8,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import java.util.*
 
-abstract class BaseActivity : AppCompatActivity() {
+abstract class LocaleActivity : AppCompatActivity() {
     private fun updateBaseContextLocale(context: Context): Context {
-        val language = PreferenceManager.getDefaultSharedPreferences(context).getString("language", "en")
-        val locale = Locale(language)
-        Locale.setDefault(locale)
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) return updateResourcesLocale(context, locale)
-        return updateResourcesLocaleLegacy(context, locale)
+        return PreferenceManager.getDefaultSharedPreferences(context).getString("language", "en")?.let { language ->
+            val locale = Locale(language)
+            Locale.setDefault(locale)
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) return updateResourcesLocale(context, locale)
+            updateResourcesLocaleLegacy(context, locale)
+        } ?: context
     }
 
     @TargetApi(Build.VERSION_CODES.N_MR1)

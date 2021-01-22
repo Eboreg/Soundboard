@@ -1,13 +1,16 @@
 package us.huseli.soundboard.viewmodels
 
+import android.content.Context
+import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import us.huseli.soundboard.data.SoundRepository
 
-class SoundEditViewModel : BaseSoundEditViewModel() {
+class SoundEditViewModel @ViewModelInject constructor(private val repository: SoundRepository) : BaseSoundEditViewModel() {
     private var _newCategoryId: Int? = null
 
-    override fun save() = viewModelScope.launch(Dispatchers.IO) {
+    override fun save(context: Context) = viewModelScope.launch(Dispatchers.IO) {
         if (!multiple) {
             // Check if category has changed, and if so, place sound last in new category
             _newCategoryId?.let { newCategoryId ->

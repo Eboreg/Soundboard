@@ -1,48 +1,52 @@
 package us.huseli.soundboard.viewmodels
 
-import androidx.annotation.Keep
+import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import us.huseli.soundboard.GlobalApplication
+import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.CategoryRepository
-import us.huseli.soundboard.data.SoundboardDatabase
+import us.huseli.soundboard.data.SoundRepository
+import us.huseli.soundboard.helpers.ColorHelper
 
-@Keep
-class CategoryViewModel(val categoryId: Int) : ViewModel() {
-    private val database = SoundboardDatabase.getInstance(GlobalApplication.application)
-    private val repository = CategoryRepository(database.categoryDao())
-    private val _category = repository.get(categoryId)
+class CategoryViewModel @ViewModelInject constructor(
+        private val repository: CategoryRepository,
+        private val soundRepository: SoundRepository,
+        private val colorHelper: ColorHelper) : ViewModel() {
+    private val emptyCategory = Category("(Unchanged)")
 
-    val name = _category.map { it?.name }
-    val backgroundColor = _category.map { it?.backgroundColor }
-    val textColor = backgroundColor.map { bgc ->
-        if (bgc != null) GlobalApplication.application.getColorHelper().getColorOnBackgroundColor(bgc) else null
-    }
-    val secondaryTextColor = backgroundColor.map { bgc ->
-        if (bgc != null) GlobalApplication.application.getColorHelper().getSecondaryColorOnBackgroundColor(bgc) else null
-    }
-    val collapsed = _category.map { it?.collapsed ?: false }
-
-    private fun setCollapsed(value: Boolean) {
-        if (collapsed.value != value) {
-            viewModelScope.launch(Dispatchers.IO) { repository.setCollapsed(categoryId, value) }
+    val categories = repository.categories.map { list ->
+        list.forEach {
+            it.textColor = colorHelper.getColorOnBackgroundColor(it.backgroundColor)
+            it.secondaryTextColor = colorHelper.getSecondaryColorOnBackgroundColor(it.backgroundColor)
         }
+        list
+    }
+    val categoriesWithEmpty = categories.map { listOf(emptyCategory) + it }
+
+    fun setCollapsed(categoryId: Int, value: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+        repository.setCollapsed(categoryId, value)
     }
 
-    fun toggleCollapsed() {
-        val newValue = collapsed.value?.let { !it } ?: true
-        setCollapsed(newValue)
+    fun expand(category: Category?) = category?.id?.let { setCollapsed(it, false) }
+
+    fun collapse(category: Category?) = category?.id?.let { setCollapsed(it, true) }
+
+    fun create(name: String) = viewModelScope.launch(Dispatchers.IO) {
+        /** Used in MainActivity.onCreate() to create empty default category if there are none */
+        repository.insert(Category(name, colorHelper.randomColor(repository.getUsedColors())))
     }
 
-    fun expand() = setCollapsed(false)
+    /** Used by DeleteCategoryFragment */
+    fun delete(id: Int) = viewModelScope.launch(Dispatchers.IO) {
+        soundRepository.deleteByCategory(id)
+        repository.delete(id)
+    }
 
-    fun collapse() = setCollapsed(true)
-
-    override fun toString(): String {
-        val hashCode = Integer.toHexString(System.identityHashCode(this))
-        return "CategoryViewModel $hashCode <category=${_category.value}>"
+    fun saveOrder(categories: List<Category>) = viewModelScope.launch(Dispatchers.IO) {
+        /** Save .order of all categories as set right now */
+        repository.saveOrder(categories)
     }
 }

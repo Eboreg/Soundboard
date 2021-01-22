@@ -3,8 +3,9 @@ package us.huseli.soundboard.data
 import androidx.lifecycle.liveData
 import kotlinx.coroutines.Dispatchers
 import us.huseli.soundboard.SoundPlayer
+import javax.inject.Inject
 
-class PlayerRepository {
+class PlayerRepository @Inject constructor() {
     private val _players = HashMap<Sound, SoundPlayer>()
 
     private fun addOrUpdate(sound: Sound): SoundPlayer? {

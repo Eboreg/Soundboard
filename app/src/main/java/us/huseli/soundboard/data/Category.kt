@@ -11,7 +11,9 @@ data class Category(
         var name: String,
         var backgroundColor: Int,
         var order: Int,
-        var collapsed: Boolean = false
+        var collapsed: Boolean = false,
+        @Ignore var textColor: Int? = null,
+        @Ignore var secondaryTextColor: Int? = null
 ) {
     constructor(name: String, backgroundColor: Int, order: Int) : this(null, name, backgroundColor, order, false)
     @Ignore
@@ -20,7 +22,6 @@ data class Category(
     constructor(name: String) : this(name, Color.DKGRAY)
 
     override fun toString() = name
-
     override fun equals(other: Any?) = other is Category && other.id == id
     override fun hashCode() = id ?: 0
 }

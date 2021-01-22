@@ -1,27 +1,29 @@
 package us.huseli.soundboard.viewmodels
 
+import android.content.Context
 import android.content.res.Configuration
+import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import us.huseli.soundboard.GlobalApplication
+import us.huseli.soundboard.Constants
 import us.huseli.soundboard.SoundPlayer
-import us.huseli.soundboard.data.*
+import us.huseli.soundboard.data.Category
+import us.huseli.soundboard.data.CategoryRepository
+import us.huseli.soundboard.data.Sound
+import us.huseli.soundboard.data.SoundRepository
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-class AppViewModel : ViewModel() {
+class AppViewModel @ViewModelInject constructor(
+        private val categoryRepository: CategoryRepository, private val soundRepository: SoundRepository) : ViewModel() {
     companion object {
         const val DEFAULT_SPANCOUNT_LANDSCAPE = 8
         const val DEFAULT_SPANCOUNT_PORTRAIT = 4
         const val MAX_UNDO_STATES = 20
     }
 
-    private val database = SoundboardDatabase.getInstance(GlobalApplication.application)
-    private val categoryRepository = CategoryRepository(database.categoryDao())
-    private val soundRepository = SoundRepository(database.soundDao())
     private val undoStates = mutableListOf<UndoState>()
-
     private val _orientation = MutableLiveData<Int>()
     private val _repressMode = MutableLiveData(SoundPlayer.RepressMode.STOP)
     private val _screenRatio = MutableLiveData<Double>()  // (width / height) in portrait mode
@@ -61,24 +63,24 @@ class AppViewModel : ViewModel() {
         } ?: SoundPlayer.RepressMode.STOP
     }
 
-    fun deleteOrphans() = viewModelScope.launch(Dispatchers.IO) {
+    fun deleteOrphans(context: Context) = viewModelScope.launch(Dispatchers.IO) {
         val sounds = soundRepository.list()
-        GlobalApplication.application.soundDir?.listFiles()?.forEach { file ->
+        context.getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE)?.listFiles()?.forEach { file ->
             if (!sounds.map { it.uri.lastPathSegment }.contains(file.name))
                 file.delete()
         }
     }
 
-    fun pushCategoryUndoState() = viewModelScope.launch(Dispatchers.IO) {
-        pushUndoState(null, categoryRepository.list())
+    fun pushCategoryUndoState(context: Context) = viewModelScope.launch(Dispatchers.IO) {
+        pushUndoState(null, categoryRepository.list(), context)
     }
 
-    fun pushSoundUndoState() = viewModelScope.launch(Dispatchers.IO) {
-        pushUndoState(soundRepository.list(), null)
+    fun pushSoundUndoState(context: Context) = viewModelScope.launch(Dispatchers.IO) {
+        pushUndoState(soundRepository.list(), null, context)
     }
 
-    fun pushUndoState() = viewModelScope.launch(Dispatchers.IO) {
-        pushUndoState(soundRepository.list(), categoryRepository.list())
+    fun pushUndoState(context: Context) = viewModelScope.launch(Dispatchers.IO) {
+        pushUndoState(soundRepository.list(), categoryRepository.list(), context)
     }
 
     fun undo() = viewModelScope.launch(Dispatchers.IO) {
@@ -113,7 +115,7 @@ class AppViewModel : ViewModel() {
     private fun portraitSpanCountToLandscape(spanCount: Int): Int? =
             _screenRatio.value?.let { ratio -> (spanCount / ratio).roundToInt() }
 
-    private fun pushUndoState(sounds: List<Sound>?, categories: List<Category>?) {
+    private fun pushUndoState(sounds: List<Sound>?, categories: List<Category>?, context: Context) {
         if (sounds != null || categories != null) {
             undoStates.add(UndoState(sounds, categories))
             _undosAvailable.postValue(true)
@@ -122,7 +124,7 @@ class AppViewModel : ViewModel() {
                 val nextState = undoStates.first()
                 if (removedState.sounds != null && nextState.sounds != null)
                     removedState.sounds.subtract(nextState.sounds).forEach {
-                        GlobalApplication.application.soundDir?.listFiles()?.forEach { file ->
+                        context.getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE)?.listFiles()?.forEach { file ->
                             if (file.name == it.uri.lastPathSegment) file.delete()
                         }
                     }

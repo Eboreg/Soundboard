@@ -12,19 +12,25 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.jaredrummler.android.colorpicker.ColorPickerDialog
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
-import us.huseli.soundboard.GlobalApplication
+import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.R
 import us.huseli.soundboard.databinding.FragmentEditCategoryBinding
+import us.huseli.soundboard.helpers.ColorHelper
 import us.huseli.soundboard.viewmodels.AppViewModel
 import us.huseli.soundboard.viewmodels.BaseCategoryEditViewModel
+import javax.inject.Inject
 
+@AndroidEntryPoint
 abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogListener {
     private val dialogId by lazy { requireArguments().getInt(ARG_DIALOG_ID) }
     private var binding: FragmentEditCategoryBinding? = null
 
     internal val appViewModel by activityViewModels<AppViewModel>()
-    internal abstract var viewModel: BaseCategoryEditViewModel?
+    internal abstract val viewModel: BaseCategoryEditViewModel
     internal abstract val title: Int
+
+    @Inject
+    lateinit var colorHelper: ColorHelper
 
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         val inflater = LayoutInflater.from(requireContext())
@@ -46,13 +52,11 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
                 if (catName.isEmpty())
                     binding?.root?.let { Snackbar.make(it, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show() }
                 else {
-                    viewModel?.apply {
-                        appViewModel.pushCategoryUndoState()
+                    viewModel.apply {
+                        appViewModel.pushCategoryUndoState(requireContext())
                         setName(catName)
                         save()
                         dismiss()
-                    } ?: run {
-                        Log.e(LOG_TAG, "setPositiveButton: viewModel is null")
                     }
                 }
             }
@@ -63,7 +67,7 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         savedInstanceState?.let { state ->
-            viewModel?.let { viewModel ->
+            viewModel.let { viewModel ->
                 state.getString(ARG_NAME)?.let { viewModel.setName(it) }
                 viewModel.setBackgroundColor(state.getInt(ARG_BACKGROUND_COLOR))
             }
@@ -73,14 +77,12 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
 
     override fun onSaveInstanceState(outState: Bundle) {
         binding?.let { outState.putString(ARG_NAME, it.categoryName.text.toString()) }
-        viewModel?.backgroundColor?.value?.let { outState.putInt(ARG_BACKGROUND_COLOR, it) }
+        viewModel.backgroundColor.value?.let { outState.putInt(ARG_BACKGROUND_COLOR, it) }
         super.onSaveInstanceState(outState)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        // binding = FragmentEditCategoryBinding.inflate(inflater, container, false)
-        return binding?.root
-    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) =
+            binding?.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -94,10 +96,8 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
     }
 
     override fun onColorSelected(dialogId: Int, color: Int) {
-        viewModel?.apply {
+        viewModel.apply {
             setBackgroundColor(color)
-        } ?: run {
-            Log.e(LOG_TAG, "onColorSelected: viewModel is null")
         }
     }
 
@@ -105,9 +105,9 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
 
     private fun onSelectColourClick() {
         ColorPickerDialog.newBuilder().apply {
-            setPresets(GlobalApplication.application.getColorHelper().colors.toIntArray())
+            setPresets(colorHelper.colors.toIntArray())
             setDialogTitle(R.string.select_background_colour)
-            viewModel?.backgroundColor?.value?.let { setColor(it) }
+            viewModel.backgroundColor.value?.let { setColor(it) }
             setDialogId(dialogId)
             show(requireActivity())
         }

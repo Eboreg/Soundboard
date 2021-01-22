@@ -3,21 +3,18 @@ package us.huseli.soundboard.viewmodels
 import android.content.Context
 import android.text.Editable
 import android.util.Log
+import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import us.huseli.soundboard.GlobalApplication
+import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.data.SoundRepository
-import us.huseli.soundboard.data.SoundboardDatabase
 import us.huseli.soundboard.helpers.MD5
 import java.io.File
 import java.util.*
 
-class SoundViewModel : ViewModel() {
-    private val database = SoundboardDatabase.getInstance(GlobalApplication.application)
-    private val repository = SoundRepository(database.soundDao())
-
+class SoundViewModel @ViewModelInject constructor(private val repository: SoundRepository) : ViewModel() {
     private val _failedSounds = mutableListOf<Sound>()
     private val _filterEnabled = MutableLiveData(false)
     private val _filterTerm = MutableLiveData("")
@@ -49,12 +46,12 @@ class SoundViewModel : ViewModel() {
         }
     }
 
-    fun moveFilesToLocalStorage() = viewModelScope.launch(Dispatchers.IO) {
+    fun moveFilesToLocalStorage(context: Context) = viewModelScope.launch(Dispatchers.IO) {
         /** One-time thing at app version upgrade */
         val newSounds = mutableListOf<Sound>()
         val oldSounds = repository.list()
         oldSounds.forEach { oldSound ->
-            newSounds.add(Sound.createFromTemporary(oldSound))
+            newSounds.add(Sound.createFromTemporary(oldSound, context))
         }
         repository.delete(oldSounds)
         repository.insert(newSounds)
@@ -92,6 +89,8 @@ class SoundViewModel : ViewModel() {
         }
         repository.update(sounds)
     }
+
+    fun update(sounds: List<Sound>, category: Category?) = category?.id?.let { update(sounds, it) }
 
     fun updateDuration(sound: Sound, duration: Int) = viewModelScope.launch(Dispatchers.IO) {
         repository.updateDuration(sound, duration)
@@ -158,8 +157,8 @@ class SoundViewModel : ViewModel() {
         if (_reorderEnabled.value != false) _reorderEnabled.value = false
     }
 
-    fun getLastSelected(categoryId: Int, except: Sound): Sound? {
-        return try {
+    fun getLastSelected(category: Category?, except: Sound) = category?.id?.let { categoryId ->
+        try {
             _selectedSounds.last { it.categoryId == categoryId && it != except }
         } catch (e: NoSuchElementException) {
             null
@@ -186,38 +185,6 @@ class SoundViewModel : ViewModel() {
     fun toggleReorderEnabled() {
         _reorderEnabled.value = !(_reorderEnabled.value ?: false)
     }
-
-    /******* UNDO *******/
-/*
-    private val _undoStates = mutableListOf<List<Sound>>()
-    private val _undoAvailable = MutableLiveData(false)
-
-    val undoAvailable: LiveData<Boolean>
-        get() = _undoAvailable
-
-    private fun addUndoState(sounds: List<Sound>) {
-        _undoStates.add(sounds.map { it.copy() })
-        if (_undoStates.size > MAX_UNDO_STATES) _undoStates.removeFirst()
-        _undoAvailable.value = _undoStates.size > 1
-    }
-
-    fun undo() = viewModelScope.launch(Dispatchers.IO) {
-        */
-    /**
-     * Last state in list is always going to be current state, so going "back" to that wouldn't
-     * change anything. So we need to go back to the _next to_ last state. We do that by
-     * removing the last state from list and applying the one that then becomes last.
-     * Then we also remove the next to last one, because that same state will be set once again
-     * when we get the new sound list from repository.
-     *//*
-
-        if (_undoStates.size > 1) {
-            _undoStates.removeLast()
-            repository.update(_undoStates.removeLast())
-            if (_undoStates.size <= 1) _undoAvailable.postValue(false)
-        }
-    }
-*/
 
 
     interface OnSelectAllListener {

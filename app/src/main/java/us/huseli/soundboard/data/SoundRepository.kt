@@ -1,6 +1,10 @@
 package us.huseli.soundboard.data
 
-class SoundRepository(private val soundDao: SoundDao) {
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
     fun delete(sounds: List<Sound>) = soundDao.delete(sounds.mapNotNull { it.id })
 
     fun delete(sound: Sound) = delete(listOf(sound))
@@ -10,8 +14,6 @@ class SoundRepository(private val soundDao: SoundDao) {
     fun deleteByCategory(categoryId: Int) = delete(listByCategory(categoryId))
 
     fun get(soundId: Int?) = soundId?.let { soundDao.get(it) }
-
-    fun getLive(soundId: Int) = soundDao.getLive(soundId)
 
     fun getMaxOrder(categoryId: Int) = soundDao.getMaxOrder(categoryId) ?: 0
 
