@@ -16,3 +16,4 @@ sentry.properties
 *.trace
 *.hprof
 keystore.properties
+*.apk
