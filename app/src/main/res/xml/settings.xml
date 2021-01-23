@@ -16,6 +16,7 @@
         app:useSimpleSummaryProvider="true"
         app:entries="@array/languageEntries"
         app:entryValues="@array/languageEntryValues"
+        app:defaultValue="default"
         app:icon="@drawable/ic_language" />
 
     <us.huseli.soundboard.helpers.LongSummaryPreferenceCategory

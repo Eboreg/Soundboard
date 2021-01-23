@@ -1,15 +1,12 @@
 package us.huseli.soundboard
 
 import android.util.Log
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.helpers.AudioFile
 
-class SoundPlayer(private val sound: Sound, val path: String) {
-    private val audioFile: AudioFile?
+class SoundPlayer(private val sound: Sound, val path: String, private var bufferSize: Int) {
+    private var audioFile: AudioFile?
     private val tempAudioFiles = mutableListOf<AudioFile>()
 
     private var listener: Listener? = null
@@ -42,8 +39,13 @@ class SoundPlayer(private val sound: Sound, val path: String) {
 
     init {
         Log.i(LOG_TAG, "init: uri=$sound, path=$path")
-        audioFile = try {
-            AudioFile(path, sound.name) {
+        audioFile = createAudioFile()
+        volume = sound.volume
+    }
+
+    private fun createAudioFile(): AudioFile? {
+        return try {
+            AudioFile(path, sound.name, bufferSize) {
                 _duration = it.duration.toInt()
                 _state = State.READY
             }.setOnReadyListener {
@@ -67,7 +69,6 @@ class SoundPlayer(private val sound: Sound, val path: String) {
             _state = State.ERROR
             null
         }
-        volume = sound.volume
     }
 
     private fun errorMessageFromType(errorType: AudioFile.Error): String {
@@ -87,36 +88,17 @@ class SoundPlayer(private val sound: Sound, val path: String) {
         }
     }
 
-/*
-    override fun onPrepared(mp: MediaPlayer) {
-        _duration = mp.duration
-        mp.setOnCompletionListener {
-            if (!isPlaying()) changeState(State.READY)
-            it.seekTo(0)
-            //mediaPlayer.seekTo(0)
-        }
-        changeState(State.READY)
-    }
-*/
-
-/*
-    override fun onError(mp: MediaPlayer, what: Int, extra: Int): Boolean {
-        _errorMessage = when (extra) {
-            MediaPlayer.MEDIA_ERROR_IO -> "IO error"
-            MediaPlayer.MEDIA_ERROR_MALFORMED -> "Malformed bitstream"
-            MediaPlayer.MEDIA_ERROR_UNSUPPORTED -> "Unsupported format"
-            MediaPlayer.MEDIA_ERROR_TIMED_OUT -> "Timeout"
-            else -> "Unknown error"
-        }
-        changeState(State.ERROR)
-        return true
-    }
-*/
-
     private fun isPlaying(): Boolean =
             audioFile?.isPlaying == true || tempAudioFiles.any { it.isPlaying }
 
-    // private fun isPlaying() = mediaPlayer?.isPlaying == true || tempMediaPlayers.any { it.isPlaying }
+    fun setBufferSize(value: Int) = scope.launch {
+        if (value != bufferSize) {
+            bufferSize = value
+            audioFile?.release()
+            audioFile = createAudioFile()
+            // audioFile?.setBufferSize(value)
+        }
+    }
 
     fun togglePlay() {
         if (_state == State.PLAYING) {
@@ -125,11 +107,9 @@ class SoundPlayer(private val sound: Sound, val path: String) {
                     _state = State.STOPPED
                     audioFile?.stop()
                     stopAndClearTempPlayers()
-                    //mediaPlayer.seekTo(0)
                 }
                 RepressMode.RESTART -> {
                     audioFile?.restart()
-                    // _state = State.PLAYING
                 }
                 RepressMode.OVERLAP -> {
                     // TODO: adjust volumes?
@@ -138,13 +118,11 @@ class SoundPlayer(private val sound: Sound, val path: String) {
             }
         } else {
             audioFile?.play()
-            // mediaPlayer.start()
-            // _state = State.PLAYING
         }
     }
 
     private fun createAndStartTempPlayer() {
-        AudioFile(path, sound.name).let {
+        AudioFile(path, sound.name, bufferSize).let {
             it.play()
             tempAudioFiles.add(it)
             it.setOnPlayListener {

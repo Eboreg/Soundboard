@@ -69,4 +69,5 @@
     <string name="audio_buffer_size">Audio buffer size</string>
     <string name="buffer_size_summary">If audio is too unresponsive, lower this. If audio is choppy, raise it.</string>
     <string name="soundboard_settings">Söun̈dböard Sëttin̈gs</string>
+    <string name="reset_buffer_size_to_default">Reset buffer size to default</string>
 </resources>

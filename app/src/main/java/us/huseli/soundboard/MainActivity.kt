@@ -83,27 +83,6 @@ class MainActivity :
         }
     }
 
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-        sharedPreferences?.also {
-            when (key) {
-                "language" -> setLanguage(sharedPreferences.getString(key, "en"))
-            }
-        }
-    }
-
-    private fun onReInitSoundResult(data: Intent?, resultCode: Int) {
-        // We have returned from failed sound reinit dialog
-        if (resultCode == Activity.RESULT_OK && data != null) {
-            data.data?.let { uri ->
-                (data.extras?.get(EXTRA_SOUND_ID) as? Int)?.let { soundId ->
-                    // soundId = id of sound to replace
-                    val sound = Sound.createTemporary(uri, applicationContext)
-                    soundViewModel.replaceSound(soundId, sound, this)
-                }
-            }
-        }
-    }
-
     private fun onAddSoundResult(data: Intent?, resultCode: Int) {
         if (resultCode == Activity.RESULT_OK && data != null) {
             // We have returned from file chooser dialog
@@ -146,8 +125,6 @@ class MainActivity :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this)
 
         val pInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
         val prefs = getPreferences(Context.MODE_PRIVATE)
@@ -238,7 +215,25 @@ class MainActivity :
         return true
     }
 
+    override fun onPause() {
+        super.onPause()
+        PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this)
+    }
+
     override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?) = false
+
+    override fun onResume() {
+        super.onResume()
+        PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this)
+    }
+
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        sharedPreferences?.also {
+            when (key) {
+                "language" -> setLanguage(sharedPreferences.getString(key, "en"))
+            }
+        }
+    }
 
 
     /********* OVERRIDDEN 3RD PARTY METHODS **********/
@@ -297,6 +292,13 @@ class MainActivity :
 
 
     /********* OWN METHODS **********/
+    private fun getCategoryIndex(selectedSounds: List<Sound>): Int {
+        return when (selectedSounds.size) {
+            1 -> categories.map { it.id }.indexOf(selectedSounds.first().categoryId).let { if (it > -1) it else 0 }
+            else -> 0
+        }
+    }
+
     private fun onAppVersionUpgraded(from: Long, to: Long) {
         if (from in 1..5 && to >= 6) {
             /** From 6, sounds are stored in app local storage */
@@ -321,6 +323,19 @@ class MainActivity :
             item?.icon?.alpha = 128
             binding.filterBar.visibility = View.GONE
             manager?.hideSoftInputFromWindow(binding.filterTerm.windowToken, 0)
+        }
+    }
+
+    private fun onReInitSoundResult(data: Intent?, resultCode: Int) {
+        // We have returned from failed sound reinit dialog
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            data.data?.let { uri ->
+                (data.extras?.get(EXTRA_SOUND_ID) as? Int)?.let { soundId ->
+                    // soundId = id of sound to replace
+                    val sound = Sound.createTemporary(uri, applicationContext)
+                    soundViewModel.replaceSound(soundId, sound, this)
+                }
+            }
         }
     }
 
@@ -435,14 +450,7 @@ class MainActivity :
                 .commit()
     }
 
-    fun showDialogFragment(fragment: Fragment) = showDialogFragment(fragment, null)
-
-    private fun getCategoryIndex(selectedSounds: List<Sound>): Int {
-        return when (selectedSounds.size) {
-            1 -> categories.map { it.id }.indexOf(selectedSounds.first().categoryId).let { if (it > -1) it else 0 }
-            else -> 0
-        }
-    }
+    private fun showDialogFragment(fragment: Fragment) = showDialogFragment(fragment, null)
 
     @SuppressLint("QueryPermissionsNeeded")
     private fun startAddSoundActivity() {

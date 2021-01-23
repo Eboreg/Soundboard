@@ -12,7 +12,10 @@ import kotlinx.coroutines.sync.withLock
 import java.nio.ByteBuffer
 
 class AudioFile(
-        private val path: String, private val name: String, onInit: ((AudioFile) -> Unit)? = null) {
+        private val path: String,
+        private val name: String,
+        private var bufferSize: Int,
+        onInit: ((AudioFile) -> Unit)? = null) {
     /** name is really only for debugging purposes */
 
     // Public val's & var's
@@ -28,6 +31,8 @@ class AudioFile(
 
     // Private val's initialized here
     private val extractor = MediaExtractor().apply { setDataSource(path) }
+    private val primingSize
+        get() = bufferSize / 4
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
 
     // Private var's to be initialized later on
@@ -116,6 +121,20 @@ class AudioFile(
         } else play()
     }
 
+    fun setBufferSize(value: Int) {
+        if (value != bufferSize) {
+            Log.d(LOG_TAG, "setBufferSize: Changing buffer size for $name from $bufferSize to $value")
+            bufferSize = value
+            codecCallback.onBufferSizeChanged()
+/*
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                audioTrack.bufferSizeInFrames = value * 2 * channelCount
+            }
+*/
+            rebuildAudioTrack()
+        }
+    }
+
     fun setVolume(value: Int): AudioFile {
         audioTrack.setVolume(value.toFloat() / 100)
         return this
@@ -148,12 +167,12 @@ class AudioFile(
                 val builder = AudioTrack.Builder()
                         .setAudioAttributes(audioAttributes)
                         .setAudioFormat(audioFormat)
-                        .setBufferSizeInBytes(BUFFER_SIZE * channelCount)
+                        .setBufferSizeInBytes(bufferSize * channelCount)
                         .setSessionId(sessionId)
                         .setTransferMode(AudioTrack.MODE_STREAM)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) builder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY)
                 builder.build()
-            } else AudioTrack(audioAttributes, audioFormat, BUFFER_SIZE * channelCount, AudioTrack.MODE_STREAM, sessionId)
+            } else AudioTrack(audioAttributes, audioFormat, bufferSize * channelCount, AudioTrack.MODE_STREAM, sessionId)
         } catch (e: IllegalStateException) {
             throw AudioFileException(Error.BUILD_AUDIO_TRACK)
         }
@@ -201,7 +220,7 @@ class AudioFile(
     }
 
     private fun extractRaw(maxSize: Int?) = scope.launch {
-        val buffer = ByteBuffer.allocateDirect(BUFFER_SIZE * channelCount)
+        val buffer = ByteBuffer.allocateDirect(bufferSize * channelCount)
         var totalSize = 0
         var shouldQuit = false
         do {
@@ -301,19 +320,19 @@ class AudioFile(
          * Expects extractor to be ready and positioned at beginning of track.
          */
         extractMode = ExtractMode.PRIME
-        if (DO_PRIMING) extract(PRIMING_SIZE)
+        if (DO_PRIMING) extract(primingSize)
         //Log.d(LOG_TAG, "prime(): invoking $onReadyListener")
         callback?.invoke(this)
         onReadyListener?.invoke(this)
         state = State.READY
     }
 
-    private fun rebuildAudioTrack(audioFormat: AudioFormat, sessionId: Int): AudioTrack? {
-        return try {
-            buildAudioTrack(audioFormat, sessionId)
+    private fun rebuildAudioTrack() = scope.launch {
+        try {
+            audioTrack.release()
+            audioTrack = buildAudioTrack(outputFormat)
         } catch (e: AudioFileException) {
             onError(Error.BUILD_AUDIO_TRACK, e)
-            null
         }
     }
 
@@ -355,16 +374,18 @@ class AudioFile(
 
 
     inner class CodecCallback : MediaCodec.Callback() {
+        private var extractorDone = false
         private var flushAtSampleTime: Long? = null
         private var inputEosReached = false
         private var lastSampleTime: Long? = null
-        private var outputBuffer = ByteBuffer.allocate(BUFFER_SIZE * channelCount)
+        private var outputBuffer = ByteBuffer.allocate(bufferSize * channelCount)
         private var totalSize = 0
         private val writeMutex = Mutex()
 
         var flushed = false
 
         fun reset() {
+            extractorDone = false
             flushed = false
             flushAtSampleTime = null
             inputEosReached = false
@@ -373,12 +394,16 @@ class AudioFile(
             totalSize = 0
         }
 
+        fun onBufferSizeChanged() {
+            outputBuffer = ByteBuffer.allocate(bufferSize * channelCount)
+        }
+
         override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {
             /**
              * If we've reached the end of input stream: queue 'end of stream' sample
              * If we are in prime mode and maxSize is reached: flush codec
              */
-            if (extractMode == ExtractMode.PRIME && totalSize >= PRIMING_SIZE) {
+            if (extractMode == ExtractMode.PRIME && totalSize >= primingSize) {
                 // TODO: Should this be moved inside getInputBuffer?
                 if (flushAtSampleTime == null) {
                     //Log.d(LOG_TAG, "onInputBufferAvailable: totalSize[$totalSize] >= PRIMING_SIZE [$PRIMING_SIZE], setting flushAtSampleTime[$flushAtSampleTime] to lastSampleTime[$lastSampleTime]")
@@ -391,6 +416,7 @@ class AudioFile(
                         val sampleSize = extractor.readSampleData(buffer, 0)
                         Log.d(LOG_TAG, "onInputBufferAvailable: index=$index, sampleSize=$sampleSize, sampleTime=${extractor.sampleTime}")
                         if (extractor.sampleTime >= 0) lastSampleTime = extractor.sampleTime
+                        extractor.sampleFlags
                         codec.queueInputBuffer(
                                 index, 0, if (sampleSize >= 0) sampleSize else 0,
                                 if (extractor.sampleTime >= 0) extractor.sampleTime else 0,
@@ -463,7 +489,7 @@ class AudioFile(
             Log.d(LOG_TAG, "onOutputFormatChanged: hasChanged=$hasChanged, format=$format, old output format=$outputFormat, new output format=$audioFormat")
             if (hasChanged) {
                 outputFormat = audioFormat
-                rebuildAudioTrack(audioFormat, audioTrack.audioSessionId)?.let { audioTrack = it }
+                rebuildAudioTrack()
             }
         }
     }
@@ -524,11 +550,6 @@ class AudioFile(
     enum class State { READY, PLAYING, INITIALIZING, STOPPED, ERROR }
 
     companion object {
-        // Try messing around until it runs good
-        const val BUFFER_SIZE = (1 * 44100 * 16 / 8).toInt()
-
-        // Priming size; try changing around until it runs good
-        const val PRIMING_SIZE = BUFFER_SIZE / 4
         const val LOG_TAG = "AudioFile"
         const val AUDIOTRACK_LISTEN_INTERVAL: Long = 50  // milliseconds
         const val SAMPLE_RATE = 44100
