@@ -17,9 +17,11 @@ object DatabaseModule {
     fun provideDatabase(@ApplicationContext appContext: Context) = SoundboardDatabase.buildDatabase(appContext)
 
     @Provides
+    @Singleton
     fun provideSoundDao(database: SoundboardDatabase) = database.soundDao()
 
     @Provides
+    @Singleton
     fun provideCategoryDao(database: SoundboardDatabase) = database.categoryDao()
 
 }

@@ -3,20 +3,18 @@
 package us.huseli.soundboard.helpers
 
 import android.media.*
-import android.os.Build
+import android.os.*
 import android.util.Log
-import androidx.annotation.WorkerThread
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import java.nio.ByteBuffer
+import kotlin.math.min
 
+@Suppress("RedundantSuspendModifier")
 class AudioFile(
         private val path: String,
         private val name: String,
         private var bufferSize: Int,
         onInit: ((AudioFile) -> Unit)? = null) {
-    /** name is really only for debugging purposes */
 
     // Public val's & var's
     val duration: Long
@@ -25,8 +23,9 @@ class AudioFile(
 
     // Private val's to be initialized in init
     private val audioAttributes: AudioAttributes
-    private val codecCallback: CodecCallback
-    private val inputFormat: MediaFormat
+
+    //private val codecCallback: CodecCallback
+    private val inputMediaFormat: MediaFormat
     private val mime: String
 
     // Private val's initialized here
@@ -39,10 +38,11 @@ class AudioFile(
     private var audioTrack: AudioTrack
     private var channelCount: Int
     private var extractMode = ExtractMode.PRIME
-    private var outputFormat: AudioFormat
+    private var outputAudioFormat: AudioFormat
 
     // Private var's initialized here
     private var codec: MediaCodec? = null
+    private var extractJob: Job? = null
     private var onErrorListener: ((AudioFile, Error) -> Unit)? = null
     private var onReadyListener: ((AudioFile) -> Unit)? = null
     private var onPlayListener: ((AudioFile) -> Unit)? = null
@@ -58,10 +58,10 @@ class AudioFile(
     init {
         val mediaFormatPair = getMediaFormat() ?: throw AudioFileException(Error.GET_MEDIA_TYPE)
         val trackNumber = mediaFormatPair.first
-        inputFormat = mediaFormatPair.second
+        inputMediaFormat = mediaFormatPair.second
         // InputFormat duration is in MICROseconds!
-        duration = (inputFormat.getLong(MediaFormat.KEY_DURATION) / 1000)
-        mime = inputFormat.getString(MediaFormat.KEY_MIME)
+        duration = (inputMediaFormat.getLong(MediaFormat.KEY_DURATION) / 1000)
+        mime = inputMediaFormat.getString(MediaFormat.KEY_MIME)
                 ?: throw AudioFileException(Error.GET_MIME_TYPE)
 
         audioAttributes = AudioAttributes.Builder()
@@ -69,20 +69,20 @@ class AudioFile(
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                 .build()
 
-        channelCount = inputFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-        outputFormat = getAudioFormat(inputFormat, null).second
-        audioTrack = buildAudioTrack(outputFormat)
+        channelCount = inputMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+        outputAudioFormat = getAudioFormat(inputMediaFormat, null).second
+        audioTrack = buildAudioTrack(outputAudioFormat)
 
-        codecCallback = CodecCallback()
-        if (mime != MediaFormat.MIMETYPE_AUDIO_RAW) initCodec()
+        //codecCallback = CodecCallback()
+        if (mime != MediaFormat.MIMETYPE_AUDIO_RAW) scope.launch { initCodec() }
 
-        val mbs = AudioTrack.getMinBufferSize(outputFormat.sampleRate, outputFormat.channelMask, outputFormat.encoding)
+        val mbs = AudioTrack.getMinBufferSize(outputAudioFormat.sampleRate, outputAudioFormat.channelMask, outputAudioFormat.encoding)
 
         extractor.selectTrack(trackNumber)
-        prime(onInit)
+        scope.launch { prime(onInit) }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Log.d(LOG_TAG, "init: name=$name, mime=$mime, minBufferSize=$mbs, bufferSizeInFrames=${audioTrack.bufferSizeInFrames}, channelCount=$channelCount, inputFormat=$inputFormat, outputFormat=$outputFormat")
+            Log.d(LOG_TAG, "init: name=$name, mime=$mime, minBufferSize=$mbs, bufferSizeInFrames=${audioTrack.bufferSizeInFrames}, channelCount=$channelCount, inputFormat=$inputMediaFormat, outputFormat=$outputAudioFormat")
         }
     }
 
@@ -90,12 +90,8 @@ class AudioFile(
 
     fun play() {
         if (state != State.ERROR) {
-            val mbs = AudioTrack.getMinBufferSize(outputFormat.sampleRate, outputFormat.channelMask, outputFormat.encoding)
-            Log.d(LOG_TAG, "Play name=$name, inputFormat=$inputFormat, outputFormat=$outputFormat, mime=$mime, duration=$duration, audioAttributes=$audioAttributes, audioTrack=$audioTrack, channelCount=$channelCount, min buffer size=$mbs bytes")
-            state = State.INITIALIZING
-            extractMode = ExtractMode.REGULAR
-            audioTrack.play()
-            extract()
+            if (state == State.READY) doPlay()
+            else scope.launch { awaitState(State.READY, 1000L) { doPlay() } }
         }
     }
 
@@ -103,21 +99,23 @@ class AudioFile(
         // audioTrackListener.release()
         audioTrack.release()
         codec?.release()
+        extractor.release()
         scope.cancel()
     }
 
     fun restart() {
         Log.d(LOG_TAG, "restart: init")
         if (state == State.PLAYING) {
+            Log.d(LOG_TAG, "restart: state==PLAYING")
+            state = State.INIT_PLAY
+            extractJob?.cancel()
             queuedStopJob?.cancel()
-            flushCodec(codec)
             audioTrack.pause()
             audioTrack.flush()
-            state = State.INITIALIZING
-            codecCallback.reset()
-            extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
             audioTrack.play()
-            codec?.start()
+            flushCodec(codec)
+            extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+            extractJob = scope.launch { extract() }
         } else play()
     }
 
@@ -125,13 +123,12 @@ class AudioFile(
         if (value != bufferSize) {
             Log.d(LOG_TAG, "setBufferSize: Changing buffer size for $name from $bufferSize to $value")
             bufferSize = value
-            codecCallback.onBufferSizeChanged()
 /*
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 audioTrack.bufferSizeInFrames = value * 2 * channelCount
             }
 */
-            rebuildAudioTrack()
+            scope.launch { rebuildAudioTrack() }
         }
     }
 
@@ -144,19 +141,31 @@ class AudioFile(
         /** Stop immediately */
         if (state == State.PLAYING) {
             state = State.STOPPED
+            extractJob?.cancel()
+            queuedStopJob?.cancel()
             audioTrack.pause()
-            onStopListener?.invoke(this)
+            audioTrack.flush()
             codec?.let {
                 Log.d(LOG_TAG, "Flushing codec because playback finished")
                 flushCodec(it)
             }
-            audioTrack.flush()
             extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
-            prime()
+            onStopListener?.invoke(this)
+            scope.launch { prime() }
         }
     }
 
     /********** PRIVATE METHODS **********/
+
+    private suspend fun awaitState(desiredState: State, timeOutMs: Long, function: () -> Unit) {
+        var elapsedMs = 0L
+        while (state != desiredState && elapsedMs < timeOutMs) {
+            delay(WAIT_INTERVAL)
+            elapsedMs += WAIT_INTERVAL
+        }
+        if (state == desiredState) function.invoke()
+        else onWarning(Error.TIMEOUT)
+    }
 
     private fun buildAudioTrack(audioFormat: AudioFormat) = buildAudioTrack(audioFormat, AudioManager.AUDIO_SESSION_ID_GENERATE)
 
@@ -181,17 +190,24 @@ class AudioFile(
     private fun bytesToMilliseconds(bytes: Int): Long {
         /** milliseconds = 1000 * bytes / (hz * frameSizeInBytes) */
         // Let's assume we always output 16 bit (== 2 bytes per sample) PCM for simplicity
-        return ((1000 * bytes) / (outputFormat.sampleRate * 2 * channelCount)).toLong()
+        return ((1000 * bytes) / (outputAudioFormat.sampleRate * 2 * channelCount)).toLong()
     }
 
-    private fun extract(maxSize: Int? = null) {
+    private fun doPlay() {
+        Log.d(LOG_TAG, "Play name=$name, inputFormat=$inputMediaFormat, outputFormat=$outputAudioFormat, mime=$mime, duration=$duration, audioAttributes=$audioAttributes, audioTrack=$audioTrack, channelCount=$channelCount")
+        state = State.INIT_PLAY
+        extractMode = ExtractMode.REGULAR
+        audioTrack.play()
+        extractJob = scope.launch { extract() }
+    }
+
+    private suspend fun extract(maxSize: Int? = null) {
         /**
          * Extracts sample data from extractor and feeds it to audioTrack.
          * Before: Make sure extractor is positioned at the correct sample and audioTrack is ready
          * for writing.
          * Parameters:
          *   maxSize = Extract max this number of bytes
-         * Returns: Size of last written sample, 0 if there were none, or null if not applicable.
          */
         when (mime) {
             MediaFormat.MIMETYPE_AUDIO_RAW -> extractRaw(maxSize)
@@ -199,53 +215,122 @@ class AudioFile(
         }
     }
 
-    @Throws(AudioFileException::class)
-    private fun initCodec() {
-        val codecName = MediaCodecList(MediaCodecList.REGULAR_CODECS).findDecoderForFormat(inputFormat)
-                ?: throw AudioFileException(Error.NO_SUITABLE_CODEC)
-        codec = MediaCodec.createByCodecName(codecName).also {
-            it.setCallback(codecCallback)
-            it.configure(inputFormat, null, null, 0)
-        }
-    }
-
-    private fun extractEncoded() {
+    private suspend fun extractEncoded() {
         try {
             if (codec == null) initCodec()
-            codecCallback.reset()
-            codec?.start()
         } catch (e: Exception) {
             onError(Error.CODEC_START, e)
         }
+        val info = MediaCodec.BufferInfo()
+        val timeoutUs = 1000L
+        var inputEos = false
+        var outputEos = false
+        var extractorDone = false
+        var totalSize = 0
+        codec?.let { codec ->
+            while (!outputEos && state != State.STOPPED) {
+                yield()  // checks for cancellation
+                if (!inputEos) {
+                    try {
+                        val index = codec.dequeueInputBuffer(timeoutUs)
+                        if (index >= 0) {
+                            val buffer = codec.getInputBuffer(index)
+                            if (buffer != null) {
+                                do {
+                                    yield()  // checks for cancellation
+                                    if (extractorDone) {
+                                        inputEos = true
+                                        codec.queueInputBuffer(index, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                                        break
+                                    }
+                                    val sampleSize = extractor.readSampleData(buffer, 0)
+                                    if (sampleSize > 0) {
+                                        totalSize += sampleSize
+                                        codec.queueInputBuffer(index, 0, sampleSize, extractor.sampleTime, extractor.sampleFlags)
+                                    }
+                                    extractorDone = !extractor.advance()
+                                } while (sampleSize == 0)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.w(LOG_TAG, "Error in codec output", e)
+                    }
+                }
+
+                try {
+                    val index = codec.dequeueOutputBuffer(info, timeoutUs)
+                    if (index >= 0 && (state == State.PLAYING || state == State.INIT_PLAY)) {
+                        val buffer = codec.getOutputBuffer(index)
+                        if ((info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                            codec.releaseOutputBuffer(index, false)
+                        } else if (buffer != null) {
+                            yield()  // checks for cancellation
+                            outputEos = (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0
+                            if (outputEos && totalSize < MINIMUM_SAMPLE_SIZE) {
+                                val elementsToAdd = min(MINIMUM_SAMPLE_SIZE - totalSize, buffer.capacity() - buffer.limit())
+                                val writableBuffer = ByteBuffer.allocate(buffer.limit() + elementsToAdd)
+                                buffer.position(buffer.limit())
+                                writableBuffer.put(buffer)
+                                for (i in 0 until elementsToAdd) writableBuffer.put(0)
+                                writableBuffer.limit(writableBuffer.position())
+                                writableBuffer.rewind()
+                                writeAudioTrack(writableBuffer)
+                            } else
+                                writeAudioTrack(buffer, info.size)
+                            codec.releaseOutputBuffer(index, false)
+                        }
+                    } else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                        val (hasChanged, audioFormat) = getAudioFormat(codec.outputFormat, outputAudioFormat)
+                        if (hasChanged) {
+                            outputAudioFormat = audioFormat
+                            rebuildAudioTrack()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.w(LOG_TAG, "Error in codec output", e)
+                }
+            }
+        }
+        Log.d(LOG_TAG, "Extract finished, total size=$totalSize")
     }
 
-    private fun extractRaw(maxSize: Int?) = scope.launch {
-        val buffer = ByteBuffer.allocateDirect(bufferSize * channelCount)
+    private fun tryQueueInputBuffer(codec: MediaCodec, index: Int, size: Int, presentationTimeUs: Long, sampleFlags: Int): Boolean {
+        return try {
+            codec.queueInputBuffer(index, 0, size, presentationTimeUs, sampleFlags)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private suspend fun extractRaw(maxSize: Int? = null) {
+        val buffer = ByteBuffer.allocate(bufferSize * channelCount)
         var totalSize = 0
-        var shouldQuit = false
         do {
             val sampleSize = extractor.readSampleData(buffer, 0)
             if (sampleSize >= 0) {
                 totalSize += sampleSize
-                Log.d(LOG_TAG, "extractRaw: name=$name, writing $sampleSize bytes from $buffer to audioTrack (totalSize=$totalSize)")
+                //Log.d(LOG_TAG, "extractRaw: name=$name, writing $sampleSize bytes from $buffer to audioTrack (totalSize=$totalSize)")
                 writeAudioTrack(buffer, sampleSize)
                 buffer.clear()
-                extractor.advance()
             }
             // Check maxSize against probable totalSize after _next_ iteration:
+/*
             if (sampleSize < 0 || (maxSize != null && totalSize + sampleSize > maxSize)) {
                 Log.d(LOG_TAG, "extractRaw: totalSize=$totalSize, sampleSixe=$sampleSize, maxSize=$maxSize")
-                shouldQuit = true
+                extractorDone = true
             }
-        } while (!shouldQuit)
+*/
+        } while (extractor.advance())
     }
 
     private fun flushCodec(codec: MediaCodec?) {
         try {
             codec?.flush()
         } catch (e: IllegalStateException) {
+            Log.e(LOG_TAG, "flushCodec error", e)
         }
-        codecCallback.flushed = true
+        //codecCallback.flushed = true
     }
 
     private fun framesToMilliseconds(frames: Int): Long {
@@ -253,7 +338,7 @@ class AudioFile(
         // 1 frame in 16 bit mono = 2 bytes, stereo = 4 bytes
         // Let's assume we always output 16 bit (== 2 bytes per sample) PCM for simplicity
         // TODO: Do we need to factor in stereo here or is that already accounted for?
-        return ((1000 * frames) / outputFormat.sampleRate).toLong()
+        return ((1000 * frames) / outputAudioFormat.sampleRate).toLong()
     }
 
     private fun getAudioFormat(inputFormat: MediaFormat, oldFormat: AudioFormat?): Pair<Boolean, AudioFormat> {
@@ -297,6 +382,18 @@ class AudioFile(
         return null
     }
 
+    @Throws(AudioFileException::class)
+    @Synchronized
+    private suspend fun initCodec() {
+        val codecName = MediaCodecList(MediaCodecList.REGULAR_CODECS).findDecoderForFormat(inputMediaFormat)
+                ?: throw AudioFileException(Error.NO_SUITABLE_CODEC)
+        codec = MediaCodec.createByCodecName(codecName).also {
+            //it.setCallback(codecCallback)
+            it.configure(inputMediaFormat, null, null, 0)
+            it.start()
+        }
+    }
+
     private fun onError(errorType: Error, exception: Exception? = null) {
         Log.e(LOG_TAG, "errorType=$errorType, exception=$exception", exception)
         onErrorListener?.invoke(this, errorType)
@@ -304,9 +401,11 @@ class AudioFile(
 
     private fun onPlayStarted() {
         /** Called when the first block is about to be queued up */
+        Log.d(LOG_TAG, "onPlayStarted(): starting")
         state = State.PLAYING
         onPlayListener?.invoke(this@AudioFile)
         queuedStopJob = scope.launch { softStop(duration) }
+        Log.d(LOG_TAG, "onPlayStarted(): finishing, queuedStopJob=$queuedStopJob")
     }
 
     private fun onWarning(errorType: Error, exception: Exception? = null) {
@@ -314,7 +413,7 @@ class AudioFile(
         onWarningListener?.invoke(this, errorType)
     }
 
-    private fun prime(callback: ((AudioFile) -> Unit)? = null) {
+    private suspend fun prime(callback: ((AudioFile) -> Unit)? = null) {
         /**
          * Pre-load audioTrack with some reasonable amount of data for low latency.
          * Expects extractor to be ready and positioned at beginning of track.
@@ -327,10 +426,10 @@ class AudioFile(
         state = State.READY
     }
 
-    private fun rebuildAudioTrack() = scope.launch {
+    private suspend fun rebuildAudioTrack() {
         try {
             audioTrack.release()
-            audioTrack = buildAudioTrack(outputFormat)
+            audioTrack = buildAudioTrack(outputAudioFormat)
         } catch (e: AudioFileException) {
             onError(Error.BUILD_AUDIO_TRACK, e)
         }
@@ -343,6 +442,7 @@ class AudioFile(
         if (audioTrack.playbackHeadPosition <= 0) {
             Log.d(LOG_TAG, "softStop: Waited $delay ms but playhead is still <= 0, stopping anyway")
         } else {
+            yield()  // checks for cancellation
             framesToMilliseconds(audioTrack.playbackHeadPosition).also { ms ->
                 if (ms < delay) {
                     Log.d(LOG_TAG, "softStop: Playhead ($ms) still less than duration ($duration), waiting ${delay - ms} more ms, then stopping")
@@ -354,145 +454,26 @@ class AudioFile(
         queuedStopJob = null
     }
 
-    @WorkerThread
-    private fun writeAudioTrack(buffer: ByteBuffer, sampleSize: Int) {
-        Log.d(LOG_TAG, "writeAudioTrack: name=$name, buffer=$buffer, sampleSize=$sampleSize")
-        if (state != State.PLAYING) onPlayStarted()
-        audioTrack.write(buffer, sampleSize, AudioTrack.WRITE_BLOCKING).also {
+    @Synchronized
+    private fun writeAudioTrack(buffer: ByteBuffer, sampleSize: Int? = null) {
+        /**
+         * Will only write to AudioTrack if state is INIT_PLAY or PLAYING
+         */
+        Log.d(LOG_TAG, "writeAudioTrack: name=$name, buffer=$buffer, sampleSize=$sampleSize, state=$state")
+        if (state == State.INIT_PLAY) onPlayStarted()
+        else if (state != State.PLAYING) return
+
+        audioTrack.write(buffer, sampleSize ?: buffer.remaining(), AudioTrack.WRITE_BLOCKING).also {
             when (it) {
                 AudioTrack.ERROR_BAD_VALUE -> onWarning(Error.OUTPUT_BAD_VALUE)
                 AudioTrack.ERROR_DEAD_OBJECT -> onWarning(Error.OUTPUT_DEAD_OBJECT)
                 AudioTrack.ERROR_INVALID_OPERATION -> onWarning(Error.OUTPUT_NOT_PROPERLY_INITIALIZED)
                 AudioTrack.ERROR -> onWarning(Error.OUTPUT)
-                else -> Log.d(LOG_TAG, "writeAudioTrack: audioTrack.write() returned $it")
-            }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            audioTrack.underrunCount.takeIf { it > 0 }?.let { Log.d(LOG_TAG, "writeAudioTrack: $it underruns for $name") }
-        }
-    }
-
-
-    inner class CodecCallback : MediaCodec.Callback() {
-        private var extractorDone = false
-        private var flushAtSampleTime: Long? = null
-        private var inputEosReached = false
-        private var lastSampleTime: Long? = null
-        private var outputBuffer = ByteBuffer.allocate(bufferSize * channelCount)
-        private var totalSize = 0
-        private val writeMutex = Mutex()
-
-        var flushed = false
-
-        fun reset() {
-            extractorDone = false
-            flushed = false
-            flushAtSampleTime = null
-            inputEosReached = false
-            lastSampleTime = null
-            outputBuffer.clear()
-            totalSize = 0
-        }
-
-        fun onBufferSizeChanged() {
-            outputBuffer = ByteBuffer.allocate(bufferSize * channelCount)
-        }
-
-        override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {
-            /**
-             * If we've reached the end of input stream: queue 'end of stream' sample
-             * If we are in prime mode and maxSize is reached: flush codec
-             */
-            if (extractMode == ExtractMode.PRIME && totalSize >= primingSize) {
-                // TODO: Should this be moved inside getInputBuffer?
-                if (flushAtSampleTime == null) {
-                    //Log.d(LOG_TAG, "onInputBufferAvailable: totalSize[$totalSize] >= PRIMING_SIZE [$PRIMING_SIZE], setting flushAtSampleTime[$flushAtSampleTime] to lastSampleTime[$lastSampleTime]")
-                    flushAtSampleTime = lastSampleTime
-                }
-            } else if (!inputEosReached) {
-                try {
-                    val buffer = codec.getInputBuffer(index)
-                    if (buffer != null) {
-                        val sampleSize = extractor.readSampleData(buffer, 0)
-                        Log.d(LOG_TAG, "onInputBufferAvailable: index=$index, sampleSize=$sampleSize, sampleTime=${extractor.sampleTime}")
-                        if (extractor.sampleTime >= 0) lastSampleTime = extractor.sampleTime
-                        extractor.sampleFlags
-                        codec.queueInputBuffer(
-                                index, 0, if (sampleSize >= 0) sampleSize else 0,
-                                if (extractor.sampleTime >= 0) extractor.sampleTime else 0,
-                                if (sampleSize < 0) MediaCodec.BUFFER_FLAG_END_OF_STREAM else 0)
-                        //Log.d(LOG_TAG, "codec.getInputBuffer($index): enqueued name=$name, sampleTime=${extractor.sampleTime}, sampleSize=$sampleSize, extractMode=$extractMode")
-                        if (sampleSize >= 0) {
-                            totalSize += sampleSize
-                            extractor.advance()
-                        } else {
-                            inputEosReached = true
-                        }
-                    } // else Log.d(LOG_TAG, "codec.getInputBuffer($index) returned null [name=$name, extractMode=$extractMode]")
-                } catch (e: IllegalStateException) {
-                    onWarning(Error.CODEC_WRONG_STATE, e)
-                } catch (e: MediaCodec.CodecException) {
-                    onWarning(Error.CODEC, e)
-                }
-            }
-        }
-
-        private fun write() {
-            outputBuffer.limit(outputBuffer.position())
-            outputBuffer.rewind()
-            writeAudioTrack(outputBuffer, outputBuffer.limit())
-            outputBuffer.clear()
-        }
-
-        private suspend fun putOutputBuffer(buffer: ByteBuffer, force: Boolean = false) = writeMutex.withLock {
-            // private fun putOutputBuffer(buffer: ByteBuffer, force: Boolean = false) {
-            // If outputBuffer is full: deal with it first
-            if (buffer.remaining() > outputBuffer.remaining()) {
-                Log.d(LOG_TAG, "putOutputBuffer: outputBuffer full, writing [outputBuffer=$outputBuffer, buffer=$buffer]")
-                write()
-            }
-            outputBuffer.put(buffer)
-            if (force) {
-                // Padding with zeros
-                while (outputBuffer.remaining() > 0) outputBuffer.put(0)
-                Log.d(LOG_TAG, "putOutputBuffer: force=true, writing [outputBuffer=$outputBuffer, buffer=$buffer]")
-                write()
-            }
-        }
-
-        override fun onOutputBufferAvailable(codec: MediaCodec, index: Int, info: MediaCodec.BufferInfo) {
-            /** Reason for if statement: https://developer.android.com/reference/kotlin/android/media/MediaCodec#flush */
-            if (!flushed) {
-                try {
-                    val buffer = codec.getOutputBuffer(index)
-                    if (buffer != null) {
-                        val eos = (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0
-                        val force = flushAtSampleTime?.let { info.presentationTimeUs >= it }
-                                ?: false
-                        Log.d(LOG_TAG, "onOutputBufferAvailable: index=$index, size=${info.size}, presentationTimeUs=${info.presentationTimeUs}, eos=$eos")
-                        scope.launch { putOutputBuffer(buffer, force || eos) }
-                        codec.releaseOutputBuffer(index, false)
-                        if (force) {
-                            Log.d(LOG_TAG, "Flushing codec because priming ready")
-                            flushCodec(codec)
-                        }
-                    } // else Log.d(LOG_TAG, "codec.getOutputBuffer($index) returned null [name=$name, extractMode=$extractMode]")
-                } catch (e: Exception) {
-                }
-            }
-        }
-
-        override fun onError(codec: MediaCodec, e: MediaCodec.CodecException) = onWarning(Error.CODEC, e)
-
-        override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
-            val (hasChanged, audioFormat) = getAudioFormat(format, outputFormat)
-            Log.d(LOG_TAG, "onOutputFormatChanged: hasChanged=$hasChanged, format=$format, old output format=$outputFormat, new output format=$audioFormat")
-            if (hasChanged) {
-                outputFormat = audioFormat
-                rebuildAudioTrack()
+                // else -> Log.d(LOG_TAG, "writeAudioTrack: audioTrack.write() returned $it")
             }
         }
     }
+
 
     class AudioFileException(val errorType: Error, message: String?) : Exception(message) {
         constructor(errorType: Error) : this(errorType, null)
@@ -543,16 +524,25 @@ class AudioFile(
         OUTPUT_BAD_VALUE,
         OUTPUT_DEAD_OBJECT,
         OUTPUT_NOT_PROPERLY_INITIALIZED,
+        TIMEOUT,
     }
 
     enum class ExtractMode { PRIME, REGULAR }
 
-    enum class State { READY, PLAYING, INITIALIZING, STOPPED, ERROR }
+    enum class State { READY, INIT_PLAY, PLAYING, INITIALIZING, INIT_STOP, STOPPED, ERROR }
 
     companion object {
         const val LOG_TAG = "AudioFile"
-        const val AUDIOTRACK_LISTEN_INTERVAL: Long = 50  // milliseconds
+        const val WAIT_INTERVAL: Long = 50  // milliseconds
         const val SAMPLE_RATE = 44100
         const val DO_PRIMING = false
+        const val MINIMUM_SAMPLE_SIZE = 75000
+        private fun tryGetOutputBuffer(codec: MediaCodec, index: Int): ByteBuffer? {
+            return try {
+                codec.getOutputBuffer(index)
+            } catch (e: Exception) {
+                null
+            }
+        }
     }
 }

@@ -1,3 +1,6 @@
+Fix repress mode stuff
+
+
 When starting app with category collapsed=true, audiofiles/soundplayers etc are not loaded until
 it is expanded. Load all straight away on background thread instead.
 

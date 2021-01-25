@@ -1,3 +1,5 @@
+Widget.AppCompat.ActionMode
+
 Gammal:
         <activity
             android:name=".MainActivity"

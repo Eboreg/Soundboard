@@ -85,6 +85,7 @@ class SoundPlayer(private val sound: Sound, val path: String, private var buffer
             AudioFile.Error.OUTPUT_BAD_VALUE -> "Audio output: bad value"
             AudioFile.Error.OUTPUT_DEAD_OBJECT -> "Audio output: dead object"
             AudioFile.Error.OUTPUT_NOT_PROPERLY_INITIALIZED -> "Audio output: not properly initialized"
+            AudioFile.Error.TIMEOUT -> "Operation timed out"
         }
     }
 
