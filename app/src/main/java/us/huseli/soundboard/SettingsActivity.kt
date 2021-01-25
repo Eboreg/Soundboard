@@ -38,6 +38,7 @@ class SettingsActivity : LocaleActivity(), SharedPreferences.OnSharedPreferenceC
 
     override fun onPause() {
         super.onPause()
+        overridePendingTransition(0, 0)
         PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this)
     }
 

@@ -54,7 +54,7 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         val inflater = LayoutInflater.from(requireContext())
         val binding = FragmentAddDuplicateSoundBinding.inflate(inflater).also { it.viewModel = viewModel }
-        return MaterialAlertDialogBuilder(requireContext(), R.style.Soundboard_Theme_AlertDialog_DuplicateSound).run {
+        return MaterialAlertDialogBuilder(requireContext(), R.style.Soundboard_Theme_MaterialAlertDialog_EqualButtons).run {
             setView(binding.root)
             setTitle(resources.getQuantityString(R.plurals.duplicate_sound_added, viewModel.duplicateCount))
             setPositiveButton(resources.getQuantityString(R.plurals.add_duplicate, viewModel.duplicateCount)) { _, _ -> onAddDuplicates() }

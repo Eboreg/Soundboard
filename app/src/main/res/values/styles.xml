@@ -4,18 +4,22 @@
         <item name="background">?attr/colorPrimary</item>
     </style>
 
-    <style name="Soundboard.Style.Button.TextButton" parent="Widget.MaterialComponents.Button.TextButton">
+    <style name="Soundboard.Style.Button.TextButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
         <item name="android:textColor">@color/alert_dialog_button</item>
     </style>
 
-    <style name="Soundboard.Style.Button.TextButton.Negative" parent="Widget.MaterialComponents.Button.TextButton">
+    <style name="Soundboard.Style.Button.TextButton.Negative" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
         <item name="android:textColor">@color/color_on_surface_subdued</item>
     </style>
 
-    <style name="Soundboard.Style.Toolbar" parent="Widget.MaterialComponents.Toolbar">
+    <style name="Soundboard.Style.Toolbar" parent="Widget.MaterialComponents.Light.ActionBar.Solid">
         <item name="android:background">?attr/colorPrimary</item>
         <item name="android:elevation" tools:targetApi="lollipop">0dp</item>
         <item name="android:minHeight">?attr/actionBarSize</item>
+    </style>
+
+    <style name="Soundboard.Style.Title.Text" parent="MaterialAlertDialog.MaterialComponents.Title.Text">
+        <item name="android:textSize">@dimen/title_text</item>
     </style>
 
 </resources>

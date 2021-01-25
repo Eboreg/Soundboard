@@ -205,6 +205,7 @@ class MainActivity :
             R.id.action_settings -> {
                 val intent = Intent(this, SettingsActivity::class.java)
                 startActivity(intent)
+                overridePendingTransition(0, 0)
             }
             R.id.action_toggle_filter -> toggleFilterEnabled()
             R.id.action_toggle_reorder -> soundViewModel.toggleReorderEnabled()
@@ -461,6 +462,7 @@ class MainActivity :
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
         // if (intent.resolveActivity(packageManager) != null) startActivityForResult(intent, REQUEST_SOUND_ADD)
         if (intent.resolveActivity(packageManager) != null) addSoundLauncher.launch(intent)
+        overridePendingTransition(0, 0)
     }
 
     private fun toggleFilterEnabled() {

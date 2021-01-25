@@ -67,5 +67,6 @@
     <string name="settings">Inställningar</string>
     <string name="loading">Laddar …</string>
     <string name="audio_buffer_size">Ljudbufferstorlek</string>
-    <string name="buffer_size_summary">Om ljudet är för oresponsivt, sänk denna. Om ljudet är hackigt, höj den.</string>
+    <string name="buffer_size_summary">Sänk denna om ljudet är för oresponsivt eller om de kortaste ljuden inte spelas alls. Om ljudet är hackigt, höj den.</string>
+    <string name="reset_buffer_size_to_default">Återställ buffertstorlek till default</string>
 </resources>

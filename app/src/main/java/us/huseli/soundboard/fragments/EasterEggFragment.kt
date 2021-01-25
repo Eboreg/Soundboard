@@ -16,7 +16,7 @@ class EasterEggFragment : DialogFragment() {
         val inflater = LayoutInflater.from(requireContext())
         binding = FragmentEasterEggBinding.inflate(inflater)
 
-        return MaterialAlertDialogBuilder(requireContext()).run {
+        return MaterialAlertDialogBuilder(requireContext(), R.style.Soundboard_Theme_MaterialAlertDialog_EqualButtons).run {
             setTitle("HALLON!!!")
             setView(binding?.root)
             setPositiveButton("Hockeyklubba") { _, _ -> MediaPlayer.create(requireContext(), R.raw.hallon3).start() }
