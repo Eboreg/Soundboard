@@ -1,17 +1,11 @@
-Fix repress mode stuff
-
-
 When starting app with category collapsed=true, audiofiles/soundplayers etc are not loaded until
 it is expanded. Load all straight away on background thread instead.
 
 
-When in sound select mode, disable and grey out category buttons to avoid confusion
+Fix repress mode stuff (what??)
 
 
 On "instant replay" stop mode, make sure everything is completely initialized before running play() again
-
-
-Allow volume up to 120, mark this with red in sound card's progressbar
 
 
 Candidates to run on background thread
@@ -22,9 +16,6 @@ Lesser gain:
 * SoundViewHolder.setDuration
 * CodecCallback.on*
 * SoundPlayer.togglePlay
-
-
-Count sound playback as started on first instance of onInputBufferAvailable()?  -- testing this
 
 
 Q: Some sounds (especially short ones) don't play? writeAudioTrack() gets called once but then nothing.

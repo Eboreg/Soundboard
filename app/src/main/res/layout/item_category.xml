@@ -27,12 +27,11 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/category_collapse"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:orientation="horizontal"
                 android:paddingEnd="@dimen/margin_normal"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/category_edit_button"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="RtlSymmetry">

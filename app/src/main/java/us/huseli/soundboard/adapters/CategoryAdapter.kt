@@ -4,10 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleRegistry
 import androidx.recyclerview.widget.*
@@ -42,10 +39,12 @@ class CategoryAdapter(
         super.onBindViewHolder(holder, position)
         val item = getItem(position)
         Log.d(LOG_TAG, "onBindViewHolder: item=$item, holder=$holder, position=$position, adapter=$this")
+/*
         holder.binding.categoryMoveButton.setOnTouchListener { _, motionEvent ->
             if (motionEvent.action == MotionEvent.ACTION_DOWN) itemTouchHelper.startDrag(holder)
             return@setOnTouchListener false
         }
+*/
         holder.bind(item)
     }
 
@@ -89,8 +88,10 @@ class CategoryAdapter(
      * Represents one individual category with its sound list.
      * Layout: item_category.xml, see this file for binding
      */
+    @SuppressLint("ClickableViewAccessibility")
     class CategoryViewHolder(internal val binding: ItemCategoryBinding, adapter: CategoryAdapter) :
             View.OnClickListener,
+            View.OnTouchListener,
             LifecycleViewHolder(binding.root) {
         @Suppress("PrivatePropertyName")
         private val LOG_TAG = "CategoryViewHolder"
@@ -99,6 +100,7 @@ class CategoryAdapter(
         private val categoryListViewModel = adapter.categoryViewModel
         private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
         private val initialSpanCount = adapter.initialSpanCount
+        private val itemTouchHelper = adapter.itemTouchHelper
         private val soundAdapter: SoundAdapter
         private val soundDragListener: SoundDragListener
         private val soundScroller = adapter.soundScroller
@@ -116,10 +118,7 @@ class CategoryAdapter(
             soundAdapter = SoundAdapter(binding.soundList, soundViewModel, appViewModel, categoryListViewModel, activity)
             soundDragListener = SoundDragListener(soundAdapter, this, soundScroller)
 
-            binding.categoryEditButton.setOnClickListener(this)
-            binding.categoryDeleteButton.setOnClickListener(this)
-            binding.categorySortButton.setOnClickListener(this)
-            binding.categoryCollapse.setOnClickListener(this)
+            enableClickAndTouch()
             binding.root.setOnDragListener(soundDragListener)
 
             binding.soundList.apply {
@@ -158,7 +157,38 @@ class CategoryAdapter(
                 soundAdapter.submitList(sounds)
             }
 
-            soundViewModel.selectEnabled.observe(this) { soundAdapter.onSelectEnabledChange(it) }
+            soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
+        }
+
+        private fun disableClickAndTouch() {
+            listOf(
+                    binding.categoryEditButton,
+                    binding.categoryDeleteButton,
+                    binding.categorySortButton,
+            ).forEach {
+                it.setOnClickListener(null)
+                it.alpha = 0.5f
+                it.isClickable = false
+            }
+            binding.categoryMoveButton.setOnTouchListener(null)
+            binding.categoryMoveButton.alpha = 0.3f
+            binding.categoryMoveButton.isClickable = false
+        }
+
+        private fun enableClickAndTouch() {
+            listOf(
+                    binding.categoryEditButton,
+                    binding.categoryDeleteButton,
+                    binding.categorySortButton,
+                    binding.categoryCollapse,
+            ).forEach {
+                it.setOnClickListener(this)
+                it.alpha = 1.0f
+                it.isClickable = true
+            }
+            binding.categoryMoveButton.setOnTouchListener(this)
+            binding.categoryMoveButton.alpha = 1.0f
+            binding.categoryMoveButton.isClickable = true
         }
 
         private fun onCollapseChanged(value: Boolean) {
@@ -166,6 +196,12 @@ class CategoryAdapter(
             collapseButtonAnimator.animate(value)
             binding.soundList.visibility = if (value) View.GONE else View.VISIBLE
             isCollapsed = value
+        }
+
+        private fun onSelectEnabledChange(value: Boolean) {
+            soundAdapter.onSelectEnabledChange(value)
+            if (value) disableClickAndTouch()
+            else enableClickAndTouch()
         }
 
         @Suppress("unused")
@@ -186,6 +222,13 @@ class CategoryAdapter(
         }
 
         fun getYOffset() = binding.soundList.y
+
+        override fun markDestroyed() {
+            // Fragment calls adapter.setLifecycleDestroyed(), which calls this
+            // We need to pass it on to soundAdapter
+            super.markDestroyed()
+            soundAdapter.setLifecycleDestroyed()
+        }
 
         override fun onClick(v: View?) {
             // When icons in the category header are clicked
@@ -210,11 +253,10 @@ class CategoryAdapter(
             }
         }
 
-        override fun markDestroyed() {
-            // Fragment calls adapter.setLifecycleDestroyed(), which calls this
-            // We need to pass it on to soundAdapter
-            super.markDestroyed()
-            soundAdapter.setLifecycleDestroyed()
+        @SuppressLint("ClickableViewAccessibility")
+        override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+            if (event?.action == MotionEvent.ACTION_DOWN) itemTouchHelper.startDrag(this)
+            return false
         }
 
         override fun toString(): String {
