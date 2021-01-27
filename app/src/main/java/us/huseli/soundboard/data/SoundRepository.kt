@@ -13,8 +13,6 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
 
     fun deleteByCategory(categoryId: Int) = delete(listByCategory(categoryId))
 
-    fun get(soundId: Int?) = soundId?.let { soundDao.get(it) }
-
     fun getMaxOrder(categoryId: Int) = soundDao.getMaxOrder(categoryId) ?: 0
 
     fun insert(sound: Sound) = soundDao.insert(sound)
@@ -22,8 +20,6 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
     fun insert(sounds: List<Sound>) = soundDao.insert(sounds)
 
     fun list() = soundDao.list()
-
-    fun list(soundIds: List<Int>) = soundDao.list(soundIds)
 
     fun listByCategory(categoryId: Int) = soundDao.listByCategory(categoryId)
 
@@ -38,5 +34,4 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
 
     fun updateDuration(sound: Sound, duration: Int) =
             sound.id?.let { soundDao.updateDuration(it, duration) }
-
 }

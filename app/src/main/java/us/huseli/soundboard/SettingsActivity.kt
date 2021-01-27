@@ -10,26 +10,19 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SeekBarPreference
 import dagger.hilt.android.AndroidEntryPoint
-import us.huseli.soundboard.databinding.ActivitySettingsBinding
 import us.huseli.soundboard.helpers.Functions
 
 @AndroidEntryPoint
 class SettingsActivity : LocaleActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
-    private lateinit var binding: ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-/*
-        binding = ActivitySettingsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-*/
         setContentView(R.layout.activity_settings)
 
         if (savedInstanceState == null) {
             supportFragmentManager
                     .beginTransaction()
-                    // .replace(binding.settings.id, SettingsFragment())
                     .replace(R.id.settings, SettingsFragment())
                     .commit()
         }

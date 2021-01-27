@@ -24,6 +24,7 @@ interface CategoryDao {
     @Query("SELECT backgroundColor FROM SoundCategory")
     fun getUsedColors(): List<Int>
 
+    @Transaction
     fun insert(category: Category) {
         if (category.order == -1) {
             val maxOrder = _getMaxOrder() ?: -1
@@ -57,9 +58,6 @@ interface CategoryDao {
 
     @Update
     fun update(category: Category)
-
-    @Transaction
-    fun update(categories: List<Category>) = categories.forEach { update(it) }
 
     @Query("UPDATE SoundCategory SET `order` = :order WHERE id = :id")
     fun updateOrder(id: Int, order: Int)

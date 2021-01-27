@@ -15,12 +15,6 @@ interface SoundDao {
     @Query("DELETE FROM Sound WHERE id NOT IN (:soundIds)")
     fun deleteExcluding(soundIds: List<Int>)
 
-    @Query("SELECT * FROM Sound WHERE id = :soundId")
-    fun get(soundId: Int): Sound?
-
-    @Query("SELECT * FROM Sound WHERE id = :soundId")
-    fun getLive(soundId: Int?): LiveData<Sound>
-
     @Query("SELECT MAX(`order`) FROM Sound WHERE categoryId = :categoryId")
     fun getMaxOrder(categoryId: Int): Int?
 
@@ -38,9 +32,6 @@ interface SoundDao {
 
     @Query("SELECT * FROM Sound")
     fun list(): List<Sound>
-
-    @Query("SELECT * FROM Sound WHERE id IN (:soundIds)")
-    fun list(soundIds: List<Int>): List<Sound>
 
     @Query("SELECT * FROM Sound WHERE categoryId = :categoryId")
     fun listByCategory(categoryId: Int): List<Sound>

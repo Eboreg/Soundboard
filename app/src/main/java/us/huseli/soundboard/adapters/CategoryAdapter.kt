@@ -31,7 +31,6 @@ class CategoryAdapter(
         private val activity: FragmentActivity,
         private val soundScroller: SoundScroller) :
         LifecycleAdapter<Category, CategoryAdapter.CategoryViewHolder>(DiffCallback()) {
-    // private val soundViewPool = RecyclerView.RecycledViewPool().apply { setMaxRecycledViews(0, 200) }
     internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
 
     @SuppressLint("ClickableViewAccessibility")
@@ -39,19 +38,12 @@ class CategoryAdapter(
         super.onBindViewHolder(holder, position)
         val item = getItem(position)
         Log.d(LOG_TAG, "onBindViewHolder: item=$item, holder=$holder, position=$position, adapter=$this")
-/*
-        holder.binding.categoryMoveButton.setOnTouchListener { _, motionEvent ->
-            if (motionEvent.action == MotionEvent.ACTION_DOWN) itemTouchHelper.startDrag(holder)
-            return@setOnTouchListener false
-        }
-*/
         holder.bind(item)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
         val binding = ItemCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val holder = CategoryViewHolder(binding, this)
-        // Log.d(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
         binding.lifecycleOwner = holder
 
         return holder

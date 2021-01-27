@@ -387,8 +387,8 @@ class AudioFile(
     private suspend fun initCodec() {
         val codecName = MediaCodecList(MediaCodecList.REGULAR_CODECS).findDecoderForFormat(inputMediaFormat)
                 ?: throw AudioFileException(Error.NO_SUITABLE_CODEC)
+        @Suppress("BlockingMethodInNonBlockingContext")
         codec = MediaCodec.createByCodecName(codecName).also {
-            //it.setCallback(codecCallback)
             it.configure(inputMediaFormat, null, null, 0)
             it.start()
         }

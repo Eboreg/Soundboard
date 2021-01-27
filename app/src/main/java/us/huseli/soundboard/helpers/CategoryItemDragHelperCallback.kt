@@ -3,13 +3,12 @@ package us.huseli.soundboard.helpers
 import android.util.Log
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import us.huseli.soundboard.GlobalApplication
 import us.huseli.soundboard.adapters.CategoryAdapter
 import java.util.*
 
 class CategoryItemDragHelperCallback : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0) {
     override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-        Log.d(GlobalApplication.LOG_TAG,
+        Log.d(LOG_TAG,
                 "ItemDragHelperCallback ${this.hashCode()} onMove: " +
                         "viewHolder ${viewHolder.hashCode()}, target ${target.hashCode()}, " +
                         "fromPosition ${viewHolder.adapterPosition}, " +
@@ -42,4 +41,9 @@ class CategoryItemDragHelperCallback : ItemTouchHelper.SimpleCallback(ItemTouchH
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
 
     override fun isLongPressDragEnabled() = false
+
+
+    companion object {
+        const val LOG_TAG = "catItemDragHelper"
+    }
 }
