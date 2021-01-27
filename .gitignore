@@ -17,3 +17,8 @@ sentry.properties
 *.hprof
 keystore.properties
 *.apk
+/app/debug/
+/app/full-r8-config.txt
+/.gradle.backup/
+/.idea.backup/
+
