@@ -43,6 +43,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/collapse_expand_category"
                     android:padding="@dimen/margin_normal"
+                    android:rotation="@{category.collapseIconRotation}"
                     app:drawableColor="@{category.textColor}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -117,6 +118,18 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <ProgressBar
+            android:id="@+id/loadingBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:indeterminateOnly="true"
+            android:indeterminateTint="@{category.backgroundColor}"
+            android:visibility="visible"
+            tools:indeterminateTint="@color/purple_500"
+            tools:visibility="visible" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/sound_list"
             android:layout_width="match_parent"
@@ -126,14 +139,6 @@
             tools:listitem="@layout/item_sound"
             tools:spanCount="4" />
 
-        <ProgressBar
-            android:id="@+id/progress_bar"
-            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:indeterminate="true"
-            android:indeterminateOnly="true" />
-
         <TextView
             android:id="@+id/emptyCategoryDropContainer"
             android:layout_width="match_parent"
@@ -142,7 +147,7 @@
             android:padding="@dimen/margin_small"
             android:text="@string/add_sound_here"
             android:textAlignment="center"
-            android:visibility="gone" />
-
+            android:visibility="gone"
+            tools:visibility="visible" />
     </LinearLayout>
 </layout>

@@ -6,7 +6,7 @@ import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.helpers.AudioFile
 
 class SoundPlayer(private val sound: Sound, val path: String, private var bufferSize: Int) {
-    private var audioFile: AudioFile?
+    private var audioFile: AudioFile? = null
     private val tempAudioFiles = mutableListOf<AudioFile>()
 
     private var listener: Listener? = null
@@ -22,12 +22,10 @@ class SoundPlayer(private val sound: Sound, val path: String, private var buffer
         }
 
     var repressMode = RepressMode.STOP
-    var volume: Int? = null
+    var volume: Int = sound.volume
         set(value) {
-            if (value != null) {
-                field = value
-                audioFile?.setVolume(value)
-            }
+            field = value
+            audioFile?.setVolume(value)
         }
 
     val duration: Int
@@ -39,14 +37,14 @@ class SoundPlayer(private val sound: Sound, val path: String, private var buffer
 
     init {
         Log.i(LOG_TAG, "init: uri=$sound, path=$path")
-        audioFile = createAudioFile()
-        volume = sound.volume
+        scope.launch { audioFile = createAudioFile() }
     }
 
     private fun createAudioFile(): AudioFile? {
         return try {
             AudioFile(path, sound.name, bufferSize) {
                 _duration = it.duration.toInt()
+                it.setVolume(volume)
                 _state = State.READY
             }.setOnReadyListener {
                 if (!isPlaying()) _state = State.READY
@@ -95,8 +93,9 @@ class SoundPlayer(private val sound: Sound, val path: String, private var buffer
     fun setBufferSize(value: Int) = scope.launch {
         if (value != bufferSize) {
             bufferSize = value
+            _state = State.INITIALIZING
             audioFile?.release()
-            audioFile = createAudioFile()
+            scope.launch { audioFile = createAudioFile() }
             // audioFile?.setBufferSize(value)
         }
     }

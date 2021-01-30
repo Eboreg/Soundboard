@@ -115,14 +115,17 @@ class CategoryAdapter(
 
             binding.soundList.apply {
                 this.adapter = soundAdapter
-                layoutManager = LayoutManager(context, initialSpanCount).also { lm ->
-                    appViewModel.spanCount.observe(this@CategoryViewHolder) { lm.spanCount = it }
+                layoutManager = SoundLayoutManager(context, initialSpanCount).also { lm ->
+                    appViewModel.spanCount.observe(this@CategoryViewHolder) {
+                        if (it != null) lm.spanCount = it
+                    }
                 }
                 isNestedScrollingEnabled = false
             }
         }
 
-        fun bind(category: Category) {
+        /********* PUBLIC/INTERNAL METHODS **********/
+        internal fun bind(category: Category) {
             this.category = category
             val categoryId = category.id
             if (categoryId == null) {
@@ -133,13 +136,14 @@ class CategoryAdapter(
             binding.category = category
             soundAdapter.category = category
 
-            if (category.collapsed != isCollapsed) onCollapseChanged(category.collapsed)
+            onCollapseChanged(category.collapsed)
+
+            if (category.collapsed) binding.loadingBar.visibility = View.GONE
 
             binding.categoryHeader.setBackgroundColor(category.backgroundColor)
-            soundViewModel.sounds.observe(this) { allSounds ->
+            soundViewModel.filteredSounds.observe(this) { allSounds ->
                 val sounds = allSounds.filter { sound -> sound.categoryId == category.id }
                 // Log.d(LOG_TAG, "ViewHolder sound list observer: viewHolder=$this, category=$category, sounds=$sounds")
-
                 // TODO: Remove test call + method when not needed
                 // submitListWithInvalidSound(sounds)
 
@@ -147,11 +151,32 @@ class CategoryAdapter(
                     if (it > 20) binding.soundList.setItemViewCacheSize(it)
                 }
                 soundAdapter.submitList(sounds)
+
+                // TODO: This does no good. Is there a working way to actually show a progress
+                // indicator, that doesn't disappear until everything is drawn?
+                binding.soundList.viewTreeObserver.addOnGlobalLayoutListener {
+                    val layoutManager = binding.soundList.layoutManager as GridLayoutManager
+                    val itemsShown = layoutManager.findLastVisibleItemPosition() - layoutManager.findFirstVisibleItemPosition() + 1
+                    binding.loadingBar.visibility = if (isCollapsed == true || itemsShown == layoutManager.itemCount)
+                        View.GONE else View.VISIBLE
+                }
             }
 
             soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
         }
 
+        internal fun getYOffset() = binding.soundList.y
+
+        internal fun hideDropContainer() {
+            binding.emptyCategoryDropContainer.visibility = View.GONE
+        }
+
+        internal fun showDropContainer() {
+            binding.emptyCategoryDropContainer.visibility = View.VISIBLE
+        }
+
+
+        /********* PRIVATE METHODS **********/
         private fun disableClickAndTouch() {
             listOf(
                     binding.categoryEditButton,
@@ -185,7 +210,6 @@ class CategoryAdapter(
 
         private fun onCollapseChanged(value: Boolean) {
             if (!soundDragListener.isDragging) soundDragListener.wasCollapsed = value
-            collapseButtonAnimator.animate(value)
             binding.soundList.visibility = if (value) View.GONE else View.VISIBLE
             isCollapsed = value
         }
@@ -205,16 +229,17 @@ class CategoryAdapter(
             soundAdapter.submitList(mutableSounds)
         }
 
-        fun showDropContainer() {
-            binding.emptyCategoryDropContainer.visibility = View.VISIBLE
+        private fun toggleCollapsed() {
+            category?.let { category ->
+                val collapsed = !category.collapsed
+                collapseButtonAnimator.animate(collapsed)
+                // onCollapseChanged(collapsed)
+                category.id?.let { categoryListViewModel.setCollapsed(it, collapsed) }
+            }
         }
 
-        fun hideDropContainer() {
-            binding.emptyCategoryDropContainer.visibility = View.GONE
-        }
 
-        fun getYOffset() = binding.soundList.y
-
+        /********* OVERRIDDEN METHODS **********/
         override fun markDestroyed() {
             // Fragment calls adapter.setLifecycleDestroyed(), which calls this
             // We need to pass it on to soundAdapter
@@ -229,15 +254,10 @@ class CategoryAdapter(
                 category.id?.also { catId ->
                     when (v) {
                         binding.categoryEditButton -> activity.showCategoryEditDialog(catId)
-                        binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(catId, category.name, soundCount
-                                ?: 0)
+                        binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(
+                                catId, category.name, soundCount ?: 0)
                         binding.categorySortButton -> activity.showCategorySortDialog(catId, category.name)
-                        binding.categoryCollapse -> {
-                            this.category?.let { category ->
-                                val collapsed = !category.collapsed
-                                category.id?.let { categoryListViewModel.setCollapsed(it, collapsed) }
-                            }
-                        }
+                        binding.categoryCollapse -> toggleCollapsed()
                     }
                 }
             } ?: run {
@@ -253,18 +273,12 @@ class CategoryAdapter(
 
         override fun toString(): String {
             val hashCode = Integer.toHexString(System.identityHashCode(this))
-            return "CategoryAdapter.ViewHolder $hashCode <adapterPosition=$adapterPosition, category=$category>"
+            return "CategoryAdapter.ViewHolder $hashCode <adapterPosition=$bindingAdapterPosition, category=$category>"
         }
 
 
-        inner class LayoutManager(context: Context, initialSpanCount: Int) : GridLayoutManager(context, initialSpanCount) {
-            override fun onLayoutChildren(recycler: RecyclerView.Recycler?, state: RecyclerView.State?) {
-                super.onLayoutChildren(recycler, state)
-                val itemsShown = findLastVisibleItemPosition() - findFirstVisibleItemPosition() + 1
-                state?.itemCount?.let { itemCount ->
-                    binding.progressBar.visibility = if (itemCount == 0 || itemCount == itemsShown) View.GONE else View.VISIBLE
-                }
-            }
+        inner class SoundLayoutManager(context: Context, spanCount: Int) : GridLayoutManager(context, spanCount) {
+            override fun isAutoMeasureEnabled() = true
         }
     }
 

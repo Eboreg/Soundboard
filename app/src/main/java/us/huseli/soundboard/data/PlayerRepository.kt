@@ -35,13 +35,25 @@ class PlayerRepository @Inject constructor(@ApplicationContext context: Context)
         }
     }
 
-    private fun addOrUpdate(sound: Sound): SoundPlayer? {
-        return sound.uri.path?.let { path ->
-            _players[sound] ?: SoundPlayer(sound, path, bufferSize).also { _players[sound] = it }
+    private fun addIfNotExists(sound: Sound) {
+        sound.uri.path?.let { path ->
+            if (!_players.containsKey(sound)) _players[sound] = SoundPlayer(sound, path, bufferSize)
         }
     }
 
+    fun set(sounds: List<Sound>) {
+        // Release & remove players whose sound is not in `sounds`
+        _players.filterNot { sounds.contains(it.key) }.forEach {
+            it.value.release()
+            _players.remove(it.key)
+        }
+        sounds.forEach { addIfNotExists(it) }
+    }
+
     fun get(sound: Sound?) = liveData(Dispatchers.Default) {
-        emit(sound?.let { addOrUpdate(sound) })
+        emit(sound?.let {
+            addIfNotExists(sound)
+            _players[sound]
+        })
     }
 }

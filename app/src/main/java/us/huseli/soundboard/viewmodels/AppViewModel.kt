@@ -27,14 +27,14 @@ class AppViewModel @ViewModelInject constructor(
     private val _orientation = MutableLiveData<Int>()
     private val _repressMode = MutableLiveData(SoundPlayer.RepressMode.STOP)
     private val _screenRatio = MutableLiveData<Double>()  // (width / height) in portrait mode
-    private val _spanCountLandscape = MutableLiveData<Int>()
-    private val _spanCountPortrait = MutableLiveData<Int>()
+    private val _spanCountLandscape = MutableLiveData<Int?>()
+    private val _spanCountPortrait = MutableLiveData<Int?>()
     private val _undosAvailable = MutableLiveData(false)
 
     val repressMode: LiveData<SoundPlayer.RepressMode>
         get() = _repressMode
 
-    val spanCountLandscape: LiveData<Int>
+    val spanCountLandscape: LiveData<Int?>
         get() = _spanCountLandscape
 
     val spanCount = _orientation.switchMap {

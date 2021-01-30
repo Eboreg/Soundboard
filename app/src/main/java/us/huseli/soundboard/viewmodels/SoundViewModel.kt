@@ -19,7 +19,8 @@ class SoundViewModel @ViewModelInject constructor(private val repository: SoundR
     private val _filterEnabled = MutableLiveData(false)
     private val _filterTerm = MutableLiveData("")
     private val _reorderEnabled = MutableLiveData(false)
-    private val _sounds = repository.listLive()
+
+    val allSounds = repository.listLive()
 
     val failedSounds: List<Sound>
         get() = _failedSounds
@@ -27,10 +28,10 @@ class SoundViewModel @ViewModelInject constructor(private val repository: SoundR
     val filterEnabled: LiveData<Boolean>
         get() = _filterEnabled
 
-    val sounds = _filterEnabled.switchMap {
+    val filteredSounds = _filterEnabled.switchMap {
         when (it) {
             true -> _filteredSounds
-            else -> _sounds
+            else -> allSounds
         }
     }
 
@@ -99,7 +100,7 @@ class SoundViewModel @ViewModelInject constructor(private val repository: SoundR
 
     /******* FILTERING *******/
     private val _filteredSounds = _filterTerm.switchMap { term ->
-        _sounds.map { sounds ->
+        allSounds.map { sounds ->
             sounds.filter { sound ->
                 sound.name.toLowerCase(Locale.getDefault()).contains(term.toLowerCase(Locale.getDefault()))
             }

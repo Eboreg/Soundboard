@@ -16,10 +16,15 @@ data class Category(
         @Ignore var secondaryTextColor: Int? = null
 ) {
     constructor(name: String, backgroundColor: Int, order: Int) : this(null, name, backgroundColor, order, false)
+
     @Ignore
     constructor(name: String, backgroundColor: Int) : this(name, backgroundColor, 0)
+
     @Ignore
     constructor(name: String) : this(name, Color.DKGRAY)
+
+    val collapseIconRotation: Float
+        get() = if (collapsed) -90f else 0f
 
     override fun toString() = name
     override fun equals(other: Any?) = other is Category && other.id == id

@@ -28,12 +28,14 @@ import com.google.android.material.snackbar.Snackbar
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.data.Category
+import us.huseli.soundboard.data.PlayerRepository
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.ActivityMainBinding
 import us.huseli.soundboard.fragments.*
 import us.huseli.soundboard.interfaces.*
 import us.huseli.soundboard.viewmodels.*
 import java.util.*
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity :
@@ -45,6 +47,9 @@ class MainActivity :
         ZoomInterface,
         ActionMode.Callback,
         SharedPreferences.OnSharedPreferenceChangeListener {
+    @Inject
+    lateinit var playerRepository: PlayerRepository
+
     private val categoryListViewModel by viewModels<CategoryViewModel>()
     private val appViewModel by viewModels<AppViewModel>()
     private val soundViewModel by viewModels<SoundViewModel>()
@@ -53,6 +58,7 @@ class MainActivity :
 
     private val actionbarLogoTouchTimes = mutableListOf<Long>()
     private var actionMode: ActionMode? = null
+
     private val addSoundLauncher = registerForActivityResult(StartActivityForResult()) { onAddSoundResult(it.data, it.resultCode) }
     private val reinitSoundsLauncher = registerForActivityResult(StartActivityForResult()) { onReInitSoundResult(it.data, it.resultCode) }
     private var categories = emptyList<Category>()
@@ -163,7 +169,10 @@ class MainActivity :
 
         soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
 
-        soundViewModel.sounds.observe(this) { sounds = it }
+        soundViewModel.allSounds.observe(this) {
+            sounds = it
+            playerRepository.set(it)
+        }
 
         categoryListViewModel.categories.observe(this) {
             // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment

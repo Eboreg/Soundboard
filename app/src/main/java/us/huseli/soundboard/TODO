@@ -1,5 +1,13 @@
-When starting app with category collapsed=true, audiofiles/soundplayers etc are not loaded until
-it is expanded. Load all straight away on background thread instead.
+Layout takes lots of time. Mostly RecyclerView.onMeasure() and ConstraintLayout.onMeasure() (for
+individual sounds). How to optimize? Something with autoMeasure perhaps?
+https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView.LayoutManager#isautomeasureenabled
+
+
+On category viewholder init/expand: show some "working ..." placeholder
+
+
+"Stress test" with lots of sounds; is it true that there's a limit of 128 AudioTrack objects?
+In that case, release those objects that are farthest from being visible
 
 
 Fix repress mode stuff (what??)

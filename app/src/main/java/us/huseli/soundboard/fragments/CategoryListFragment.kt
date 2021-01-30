@@ -9,8 +9,6 @@ import android.view.*
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.adapters.CategoryAdapter
 import us.huseli.soundboard.databinding.FragmentCategoryListBinding
@@ -38,9 +36,11 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
         val landscapeSpanCount = preferences.getInt("landscapeSpanCount", 0)
         initialSpanCount = appViewModel.setup(config.orientation, config.screenWidthDp, config.screenHeightDp, landscapeSpanCount)
         appViewModel.spanCountLandscape.observe(viewLifecycleOwner) {
-            preferences.edit {
-                putInt("landscapeSpanCount", it)
-                apply()
+            if (it != null) {
+                preferences.edit {
+                    putInt("landscapeSpanCount", it)
+                    apply()
+                }
             }
         }
 
@@ -89,9 +89,8 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
                 binding.categoryList.apply {
                     categoryAdapter.itemTouchHelper.attachToRecyclerView(this)
                     adapter = categoryAdapter
-                    layoutManager = LayoutManager(requireContext()).apply {
-                        isItemPrefetchEnabled = true
-                    }
+                    layoutManager?.isItemPrefetchEnabled = true
+                    setHasFixedSize(true)
                     setOnTouchListener(this@CategoryListFragment)
                 }
 
@@ -119,16 +118,6 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
                 }
             }
             return super.onScale(detector)
-        }
-    }
-
-    inner class LayoutManager(context: Context) : LinearLayoutManager(context) {
-        override fun onLayoutChildren(recycler: RecyclerView.Recycler?, state: RecyclerView.State?) {
-            super.onLayoutChildren(recycler, state)
-            val itemsShown = findLastVisibleItemPosition() - findFirstVisibleItemPosition() + 1
-            state?.itemCount?.let { itemCount ->
-                binding?.progressBar?.visibility = if (itemCount == 0 || itemCount == itemsShown) View.GONE else View.VISIBLE
-            }
         }
     }
 

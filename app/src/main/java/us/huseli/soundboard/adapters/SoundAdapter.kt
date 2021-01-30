@@ -92,14 +92,14 @@ class SoundAdapter(
     }
 
 
-    /*********** OWN PUBLIC METHODS ***********/
-    fun collapseCategory() = categoryViewModel.collapse(category)
+    /*********** OWN PUBLIC/INTERNAL METHODS ***********/
+    internal fun collapseCategory() = categoryViewModel.collapse(category)
 
-    fun containsSound(sound: Sound) = currentList.indexOf(sound) > -1
+    internal fun containsSound(sound: Sound) = currentList.indexOf(sound) > -1
 
-    fun expandCategory() = categoryViewModel.expand(category)
+    internal fun expandCategory() = categoryViewModel.expand(category)
 
-    fun getAdapterPositionUnder(x: Float, y: Float): Int {
+    internal fun getAdapterPositionUnder(x: Float, y: Float): Int {
         recyclerView.findChildViewUnder(x, y)?.let { view ->
             (recyclerView.findContainingViewHolder(view) as? SoundViewHolder)?.let { viewHolder ->
                 /**
@@ -108,13 +108,13 @@ class SoundAdapter(
                  * If we are over view's second half, return view position + 1
                  */
                 val middleX = view.x + (view.width / 2)
-                return if (x <= middleX) viewHolder.adapterPosition else viewHolder.adapterPosition + 1
+                return if (x <= middleX) viewHolder.bindingAdapterPosition else viewHolder.bindingAdapterPosition + 1
             }
         }
         return currentList.size
     }
 
-    fun insertOrMoveSound(sound: Sound, toPosition: Int) {
+    internal fun insertOrMoveSound(sound: Sound, toPosition: Int) {
         val fromPosition = currentList.indexOf(sound)
         val sounds = currentList.toMutableList()
 
@@ -133,9 +133,9 @@ class SoundAdapter(
         soundViewModel.update(sounds, category)
     }
 
-    fun isEmpty() = currentList.isEmpty()
+    internal fun isEmpty() = currentList.isEmpty()
 
-    fun markSoundsForDrop(adapterPosition: Int) {
+    internal fun markSoundsForDrop(adapterPosition: Int) {
         /**
          * adapterPosition = position we would move to, were we to drop right now
          * So highlight area between (adapterPosition - 1) and adapterPosition
@@ -151,11 +151,11 @@ class SoundAdapter(
         if (adapterPosition < currentList.size) (recyclerView.findViewHolderForAdapterPosition(adapterPosition) as SoundViewHolder).binding.dropMarkerBefore.visibility = View.VISIBLE
     }
 
-    fun onSelectEnabledChange(value: Boolean) {
+    internal fun onSelectEnabledChange(value: Boolean) {
         selectEnabled = value
     }
 
-    fun removeMarksForDrop() {
+    internal fun removeMarksForDrop() {
         for (i in 0..recyclerView.childCount) {
             val child = recyclerView.getChildAt(i)
             if (child != null) {
@@ -165,11 +165,6 @@ class SoundAdapter(
                 }
             }
         }
-    }
-
-    fun showSound(sound: Sound) {
-        val position = currentList.indexOf(sound)
-        recyclerView.getChildAt(position)?.let { view -> view.visibility = View.VISIBLE }
     }
 
 
@@ -244,7 +239,9 @@ class SoundAdapter(
             soundViewModel.addOnSelectAllListener(this)
         }
 
-        fun bind(sound: Sound, category: Category) {
+
+        /********* PUBLIC/INTERNAL METHODS **********/
+        internal fun bind(sound: Sound, category: Category) {
             this.sound = sound
             val soundId = sound.id
             if (soundId == null) {
@@ -268,12 +265,30 @@ class SoundAdapter(
                         appViewModel.repressMode.observe(this) { newPlayer.repressMode = it }
                         player = newPlayer
                     }
-                    this.sound?.volume?.let { player?.volume = it }
+                    // this.sound?.volume?.let { player?.volume = it }
                 }
             }
 
             soundViewModel.reorderEnabled.observe(this) { value -> onReorderEnabledChange(value) }
             soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
+        }
+
+
+        /********* PRIVATE METHODS **********/
+        private fun onReorderEnabledChange(value: Boolean) {
+            reorderEnabled = value
+            binding.reorderIcon.visibility = if (value) View.VISIBLE else View.INVISIBLE
+        }
+
+        private fun onSelectEnabledChange(value: Boolean) {
+            if (value && soundViewModel.selectedSounds.contains(sound)) binding.selectedIcon.visibility = View.VISIBLE
+            else if (!value) binding.selectedIcon.visibility = View.INVISIBLE
+        }
+
+        private fun release() {
+            soundViewModel.removeOnSelectAllListener(this)
+            playerLiveData?.removeObservers(this)
+            player?.setListener(null)
         }
 
         private fun setBackgroundColor(color: Int) {
@@ -305,25 +320,49 @@ class SoundAdapter(
             }
         }
 
-        private fun onSelectEnabledChange(value: Boolean) {
-            if (value && soundViewModel.selectedSounds.contains(sound)) binding.selectedIcon.visibility = View.VISIBLE
-            else if (!value) binding.selectedIcon.visibility = View.INVISIBLE
-        }
+        private fun showError() =
+                player?.errorMessage?.let { Snackbar.make(binding.root, it, Snackbar.LENGTH_SHORT).show() }
 
-        private fun onReorderEnabledChange(value: Boolean) {
-            reorderEnabled = value
-            binding.reorderIcon.visibility = if (value) View.VISIBLE else View.INVISIBLE
-        }
+        private fun startDragAndDrop(view: View) {
+            sound?.let { sound ->
+                val data = ClipData.newPlainText("", "")
+                val shadowBuilder = View.DragShadowBuilder(view)
+                val draggedSound = DraggedSound(sound, bindingAdapterPosition, view.height)
 
-        override fun onTouch(view: View, event: MotionEvent): Boolean {
-            if (reorderEnabled) {
-                if (event.actionMasked == MotionEvent.ACTION_DOWN) {
-                    Log.d(LOG_TAG, "onTouch: run startDragAndDrop on $view")
-                    startDragAndDrop(view)
-                }
-                return false
+                Log.d(LOG_TAG, "startDragAndDrop: draggedSound=$draggedSound, this=$this")
+
+                @Suppress("DEPRECATION")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+                    view.startDragAndDrop(data, shadowBuilder, draggedSound, 0)
+                else
+                    view.startDrag(data, shadowBuilder, draggedSound, 0)
             }
-            return view.onTouchEvent(event)
+        }
+
+
+        /********* OVERRIDDEN METHODS **********/
+        private fun deselect() {
+            sound?.let { sound ->
+                soundViewModel.deselect(sound)
+                binding.selectedIcon.visibility = View.INVISIBLE
+            }
+        }
+
+        override fun markDestroyed() {
+            release()
+            super.markDestroyed()
+        }
+
+        override fun onClick(view: View) {
+            sound?.let { sound ->
+                when {
+                    adapter.selectEnabled -> if (!soundViewModel.isSelected(sound)) select() else deselect()
+                    player == null -> Snackbar.make(binding.root, R.string.soundplayer_not_initialized, Snackbar.LENGTH_SHORT).show()
+                    player?.state == SoundPlayer.State.ERROR -> showError()
+                    else -> player?.togglePlay()
+                }
+                clickAnimator.start()
+            }
         }
 
         override fun onLongClick(v: View): Boolean {
@@ -345,36 +384,6 @@ class SoundAdapter(
             }
             return true
         }
-
-        override fun onClick(view: View) {
-            sound?.let { sound ->
-                when {
-                    adapter.selectEnabled -> if (!soundViewModel.isSelected(sound)) select() else deselect()
-                    player == null -> Snackbar.make(binding.root, R.string.soundplayer_not_initialized, Snackbar.LENGTH_SHORT).show()
-                    player?.state == SoundPlayer.State.ERROR -> showError()
-                    else -> player?.togglePlay()
-                }
-                clickAnimator.start()
-            }
-        }
-
-        private fun startDragAndDrop(view: View) {
-            sound?.let { sound ->
-                val data = ClipData.newPlainText("", "")
-                val shadowBuilder = View.DragShadowBuilder(view)
-                val draggedSound = DraggedSound(sound, adapterPosition, view.height)
-
-                Log.d(LOG_TAG, "startDragAndDrop: draggedSound=$draggedSound, this=$this")
-
-                @Suppress("DEPRECATION")
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-                    view.startDragAndDrop(data, shadowBuilder, draggedSound, 0)
-                else
-                    view.startDrag(data, shadowBuilder, draggedSound, 0)
-            }
-        }
-
-        override fun onSoundPlayerWarning(message: String) = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
 
         override fun onSoundPlayerStateChange(player: SoundPlayer, state: SoundPlayer.State) {
             /**
@@ -408,6 +417,19 @@ class SoundAdapter(
             }
         }
 
+        override fun onSoundPlayerWarning(message: String) = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+
+        override fun onTouch(view: View, event: MotionEvent): Boolean {
+            if (reorderEnabled) {
+                if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                    Log.d(LOG_TAG, "onTouch: run startDragAndDrop on $view")
+                    startDragAndDrop(view)
+                }
+                return false
+            }
+            return view.onTouchEvent(event)
+        }
+
         override fun select() {
             sound?.let { sound ->
                 soundViewModel.select(sound)
@@ -415,31 +437,9 @@ class SoundAdapter(
             }
         }
 
-        private fun deselect() {
-            sound?.let { sound ->
-                soundViewModel.deselect(sound)
-                binding.selectedIcon.visibility = View.INVISIBLE
-            }
-        }
-
         override fun toString(): String {
             val hashCode = Integer.toHexString(System.identityHashCode(this))
-            return "SoundAdapter.ViewHolder $hashCode <adapterPosition=$adapterPosition, sound=$sound>"
-        }
-
-        private fun showError() =
-                player?.errorMessage?.let { Snackbar.make(binding.root, it, Snackbar.LENGTH_SHORT).show() }
-
-
-        override fun markDestroyed() {
-            release()
-            super.markDestroyed()
-        }
-
-        fun release() {
-            soundViewModel.removeOnSelectAllListener(this)
-            playerLiveData?.removeObservers(this)
-            player?.setListener(null)
+            return "SoundAdapter.ViewHolder $hashCode <adapterPosition=$bindingAdapterPosition, sound=$sound>"
         }
     }
 }
