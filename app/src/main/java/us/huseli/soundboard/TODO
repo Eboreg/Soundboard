@@ -1,4 +1,12 @@
-Layout takes lots of time. Mostly RecyclerView.onMeasure() and ConstraintLayout.onMeasure() (for
+Steps to speed up time from click to sound starting playing:
+* Intercept the touch event as soon as possible (i.e. in the activity), send straight to play
+method without middlemen
+* Play on touch event in SoundViewHolder, instead of click event
+* Prime SoundFile
+
+
+Layout takes lots of time (well, mostly while debugging, not so much on regular runs).
+Mostly RecyclerView.onMeasure() and ConstraintLayout.onMeasure() (for
 individual sounds). How to optimize? Something with autoMeasure perhaps?
 https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView.LayoutManager#isautomeasureenabled
 

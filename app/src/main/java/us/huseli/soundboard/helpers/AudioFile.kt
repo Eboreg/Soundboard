@@ -194,7 +194,7 @@ class AudioFile(
     }
 
     private fun doPlay() {
-        Log.d(LOG_TAG, "Play name=$name, inputFormat=$inputMediaFormat, outputFormat=$outputAudioFormat, mime=$mime, duration=$duration, audioAttributes=$audioAttributes, audioTrack=$audioTrack, channelCount=$channelCount")
+        // Log.d(LOG_TAG, "Play name=$name, inputFormat=$inputMediaFormat, outputFormat=$outputAudioFormat, mime=$mime, duration=$duration, audioAttributes=$audioAttributes, audioTrack=$audioTrack, channelCount=$channelCount")
         state = State.INIT_PLAY
         extractMode = ExtractMode.REGULAR
         audioTrack.play()

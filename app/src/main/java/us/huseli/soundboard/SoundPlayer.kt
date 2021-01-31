@@ -35,9 +35,21 @@ class SoundPlayer(private val sound: Sound, val path: String, private var buffer
     val state: State
         get() = _state
 
+    // Physical position (relative to screen) & dimensions of sound view for maximum quick access
+    // TODO: Putting this on hold
+    var left: Float = 0f
+    var top: Float = 0f
+    var right: Float = 0f
+    var bottom: Float = 0f
+
     init {
         Log.i(LOG_TAG, "init: uri=$sound, path=$path")
         scope.launch { audioFile = createAudioFile() }
+    }
+
+    @Suppress("unused")
+    fun isAtPosition(posX: Float, posY: Float): Boolean {
+        return posX in left..right && posY in top..bottom
     }
 
     private fun createAudioFile(): AudioFile? {

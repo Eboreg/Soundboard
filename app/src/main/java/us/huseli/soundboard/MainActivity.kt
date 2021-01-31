@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Parcelable
 import android.provider.DocumentsContract
 import android.view.Menu
 import android.view.MenuItem
@@ -66,11 +67,29 @@ class MainActivity :
     private var filterWasEnabled: Boolean = false
     private var reorderEnabled: Boolean? = null
     private var repressMode: SoundPlayer.RepressMode? = null
-    private var sounds = emptyList<Sound>()  // used for soundAddViewModel
+    private var allSounds = emptyList<Sound>()  // used for soundAddViewModel
 
     private lateinit var binding: ActivityMainBinding
 
     /********* OVERRIDDEN ANDROID METHODS **********/
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        /**
+         * TODO: Find a good way to shortcut from here directly to playing the sound at ev.x, ev.y
+         * if there is one and it should be played.
+         * We need some global object that stores x, y, height and width for every sound CardView,
+         * as well as a boolean that says whether sounds should be played on click (if we are in
+         * reorder mode, they should not).
+         * These data must be updated when sound CardView positions change (could be due to
+         * scrolling, category collapse/expand, sound add/delete/move etc.)
+         * Specifically, there needs to be a method that takes arguments x and y (position of
+         * click), knows which sound (if any) is in that position right now, and starts playing it
+         * if sounds should be played.
+         * Maybe this can be implemented in PlayerRepository, since it already keeps track of all
+         * SoundPlayer objects. It only needs to also keep track of their view boundaries.
+         */
+        return super.dispatchTouchEvent(ev)
+    }
+
     override fun onActionItemClicked(mode: ActionMode?, item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.select_all_sounds -> {
@@ -89,48 +108,17 @@ class MainActivity :
         }
     }
 
-    private fun onAddSoundResult(data: Intent?, resultCode: Int) {
-        if (resultCode == Activity.RESULT_OK && data != null) {
-            // We have returned from file chooser dialog
-            val sounds = mutableListOf<Sound>()
-            val uris = mutableListOf<Uri>()
-
-            data.clipData?.let { clipData ->
-                // Multiple items selected; from data.clipData we get Uri:s
-                for (i in 0 until clipData.itemCount) {
-                    uris.add(clipData.getItemAt(i).uri)
-                }
-            } ?: run {
-                // Just one item selected
-                data.data?.let { uris.add(it) }
-            }
-
-            uris.forEach { uri ->
-                /**
-                 * 1. Create Sound with original URI, don't copy any data
-                 * 2. Send sounds to soundAddViewModel.setup()
-                 * 3. Check for duplicates via Sound.checksum
-                 * 4. In Add*SoundDialogFragment.save(), do copy data and save with new uri
-                 */
-                try {
-                    sounds.add(Sound.createTemporary(uri, applicationContext))
-                } catch (e: Exception) {
-                    showSnackbar("Could not add ${uri.lastPathSegment}: $e")
-                }
-            }
-
-            soundAddViewModel.setup(sounds, this.sounds, getString(R.string.multiple_sounds_selected, sounds.size))
-
-            when {
-                soundAddViewModel.hasDuplicates -> showDialogFragment(AddDuplicateSoundDialogFragment())
-                sounds.isEmpty() -> showSnackbar(R.string.no_sounds_to_add)
-                else -> showDialogFragment(AddSoundDialogFragment())
-            }
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        when (intent?.action) {
+            Intent.ACTION_SEND -> (intent?.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)?.let {
+                addSoundsFromUris(listOf(it))
+            }
+            Intent.ACTION_SEND_MULTIPLE -> intent?.getParcelableArrayListExtra<Parcelable>(Intent.EXTRA_STREAM)?.let {
+                addSoundsFromUris(it.filterIsInstance<Uri>())
+            }
+        }
 
         val pInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
         val prefs = getPreferences(Context.MODE_PRIVATE)
@@ -170,7 +158,7 @@ class MainActivity :
         soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
 
         soundViewModel.allSounds.observe(this) {
-            sounds = it
+            allSounds = it
             playerRepository.set(it)
         }
 
@@ -302,10 +290,55 @@ class MainActivity :
 
 
     /********* OWN METHODS **********/
+    private fun addSoundsFromUris(uris: List<Uri>) {
+        /** Used when adding sounds from within app and sharing sounds from other apps */
+        val sounds = mutableListOf<Sound>()
+        uris.forEach { uri ->
+            /**
+             * 1. Create Sound with original URI, don't copy any data
+             * 2. Send sounds to soundAddViewModel.setup()
+             * 3. Check for duplicates via Sound.checksum
+             * 4. In Add*SoundDialogFragment.save(), do copy data and save with new uri
+             */
+            try {
+                sounds.add(Sound.createTemporary(uri, applicationContext))
+            } catch (e: Exception) {
+                showSnackbar("Could not add ${uri.lastPathSegment}: $e")
+            }
+        }
+
+        soundAddViewModel.setup(sounds, this.allSounds, getString(R.string.multiple_sounds_selected, sounds.size))
+
+        when {
+            soundAddViewModel.hasDuplicates -> showDialogFragment(AddDuplicateSoundDialogFragment())
+            sounds.isEmpty() -> showSnackbar(R.string.no_sounds_to_add)
+            else -> showDialogFragment(AddSoundDialogFragment())
+        }
+    }
+
     private fun getCategoryIndex(selectedSounds: List<Sound>): Int {
         return when (selectedSounds.size) {
             1 -> categories.map { it.id }.indexOf(selectedSounds.first().categoryId).let { if (it > -1) it else 0 }
             else -> 0
+        }
+    }
+
+    private fun onAddSoundResult(data: Intent?, resultCode: Int) {
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            // We have returned from file chooser dialog
+            val uris = mutableListOf<Uri>()
+
+            data.clipData?.let { clipData ->
+                // Multiple items selected; from data.clipData we get Uri:s
+                for (i in 0 until clipData.itemCount) {
+                    uris.add(clipData.getItemAt(i).uri)
+                }
+            } ?: run {
+                // Just one item selected
+                data.data?.let { uris.add(it) }
+            }
+
+            addSoundsFromUris(uris)
         }
     }
 
