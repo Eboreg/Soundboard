@@ -3,7 +3,7 @@
 package us.huseli.soundboard.helpers
 
 import android.media.*
-import android.os.*
+import android.os.Build
 import android.util.Log
 import kotlinx.coroutines.*
 import java.nio.ByteBuffer
@@ -13,7 +13,7 @@ import kotlin.math.min
 class AudioFile(
         private val path: String,
         private val name: String,
-        private var bufferSize: Int,
+        baseBufferSize: Int,
         onInit: ((AudioFile) -> Unit)? = null) {
 
     // Public val's & var's
@@ -23,6 +23,7 @@ class AudioFile(
 
     // Private val's to be initialized in init
     private val audioAttributes: AudioAttributes
+    private val bufferSize: Int
 
     //private val codecCallback: CodecCallback
     private val inputMediaFormat: MediaFormat
@@ -30,8 +31,6 @@ class AudioFile(
 
     // Private val's initialized here
     private val extractor = MediaExtractor().apply { setDataSource(path) }
-    private val primingSize
-        get() = bufferSize / 4
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
 
     // Private var's to be initialized later on
@@ -43,16 +42,27 @@ class AudioFile(
     // Private var's initialized here
     private var codec: MediaCodec? = null
     private var extractJob: Job? = null
+    private var initCodecJob: Job? = null
     private var onErrorListener: ((AudioFile, Error) -> Unit)? = null
     private var onReadyListener: ((AudioFile) -> Unit)? = null
     private var onPlayListener: ((AudioFile) -> Unit)? = null
     private var onStopListener: ((AudioFile) -> Unit)? = null
     private var onWarningListener: ((AudioFile, Error) -> Unit)? = null
+    private var overrunSampleData: ByteBuffer? = null
+    private var primedSize = 0
     private var queuedStopJob: Job? = null
     private var state = State.INITIALIZING
         set(value) {
-            Log.d(LOG_TAG, "state changed from $field to $value")
-            field = value
+            if (field != value) {
+                Log.d(LOG_TAG, "state changed from $field to $value")
+                field = value
+                @Suppress("NON_EXHAUSTIVE_WHEN")
+                when (value) {
+                    State.STOPPED -> onStopListener?.invoke(this)
+                    State.READY -> onReadyListener?.invoke(this)
+                    State.PLAYING -> onPlayListener?.invoke(this)
+                }
+            }
         }
 
     init {
@@ -70,11 +80,11 @@ class AudioFile(
                 .build()
 
         channelCount = inputMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+        bufferSize = baseBufferSize * channelCount
         outputAudioFormat = getAudioFormat(inputMediaFormat, null).second
         audioTrack = buildAudioTrack(outputAudioFormat)
 
-        //codecCallback = CodecCallback()
-        if (mime != MediaFormat.MIMETYPE_AUDIO_RAW) scope.launch { initCodec() }
+        if (mime != MediaFormat.MIMETYPE_AUDIO_RAW) initCodecJob = scope.launch { initCodec() }
 
         val mbs = AudioTrack.getMinBufferSize(outputAudioFormat.sampleRate, outputAudioFormat.channelMask, outputAudioFormat.encoding)
 
@@ -89,6 +99,46 @@ class AudioFile(
     /********** PUBLIC METHODS (except listener setters) **********/
 
     fun play() {
+        // Testing:
+/*
+        scope.launch {
+            Log.d(LOG_TAG, "******* play(): start playing")
+            audioTrack.play()
+            state = State.PLAYING
+
+            Log.d(LOG_TAG, "******* play(): start regular extract")
+            extractMode = ExtractMode.REGULAR
+            overrunSampleData?.also {
+                Log.d(LOG_TAG, "******* play(): overrun data exists: $it")
+                writeAudioTrack(it)
+                overrunSampleData = null
+            }
+            extract()
+
+            Log.d(LOG_TAG, "******* play(): delay $duration ms")
+            delay(duration)
+
+            Log.d(LOG_TAG, "******* play(): flushing and initing stuff")
+            state = State.STOPPED
+            extractJob?.cancel()
+            queuedStopJob?.cancel()
+            audioTrack.pause()
+            audioTrack.flush()
+            codec?.let {
+                flushCodec(it)
+            }
+            extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+
+            Log.d(LOG_TAG, "******* play(): done initing, begin priming")
+            extractMode = ExtractMode.PRIME
+            primedSize = 0
+            extract()
+            // onReadyListener?.invoke(this@AudioFile)
+            state = State.READY
+            Log.d(LOG_TAG, "******* play(): priming finished, primedsize=$primedSize, bufferSize=$bufferSize, overrunSampleData=$overrunSampleData")
+        }
+*/
+
         if (state != State.ERROR) {
             if (state == State.READY) doPlay()
             else scope.launch { awaitState(State.READY, 1000L) { doPlay() } }
@@ -105,31 +155,8 @@ class AudioFile(
 
     fun restart() {
         Log.d(LOG_TAG, "restart: init")
-        if (state == State.PLAYING) {
-            Log.d(LOG_TAG, "restart: state==PLAYING")
-            state = State.INIT_PLAY
-            extractJob?.cancel()
-            queuedStopJob?.cancel()
-            audioTrack.pause()
-            audioTrack.flush()
-            audioTrack.play()
-            flushCodec(codec)
-            extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
-            extractJob = scope.launch { extract() }
-        } else play()
-    }
-
-    fun setBufferSize(value: Int) {
-        if (value != bufferSize) {
-            Log.d(LOG_TAG, "setBufferSize: Changing buffer size for $name from $bufferSize to $value")
-            bufferSize = value
-/*
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                audioTrack.bufferSizeInFrames = value * 2 * channelCount
-            }
-*/
-            scope.launch { rebuildAudioTrack() }
-        }
+        if (state == State.PLAYING) stop(false)
+        play()
     }
 
     fun setVolume(value: Int): AudioFile {
@@ -137,7 +164,7 @@ class AudioFile(
         return this
     }
 
-    fun stop() {
+    fun stop(prime: Boolean = true) {
         /** Stop immediately */
         if (state == State.PLAYING) {
             state = State.STOPPED
@@ -145,13 +172,9 @@ class AudioFile(
             queuedStopJob?.cancel()
             audioTrack.pause()
             audioTrack.flush()
-            codec?.let {
-                Log.d(LOG_TAG, "Flushing codec because playback finished")
-                flushCodec(it)
-            }
+            flushCodec(codec)
             extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
-            onStopListener?.invoke(this)
-            scope.launch { prime() }
+            if (prime) scope.launch { prime() }
         }
     }
 
@@ -167,161 +190,117 @@ class AudioFile(
         else onWarning(Error.TIMEOUT)
     }
 
-    private fun buildAudioTrack(audioFormat: AudioFormat) = buildAudioTrack(audioFormat, AudioManager.AUDIO_SESSION_ID_GENERATE)
-
     @Throws(AudioFileException::class)
-    private fun buildAudioTrack(audioFormat: AudioFormat, sessionId: Int): AudioTrack {
+    private fun buildAudioTrack(audioFormat: AudioFormat): AudioTrack {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 val builder = AudioTrack.Builder()
                         .setAudioAttributes(audioAttributes)
                         .setAudioFormat(audioFormat)
-                        .setBufferSizeInBytes(bufferSize * channelCount)
-                        .setSessionId(sessionId)
+                        .setBufferSizeInBytes(bufferSize)
                         .setTransferMode(AudioTrack.MODE_STREAM)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) builder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY)
                 builder.build()
-            } else AudioTrack(audioAttributes, audioFormat, bufferSize * channelCount, AudioTrack.MODE_STREAM, sessionId)
+            } else AudioTrack(audioAttributes, audioFormat, bufferSize, AudioTrack.MODE_STREAM, AudioManager.AUDIO_SESSION_ID_GENERATE)
         } catch (e: IllegalStateException) {
             throw AudioFileException(Error.BUILD_AUDIO_TRACK)
         }
     }
 
     private fun bytesToMilliseconds(bytes: Int): Long {
-        /** milliseconds = 1000 * bytes / (hz * frameSizeInBytes) */
-        // Let's assume we always output 16 bit (== 2 bytes per sample) PCM for simplicity
+        /**
+         * milliseconds = 1000 * bytes / (hz * frameSizeInBytes)
+         * Let's assume we always output 16 bit (== 2 bytes per sample) PCM for simplicity
+         */
         return ((1000 * bytes) / (outputAudioFormat.sampleRate * 2 * channelCount)).toLong()
     }
 
     private fun doPlay() {
         // Log.d(LOG_TAG, "Play name=$name, inputFormat=$inputMediaFormat, outputFormat=$outputAudioFormat, mime=$mime, duration=$duration, audioAttributes=$audioAttributes, audioTrack=$audioTrack, channelCount=$channelCount")
+        audioTrack.play()
         state = State.INIT_PLAY
         extractMode = ExtractMode.REGULAR
-        audioTrack.play()
-        extractJob = scope.launch { extract() }
+        extractJob = scope.launch {
+            overrunSampleData?.also {
+                writeAudioTrack(it)
+                overrunSampleData = null
+            }
+            extract()
+        }
     }
 
-    private suspend fun extract(maxSize: Int? = null) {
+    private suspend fun extract() {
         /**
          * Extracts sample data from extractor and feeds it to audioTrack.
          * Before: Make sure extractor is positioned at the correct sample and audioTrack is ready
          * for writing.
-         * Parameters:
-         *   maxSize = Extract max this number of bytes
          */
+        Log.d(LOG_TAG, "******* extract start")
         when (mime) {
-            MediaFormat.MIMETYPE_AUDIO_RAW -> extractRaw(maxSize)
+            MediaFormat.MIMETYPE_AUDIO_RAW -> extractRaw()
             else -> extractEncoded()
         }
     }
 
     private suspend fun extractEncoded() {
-        try {
-            if (codec == null) initCodec()
-        } catch (e: Exception) {
-            onError(Error.CODEC_START, e)
-        }
-        val info = MediaCodec.BufferInfo()
-        val timeoutUs = 1000L
+        /**
+         * When priming: Ideally extract exactly `bufferSize` bytes of audio data. If there is some
+         * overshoot, put it in `overrunSampleData`. Try to accomplish this by running codec input
+         * and output "serially", i.e. only get input buffer when there has been a successful
+         * output buffer get just before (except for the first iteration, of course).
+         */
+        Log.d(LOG_TAG, "******* extractEncoded start")
+        if (initCodecJob?.isActive == true) initCodecJob?.join()
         var inputEos = false
-        var outputEos = false
-        var extractorDone = false
-        var totalSize = 0
-        codec?.let { codec ->
-            while (!outputEos && state != State.STOPPED) {
-                yield()  // checks for cancellation
-                if (!inputEos) {
-                    try {
-                        val index = codec.dequeueInputBuffer(timeoutUs)
-                        if (index >= 0) {
-                            val buffer = codec.getInputBuffer(index)
-                            if (buffer != null) {
-                                do {
-                                    yield()  // checks for cancellation
-                                    if (extractorDone) {
-                                        inputEos = true
-                                        codec.queueInputBuffer(index, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-                                        break
-                                    }
-                                    val sampleSize = extractor.readSampleData(buffer, 0)
-                                    if (sampleSize > 0) {
-                                        totalSize += sampleSize
-                                        codec.queueInputBuffer(index, 0, sampleSize, extractor.sampleTime, extractor.sampleFlags)
-                                    }
-                                    extractorDone = !extractor.advance()
-                                } while (sampleSize == 0)
-                            }
-                        }
-                    } catch (e: Exception) {
-                        Log.w(LOG_TAG, "Error in codec output", e)
-                    }
+        var outputRetries = 0
+        var outputStopped = false
+        var doExtraction = true
+        var totalSize = primedSize
+        while (!outputStopped) {
+            // yield()  // checks for cancellation
+            if (!inputEos && doExtraction) inputEos = processInputBuffer()
+            val (outputResult, sampleSize) = processOutputBuffer(totalSize)
+            totalSize += sampleSize
+            when (outputResult) {
+                ProcessOutputResult.SUCCESS -> {
+                    outputRetries = 0
+                    // We don't _know_ that the next buffer will be of the same size as the current
+                    // one, but it's an educated guess that's good enough:
+                    if (extractMode == ExtractMode.PRIME) doExtraction = totalSize + sampleSize < bufferSize
+                    outputStopped = false
                 }
-
-                try {
-                    val index = codec.dequeueOutputBuffer(info, timeoutUs)
-                    if (index >= 0 && (state == State.PLAYING || state == State.INIT_PLAY)) {
-                        val buffer = codec.getOutputBuffer(index)
-                        if ((info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-                            codec.releaseOutputBuffer(index, false)
-                        } else if (buffer != null) {
-                            yield()  // checks for cancellation
-                            outputEos = (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0
-                            if (outputEos && totalSize < MINIMUM_SAMPLE_SIZE) {
-                                val elementsToAdd = min(MINIMUM_SAMPLE_SIZE - totalSize, buffer.capacity() - buffer.limit())
-                                val writableBuffer = ByteBuffer.allocate(buffer.limit() + elementsToAdd)
-                                buffer.position(buffer.limit())
-                                writableBuffer.put(buffer)
-                                for (i in 0 until elementsToAdd) writableBuffer.put(0)
-                                writableBuffer.limit(writableBuffer.position())
-                                writableBuffer.rewind()
-                                writeAudioTrack(writableBuffer)
-                            } else
-                                writeAudioTrack(buffer, info.size)
-                            codec.releaseOutputBuffer(index, false)
-                        }
-                    } else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                        val (hasChanged, audioFormat) = getAudioFormat(codec.outputFormat, outputAudioFormat)
-                        if (hasChanged) {
-                            outputAudioFormat = audioFormat
-                            rebuildAudioTrack()
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.w(LOG_TAG, "Error in codec output", e)
+                ProcessOutputResult.EOS -> {
+                    if (extractMode == ExtractMode.PRIME) doExtraction = false
+                    outputStopped = true
+                }
+                else -> {
+                    if (extractMode == ExtractMode.PRIME) doExtraction = false
+                    outputStopped = outputRetries++ >= 5
                 }
             }
+            Log.d(LOG_TAG, "******* extractEncoded: outputResult=$outputResult, outputRetries=$outputRetries, outputStopped=$outputStopped, doExtraction=$doExtraction, extractMode=$extractMode")
         }
-        Log.d(LOG_TAG, "Extract finished, total size=$totalSize")
+        if (extractMode == ExtractMode.PRIME) primedSize = totalSize
+        Log.d(LOG_TAG, "Extract finished, total size=$totalSize, extractMode=$extractMode")
     }
 
-    private fun tryQueueInputBuffer(codec: MediaCodec, index: Int, size: Int, presentationTimeUs: Long, sampleFlags: Int): Boolean {
-        return try {
-            codec.queueInputBuffer(index, 0, size, presentationTimeUs, sampleFlags)
-            true
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    private suspend fun extractRaw(maxSize: Int? = null) {
-        val buffer = ByteBuffer.allocate(bufferSize * channelCount)
-        var totalSize = 0
-        do {
+    private suspend fun extractRaw() {
+        val buffer = ByteBuffer.allocate(bufferSize)
+        var totalSize = primedSize
+        var extractorDone = false
+        var bufferFull = false
+        while (!extractorDone && !bufferFull) {
             val sampleSize = extractor.readSampleData(buffer, 0)
             if (sampleSize >= 0) {
                 totalSize += sampleSize
                 //Log.d(LOG_TAG, "extractRaw: name=$name, writing $sampleSize bytes from $buffer to audioTrack (totalSize=$totalSize)")
-                writeAudioTrack(buffer, sampleSize)
+                writeAudioTrack(buffer)
                 buffer.clear()
+                if (extractMode == ExtractMode.PRIME) bufferFull = totalSize + sampleSize > bufferSize
             }
-            // Check maxSize against probable totalSize after _next_ iteration:
-/*
-            if (sampleSize < 0 || (maxSize != null && totalSize + sampleSize > maxSize)) {
-                Log.d(LOG_TAG, "extractRaw: totalSize=$totalSize, sampleSixe=$sampleSize, maxSize=$maxSize")
-                extractorDone = true
-            }
-*/
-        } while (extractor.advance())
+            extractorDone = !extractor.advance()
+        }
+        if (extractMode == ExtractMode.PRIME) primedSize = totalSize
     }
 
     private fun flushCodec(codec: MediaCodec?) {
@@ -330,7 +309,6 @@ class AudioFile(
         } catch (e: IllegalStateException) {
             Log.e(LOG_TAG, "flushCodec error", e)
         }
-        //codecCallback.flushed = true
     }
 
     private fun framesToMilliseconds(frames: Int): Long {
@@ -403,7 +381,6 @@ class AudioFile(
         /** Called when the first block is about to be queued up */
         Log.d(LOG_TAG, "onPlayStarted(): starting")
         state = State.PLAYING
-        onPlayListener?.invoke(this@AudioFile)
         queuedStopJob = scope.launch { softStop(duration) }
         Log.d(LOG_TAG, "onPlayStarted(): finishing, queuedStopJob=$queuedStopJob")
     }
@@ -419,11 +396,100 @@ class AudioFile(
          * Expects extractor to be ready and positioned at beginning of track.
          */
         extractMode = ExtractMode.PRIME
-        if (DO_PRIMING) extract(primingSize)
+        primedSize = 0
+        if (DO_PRIMING) extract()
         //Log.d(LOG_TAG, "prime(): invoking $onReadyListener")
         callback?.invoke(this)
-        onReadyListener?.invoke(this)
         state = State.READY
+    }
+
+    private suspend fun processInputBuffer(): Boolean {
+        /** Return: extractorDone */
+        Log.d(LOG_TAG, "******* processInputBuffer start")
+        val timeoutUs = 1000L
+        var extractorDone = false
+        var sampleSize: Int
+        var inputEos = false
+
+        return codec?.let { codec ->
+            try {
+                val index = codec.dequeueInputBuffer(timeoutUs)
+                if (index >= 0) {
+                    val buffer = codec.getInputBuffer(index)
+                    if (buffer != null) {
+                        do {
+                            // yield()  // checks for cancellation
+                            if (extractorDone) {
+                                codec.queueInputBuffer(index, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                                inputEos = true
+                                break
+                            }
+                            sampleSize = extractor.readSampleData(buffer, 0)
+                            if (sampleSize > 0) {
+                                codec.queueInputBuffer(index, 0, sampleSize, extractor.sampleTime, extractor.sampleFlags)
+                            }
+                            extractorDone = !extractor.advance()
+                            Log.d(LOG_TAG, "******* processInputBuffer: index=$index, sampleSize=$sampleSize, extractorDone=$extractorDone")
+                        } while (sampleSize == 0 || inputEos)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(LOG_TAG, "Error in codec input", e)
+            }
+            Log.d(LOG_TAG, "******* processInputBuffer: done")
+            extractorDone
+        } ?: true
+    }
+
+    private suspend fun processOutputBuffer(totalSize: Int): Pair<ProcessOutputResult, Int> {
+        /** Return: ProcessOutputResult, size written this iteration */
+        Log.d(LOG_TAG, "******* processOutputBuffer start")
+        val timeoutUs = 1000L
+        val info = MediaCodec.BufferInfo()
+        var outputEos: Boolean
+
+        codec?.also { codec ->
+            try {
+                val index = codec.dequeueOutputBuffer(info, timeoutUs)
+                // if (index >= 0 && (state == State.PLAYING || state == State.INIT_PLAY)) {
+                if (index >= 0) {
+                    val buffer = codec.getOutputBuffer(index)
+                    if ((info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                        codec.releaseOutputBuffer(index, false)
+                        return Pair(ProcessOutputResult.CODEC_CONFIG, 0)
+                    } else if (buffer != null) {
+                        // yield()  // checks for cancellation
+                        outputEos = (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0
+                        Log.d(LOG_TAG, "******* processOutputBuffer: index=$index, buffer=$buffer, outputEos=$outputEos")
+                        if (outputEos && totalSize < MINIMUM_SAMPLE_SIZE) {
+                            // TODO: Is this necessary?
+                            val elementsToAdd = min(MINIMUM_SAMPLE_SIZE - totalSize, buffer.capacity() - buffer.limit())
+                            val writableBuffer = ByteBuffer.allocate(buffer.limit() + elementsToAdd)
+                            buffer.position(buffer.limit())
+                            writableBuffer.put(buffer)
+                            for (i in 0 until elementsToAdd) writableBuffer.put(0)
+                            writableBuffer.limit(writableBuffer.position())
+                            writableBuffer.rewind()
+                            writeAudioTrack(writableBuffer)
+                        } else
+                            writeAudioTrack(buffer)
+                        codec.releaseOutputBuffer(index, false)
+                        return if (outputEos) Pair(ProcessOutputResult.EOS, info.size) else Pair(ProcessOutputResult.SUCCESS, info.size)
+                    } else return Pair(ProcessOutputResult.NO_BUFFER, 0)
+                } else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                    val (hasChanged, audioFormat) = getAudioFormat(codec.outputFormat, outputAudioFormat)
+                    if (hasChanged) {
+                        outputAudioFormat = audioFormat
+                        rebuildAudioTrack()
+                    }
+                    return Pair(ProcessOutputResult.OUTPUT_FORMAT_CHANGED, 0)
+                } else return Pair(ProcessOutputResult.NO_BUFFER, 0)
+            } catch (e: Exception) {
+                Log.w(LOG_TAG, "Error in codec output", e)
+                return Pair(ProcessOutputResult.ERROR, 0)
+            }
+        }
+        return Pair(ProcessOutputResult.NO_CODEC, 0)
     }
 
     private suspend fun rebuildAudioTrack() {
@@ -454,22 +520,42 @@ class AudioFile(
         queuedStopJob = null
     }
 
-    @Synchronized
-    private fun writeAudioTrack(buffer: ByteBuffer, sampleSize: Int? = null) {
-        /**
-         * Will only write to AudioTrack if state is INIT_PLAY or PLAYING
-         */
-        Log.d(LOG_TAG, "writeAudioTrack: name=$name, buffer=$buffer, sampleSize=$sampleSize, state=$state")
-        if (state == State.INIT_PLAY) onPlayStarted()
-        else if (state != State.PLAYING) return
+    private fun tryQueueInputBuffer(codec: MediaCodec, index: Int, size: Int, presentationTimeUs: Long, sampleFlags: Int): Boolean {
+        return try {
+            codec.queueInputBuffer(index, 0, size, presentationTimeUs, sampleFlags)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
 
-        audioTrack.write(buffer, sampleSize ?: buffer.remaining(), AudioTrack.WRITE_BLOCKING).also {
+    @Synchronized
+    private fun writeAudioTrack(buffer: ByteBuffer) {
+        /**
+         * Will only write to AudioTrack if state is INIT_PLAY or PLAYING (or maybe not?)
+         */
+        Log.d(LOG_TAG, "writeAudioTrack: name=$name, buffer=$buffer, sampleSize=${buffer.remaining()}, state=$state")
+        if (state == State.INIT_PLAY) onPlayStarted()
+        val sampleSize = buffer.remaining()
+
+        audioTrack.write(buffer, sampleSize, AudioTrack.WRITE_BLOCKING).also {
             when (it) {
                 AudioTrack.ERROR_BAD_VALUE -> onWarning(Error.OUTPUT_BAD_VALUE)
                 AudioTrack.ERROR_DEAD_OBJECT -> onWarning(Error.OUTPUT_DEAD_OBJECT)
                 AudioTrack.ERROR_INVALID_OPERATION -> onWarning(Error.OUTPUT_NOT_PROPERLY_INITIALIZED)
                 AudioTrack.ERROR -> onWarning(Error.OUTPUT)
-                // else -> Log.d(LOG_TAG, "writeAudioTrack: audioTrack.write() returned $it")
+                else -> {
+                    Log.d(LOG_TAG, "writeAudioTrack: audioTrack.write() returned $it")
+                    if (it < sampleSize) {
+                        /**
+                         * "Note that upon return, the buffer position (audioData.position()) will
+                         * have been advanced to reflect the amount of data that was successfully
+                         * written to the AudioTrack."
+                         * https://developer.android.com/reference/kotlin/android/media/AudioTrack#write_5
+                         */
+                        overrunSampleData = ByteBuffer.allocateDirect(sampleSize - it).put(buffer).apply { position(0) }
+                    }
+                }
             }
         }
     }
@@ -531,11 +617,13 @@ class AudioFile(
 
     enum class State { READY, INIT_PLAY, PLAYING, INITIALIZING, INIT_STOP, STOPPED, ERROR }
 
+    enum class ProcessOutputResult { SUCCESS, OUTPUT_FORMAT_CHANGED, CODEC_CONFIG, NO_BUFFER, EOS, ERROR, NO_CODEC }
+
     companion object {
         const val LOG_TAG = "AudioFile"
         const val WAIT_INTERVAL: Long = 50  // milliseconds
         const val SAMPLE_RATE = 44100
-        const val DO_PRIMING = false
+        const val DO_PRIMING = true
         const val MINIMUM_SAMPLE_SIZE = 75000
         private fun tryGetOutputBuffer(codec: MediaCodec, index: Int): ByteBuffer? {
             return try {
