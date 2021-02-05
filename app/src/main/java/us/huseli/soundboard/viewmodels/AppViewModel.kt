@@ -66,7 +66,7 @@ class AppViewModel @ViewModelInject constructor(
     fun deleteOrphans(context: Context) = viewModelScope.launch(Dispatchers.IO) {
         val sounds = soundRepository.list()
         context.getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE)?.listFiles()?.forEach { file ->
-            if (!sounds.map { it.uri.lastPathSegment }.contains(file.name))
+            if (!sounds.map { it.path }.contains(file.path))
                 file.delete()
         }
     }
@@ -125,7 +125,7 @@ class AppViewModel @ViewModelInject constructor(
                 if (removedState.sounds != null && nextState.sounds != null)
                     removedState.sounds.subtract(nextState.sounds).forEach {
                         context.getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE)?.listFiles()?.forEach { file ->
-                            if (file.name == it.uri.lastPathSegment) file.delete()
+                            if (file.path == it.path) file.delete()
                         }
                     }
             }

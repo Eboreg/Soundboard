@@ -5,7 +5,7 @@ import kotlinx.coroutines.*
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.helpers.AudioFile
 
-class SoundPlayer(private val sound: Sound, val path: String, private var bufferSize: Int) {
+class SoundPlayer(private val sound: Sound, private var bufferSize: Int) {
     private var audioFile: AudioFile? = null
     private val tempAudioFiles = mutableListOf<AudioFile>()
 
@@ -43,7 +43,7 @@ class SoundPlayer(private val sound: Sound, val path: String, private var buffer
     var bottom: Float = 0f
 
     init {
-        Log.i(LOG_TAG, "init: uri=$sound, path=$path")
+        Log.i(LOG_TAG, "init: uri=$sound, path=${sound.path}")
         scope.launch { audioFile = createAudioFile() }
     }
 
@@ -54,7 +54,7 @@ class SoundPlayer(private val sound: Sound, val path: String, private var buffer
 
     private fun createAudioFile(): AudioFile? {
         return try {
-            AudioFile(path, bufferSize) {
+            AudioFile(sound, bufferSize) {
                 _duration = it.duration.toInt()
                 it.setVolume(volume)
                 _state = State.READY
@@ -134,7 +134,7 @@ class SoundPlayer(private val sound: Sound, val path: String, private var buffer
     }
 
     private fun createAndStartTempPlayer() {
-        AudioFile(path, bufferSize, true).let {
+        AudioFile(sound, bufferSize, true).let {
             it.play()
             tempAudioFiles.add(it)
             it.setOnPlayListener {

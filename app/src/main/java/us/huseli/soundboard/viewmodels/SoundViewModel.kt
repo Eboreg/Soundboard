@@ -62,16 +62,14 @@ class SoundViewModel @ViewModelInject constructor(private val repository: SoundR
         /** One-time thing at app version upgrade */
         val updatedSounds = mutableListOf<Sound>()
         repository.list().forEach { sound ->
-            sound.uri.path?.let { path ->
-                try {
-                    val file = File(path)
-                    if (sound.checksum == null) {
-                        sound.checksum = MD5.calculate(file)
-                        updatedSounds.add(sound)
-                    }
-                } catch (e: Exception) {
-                    Log.e(LOG_TAG, "Error when saving checksum for $sound: $e")
+            try {
+                val file = File(sound.path)
+                if (sound.checksum == null) {
+                    sound.checksum = MD5.calculate(file)
+                    updatedSounds.add(sound)
                 }
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "Error when saving checksum for $sound: $e")
             }
         }
         repository.update(updatedSounds)

@@ -1,13 +1,11 @@
 package us.huseli.soundboard.data
 
-import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.OpenableColumns
 import android.util.Log
-import androidx.core.net.toUri
 import androidx.room.*
 import us.huseli.soundboard.Constants
 import us.huseli.soundboard.helpers.MD5
@@ -26,31 +24,35 @@ data class Sound(
         @PrimaryKey(autoGenerate = true) var id: Int? = null,
         var categoryId: Int?,
         var name: String,
-        val uri: Uri,
+        val path: String,
         var order: Int,
         var volume: Int,
         val added: Date,
         var duration: Int,
         var checksum: String?,
-        @Ignore var path: String?) : Parcelable {
+        @Ignore val uri: Uri?) : Parcelable {
 
     constructor(parcel: Parcel) : this(
             parcel.readValue(Int::class.java.classLoader) as? Int,  // id
             parcel.readValue(Int::class.java.classLoader) as? Int,  // categoryId
             parcel.readString() ?: "",  // name
-            parcel.readParcelable(Uri::class.java.classLoader)!!,  // uri
+            parcel.readString() ?: "", // path
             parcel.readInt(),  // order
             parcel.readInt(),  // volume
             parcel.readSerializable() as Date,  // added
             parcel.readInt(),  // duration
             parcel.readString(),  // checksum
-            parcel.readString()  // path
+            null
     ) {
         Log.d("SOUND", "Create Sound though Parcelable constructor: $this")
     }
 
-    constructor(id: Int?, categoryId: Int?, name: String, uri: Uri, order: Int, volume: Int, added: Date, duration: Int, checksum: String?) :
-            this(id, categoryId, name, uri, order, volume, added, duration, checksum, uri.path)
+    constructor(id: Int, categoryId: Int?, name: String, path: String, order: Int, volume: Int, added: Date, duration: Int, checksum: String?)
+            : this(id, categoryId, name, path, order, volume, added, duration, checksum, null)
+
+    @Ignore
+    constructor(categoryId: Int?, name: String, path: String, order: Int, volume: Int, added: Date, duration: Int, checksum: String?)
+            : this(null, categoryId, name, path, order, volume, added, duration, checksum, null)
 
     override fun equals(other: Any?) = other is Sound && other.id == id
 
@@ -63,33 +65,17 @@ data class Sound(
         parcel.writeValue(id)
         parcel.writeValue(categoryId)
         parcel.writeString(name)
-        parcel.writeParcelable(uri, flags)
+        parcel.writeString(path)
         parcel.writeInt(order)
         parcel.writeInt(volume)
         parcel.writeSerializable(added)
         parcel.writeInt(duration)
         parcel.writeString(checksum)
-        parcel.writeString(path)
     }
 
     override fun describeContents(): Int = 0
 
     override fun hashCode(): Int = id ?: 0
-
-    fun copyData(contentResolver: ContentResolver, context: Context) {
-        val inputStream = contentResolver.openInputStream(uri)
-                ?: throw Exception("File provider returned null")
-        val filename = checksum ?: uri.hashCode().toString().replace("-", "_")
-        val outputStream = context.openFileOutput(filename, Context.MODE_PRIVATE)
-        val buf = ByteArray(1024)
-        var len: Int
-        while (inputStream.read(buf).also { len = it } > 0) {
-            outputStream.write(buf, 0, len)
-        }
-        outputStream.close()
-        inputStream.close()
-
-    }
 
 
     class Comparator(private val sortBy: SortParameter, private val sortOrder: SortOrder) : java.util.Comparator<Sound> {
@@ -155,13 +141,13 @@ data class Sound(
                 }
             }
 
-            return Sound(null, null, name, uri, -1, 100, Date(), -1, checksum)
+            return Sound(null, null, name, uri.path ?: "", -1, 100, Date(), -1, checksum, uri)
         }
 
         fun createFromTemporary(tempSound: Sound, context: Context): Sound {
             /** Copy data to local storage and return new Sound object to be saved to DB */
             // val application = GlobalApplication.application
-            val inputStream = context.contentResolver.openInputStream(tempSound.uri)
+            val inputStream = context.contentResolver.openInputStream(tempSound.uri!!)
                     ?: throw Exception("File provider returned null")
 
             /** Some paranoid extra measures */
@@ -180,9 +166,7 @@ data class Sound(
             outputStream.close()
             inputStream.close()
 
-            val uri = file.toUri()
-
-            return Sound(null, tempSound.categoryId, tempSound.name, uri, tempSound.order, tempSound.volume, tempSound.added, tempSound.duration, tempSound.checksum)
+            return Sound(tempSound.categoryId, tempSound.name, file.path, tempSound.order, tempSound.volume, tempSound.added, tempSound.duration, tempSound.checksum)
         }
     }
 }

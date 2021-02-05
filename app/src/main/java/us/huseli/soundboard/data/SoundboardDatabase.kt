@@ -1,6 +1,7 @@
 package us.huseli.soundboard.data
 
 import android.content.Context
+import android.net.Uri
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -9,7 +10,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import java.util.*
 
-@Database(entities = [Sound::class, Category::class], version = 13, exportSchema = false)
+@Database(entities = [Sound::class, Category::class], version = 14, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class SoundboardDatabase : RoomDatabase() {
     abstract fun soundDao(): SoundDao
@@ -141,6 +142,40 @@ abstract class SoundboardDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE Sound_new (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        path TEXT NOT NULL,
+                        'order' INTEGER NOT NULL,
+                        volume INTEGER NOT NULL,
+                        categoryId INTEGER,
+                        duration INTEGER NOT NULL,
+                        added INTEGER NOT NULL,
+                        checksum TEXT,
+                        FOREIGN KEY (categoryId) REFERENCES SoundCategory(id) ON UPDATE CASCADE ON DELETE CASCADE
+                    )""".trimIndent())
+                val cursor = database.query("SELECT * FROM Sound")
+                while (cursor.moveToNext()) {
+                    val sound = Sound(
+                            cursor.getInt(0), cursor.getInt(1), cursor.getString(2),
+                            Uri.parse(cursor.getString(3)).path!!, cursor.getInt(4),
+                            cursor.getInt(5), Date(cursor.getLong(6)), cursor.getInt(7),
+                            cursor.getString(8))
+                    val query = """
+                        INSERT INTO Sound_new (id, categoryId, name, path, 'order', volume, checksum, added, duration)
+                        VALUES (${sound.id}, ${sound.categoryId}, '${sound.name}', '${sound.path}', ${sound.order}, ${sound.volume}, '${sound.checksum}', ${sound.added.time}, ${sound.duration})
+                    """.trimIndent()
+                    database.execSQL(query)
+                }
+                database.execSQL("DROP TABLE Sound")
+                database.execSQL("ALTER TABLE Sound_new RENAME TO Sound")
+                database.execSQL("CREATE INDEX index_Sound_categoryId ON Sound(categoryId)")
+            }
+        }
+
         fun buildDatabase(appContext: Context): SoundboardDatabase {
             return Room.databaseBuilder(appContext, SoundboardDatabase::class.java, "sound_database")
                     .addMigrations(MIGRATION_4_5)
@@ -152,6 +187,7 @@ abstract class SoundboardDatabase : RoomDatabase() {
                     .addMigrations(MIGRATION_10_11)
                     .addMigrations(MIGRATION_11_12)
                     .addMigrations(MIGRATION_12_13)
+                    .addMigrations(MIGRATION_13_14)
                     .fallbackToDestructiveMigration()
                     .build()
         }

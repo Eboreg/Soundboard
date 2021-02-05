@@ -6,12 +6,13 @@ import android.media.*
 import android.os.Build
 import android.util.Log
 import kotlinx.coroutines.*
+import us.huseli.soundboard.data.Sound
 import java.nio.ByteBuffer
 import kotlin.math.min
 
 @Suppress("RedundantSuspendModifier")
 class AudioFile(
-        path: String,
+        sound: Sound,
         baseBufferSize: Int,
         private val isTemporary: Boolean = false,
         onInit: ((AudioFile) -> Unit)? = null) {
@@ -30,7 +31,7 @@ class AudioFile(
     private val mime: String
 
     // Private val's initialized here
-    private val extractor = MediaExtractor().apply { setDataSource(path) }
+    private val extractor = MediaExtractor().apply { setDataSource(sound.path) }
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
 
     // Private var's to be initialized later on
@@ -95,7 +96,7 @@ class AudioFile(
         prime(onInit)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Log.d(LOG_TAG, "init: path=$path, mime=$mime, minBufferSize=$mbs, bufferSizeInFrames=${audioTrack.bufferSizeInFrames}, channelCount=$channelCount, inputFormat=$inputMediaFormat, outputFormat=$outputAudioFormat")
+            Log.d(LOG_TAG, "init: sound=$sound, path=${sound.path}, mime=$mime, minBufferSize=$mbs, bufferSizeInFrames=${audioTrack.bufferSizeInFrames}, channelCount=$channelCount, inputFormat=$inputMediaFormat, outputFormat=$outputAudioFormat")
         }
     }
 

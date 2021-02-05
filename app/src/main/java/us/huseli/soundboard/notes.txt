@@ -1,3 +1,32 @@
+Expected:
+TableInfo{name='Sound', columns={volume=Column{name='volume', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'}, duration=Column{name='duration', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'}, path=Column{name='path', type='TEXT', affinity='2', notNull=true, primaryKeyPosition=0, defaultValue='null'}, added=Column{name='added', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'}, name=Column{name='name', type='TEXT', affinity='2', notNull=true, primaryKeyPosition=0, defaultValue='null'}, checksum=Column{name='checksum', type='TEXT', affinity='2', notNull=false, primaryKeyPosition=0, defaultValue='null'}, id=Column{name='id', type='INTEGER', affinity='3', notNull=false, primaryKeyPosition=1, defaultValue='null'}, categoryId=Column{name='categoryId', type='INTEGER', affinity='3', notNull=false, primaryKeyPosition=0, defaultValue='null'}, order=Column{name='order', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'}}, foreignKeys=[ForeignKey{referenceTable='SoundCategory', onDelete='CASCADE', onUpdate='CASCADE', columnNames=[categoryId], referenceColumnNames=[id]}], indices=[Index{name='index_Sound_categoryId', unique=false, columns=[categoryId]}]}
+ Found:
+TableInfo{name='Sound', columns={volume=Column{name='volume', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'}, duration=Column{name='duration', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'}, path=Column{name='path', type='TEXT', affinity='2', notNull=true, primaryKeyPosition=0, defaultValue='null'}, added=Column{name='added', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'}, name=Column{name='name', type='TEXT', affinity='2', notNull=true, primaryKeyPosition=0, defaultValue='null'}, checksum=Column{name='checksum', type='TEXT', affinity='2', notNull=false, primaryKeyPosition=0, defaultValue='null'}, id=Column{name='id', type='INTEGER', affinity='3', notNull=false, primaryKeyPosition=1, defaultValue='null'}, categoryId=Column{name='categoryId', type='INTEGER', affinity='3', notNull=false, primaryKeyPosition=0, defaultValue='null'}, order=Column{name='order', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'}}, foreignKeys=[ForeignKey{referenceTable='SoundCategory', onDelete='SET NULL', onUpdate='SET NULL', columnNames=[categoryId], referenceColumnNames=[id]}], indices=[Index{name='index_Sound_categoryId', unique=false, columns=[categoryId]}]}
+
+
+Expected:
+TableInfo{name='Sound', columns={
+    volume=Column{name='volume', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'},
+    duration=Column{name='duration', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'},
+    path=Column{name='path', type='TEXT', affinity='2', notNull=true, primaryKeyPosition=0, defaultValue='null'},
+    added=Column{name='added', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'},
+    name=Column{name='name', type='TEXT', affinity='2', notNull=true, primaryKeyPosition=0, defaultValue='null'},
+    checksum=Column{name='checksum', type='TEXT', affinity='2', notNull=false, primaryKeyPosition=0, defaultValue='null'},
+    id=Column{name='id', type='INTEGER', affinity='3', notNull=false, primaryKeyPosition=1, defaultValue='null'},
+    categoryId=Column{name='categoryId', type='INTEGER', affinity='3', notNull=false, primaryKeyPosition=0, defaultValue='null'},
+    order=Column{name='order', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'}},
+ foreignKeys=[ForeignKey{referenceTable='SoundCategory', onDelete='CASCADE', onUpdate='CASCADE', columnNames=[categoryId], referenceColumnNames=[id]}], indices=[Index{name='index_Sound_categoryId', unique=false, columns=[categoryId]}]}
+
+ Found:
+TableInfo{name='Sound', columns={
+    volume=Column{name='volume', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'},
+    path=Column{name='path', type='TEXT', affinity='2', notNull=true, primaryKeyPosition=0, defaultValue='null'},
+    name=Column{name='name', type='TEXT', affinity='2', notNull=true, primaryKeyPosition=0, defaultValue='null'},
+    id=Column{name='id', type='INTEGER', affinity='3', notNull=false, primaryKeyPosition=1, defaultValue='null'},
+    categoryId=Column{name='categoryId', type='INTEGER', affinity='3', notNull=false, primaryKeyPosition=0, defaultValue='null'},
+    order=Column{name='order', type='INTEGER', affinity='3', notNull=true, primaryKeyPosition=0, defaultValue='null'}},
+ foreignKeys=[ForeignKey{referenceTable='SoundCategory', onDelete='SET NULL', onUpdate='SET NULL', columnNames=[categoryId], referenceColumnNames=[id]}], indices=[Index{name='index_Sound_categoryId', unique=false, columns=[categoryId]}]}
+
 Widget.AppCompat.ActionMode
 
 Gammal:

@@ -36,9 +36,7 @@ class PlayerRepository @Inject constructor(@ApplicationContext context: Context)
     }
 
     private fun addIfNotExists(sound: Sound) {
-        sound.uri.path?.let { path ->
-            if (!_players.containsKey(sound)) _players[sound] = SoundPlayer(sound, path, bufferSize)
-        }
+        if (!_players.containsKey(sound)) _players[sound] = SoundPlayer(sound, bufferSize)
     }
 
     fun set(sounds: List<Sound>) {

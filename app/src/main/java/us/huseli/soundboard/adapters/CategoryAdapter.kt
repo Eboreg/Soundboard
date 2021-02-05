@@ -222,7 +222,8 @@ class CategoryAdapter(
 
         @Suppress("unused")
         private fun submitListWithInvalidSound(sounds: List<Sound>) {
-            val invalidSound = Sound(666, category?.id, "fail", Uri.fromParts("content", "//com.android.externalstorage.documents/document/0000-0000:Music/Soundboard/Uh! Sorry!.flac", null), 10, 100, Date(), -1, null)
+            val uri = Uri.fromParts("content", "//com.android.externalstorage.documents/document/0000-0000:Music/Soundboard/Uh! Sorry!.flac", null)
+            val invalidSound = Sound(666, category?.id, "fail", uri.path!!, 10, 100, Date(), -1, null)
             val mutableSounds = sounds.toMutableList()
             mutableSounds.add(invalidSound)
             soundCount = mutableSounds.count()
