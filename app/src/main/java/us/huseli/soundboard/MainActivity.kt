@@ -17,6 +17,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
@@ -60,8 +61,8 @@ class MainActivity :
     private val actionbarLogoTouchTimes = mutableListOf<Long>()
     private var actionMode: ActionMode? = null
 
-    private val addSoundLauncher = registerForActivityResult(StartActivityForResult()) { onAddSoundResult(it.data, it.resultCode) }
-    private val reinitSoundsLauncher = registerForActivityResult(StartActivityForResult()) { onReInitSoundResult(it.data, it.resultCode) }
+    private var addSoundLauncher: ActivityResultLauncher<Intent>? = null
+    private var reinitSoundsLauncher: ActivityResultLauncher<Intent>? = null
     private var categories = emptyList<Category>()
     private var filterEnabled: Boolean = false
     private var filterWasEnabled: Boolean = false
@@ -110,6 +111,9 @@ class MainActivity :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        addSoundLauncher = registerForActivityResult(StartActivityForResult()) { onAddSoundResult(it.data, it.resultCode) }
+        reinitSoundsLauncher = registerForActivityResult(StartActivityForResult()) { onReInitSoundResult(it.data, it.resultCode) }
 
         when (intent?.action) {
             Intent.ACTION_SEND -> (intent?.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)?.let {
@@ -463,7 +467,7 @@ class MainActivity :
             intent.addCategory(Intent.CATEGORY_OPENABLE)
             intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
             intent.putExtra(EXTRA_SOUND_ID, sound.id)
-            if (intent.resolveActivity(packageManager) != null) reinitSoundsLauncher.launch(intent)
+            if (intent.resolveActivity(packageManager) != null) reinitSoundsLauncher?.launch(intent)
         }
     }
 
@@ -503,7 +507,7 @@ class MainActivity :
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
         // if (intent.resolveActivity(packageManager) != null) startActivityForResult(intent, REQUEST_SOUND_ADD)
-        if (intent.resolveActivity(packageManager) != null) addSoundLauncher.launch(intent)
+        if (intent.resolveActivity(packageManager) != null) addSoundLauncher?.launch(intent)
         overridePendingTransition(0, 0)
     }
 

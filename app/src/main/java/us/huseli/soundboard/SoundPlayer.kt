@@ -54,7 +54,7 @@ class SoundPlayer(private val sound: Sound, val path: String, private var buffer
 
     private fun createAudioFile(): AudioFile? {
         return try {
-            AudioFile(path, sound.name, bufferSize) {
+            AudioFile(path, bufferSize) {
                 _duration = it.duration.toInt()
                 it.setVolume(volume)
                 _state = State.READY
@@ -134,14 +134,13 @@ class SoundPlayer(private val sound: Sound, val path: String, private var buffer
     }
 
     private fun createAndStartTempPlayer() {
-        AudioFile(path, sound.name, bufferSize).let {
+        AudioFile(path, bufferSize, true).let {
             it.play()
             tempAudioFiles.add(it)
             it.setOnPlayListener {
                 _state = State.PLAYING
             }
             it.setOnStopListener { audioFile ->
-                audioFile.release()
                 tempAudioFiles.remove(audioFile)
                 if (!isPlaying()) _state = State.READY
             }
@@ -149,10 +148,7 @@ class SoundPlayer(private val sound: Sound, val path: String, private var buffer
     }
 
     private fun stopAndClearTempPlayers() {
-        tempAudioFiles.forEach {
-            it.stop()
-            it.release()
-        }
+        tempAudioFiles.forEach { it.stop() }
         tempAudioFiles.clear()
     }
 

@@ -1,3 +1,6 @@
+When a category has no sounds, it perpetually displaus the progressbar
+
+
 Steps to speed up time from click to sound starting playing:
 * Intercept the touch event as soon as possible (i.e. in the activity), send straight to play
 method without middlemen
