@@ -1,23 +1,16 @@
-Is device default language really working?
-
-
-When a category has no sounds, it perpetually displaus the progressbar
+Maybe save repress mode and reinit on activity restart?
 
 
 Steps to speed up time from click to sound starting playing:
 * Intercept the touch event as soon as possible (i.e. in the activity), send straight to play
 method without middlemen
 * Play on touch event in SoundViewHolder, instead of click event
-* Prime SoundFile
 
 
 Layout takes lots of time (well, mostly while debugging, not so much on regular runs).
 Mostly RecyclerView.onMeasure() and ConstraintLayout.onMeasure() (for
 individual sounds). How to optimize? Something with autoMeasure perhaps?
 https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView.LayoutManager#isautomeasureenabled
-
-
-On category viewholder init/expand: show some "working ..." placeholder
 
 
 "Stress test" with lots of sounds; is it true that there's a limit of 128 AudioTrack objects?
@@ -30,16 +23,6 @@ Fix repress mode stuff (what??)
 On "instant replay" stop mode, make sure everything is completely initialized before running play() again
 
 
-Candidates to run on background thread
-High gain:
-* AudioFile.writeAudioTrack  -- done, but only for encoded audio
-* CodecCallback.putOutputBuffer (ByteBuffer.put() eats surprisingly much CPU)  -- done
-Lesser gain:
-* SoundViewHolder.setDuration
-* CodecCallback.on*
-* SoundPlayer.togglePlay
-
-
 Q: Some sounds (especially short ones) don't play? writeAudioTrack() gets called once but then nothing.
 A: "If you don't call write() first, or if you call write() but with an insufficient amount of data,
 then the track will be in underrun state at play(). In this case, playback will not actually start
@@ -48,32 +31,6 @@ playing until the data path is filled to a device-specific minimum level."
 
 Maybe need to send it at least BUFFER_SIZE bytes? Trying padding last buffer with zeros.
 Padding seems to work! \o/
-
-Q: After playing some sounds it gets all choppy, is something hogging CPU/memory?
-A: It was softStop eternally waiting for playback to start, which it didn't because of above.
-
-
-Error on manual stop:
-2021-01-15 04:12:50.886 10813-10813 E/MediaCodec: getBufferAndFormat - invalid operation (the index 1 is not owned by client)
-2021-01-15 04:12:50.896 10813-10813 E/AudioFile: CODEC: Error getting/writing output buffer (java.lang.IllegalStateException)
-    java.lang.IllegalStateException
-        at android.media.MediaCodec.getBuffer(Native Method)
-        at android.media.MediaCodec.getOutputBuffer(MediaCodec.java:3270)
-        at us.huseli.soundboard.helpers.AudioFile$CodecCallback.onOutputBufferAvailable(AudioFile.kt:431)
-        at android.media.MediaCodec$EventHandler.handleCallback(MediaCodec.java:1749)
-        at android.media.MediaCodec$EventHandler.handleMessage(MediaCodec.java:1696)
-        at android.os.Handler.dispatchMessage(Handler.java:107)
-        at android.os.Looper.loop(Looper.java:237)
-        at android.app.ActivityThread.main(ActivityThread.java:8167)
-        at java.lang.reflect.Method.invoke(Native Method)
-        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:496)
-        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1100)
-
-
-Why are there underruns? Seem to correlate to this:
-2021-01-14 03:54:25.792 13390-28953 I/ACodec: [OMX.SEC.flac.dec] ExecutingState flushing now (codec owns 0/5 input, 2/9 output).
-(Number of overruns after one of this gets incremented by number of non-codec-owned outputs)
-UPDATE: No, they don't seem to correlate.
 
 
 AudioFile:
@@ -88,18 +45,6 @@ After playback has run its length and has not been stopped by user:
 
 
 Look at backup_descriptor.xml stuff
-
-
-Settings fragment: set app language, night mode
-
-
-Show some progress indicator while loading sounds (not only on app init but also reorder etc)
-
-
-Can the responsiveness (time from soundcard press to sound playing) be improved further?
-
-
-Check for stuff that could be done in worker threads
 
 
 When collapsing last category, its header disappears from view until you scroll, then reappears
@@ -119,49 +64,8 @@ In some instance, when creating categories and moving sounds around, an empty ca
 populated with another category's sounds (How to recreate?)
 
 
-Run release() on MediaPlayer objects at some point (research activity/app lifecycle to decide when)
-Or just let GC take care of it?
-
-
 Check for usages of adapterPosition/layoutPosition and correct according to
 https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView#positions-in-recyclerview:
-
-
-Problem: UI gets laggy on first scroll because Sound recyclerviews that are at first not visible
-don't get populated until they are. Their sounds are fetched and sent via submitList(), but nothing
-more is done until the recyclerview enters the window.
-Solution #1: Do as much work as possible (mainly getPlayer()) before this happens
-Solution #2: Fuck around with RecyclerView.LayoutManager.LayoutPrefetchRegistry
-    (https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView.LayoutManager#collectinitialprefetchpositions)
-    If API level >= 21 (L+), tryGetViewHolderForPositionByDeadline() scans holder.itemView for
-    nested recyclerviews after creating holder via adapter.createViewHolder(). It does so via
-    RecyclerView.findNestedRecyclerView() and then adds it to holder.mNestedRecyclerView.
-    GapWorker.prefetchInnerRecyclerViewWithDeadline() is run with that nested RecyclerView as
-    argument.
-    Seems like there is an issue here somewhere though? https://stackoverflow.com/questions/54150680/nested-recyclerview-prefetch-not-working-on-initial-scroll-only
-
-2020-12-03: Trying out #2
-2020-12-03: Trying out #1 also
-
-
-If trying to add sounds without permission (like after a reinstall), MediaPlayer.prepare() throws
-IOException. Maybe catch that and alert the user that they could make some menu choice to
-re-init the failed sound URIs?
-Perhaps use some 'failedSounds' list in appViewModel or something. But where to populate it?
-SoundPlayer.setup() would be the obvious choise but that class doesn't know about Sound, only
-Uri and volume.
-setup() is called by SoundViewModel.getPlayer(), which DOES know about Sound, so maybe here?
-But then we have to re-throw the IOException to it.
-Also, it's a viewmodel and does not, and should not, know about other viewmodels.
-getPlayer is in turn called by SoundAdapter.SoundViewHolder.bind(), so maybe here?
-But we can't throw the exception all the way here. Maybe set some 'noPermission' bool on
-SoundPlayer instead? And check it here, and if true add sound to 'failedSounds'.
-
-OK, failedSounds and noPermission is implemented, now:
-- Show alert
-- Add menu item "re-add failed sounds"
-- Implement that functionality
-- Remove test data from SoundViewHolder.bind and Sound.constructor
 
 
 Make sure old adapters & viewholders are garbage collected on config change/rotate, they don't seem
@@ -172,14 +76,3 @@ Write tests :-//////////////
 
 
 Trash CategoryListFragment, put it all in MainActivity?
-
-######## PROBABLY NOT #########
-
-Try setting AudioAttributes: https://developer.android.com/reference/kotlin/android/media/AudioAttributes
-- FLAG_LOW_LATENCY (Deprecated: Use AudioTrack.Builder#setPerformanceMode(int) with AudioTrack#PERFORMANCE_MODE_LOW_LATENCY to control performance.)
-- USAGE_MEDIA
-Comment: This is probably WAY too cumbersome to be worth it.
-See: https://mindtherobot.com/blog/580/android-audio-play-a-wav-file-on-an-audiotrack/
-
-Share sounds from other apps to this one -- seems like it's not possible to do this and get
-persistable permissions to the URI? :(

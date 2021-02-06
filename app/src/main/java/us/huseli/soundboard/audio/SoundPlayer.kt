@@ -1,9 +1,8 @@
-package us.huseli.soundboard
+package us.huseli.soundboard.audio
 
 import android.util.Log
 import kotlinx.coroutines.*
 import us.huseli.soundboard.data.Sound
-import us.huseli.soundboard.helpers.AudioFile
 
 class SoundPlayer(private val sound: Sound, private var bufferSize: Int) {
     private var audioFile: AudioFile? = null

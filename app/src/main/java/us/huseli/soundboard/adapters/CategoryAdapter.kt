@@ -157,8 +157,9 @@ class CategoryAdapter(
                 binding.soundList.viewTreeObserver.addOnGlobalLayoutListener {
                     val layoutManager = binding.soundList.layoutManager as GridLayoutManager
                     val itemsShown = layoutManager.findLastVisibleItemPosition() - layoutManager.findFirstVisibleItemPosition() + 1
-                    binding.loadingBar.visibility = if (isCollapsed == true || itemsShown == layoutManager.itemCount)
-                        View.GONE else View.VISIBLE
+                    binding.loadingBar.visibility =
+                        if (isCollapsed == true || itemsShown >= layoutManager.itemCount)
+                            View.GONE else View.VISIBLE
                 }
             }
 

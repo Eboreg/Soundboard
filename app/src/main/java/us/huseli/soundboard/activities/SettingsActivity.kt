@@ -1,4 +1,4 @@
-package us.huseli.soundboard
+package us.huseli.soundboard.activities
 
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -10,10 +10,12 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SeekBarPreference
 import dagger.hilt.android.AndroidEntryPoint
+import us.huseli.soundboard.R
+import us.huseli.soundboard.data.Constants
 import us.huseli.soundboard.helpers.Functions
 
 @AndroidEntryPoint
-class SettingsActivity : LocaleActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
+class SettingsActivity : BaseActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,8 +24,8 @@ class SettingsActivity : LocaleActivity(), SharedPreferences.OnSharedPreferenceC
 
         if (savedInstanceState == null) {
             supportFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.settings, SettingsFragment())
+                .beginTransaction()
+                .replace(R.id.settings, SettingsFragment())
                     .commit()
         }
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

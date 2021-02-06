@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package us.huseli.soundboard.helpers
+package us.huseli.soundboard.audio
 
 import android.media.*
 import android.os.Build
@@ -446,7 +446,9 @@ class AudioFile(
                         } else
                             if (job.isActive) writeAudioTrack(buffer)
                         if (job.isActive) codec.releaseOutputBuffer(index, false)
-                        return if (outputEos) Pair(ProcessOutputResult.EOS, info.size) else Pair(ProcessOutputResult.SUCCESS, info.size)
+                        return if (outputEos) Pair(ProcessOutputResult.EOS, info.size) else Pair(
+                            ProcessOutputResult.SUCCESS, info.size
+                        )
                     } else return Pair(ProcessOutputResult.NO_BUFFER, 0)
                 } else if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                     val (hasChanged, audioFormat) = getAudioFormat(codec.outputFormat, outputAudioFormat)

@@ -6,12 +6,8 @@ import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import us.huseli.soundboard.Constants
-import us.huseli.soundboard.SoundPlayer
-import us.huseli.soundboard.data.Category
-import us.huseli.soundboard.data.CategoryRepository
-import us.huseli.soundboard.data.Sound
-import us.huseli.soundboard.data.SoundRepository
+import us.huseli.soundboard.audio.SoundPlayer
+import us.huseli.soundboard.data.*
 import kotlin.math.max
 import kotlin.math.roundToInt
 

@@ -1,4 +1,4 @@
-package us.huseli.soundboard
+package us.huseli.soundboard.data
 
 object Constants {
     const val SOUND_DIRNAME = "sounds"

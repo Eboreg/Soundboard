@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
-        android:name=".GlobalApplication"
+        android:name=".Application"
         android:allowBackup="true"
         android:configChanges="orientation|screenSize"
         android:fullBackupContent="@xml/backup_descriptor"
@@ -15,10 +15,10 @@
         android:supportsRtl="true"
         android:theme="@style/Soundboard.Theme">
 
-        <activity android:name=".LocaleActivity" />
+        <activity android:name=".activities.BaseActivity" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
             android:theme="@style/Soundboard.Theme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -34,9 +34,9 @@
         </activity>
 
         <activity
-            android:name=".SettingsActivity"
+            android:name=".activities.SettingsActivity"
             android:label="@string/soundboard_settings"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".activities.MainActivity" />
 
         <meta-data
             android:name="io.sentry.dsn"

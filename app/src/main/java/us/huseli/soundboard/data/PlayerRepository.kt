@@ -6,8 +6,7 @@ import androidx.lifecycle.liveData
 import androidx.preference.PreferenceManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import us.huseli.soundboard.Constants
-import us.huseli.soundboard.SoundPlayer
+import us.huseli.soundboard.audio.SoundPlayer
 import us.huseli.soundboard.helpers.Functions
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,7 +30,13 @@ class PlayerRepository @Inject constructor(@ApplicationContext context: Context)
     init {
         PreferenceManager.getDefaultSharedPreferences(context).apply {
             registerOnSharedPreferenceChangeListener(preferenceListener)
-            bufferSize = Functions.seekbarValueToBufferSize(getInt("bufferSize", Functions.bufferSizeToSeekbarValue(Constants.DEFAULT_BUFFER_SIZE)))
+            bufferSize = Functions.seekbarValueToBufferSize(
+                getInt(
+                    "bufferSize", Functions.bufferSizeToSeekbarValue(
+                        Constants.DEFAULT_BUFFER_SIZE
+                    )
+                )
+            )
         }
     }
 

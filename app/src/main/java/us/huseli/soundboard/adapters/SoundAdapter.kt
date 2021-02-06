@@ -25,10 +25,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import us.huseli.soundboard.R
-import us.huseli.soundboard.SoundPlayer
 import us.huseli.soundboard.adapters.common.LifecycleAdapter
 import us.huseli.soundboard.adapters.common.LifecycleViewHolder
 import us.huseli.soundboard.animators.SoundItemLongClickAnimator
+import us.huseli.soundboard.audio.SoundPlayer
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.DraggedSound
 import us.huseli.soundboard.data.PlayerRepository
