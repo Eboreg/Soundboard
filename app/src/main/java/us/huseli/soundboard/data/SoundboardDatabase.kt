@@ -166,7 +166,14 @@ abstract class SoundboardDatabase : RoomDatabase() {
                             cursor.getString(8))
                     val query = """
                         INSERT INTO Sound_new (id, categoryId, name, path, 'order', volume, checksum, added, duration)
-                        VALUES (${sound.id}, ${sound.categoryId}, '${sound.name}', '${sound.path}', ${sound.order}, ${sound.volume}, '${sound.checksum}', ${sound.added.time}, ${sound.duration})
+                        VALUES (${sound.id}, ${sound.categoryId}, '${
+                        sound.name.replace(
+                            "'",
+                            "''"
+                        )
+                    }', 
+                        '${sound.path}', ${sound.order}, ${sound.volume}, '${sound.checksum}', ${sound.added.time}, 
+                        ${sound.duration})
                     """.trimIndent()
                     database.execSQL(query)
                 }

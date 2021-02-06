@@ -98,8 +98,24 @@ class SoundPlayer(private val sound: Sound, private var bufferSize: Int) {
         }
     }
 
-    private fun isPlaying(): Boolean =
-            audioFile?.isPlaying == true || tempAudioFiles.any { it.isPlaying }
+    private fun isPlaying(): Boolean {
+        /**
+         * This once threw "Attempt to invoke virtual method 'boolean
+         * us.huseli.soundboard.helpers.AudioFile.isPlaying()' on a null object reference". No
+         * idea how that could happen, but might as well compensate for it.
+         */
+        return try {
+            audioFile?.isPlaying == true || tempAudioFiles.any {
+                try {
+                    it.isPlaying
+                } catch (e: NullPointerException) {
+                    false
+                }
+            }
+        } catch (e: NullPointerException) {
+            false
+        }
+    }
 
     fun setBufferSize(value: Int) = scope.launch {
         if (value != bufferSize) {
@@ -135,18 +151,18 @@ class SoundPlayer(private val sound: Sound, private var bufferSize: Int) {
     private fun createAndStartTempPlayer() {
         AudioFile(sound, bufferSize, true).let {
             it.play()
-            tempAudioFiles.add(it)
+            synchronized(this) { tempAudioFiles.add(it) }
             it.setOnPlayListener {
                 _state = State.PLAYING
             }
             it.setOnStopListener { audioFile ->
-                tempAudioFiles.remove(audioFile)
+                synchronized(this) { tempAudioFiles.remove(audioFile) }
                 if (!isPlaying()) _state = State.READY
             }
         }
     }
 
-    private fun stopAndClearTempPlayers() {
+    private fun stopAndClearTempPlayers() = synchronized(this) {
         tempAudioFiles.forEach { it.stop() }
         tempAudioFiles.clear()
     }
