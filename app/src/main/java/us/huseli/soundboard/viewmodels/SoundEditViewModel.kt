@@ -1,13 +1,16 @@
 package us.huseli.soundboard.viewmodels
 
 import android.content.Context
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.data.SoundRepository
+import javax.inject.Inject
 
-class SoundEditViewModel @ViewModelInject constructor(private val repository: SoundRepository) : BaseSoundEditViewModel() {
+@HiltViewModel
+class SoundEditViewModel @Inject constructor(private val repository: SoundRepository) :
+    BaseSoundEditViewModel() {
     private var _newCategoryId: Int? = null
 
     override fun save(context: Context) = viewModelScope.launch(Dispatchers.IO) {

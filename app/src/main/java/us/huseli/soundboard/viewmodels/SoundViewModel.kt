@@ -3,8 +3,8 @@ package us.huseli.soundboard.viewmodels
 import android.content.Context
 import android.text.Editable
 import android.util.Log
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.data.Category
@@ -13,8 +13,10 @@ import us.huseli.soundboard.data.SoundRepository
 import us.huseli.soundboard.helpers.MD5
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 
-class SoundViewModel @ViewModelInject constructor(private val repository: SoundRepository) : ViewModel() {
+@HiltViewModel
+class SoundViewModel @Inject constructor(private val repository: SoundRepository) : ViewModel() {
     private val _failedSounds = mutableListOf<Sound>()
     private val _filterEnabled = MutableLiveData(false)
     private val _filterTerm = MutableLiveData("")

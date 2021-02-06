@@ -2,17 +2,20 @@ package us.huseli.soundboard.viewmodels
 
 import android.content.Context
 import android.content.res.Configuration
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.audio.SoundPlayer
 import us.huseli.soundboard.data.*
+import javax.inject.Inject
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-class AppViewModel @ViewModelInject constructor(
-        private val categoryRepository: CategoryRepository, private val soundRepository: SoundRepository) : ViewModel() {
+@HiltViewModel
+class AppViewModel @Inject constructor(
+    private val categoryRepository: CategoryRepository, private val soundRepository: SoundRepository
+) : ViewModel() {
     companion object {
         const val DEFAULT_SPANCOUNT_LANDSCAPE = 8
         const val DEFAULT_SPANCOUNT_PORTRAIT = 4

@@ -1,14 +1,17 @@
 package us.huseli.soundboard.viewmodels
 
 import android.content.Context
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.data.SoundRepository
+import javax.inject.Inject
 
-class SoundAddViewModel @ViewModelInject constructor(private val repository: SoundRepository) : BaseSoundEditViewModel() {
+@HiltViewModel
+class SoundAddViewModel @Inject constructor(private val repository: SoundRepository) :
+    BaseSoundEditViewModel() {
     private var _duplicates = emptyList<Sound>()
     val duplicateName: String
         get() = if (_duplicates.size == 1) _duplicates[0].name else ""

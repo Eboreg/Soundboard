@@ -1,18 +1,21 @@
 package us.huseli.soundboard.viewmodels
 
 import android.util.Log
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.CategoryRepository
 import us.huseli.soundboard.helpers.ColorHelper
+import javax.inject.Inject
 
-class CategoryAddViewModel @ViewModelInject constructor(
-        private val repository: CategoryRepository, private val colorHelper: ColorHelper) : BaseCategoryEditViewModel() {
+@HiltViewModel
+class CategoryAddViewModel @Inject constructor(
+    private val repository: CategoryRepository, private val colorHelper: ColorHelper
+) : BaseCategoryEditViewModel() {
     private val _backgroundColor = MutableLiveData<Int>()
     private val _name = MutableLiveData("")
 

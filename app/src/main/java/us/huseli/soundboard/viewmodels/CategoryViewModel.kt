@@ -1,26 +1,30 @@
 package us.huseli.soundboard.viewmodels
 
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.CategoryRepository
 import us.huseli.soundboard.data.SoundRepository
 import us.huseli.soundboard.helpers.ColorHelper
+import javax.inject.Inject
 
-class CategoryViewModel @ViewModelInject constructor(
-        private val repository: CategoryRepository,
-        private val soundRepository: SoundRepository,
-        private val colorHelper: ColorHelper) : ViewModel() {
+@HiltViewModel
+class CategoryViewModel @Inject constructor(
+    private val repository: CategoryRepository,
+    private val soundRepository: SoundRepository,
+    private val colorHelper: ColorHelper
+) : ViewModel() {
     private val emptyCategory = Category("(Unchanged)")
 
     val categories = repository.categories.map { list ->
         list.forEach {
             it.textColor = colorHelper.getColorOnBackgroundColor(it.backgroundColor)
-            it.secondaryTextColor = colorHelper.getSecondaryColorOnBackgroundColor(it.backgroundColor)
+            it.secondaryTextColor =
+                colorHelper.getSecondaryColorOnBackgroundColor(it.backgroundColor)
         }
         list
     }

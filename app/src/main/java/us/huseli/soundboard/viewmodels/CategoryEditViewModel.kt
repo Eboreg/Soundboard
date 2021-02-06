@@ -1,15 +1,17 @@
 package us.huseli.soundboard.viewmodels
 
-import androidx.hilt.Assisted
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.data.CategoryRepository
+import javax.inject.Inject
 
-class CategoryEditViewModel @ViewModelInject constructor(
-        private val repository: CategoryRepository,
-        @Assisted private val savedStateHandle: SavedStateHandle) : BaseCategoryEditViewModel() {
+@HiltViewModel
+class CategoryEditViewModel @Inject constructor(
+    private val repository: CategoryRepository,
+    private val savedStateHandle: SavedStateHandle
+) : BaseCategoryEditViewModel() {
     private val category = savedStateHandle.getLiveData<Int>("categoryId").switchMap { categoryId ->
         repository.get(categoryId)
     }
