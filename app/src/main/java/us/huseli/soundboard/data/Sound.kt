@@ -141,7 +141,18 @@ data class Sound(
                 }
             }
 
-            return Sound(null, null, name, uri.path ?: "", -1, 100, Date(), -1, checksum, uri)
+            return Sound(
+                null,
+                null,
+                name,
+                uri.path ?: "",
+                -1,
+                Constants.DEFAULT_VOLUME,
+                Date(),
+                -1,
+                checksum,
+                uri
+            )
         }
 
         fun createFromTemporary(tempSound: Sound, context: Context): Sound {

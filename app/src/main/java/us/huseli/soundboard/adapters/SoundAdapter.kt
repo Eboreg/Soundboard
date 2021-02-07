@@ -30,10 +30,7 @@ import us.huseli.soundboard.adapters.common.LifecycleAdapter
 import us.huseli.soundboard.adapters.common.LifecycleViewHolder
 import us.huseli.soundboard.animators.SoundItemLongClickAnimator
 import us.huseli.soundboard.audio.SoundPlayer
-import us.huseli.soundboard.data.Category
-import us.huseli.soundboard.data.DraggedSound
-import us.huseli.soundboard.data.PlayerRepository
-import us.huseli.soundboard.data.Sound
+import us.huseli.soundboard.data.*
 import us.huseli.soundboard.databinding.ItemSoundBinding
 import us.huseli.soundboard.helpers.ColorHelper
 import us.huseli.soundboard.helpers.SoundPlayerTimer
@@ -344,7 +341,11 @@ class SoundAdapter(
                 )
                 binding.durationCard.visibility = View.VISIBLE
                 if (playerTimer?.duration != value)
-                    playerTimer = SoundPlayerTimer(value, binding.volumeBar, sound?.volume ?: 100)
+                    playerTimer = SoundPlayerTimer(
+                        value,
+                        binding.volumeBar,
+                        sound?.volume ?: Constants.DEFAULT_VOLUME
+                    )
                 else
                     sound?.volume?.let { playerTimer?.originalProgress = it }
             }

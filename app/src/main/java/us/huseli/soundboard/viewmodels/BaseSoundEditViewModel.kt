@@ -4,13 +4,14 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import us.huseli.soundboard.data.Constants
 import us.huseli.soundboard.data.Sound
 
 abstract class BaseSoundEditViewModel : ViewModel() {
     /** Implemented by SoundAddViewModel and SoundEditViewModel */
     private val _name = MutableLiveData("")
     private val _sounds = mutableListOf<Sound>()
-    private val _volume = MutableLiveData(100)
+    private val _volume = MutableLiveData(Constants.DEFAULT_VOLUME)
     private var _multiple = false
 
     internal var categoryIndex: Int? = null
@@ -42,7 +43,7 @@ abstract class BaseSoundEditViewModel : ViewModel() {
         } else {
             _multiple = true
             setName(multipleSoundsString)
-            setVolume(100)
+            setVolume(Constants.DEFAULT_VOLUME)
         }
     }
 
