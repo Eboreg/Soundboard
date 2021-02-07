@@ -70,4 +70,5 @@
     <string name="buffer_size_summary">Lower this if audio is too unresponsive or the shortest sounds don\'t play at all. If audio is choppy, raise it.</string>
     <string name="soundboard_settings" translatable="false">Söun̈dböard Sëttin̈gs</string>
     <string name="reset_buffer_size_to_default">Reset buffer size to default</string>
+    <string name="no_sound_chosen">No sound chosen!</string>
 </resources>
