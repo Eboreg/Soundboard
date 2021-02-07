@@ -5,6 +5,7 @@ import android.os.Message
 import android.os.SystemClock
 import android.util.Log
 import android.view.View
+import us.huseli.soundboard.BuildConfig
 
 /**
  * @param view The view to do the scrolling (presumably the RecyclerView of categories)
@@ -28,7 +29,10 @@ class SoundScroller(private val view: View, private val distance: Int, private v
         val scrollDownBreakpoint = draggedItemCenter + (draggedItemHeight / 2)
         val scrollDownFastBreakpoint = draggedItemCenter + (draggedItemHeight / 10)
 
-        Log.d(LOG_TAG, "scrollIfNecessary: draggedItemCenter=$draggedItemCenter, draggedItemHeight=$draggedItemHeight, verticalLimits=$verticalLimits, scrollUpBreakpoint=$scrollUpBreakpoint, scrollUpFastBreakpoint=$scrollUpFastBreakpoint, scrollDownBreakpoint=$scrollDownBreakpoint, scrollDownFastBreakpoint=$scrollDownFastBreakpoint")
+        if (BuildConfig.DEBUG) Log.d(
+            LOG_TAG,
+            "scrollIfNecessary: draggedItemCenter=$draggedItemCenter, draggedItemHeight=$draggedItemHeight, verticalLimits=$verticalLimits, scrollUpBreakpoint=$scrollUpBreakpoint, scrollUpFastBreakpoint=$scrollUpFastBreakpoint, scrollDownBreakpoint=$scrollDownBreakpoint, scrollDownFastBreakpoint=$scrollDownFastBreakpoint"
+        )
 
         when {
             scrollUpFastBreakpoint < verticalLimits.top -> start(Direction.UP, true)
@@ -40,7 +44,10 @@ class SoundScroller(private val view: View, private val distance: Int, private v
     }
 
     private fun scroll() {
-        Log.d(LOG_TAG, "scroll: realDistance=$realDistance, direction=$direction")
+        if (BuildConfig.DEBUG) Log.d(
+            LOG_TAG,
+            "scroll: realDistance=$realDistance, direction=$direction"
+        )
         direction?.let { direction ->
             if (view.canScrollVertically(direction)) view.scrollBy(0, direction * realDistance)
             else stop()

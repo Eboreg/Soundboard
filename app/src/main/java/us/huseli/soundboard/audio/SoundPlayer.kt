@@ -2,6 +2,7 @@ package us.huseli.soundboard.audio
 
 import android.util.Log
 import kotlinx.coroutines.*
+import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.data.Sound
 
 class SoundPlayer(private val sound: Sound, private var bufferSize: Int) {
@@ -16,7 +17,10 @@ class SoundPlayer(private val sound: Sound, private var bufferSize: Int) {
     private var _state = State.INITIALIZING
         set(value) {
             field = value
-            Log.d(LOG_TAG, "state change: this=$this, uri=$sound, onStateChangeListener=$listener, state=$value")
+            if (BuildConfig.DEBUG) Log.d(
+                LOG_TAG,
+                "state change: this=$this, uri=$sound, onStateChangeListener=$listener, state=$value"
+            )
             listener?.onSoundPlayerStateChange(this, state)
         }
 
@@ -42,7 +46,7 @@ class SoundPlayer(private val sound: Sound, private var bufferSize: Int) {
     var bottom: Float = 0f
 
     init {
-        Log.i(LOG_TAG, "init: uri=$sound, path=${sound.path}")
+        if (BuildConfig.DEBUG) Log.i(LOG_TAG, "init: uri=$sound, path=${sound.path}")
         scope.launch { audioFile = createAudioFile() }
     }
 
@@ -169,7 +173,10 @@ class SoundPlayer(private val sound: Sound, private var bufferSize: Int) {
 
     fun setListener(listener: Listener?) {
         this.listener = listener
-        Log.i(LOG_TAG, "setListener: this=$this, uri=$sound, listener=$listener")
+        if (BuildConfig.DEBUG) Log.i(
+            LOG_TAG,
+            "setListener: this=$this, uri=$sound, listener=$listener"
+        )
     }
 
     fun release() {

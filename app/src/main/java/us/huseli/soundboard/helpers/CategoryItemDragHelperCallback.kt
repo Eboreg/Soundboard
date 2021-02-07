@@ -3,12 +3,13 @@ package us.huseli.soundboard.helpers
 import android.util.Log
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.adapters.CategoryAdapter
 import java.util.*
 
 class CategoryItemDragHelperCallback : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0) {
     override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-        Log.d(
+        if (BuildConfig.DEBUG) Log.d(
             LOG_TAG,
             "ItemDragHelperCallback ${this.hashCode()} onMove: " +
                     "viewHolder ${viewHolder.hashCode()}, target ${target.hashCode()}, " +

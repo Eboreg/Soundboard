@@ -3,6 +3,7 @@ package us.huseli.soundboard.helpers
 import android.util.Log
 import android.view.DragEvent
 import android.view.View
+import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.adapters.CategoryAdapter
 import us.huseli.soundboard.adapters.SoundAdapter
 import us.huseli.soundboard.data.DraggedSound
@@ -27,7 +28,7 @@ class SoundDragListener(
         if (comment != null) Log.d(LOG_TAG, output + comment)
         extra?.forEach { Log.d(LOG_TAG, output + "${it.key}=${it.value}") }
         if (event != null) Log.d(LOG_TAG, output + "event=$event")
-        Log.d(LOG_TAG, output + "soundAdapter=$soundAdapter")
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG, output + "soundAdapter=$soundAdapter")
         logNumber++
     }
 
@@ -67,7 +68,10 @@ class SoundDragListener(
          * - Just reset shit
          */
         if (event.localState !is DraggedSound) {
-            Log.e(LOG_TAG, "event.localState (${event.localState}) is not DraggedSound")
+            if (BuildConfig.DEBUG) Log.e(
+                LOG_TAG,
+                "event.localState (${event.localState}) is not DraggedSound"
+            )
             return false
         }
         val draggedSound = event.localState as DraggedSound

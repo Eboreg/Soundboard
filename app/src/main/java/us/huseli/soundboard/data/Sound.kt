@@ -7,6 +7,7 @@ import android.os.Parcelable
 import android.provider.OpenableColumns
 import android.util.Log
 import androidx.room.*
+import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.helpers.MD5
 import java.io.File
 import java.io.FileOutputStream
@@ -43,7 +44,7 @@ data class Sound(
             parcel.readString(),  // checksum
             null
     ) {
-        Log.d("SOUND", "Create Sound though Parcelable constructor: $this")
+        if (BuildConfig.DEBUG) Log.d("SOUND", "Create Sound though Parcelable constructor: $this")
     }
 
     constructor(id: Int, categoryId: Int?, name: String, path: String, order: Int, volume: Int, added: Date, duration: Int, checksum: String?)

@@ -7,6 +7,7 @@ import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.data.SoundRepository
@@ -71,7 +72,7 @@ class SoundViewModel @Inject constructor(private val repository: SoundRepository
                     updatedSounds.add(sound)
                 }
             } catch (e: Exception) {
-                Log.e(LOG_TAG, "Error when saving checksum for $sound: $e")
+                if (BuildConfig.DEBUG) Log.e(LOG_TAG, "Error when saving checksum for $sound: $e")
             }
         }
         repository.update(updatedSounds)

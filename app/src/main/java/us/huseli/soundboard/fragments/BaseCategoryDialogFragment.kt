@@ -13,6 +13,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.jaredrummler.android.colorpicker.ColorPickerDialog
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import dagger.hilt.android.AndroidEntryPoint
+import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.R
 import us.huseli.soundboard.databinding.FragmentEditCategoryBinding
 import us.huseli.soundboard.helpers.ColorHelper
@@ -91,7 +92,7 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
         binding?.apply {
             lifecycleOwner = viewLifecycleOwner
         } ?: run {
-            Log.e(LOG_TAG, "onViewCreated: binding is null")
+            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "onViewCreated: binding is null")
         }
     }
 

@@ -603,7 +603,6 @@ class MainActivity :
         const val EXTRA_SOUND_ID = "soundId"
         const val CATEGORY_ADD_DIALOG_TAG = "categoryAddDialog"
         const val CATEGORY_EDIT_DIALOG_TAG = "categoryEditDialog"
-        const val LOG_TAG = "MainActity"
         const val PREF_LAST_VERSION = "lastRunVersionCode"
         val DIALOG_TAGS = listOf(CATEGORY_ADD_DIALOG_TAG, CATEGORY_EDIT_DIALOG_TAG)
     }

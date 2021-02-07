@@ -2,7 +2,6 @@ package us.huseli.soundboard
 
 import android.app.Application
 import android.os.StrictMode
-import androidx.databinding.library.BuildConfig
 import dagger.hilt.android.HiltAndroidApp
 import java.util.*
 

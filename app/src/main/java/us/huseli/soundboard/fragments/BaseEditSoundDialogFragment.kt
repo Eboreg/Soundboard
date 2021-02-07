@@ -9,6 +9,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.R
 import us.huseli.soundboard.adapters.CategorySpinnerAdapter
 import us.huseli.soundboard.data.Category
@@ -57,7 +58,7 @@ abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSo
                 dismiss()
             }
         } ?: run {
-            Log.e(LOG_TAG, "onPositiveButtonClick(): binding is null")
+            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "onPositiveButtonClick(): binding is null")
             dismiss()
         }
     }
@@ -110,7 +111,7 @@ abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSo
             binding.lifecycleOwner = viewLifecycleOwner
             getCategories().observe(viewLifecycleOwner) { binding.category.adapter = CategorySpinnerAdapter(requireContext(), it) }
         } ?: run {
-            Log.e(LOG_TAG, "onViewCreated: binding is null")
+            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "onViewCreated: binding is null")
         }
     }
 

@@ -6,6 +6,7 @@ import android.media.*
 import android.os.Build
 import android.util.Log
 import kotlinx.coroutines.*
+import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.data.Sound
 import java.nio.ByteBuffer
 import kotlin.math.min
@@ -58,7 +59,7 @@ class AudioFile(
     private var state = State.INITIALIZING
         set(value) {
             if (field != value) {
-                Log.d(LOG_TAG, "state changed from $field to $value")
+                if (BuildConfig.DEBUG) Log.d(LOG_TAG, "state changed from $field to $value")
                 field = value
                 @Suppress("NON_EXHAUSTIVE_WHEN")
                 when (value) {
@@ -96,7 +97,10 @@ class AudioFile(
         prime(onInit)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Log.d(LOG_TAG, "init: sound=$sound, path=${sound.path}, mime=$mime, minBufferSize=$mbs, bufferSizeInFrames=${audioTrack.bufferSizeInFrames}, channelCount=$channelCount, inputFormat=$inputMediaFormat, outputFormat=$outputAudioFormat")
+            if (BuildConfig.DEBUG) Log.d(
+                LOG_TAG,
+                "init: sound=$sound, path=${sound.path}, mime=$mime, minBufferSize=$mbs, bufferSizeInFrames=${audioTrack.bufferSizeInFrames}, channelCount=$channelCount, inputFormat=$inputMediaFormat, outputFormat=$outputAudioFormat"
+            )
         }
     }
 
@@ -121,7 +125,7 @@ class AudioFile(
     }
 
     fun restart() {
-        Log.d(LOG_TAG, "**** restart: init")
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "**** restart: init")
         if (state == State.PLAYING) stop(false)
         play()
     }
@@ -133,7 +137,10 @@ class AudioFile(
 
     fun stop(doPriming: Boolean = true) {
         /** Stop immediately */
-        Log.d(LOG_TAG, "**** stop() called, doPriming=$doPriming, state=$state, isTemporary=$isTemporary")
+        if (BuildConfig.DEBUG) Log.d(
+            LOG_TAG,
+            "**** stop() called, doPriming=$doPriming, state=$state, isTemporary=$isTemporary"
+        )
         if (isTemporary) {
             state = State.STOPPED
             release()
@@ -194,7 +201,10 @@ class AudioFile(
         state = State.INIT_PLAY
         extractJob = scope.launch {
             overrunSampleData?.also {
-                Log.d(LOG_TAG, "**** doPlay: writing overrunSampleData=$overrunSampleData, state=$state")
+                if (BuildConfig.DEBUG) Log.d(
+                    LOG_TAG,
+                    "**** doPlay: writing overrunSampleData=$overrunSampleData, state=$state"
+                )
                 writeAudioTrack(it)
                 overrunSampleData = null
             }
@@ -209,7 +219,10 @@ class AudioFile(
          * Before: Make sure extractor is positioned at the correct sample and audioTrack is ready
          * for writing.
          */
-        Log.d(LOG_TAG, "**** Begin extract(), state=$state, primedSize=$primedSize")
+        if (BuildConfig.DEBUG) Log.d(
+            LOG_TAG,
+            "**** Begin extract(), state=$state, primedSize=$primedSize"
+        )
         when (mime) {
             MediaFormat.MIMETYPE_AUDIO_RAW -> extractRaw()
             else -> extractEncoded(state == State.PRIMING)
@@ -252,9 +265,15 @@ class AudioFile(
                     outputStopped = outputRetries++ >= 5
                 }
             }
-            Log.d(LOG_TAG, "extractEncoded: outputResult=$outputResult, outputRetries=$outputRetries, outputStopped=$outputStopped, doExtraction=$doExtraction, state=$state, priming=$priming")
+            if (BuildConfig.DEBUG) Log.d(
+                LOG_TAG,
+                "extractEncoded: outputResult=$outputResult, outputRetries=$outputRetries, outputStopped=$outputStopped, doExtraction=$doExtraction, state=$state, priming=$priming"
+            )
         }
-        Log.d(LOG_TAG, "**** extractEncoded: Extract finished: totalSize=$totalSize, totalSize before extract=$primedSize, added=${totalSize - primedSize}, state=$state, priming=$priming")
+        if (BuildConfig.DEBUG) Log.d(
+            LOG_TAG,
+            "**** extractEncoded: Extract finished: totalSize=$totalSize, totalSize before extract=$primedSize, added=${totalSize - primedSize}, state=$state, priming=$priming"
+        )
         if (priming) primedSize = totalSize
     }
 
@@ -280,7 +299,7 @@ class AudioFile(
         try {
             codec?.flush()
         } catch (e: IllegalStateException) {
-            Log.e(LOG_TAG, "flushCodec error", e)
+            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "flushCodec error", e)
         }
     }
 
@@ -347,7 +366,11 @@ class AudioFile(
 
     @Suppress("SameParameterValue")
     private fun onError(errorType: Error, exception: Exception? = null) {
-        Log.e(LOG_TAG, "errorType=$errorType, exception=$exception", exception)
+        if (BuildConfig.DEBUG) Log.e(
+            LOG_TAG,
+            "errorType=$errorType, exception=$exception",
+            exception
+        )
         onErrorListener?.invoke(this, errorType)
     }
 
@@ -358,7 +381,11 @@ class AudioFile(
     }
 
     private fun onWarning(errorType: Error, exception: Exception? = null) {
-        Log.w(LOG_TAG, "errorType=$errorType, exception=$exception", exception)
+        if (BuildConfig.DEBUG) Log.w(
+            LOG_TAG,
+            "errorType=$errorType, exception=$exception",
+            exception
+        )
         onWarningListener?.invoke(this, errorType)
     }
 
@@ -368,7 +395,10 @@ class AudioFile(
          * Expects extractor to be ready and positioned at beginning of track.
          */
         primedSize = 0
-        if (overrunSampleData != null) Log.d(LOG_TAG, "**** prime: overrunSampleData=$overrunSampleData")
+        if (overrunSampleData != null) if (BuildConfig.DEBUG) Log.d(
+            LOG_TAG,
+            "**** prime: overrunSampleData=$overrunSampleData"
+        )
         overrunSampleData = null
         if (DO_PRIMING) {
             state = State.PRIMING
@@ -404,12 +434,15 @@ class AudioFile(
                                 codec.queueInputBuffer(index, 0, sampleSize, extractor.sampleTime, extractor.sampleFlags)
                             }
                             extractorDone = !extractor.advance()
-                            Log.d(LOG_TAG, "processInputBuffer: index=$index, sampleSize=$sampleSize, extractorDone=$extractorDone, job=$job, state=$state")
+                            if (BuildConfig.DEBUG) Log.d(
+                                LOG_TAG,
+                                "processInputBuffer: index=$index, sampleSize=$sampleSize, extractorDone=$extractorDone, job=$job, state=$state"
+                            )
                         } while (job.isActive && (sampleSize == 0 || inputEos))
                     }
                 }
             } catch (e: Exception) {
-                Log.w(LOG_TAG, "Error in codec input", e)
+                if (BuildConfig.DEBUG) Log.w(LOG_TAG, "Error in codec input", e)
             }
             extractorDone
         } ?: true
@@ -432,10 +465,16 @@ class AudioFile(
                         return Pair(ProcessOutputResult.CODEC_CONFIG, 0)
                     } else if (buffer != null) {
                         outputEos = (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0
-                        Log.d(LOG_TAG, "processOutputBuffer: index=$index, buffer=$buffer, outputEos=$outputEos, state=$state, job=$job")
+                        if (BuildConfig.DEBUG) Log.d(
+                            LOG_TAG,
+                            "processOutputBuffer: index=$index, buffer=$buffer, outputEos=$outputEos, state=$state, job=$job"
+                        )
                         if (outputEos && totalSize < MINIMUM_SAMPLE_SIZE) {
                             // TODO: Is this necessary?
-                            val elementsToAdd = min(MINIMUM_SAMPLE_SIZE - totalSize, buffer.capacity() - buffer.limit())
+                            val elementsToAdd = min(
+                                MINIMUM_SAMPLE_SIZE - totalSize,
+                                buffer.capacity() - buffer.limit()
+                            )
                             val writableBuffer = ByteBuffer.allocate(buffer.limit() + elementsToAdd)
                             buffer.position(buffer.limit())
                             writableBuffer.put(buffer)
@@ -459,7 +498,7 @@ class AudioFile(
                     return Pair(ProcessOutputResult.OUTPUT_FORMAT_CHANGED, 0)
                 } else return Pair(ProcessOutputResult.NO_BUFFER, 0)
             } catch (e: Exception) {
-                Log.w(LOG_TAG, "Error in codec output", e)
+                if (BuildConfig.DEBUG) Log.w(LOG_TAG, "Error in codec output", e)
                 return Pair(ProcessOutputResult.ERROR, 0)
             }
         }
@@ -479,14 +518,23 @@ class AudioFile(
         /** Await end of stream, then stop */
         delay(delay)
         if (audioTrack.playbackHeadPosition <= 0) {
-            Log.d(LOG_TAG, "softStop: Waited $delay ms but playhead is still <= 0, stopping anyway")
+            if (BuildConfig.DEBUG) Log.d(
+                LOG_TAG,
+                "softStop: Waited $delay ms but playhead is still <= 0, stopping anyway"
+            )
         } else {
             if (queuedStopJob?.isActive != true) return
             framesToMilliseconds(audioTrack.playbackHeadPosition).also { ms ->
                 if (ms < delay) {
-                    Log.d(LOG_TAG, "softStop: Playhead ($ms) still less than duration ($duration), waiting ${delay - ms} more ms, then stopping")
+                    if (BuildConfig.DEBUG) Log.d(
+                        LOG_TAG,
+                        "softStop: Playhead ($ms) still less than duration ($duration), waiting ${delay - ms} more ms, then stopping"
+                    )
                     delay(delay - ms)
-                } else Log.d(LOG_TAG, "softStop: Stopping, playbackHeadPosition=$ms milliseconds")
+                } else if (BuildConfig.DEBUG) Log.d(
+                    LOG_TAG,
+                    "softStop: Stopping, playbackHeadPosition=$ms milliseconds"
+                )
             }
         }
         stop()
@@ -518,7 +566,10 @@ class AudioFile(
                     AudioTrack.ERROR_INVALID_OPERATION -> onWarning(Error.OUTPUT_NOT_PROPERLY_INITIALIZED)
                     AudioTrack.ERROR -> onWarning(Error.OUTPUT)
                     else -> {
-                        Log.d(LOG_TAG, "writeAudioTrack: wrote $it bytes, buffer=$buffer, state=$state, sampleSize=$sampleSize, overshoot=${sampleSize - it}")
+                        if (BuildConfig.DEBUG) Log.d(
+                            LOG_TAG,
+                            "writeAudioTrack: wrote $it bytes, buffer=$buffer, state=$state, sampleSize=$sampleSize, overshoot=${sampleSize - it}"
+                        )
                         if (it < sampleSize) {
                             /**
                              * "Note that upon return, the buffer position (audioData.position()) will
@@ -526,7 +577,9 @@ class AudioFile(
                              * written to the AudioTrack."
                              * https://developer.android.com/reference/kotlin/android/media/AudioTrack#write_5
                              */
-                            overrunSampleData = ByteBuffer.allocateDirect(sampleSize - it).put(buffer).apply { position(0) }
+                            overrunSampleData =
+                                ByteBuffer.allocateDirect(sampleSize - it).put(buffer)
+                                    .apply { position(0) }
                         }
                     }
                 }
@@ -539,7 +592,10 @@ class AudioFile(
         constructor(errorType: Error) : this(errorType, null)
 
         init {
-            Log.e(LOG_TAG, "AudioFile threw $errorType error: ${message ?: "no message"}")
+            if (BuildConfig.DEBUG) Log.e(
+                LOG_TAG,
+                "AudioFile threw $errorType error: ${message ?: "no message"}"
+            )
         }
     }
 

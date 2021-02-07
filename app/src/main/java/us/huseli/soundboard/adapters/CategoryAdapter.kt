@@ -8,6 +8,7 @@ import android.view.*
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleRegistry
 import androidx.recyclerview.widget.*
+import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.R
 import us.huseli.soundboard.adapters.common.LifecycleAdapter
 import us.huseli.soundboard.adapters.common.LifecycleViewHolder
@@ -37,7 +38,10 @@ class CategoryAdapter(
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         val item = getItem(position)
-        Log.d(LOG_TAG, "onBindViewHolder: item=$item, holder=$holder, position=$position, adapter=$this")
+        if (BuildConfig.DEBUG) Log.d(
+            LOG_TAG,
+            "onBindViewHolder: item=$item, holder=$holder, position=$position, adapter=$this"
+        )
         holder.bind(item)
     }
 
@@ -129,7 +133,7 @@ class CategoryAdapter(
             this.category = category
             val categoryId = category.id
             if (categoryId == null) {
-                Log.e(LOG_TAG, "bind: got Category with id==null")
+                if (BuildConfig.DEBUG) Log.e(LOG_TAG, "bind: got Category with id==null")
                 return
             }
 

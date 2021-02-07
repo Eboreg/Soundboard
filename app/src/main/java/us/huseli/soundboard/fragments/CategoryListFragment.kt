@@ -10,6 +10,7 @@ import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import dagger.hilt.android.AndroidEntryPoint
+import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.adapters.CategoryAdapter
 import us.huseli.soundboard.databinding.FragmentCategoryListBinding
 import us.huseli.soundboard.helpers.SoundScroller
@@ -101,7 +102,7 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
                 }
             }
         } ?: run {
-            Log.e(LOG_TAG, "onViewCreated: binding is null")
+            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "onViewCreated: binding is null")
         }
     }
 
