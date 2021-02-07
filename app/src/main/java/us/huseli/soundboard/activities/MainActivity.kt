@@ -11,7 +11,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.provider.DocumentsContract
-import android.provider.MediaStore
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
@@ -577,8 +576,7 @@ class MainActivity :
 
     @SuppressLint("QueryPermissionsNeeded")
     private fun startAddSoundActivity() {
-        // val intent = Intent(Intent.ACTION_GET_CONTENT)
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Audio.Media.INTERNAL_CONTENT_URI)
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         intent.type = "audio/*"
         intent.addCategory(Intent.CATEGORY_OPENABLE)
