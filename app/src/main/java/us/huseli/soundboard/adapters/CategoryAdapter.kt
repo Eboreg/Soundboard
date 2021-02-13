@@ -171,8 +171,7 @@ class CategoryAdapter(
                 }
                 soundAdapter.submitList(sounds)
 
-                // TODO: This does no good. Is there a working way to actually show a progress
-                // indicator, that doesn't disappear until everything is drawn?
+                // TODO: Does this actually work as intended?
                 binding.soundList.viewTreeObserver.addOnGlobalLayoutListener {
                     val layoutManager = binding.soundList.layoutManager as SoundLayoutManager
                     val itemsShown =

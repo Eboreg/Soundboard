@@ -522,8 +522,7 @@ class MainActivity :
     @Suppress("unused")
     @SuppressLint("QueryPermissionsNeeded")
     private fun reinitFailedSounds() {
-        // TODO: Generalize this shit somehow (with ordinary open file stuff)
-        // TODO: Take up work on this stuff
+        // TODO: Generalize this shit somehow (with ordinary open file stuff), take up work on this stuff
         soundViewModel.failedSounds.forEach { sound ->
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) intent.putExtra(
