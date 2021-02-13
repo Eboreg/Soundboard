@@ -1,3 +1,6 @@
+Category.order does not seem to get set on category createion!
+
+
 Somehow detect how long time has gone between clicking on a sound card and sound actually beginning
 playing, and bail if some timeout has reached (could happen during heavy load).
 

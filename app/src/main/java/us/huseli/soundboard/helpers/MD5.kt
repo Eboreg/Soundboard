@@ -43,5 +43,6 @@ object MD5 {
     }
 
     /** Maybe I'll not use this, but it's good to have anyway */
+    @Suppress("unused")
     fun check(md5: String, file: File) = calculate(file)?.equals(md5, ignoreCase = true) ?: false
 }

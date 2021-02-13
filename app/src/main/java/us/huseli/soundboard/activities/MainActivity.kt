@@ -34,6 +34,7 @@ import us.huseli.soundboard.audio.SoundPlayer
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.PlayerRepository
 import us.huseli.soundboard.data.Sound
+import us.huseli.soundboard.data.SoundWithCategory
 import us.huseli.soundboard.databinding.ActivityMainBinding
 import us.huseli.soundboard.fragments.*
 import us.huseli.soundboard.interfaces.EditCategoryInterface
@@ -72,7 +73,7 @@ class MainActivity :
     private var filterWasEnabled: Boolean = false
     private var reorderEnabled: Boolean? = null
     private var repressMode: SoundPlayer.RepressMode? = null
-    private var allSounds = emptyList<Sound>()  // used for soundAddViewModel
+    private var allSounds = emptyList<SoundWithCategory>()  // used for soundAddViewModel
 
     private lateinit var binding: ActivityMainBinding
 
@@ -182,9 +183,10 @@ class MainActivity :
 
         soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
 
-        soundViewModel.allSounds.observe(this) {
-            allSounds = it
-            playerRepository.set(it)
+        soundViewModel.allSounds.observe(this) { list ->
+            allSounds = list
+            // TODO: This is what needs to be done with sounds from CategoryAdapter.setVisibleSoundBoundaries
+            playerRepository.set(list.map { it.sound })
         }
 
         categoryListViewModel.categories.observe(this) {
@@ -366,7 +368,7 @@ class MainActivity :
 
         soundAddViewModel.setup(
             sounds,
-            this.allSounds,
+            this.allSounds.map { it.sound },
             getString(R.string.multiple_sounds_selected, sounds.size)
         )
 

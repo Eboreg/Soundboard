@@ -23,7 +23,7 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
 
     fun listByCategory(categoryId: Int) = soundDao.listByCategory(categoryId)
 
-    fun listLive() = soundDao.listLive()
+    fun listLiveWithCategory() = soundDao.listLiveWithCategory()
 
     /** Update/add sounds, delete the rest */
     fun reset(sounds: List<Sound>) = soundDao.reset(sounds)

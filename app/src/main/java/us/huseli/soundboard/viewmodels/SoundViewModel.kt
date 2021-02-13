@@ -11,10 +11,13 @@ import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.data.SoundRepository
+import us.huseli.soundboard.data.SoundWithCategory
 import us.huseli.soundboard.helpers.MD5
 import java.io.File
 import java.util.*
 import javax.inject.Inject
+import kotlin.math.max
+import kotlin.math.min
 
 @HiltViewModel
 class SoundViewModel @Inject constructor(private val repository: SoundRepository) : ViewModel() {
@@ -23,7 +26,8 @@ class SoundViewModel @Inject constructor(private val repository: SoundRepository
     private val _filterTerm = MutableLiveData("")
     private val _reorderEnabled = MutableLiveData(false)
 
-    val allSounds = repository.listLive()
+    // val allSounds = repository.listLive()
+    val allSounds = repository.listLiveWithCategory()
 
     val failedSounds: List<Sound>
         get() = _failedSounds
@@ -49,6 +53,34 @@ class SoundViewModel @Inject constructor(private val repository: SoundRepository
             }
         }
     }
+
+    fun setVisibleSoundBoundaries(from: SoundWithCategory?, to: SoundWithCategory?) =
+        viewModelScope.launch(Dispatchers.IO) {
+            /**
+             * Make sure max 100 sounds are initialized
+             * TODO: Needs to be run whenever displayed sounds are, or could have been, changed:
+             * - Init
+             * - Category change (mainly collapse/expand)
+             * - Sound add/remove/change/move
+             * - Scroll
+             * - Zoom
+             */
+            filteredSounds.value?.filterNot { it.category.collapsed }?.also { sounds ->
+                val visibleStartIdx = sounds.indexOf(from)
+                val visibleEndIdx = sounds.indexOf(to)
+                // Is 0 if both are -1:
+                val visibleCount =
+                    (visibleEndIdx - visibleStartIdx).let { if (it == 0) 100 else it }
+                var startIdx =
+                    if (visibleStartIdx == -1) 0 else max(0, visibleStartIdx - (visibleCount / 2))
+                val endIdx = min(sounds.size - 1, startIdx + 100)
+                if (endIdx - startIdx < 100) startIdx = max(0, endIdx - 100)
+                Log.d(
+                    LOG_TAG,
+                    "setVisibleSoundBoundaries: visibleStartIdx=$visibleStartIdx, visibleEndIdx=$visibleEndIdx, visibleCount=$visibleCount, startIdx=$startIdx, endIdx=$endIdx, count=${endIdx - startIdx}, startsound=${sounds[startIdx]}, endsound=${sounds[endIdx]}"
+                )
+            }
+        }
 
     fun moveFilesToLocalStorage(context: Context) = viewModelScope.launch(Dispatchers.IO) {
         /** One-time thing at app version upgrade */
@@ -94,6 +126,12 @@ class SoundViewModel @Inject constructor(private val repository: SoundRepository
 
     fun update(sounds: List<Sound>, category: Category?) = category?.id?.let { update(sounds, it) }
 
+    fun update(soundsWithCategory: List<SoundWithCategory>) {
+        soundsWithCategory.groupBy { it.category }.forEach { entry ->
+            update(entry.value.map { it.sound }, entry.key)
+        }
+    }
+
     fun updateDuration(sound: Sound, duration: Int) = viewModelScope.launch(Dispatchers.IO) {
         repository.updateDuration(sound, duration)
     }
@@ -103,7 +141,8 @@ class SoundViewModel @Inject constructor(private val repository: SoundRepository
     private val _filteredSounds = _filterTerm.switchMap { term ->
         allSounds.map { sounds ->
             sounds.filter { sound ->
-                sound.name.toLowerCase(Locale.getDefault()).contains(term.toLowerCase(Locale.getDefault()))
+                sound.sound.name.toLowerCase(Locale.getDefault())
+                    .contains(term.toLowerCase(Locale.getDefault()))
             }
         }
     }
@@ -196,6 +235,5 @@ class SoundViewModel @Inject constructor(private val repository: SoundRepository
 
     companion object {
         const val LOG_TAG = "SoundViewModel"
-        const val MAX_UNDO_STATES = 20
     }
 }
