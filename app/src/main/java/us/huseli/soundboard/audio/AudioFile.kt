@@ -91,17 +91,13 @@ class AudioFile(
 
         if (mime != MediaFormat.MIMETYPE_AUDIO_RAW) initCodecJob = scope.launch { initCodec() }
 
-        val mbs = AudioTrack.getMinBufferSize(outputAudioFormat.sampleRate, outputAudioFormat.channelMask, outputAudioFormat.encoding)
-
         extractor.selectTrack(trackNumber)
         prime(onInit)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (BuildConfig.DEBUG) Log.d(
-                LOG_TAG,
-                "init: sound=$sound, path=${sound.path}, mime=$mime, minBufferSize=$mbs, bufferSizeInFrames=${audioTrack.bufferSizeInFrames}, channelCount=$channelCount, inputFormat=$inputMediaFormat, outputFormat=$outputAudioFormat"
-            )
-        }
+        if (BuildConfig.DEBUG) Log.d(
+            LOG_TAG,
+            "init: sound=$sound, path=${sound.path}, audioTrack=$audioTrack, mime=$mime, channelCount=$channelCount, inputFormat=$inputMediaFormat, outputFormat=$outputAudioFormat"
+        )
     }
 
     /********** PUBLIC METHODS (except listener setters) **********/
@@ -118,6 +114,7 @@ class AudioFile(
             audioTrack.pause()
         } catch (e: IllegalStateException) {
         }
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "release(): Releasing audioTrack=$audioTrack")
         audioTrack.release()
         codec?.release()
         extractor.release()
@@ -148,6 +145,7 @@ class AudioFile(
             state = State.STOPPED
             extractJob?.cancel()
             queuedStopJob?.cancel()
+            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "stop: pausing audioTrack=$audioTrack")
             audioTrack.pause()
             if (!isTemporary) {
                 audioTrack.flush()
@@ -197,6 +195,7 @@ class AudioFile(
     }
 
     private fun doPlay() {
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "doPlay: playing audioTrack=$audioTrack")
         audioTrack.play()
         state = State.INIT_PLAY
         extractJob = scope.launch {
@@ -510,8 +509,16 @@ class AudioFile(
 
     private suspend fun rebuildAudioTrack() {
         try {
+            if (BuildConfig.DEBUG) Log.d(
+                LOG_TAG,
+                "rebuildAudioTrack: releasing audioTrack=$audioTrack"
+            )
             audioTrack.release()
             audioTrack = buildAudioTrack(outputAudioFormat)
+            if (BuildConfig.DEBUG) Log.d(
+                LOG_TAG,
+                "rebuildAudioTrack: built new audioTrack=$audioTrack"
+            )
         } catch (e: AudioFileException) {
             onError(Error.BUILD_AUDIO_TRACK, e)
         }
@@ -523,7 +530,7 @@ class AudioFile(
         if (audioTrack.playbackHeadPosition <= 0) {
             if (BuildConfig.DEBUG) Log.d(
                 LOG_TAG,
-                "softStop: Waited $delay ms but playhead is still <= 0, stopping anyway"
+                "softStop: Waited $delay ms but playhead is still <= 0, stopping anyway; audioTrack=$audioTrack"
             )
         } else {
             if (queuedStopJob?.isActive != true) return
@@ -562,6 +569,10 @@ class AudioFile(
             val sampleSize = buffer.remaining()
             if (state == State.INIT_PLAY) onPlayStarted()
 
+            if (BuildConfig.DEBUG) Log.d(
+                LOG_TAG,
+                "writeAudioTrack: writing to audioTrack=$audioTrack"
+            )
             audioTrack.write(buffer, sampleSize, AudioTrack.WRITE_BLOCKING).also {
                 when (it) {
                     AudioTrack.ERROR_BAD_VALUE -> onWarning(Error.OUTPUT_BAD_VALUE)

@@ -29,6 +29,10 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import us.huseli.soundboard.R
 import us.huseli.soundboard.audio.SoundPlayer
 import us.huseli.soundboard.data.Category
@@ -57,23 +61,23 @@ class MainActivity :
     @Inject
     lateinit var playerRepository: PlayerRepository
 
-    private val categoryListViewModel by viewModels<CategoryViewModel>()
+    private val actionbarLogoTouchTimes = mutableListOf<Long>()
     private val appViewModel by viewModels<AppViewModel>()
-    private val soundViewModel by viewModels<SoundViewModel>()
+    private val categoryListViewModel by viewModels<CategoryViewModel>()
     private val soundAddViewModel by viewModels<SoundAddViewModel>()
     private val soundEditMultipleViewModel by viewModels<SoundEditViewModel>()
+    private val soundViewModel by viewModels<SoundViewModel>()
+    private val scope = CoroutineScope(Job() + Dispatchers.IO)
 
-    private val actionbarLogoTouchTimes = mutableListOf<Long>()
     private var actionMode: ActionMode? = null
-
     private var addSoundLauncher: ActivityResultLauncher<Intent>? = null
-    private var reinitSoundsLauncher: ActivityResultLauncher<Intent>? = null
+    private var allSounds = emptyList<SoundWithCategory>()  // used for soundAddViewModel
     private var categories = emptyList<Category>()
     private var filterEnabled: Boolean = false
     private var filterWasEnabled: Boolean = false
+    private var reinitSoundsLauncher: ActivityResultLauncher<Intent>? = null
     private var reorderEnabled: Boolean? = null
     private var repressMode: SoundPlayer.RepressMode? = null
-    private var allSounds = emptyList<SoundWithCategory>()  // used for soundAddViewModel
 
     private lateinit var binding: ActivityMainBinding
 
@@ -143,16 +147,19 @@ class MainActivity :
         }
 
         val pInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
-        val prefs = getPreferences(Context.MODE_PRIVATE)
-        val lastVersion = prefs.getLong(PREF_LAST_VERSION, 0)
 
-        @Suppress("DEPRECATION")
-        val currentVersion =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) pInfo.longVersionCode else pInfo.versionCode.toLong()
-        if (lastVersion < currentVersion) onAppVersionUpgraded(lastVersion, currentVersion)
-        prefs.edit {
-            putLong(PREF_LAST_VERSION, currentVersion)
-            apply()
+        scope.launch {
+            val prefs = getPreferences(Context.MODE_PRIVATE)
+            val lastVersion = prefs.getLong(PREF_LAST_VERSION, 0)
+
+            @Suppress("DEPRECATION")
+            val currentVersion =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) pInfo.longVersionCode else pInfo.versionCode.toLong()
+            if (lastVersion < currentVersion) onAppVersionUpgraded(lastVersion, currentVersion)
+            prefs.edit {
+                putLong(PREF_LAST_VERSION, currentVersion)
+                apply()
+            }
         }
 
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -253,8 +260,10 @@ class MainActivity :
 
     override fun onResume() {
         super.onResume()
-        PreferenceManager.getDefaultSharedPreferences(this)
-            .registerOnSharedPreferenceChangeListener(this)
+        scope.launch {
+            PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
+                .registerOnSharedPreferenceChangeListener(this@MainActivity)
+        }
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {

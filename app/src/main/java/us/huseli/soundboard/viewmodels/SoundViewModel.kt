@@ -8,10 +8,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.BuildConfig
-import us.huseli.soundboard.data.Category
-import us.huseli.soundboard.data.Sound
-import us.huseli.soundboard.data.SoundRepository
-import us.huseli.soundboard.data.SoundWithCategory
+import us.huseli.soundboard.data.*
+import us.huseli.soundboard.helpers.ColorHelper
 import us.huseli.soundboard.helpers.MD5
 import java.io.File
 import java.util.*
@@ -20,14 +18,25 @@ import kotlin.math.max
 import kotlin.math.min
 
 @HiltViewModel
-class SoundViewModel @Inject constructor(private val repository: SoundRepository) : ViewModel() {
+class SoundViewModel
+@Inject constructor(
+    private val repository: SoundRepository,
+    private val playerRepository: PlayerRepository,
+    private val colorHelper: ColorHelper
+) : ViewModel() {
     private val _failedSounds = mutableListOf<Sound>()
     private val _filterEnabled = MutableLiveData(false)
     private val _filterTerm = MutableLiveData("")
     private val _reorderEnabled = MutableLiveData(false)
 
     // val allSounds = repository.listLive()
-    val allSounds = repository.listLiveWithCategory()
+    val allSounds = repository.listLiveWithCategory().map { list ->
+        list.forEach {
+            it.sound.textColor = colorHelper.getColorOnBackgroundColor(it.category.backgroundColor)
+            it.sound.backgroundColor = it.category.backgroundColor
+        }
+        list
+    }
 
     val failedSounds: List<Sound>
         get() = _failedSounds
@@ -57,20 +66,28 @@ class SoundViewModel @Inject constructor(private val repository: SoundRepository
     fun setVisibleSoundBoundaries(from: SoundWithCategory?, to: SoundWithCategory?) =
         viewModelScope.launch(Dispatchers.IO) {
             /** Make sure max 100 sounds are initialized */
-            filteredSounds.value?.filterNot { it.category.collapsed }?.also { sounds ->
-                val visibleStartIdx = sounds.indexOf(from)
-                val visibleEndIdx = sounds.indexOf(to)
+            filteredSounds.value?.filterNot { it.category.collapsed }?.also { soundsWithCategory ->
+                val visibleStartIdx = soundsWithCategory.indexOf(from)
+                val visibleEndIdx = soundsWithCategory.indexOf(to)
                 // Is 0 if both are -1:
                 val visibleCount =
                     (visibleEndIdx - visibleStartIdx).let { if (it == 0) 100 else it }
                 var startIdx =
                     if (visibleStartIdx == -1) 0 else max(0, visibleStartIdx - (visibleCount / 2))
-                val endIdx = min(sounds.size - 1, startIdx + 100)
+                val endIdx = min(max(soundsWithCategory.size - 1, 0), startIdx + 100)
                 if (endIdx - startIdx < 100) startIdx = max(0, endIdx - 100)
-                Log.d(
-                    LOG_TAG,
-                    "setVisibleSoundBoundaries: visibleStartIdx=$visibleStartIdx, visibleEndIdx=$visibleEndIdx, visibleCount=$visibleCount, startIdx=$startIdx, endIdx=$endIdx, count=${endIdx - startIdx}, startsound=${sounds[startIdx]}, endsound=${sounds[endIdx]}"
-                )
+                val subList = soundsWithCategory.subList(startIdx, endIdx).map { it.sound }
+                // playerRepository.set(subList)
+                if (BuildConfig.DEBUG) {
+                    if (soundsWithCategory.size > 0) Log.d(
+                        LOG_TAG,
+                        "setVisibleSoundBoundaries: visibleStartIdx=$visibleStartIdx, visibleEndIdx=$visibleEndIdx, visibleCount=$visibleCount, startIdx=$startIdx, endIdx=$endIdx, count=${endIdx - startIdx}, startsound=${soundsWithCategory[startIdx]}, endsound=${soundsWithCategory[endIdx]}"
+                    )
+                    else Log.d(
+                        LOG_TAG,
+                        "setVisibleSoundBoundaries: visibleStartIdx=$visibleStartIdx, visibleEndIdx=$visibleEndIdx, visibleCount=$visibleCount, startIdx=$startIdx, endIdx=$endIdx, count=${endIdx - startIdx}"
+                    )
+                }
             }
         }
 
@@ -102,10 +119,12 @@ class SoundViewModel @Inject constructor(private val repository: SoundRepository
         repository.update(updatedSounds)
     }
 
-    fun sort(categoryId: Int, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) = viewModelScope.launch(Dispatchers.IO) {
-        val sounds = repository.listByCategory(categoryId).toMutableList().sortedWith(Sound.Comparator(sortBy, sortOrder))
-        update(sounds, categoryId)
-    }
+    fun sort(categoryId: Int, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) =
+        viewModelScope.launch(Dispatchers.IO) {
+            val sounds = repository.listByCategory(categoryId).toMutableList()
+                .sortedWith(Sound.Comparator(sortBy, sortOrder))
+            update(sounds, categoryId)
+        }
 
     fun update(sounds: List<Sound>, categoryId: Int) = viewModelScope.launch(Dispatchers.IO) {
         //GlobalApplication.pushUndoState(_sounds.value, null)

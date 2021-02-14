@@ -282,7 +282,7 @@ class SoundAdapter(
             }
 
             binding.sound = soundWithCategory.sound
-            binding.category = soundWithCategory.category
+            // TODO: Is this necessary?
             setBackgroundColor(soundWithCategory.category.backgroundColor)
 
             // Stop any old player observer
