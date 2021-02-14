@@ -56,7 +56,15 @@ class SoundViewModel @Inject constructor(private val repository: SoundRepository
 
     fun setVisibleSoundBoundaries(from: SoundWithCategory?, to: SoundWithCategory?) =
         viewModelScope.launch(Dispatchers.IO) {
-            /** Make sure max 100 sounds are initialized */
+            /**
+             * Make sure max 100 sounds are initialized
+             * TODO: Needs to be run whenever displayed sounds are, or could have been, changed:
+             * - Init
+             * - Category change (mainly collapse/expand)
+             * - Sound add/remove/change/move
+             * - Scroll
+             * - Zoom
+             */
             filteredSounds.value?.filterNot { it.category.collapsed }?.also { sounds ->
                 val visibleStartIdx = sounds.indexOf(from)
                 val visibleEndIdx = sounds.indexOf(to)
