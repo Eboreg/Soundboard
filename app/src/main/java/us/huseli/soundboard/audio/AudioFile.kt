@@ -407,10 +407,7 @@ class AudioFile(
                 callback?.invoke(this@AudioFile)
                 state = State.READY
             }
-        } else {
-            callback?.invoke(this@AudioFile)
-            state = State.READY
-        }
+        } else state = State.READY
     }
 
     private suspend fun processInputBuffer(job: Job?): Boolean {
@@ -662,7 +659,7 @@ class AudioFile(
         const val LOG_TAG = "AudioFile"
         const val WAIT_INTERVAL: Long = 50  // milliseconds
         const val SAMPLE_RATE = 44100
-        const val DO_PRIMING = false
+        const val DO_PRIMING = true
         const val MINIMUM_SAMPLE_SIZE = 75000
         private fun tryGetOutputBuffer(codec: MediaCodec, index: Int): ByteBuffer? {
             return try {

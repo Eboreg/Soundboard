@@ -15,7 +15,6 @@ import us.huseli.soundboard.adapters.common.LifecycleViewHolder
 import us.huseli.soundboard.animators.CollapseButtonAnimator
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
-import us.huseli.soundboard.data.SoundWithCategory
 import us.huseli.soundboard.databinding.ItemCategoryBinding
 import us.huseli.soundboard.helpers.CategoryItemDragHelperCallback
 import us.huseli.soundboard.helpers.SoundDragListener
@@ -71,13 +70,6 @@ class CategoryAdapter(
         }
     }
 
-    fun setVisibleSoundBoundaries() {
-        val firstVisibleSound = firstVisibleViewHolder?.soundAdapter?.firstVisibleItem
-        val lastVisibleSound = lastVisibleViewHolder?.soundAdapter?.lastVisibleItem
-        // Log.d(LOG_TAG, "setVisibleSoundBoundaries: firstVisibleSound=$firstVisibleSound, lastVisibleSound=$lastVisibleSound")
-        soundViewModel.setVisibleSoundBoundaries(firstVisibleSound, lastVisibleSound)
-    }
-
 
     class DiffCallback : DiffUtil.ItemCallback<Category>() {
         override fun areItemsTheSame(oldItem: Category, newItem: Category): Boolean {
@@ -98,35 +90,36 @@ class CategoryAdapter(
     class CategoryViewHolder(internal val binding: ItemCategoryBinding, adapter: CategoryAdapter) :
         View.OnClickListener,
         View.OnTouchListener,
-        LifecycleViewHolder<Category>(binding.root) {
+        LifecycleViewHolder(binding.root) {
         @Suppress("PrivatePropertyName")
         private val LOG_TAG = "CategoryViewHolder"
 
-        private val activity = adapter.activity
         private val appViewModel = adapter.appViewModel
         private val categoryListViewModel = adapter.categoryViewModel
         private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
         private val initialSpanCount = adapter.initialSpanCount
         private val itemTouchHelper = adapter.itemTouchHelper
+        private val soundAdapter: SoundAdapter
         private val soundDragListener: SoundDragListener
         private val soundScroller = adapter.soundScroller
         private val soundViewModel = adapter.soundViewModel
 
+        private val activity = adapter.activity
+
+        private var category: Category? = null
         private var isCollapsed: Boolean? = null
         private var soundCount: Int? = null
 
-        internal val soundAdapter: SoundAdapter = SoundAdapter(
-            binding.soundList,
-            soundViewModel,
-            appViewModel,
-            categoryListViewModel,
-            activity
-        )
-
-        override var item: Category? = null
         override val lifecycleRegistry = LifecycleRegistry(this)
 
         init {
+            soundAdapter = SoundAdapter(
+                binding.soundList,
+                soundViewModel,
+                appViewModel,
+                categoryListViewModel,
+                activity
+            )
             soundDragListener = SoundDragListener(soundAdapter, this, soundScroller)
 
             enableClickAndTouch()
@@ -145,7 +138,7 @@ class CategoryAdapter(
 
         /********* PUBLIC/INTERNAL METHODS **********/
         internal fun bind(category: Category) {
-            item = category
+            this.category = category
             val categoryId = category.id
             if (categoryId == null) {
                 if (BuildConfig.DEBUG) Log.e(LOG_TAG, "bind: got Category with id==null")
@@ -161,7 +154,7 @@ class CategoryAdapter(
 
             binding.categoryHeader.setBackgroundColor(category.backgroundColor)
             soundViewModel.filteredSounds.observe(this) { allSounds ->
-                val sounds = allSounds.filter { it.category == category }
+                val sounds = allSounds.filter { sound -> sound.categoryId == category.id }
                 // Log.d(LOG_TAG, "ViewHolder sound list observer: viewHolder=$this, category=$category, sounds=$sounds")
                 // TODO: Remove test call + method when not needed
                 // submitListWithInvalidSound(sounds)
@@ -174,7 +167,7 @@ class CategoryAdapter(
                 // TODO: This does no good. Is there a working way to actually show a progress
                 // indicator, that doesn't disappear until everything is drawn?
                 binding.soundList.viewTreeObserver.addOnGlobalLayoutListener {
-                    val layoutManager = binding.soundList.layoutManager as SoundLayoutManager
+                    val layoutManager = binding.soundList.layoutManager as GridLayoutManager
                     val itemsShown =
                         layoutManager.findLastVisibleItemPosition() - layoutManager.findFirstVisibleItemPosition() + 1
                     binding.loadingBar.visibility =
@@ -242,23 +235,22 @@ class CategoryAdapter(
         }
 
         @Suppress("unused")
-        private fun submitListWithInvalidSound(soundsWithCategory: List<SoundWithCategory>) {
+        private fun submitListWithInvalidSound(sounds: List<Sound>) {
             val uri = Uri.fromParts(
                 "content",
                 "//com.android.externalstorage.documents/document/0000-0000:Music/Soundboard/Uh! Sorry!.flac",
                 null
             )
             val invalidSound =
-                Sound(666, item?.id, "fail", uri.path!!, 10, 100, Date(), -1, null)
-            val invalidSoundWithCategory = SoundWithCategory(invalidSound, item!!)
-            val mutableSounds = soundsWithCategory.toMutableList()
-            mutableSounds.add(invalidSoundWithCategory)
+                Sound(666, category?.id, "fail", uri.path!!, 10, 100, Date(), -1, null)
+            val mutableSounds = sounds.toMutableList()
+            mutableSounds.add(invalidSound)
             soundCount = mutableSounds.count()
             soundAdapter.submitList(mutableSounds)
         }
 
         private fun toggleCollapsed() {
-            item?.let { category ->
+            category?.let { category ->
                 val collapsed = !category.collapsed
                 collapseButtonAnimator.animate(collapsed)
                 // onCollapseChanged(collapsed)
@@ -278,7 +270,7 @@ class CategoryAdapter(
         override fun onClick(v: View?) {
             // When icons in the category header are clicked
             val activity = activity as EditCategoryInterface
-            item?.also { category ->
+            category?.also { category ->
                 category.id?.also { catId ->
                     when (v) {
                         binding.categoryEditButton -> activity.showCategoryEditDialog(catId)
@@ -299,14 +291,13 @@ class CategoryAdapter(
 
         @SuppressLint("ClickableViewAccessibility")
         override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-            if (event?.action == MotionEvent.ACTION_DOWN && v == binding.categoryMoveButton)
-                itemTouchHelper.startDrag(this)
+            if (event?.action == MotionEvent.ACTION_DOWN) itemTouchHelper.startDrag(this)
             return false
         }
 
         override fun toString(): String {
             val hashCode = Integer.toHexString(System.identityHashCode(this))
-            return "CategoryAdapter.ViewHolder $hashCode <adapterPosition=$bindingAdapterPosition, category=$item>"
+            return "CategoryAdapter.ViewHolder $hashCode <adapterPosition=$bindingAdapterPosition, category=$category>"
         }
 
 

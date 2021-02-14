@@ -9,7 +9,6 @@ import android.view.*
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.adapters.CategoryAdapter
@@ -101,31 +100,9 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
                     binding.categoryList.setItemViewCacheSize(it.size)
                     categoryAdapter.submitList(it)
                 }
-                binding.root.viewTreeObserver.addOnGlobalLayoutListener {
-                    categoryAdapter.setVisibleSoundBoundaries()
-                }
             }
-            binding.categoryList.addOnScrollListener(OnScrollListener())
         } ?: run {
             if (BuildConfig.DEBUG) Log.e(LOG_TAG, "onViewCreated: binding is null")
-        }
-    }
-
-    inner class OnScrollListener : RecyclerView.OnScrollListener() {
-        /**
-         * We want to find:
-         * 1. The first visible sound
-         * 2. The last visible sound
-         * 3. The sound right in between them
-         * Then we want a list of all sounds, in the order they will appear on the screen, and
-         * define a window where start=[3]-49 and end=[3]+49
-         * All sounds that are within the window should be initialized, if they are not already
-         * All sounds that aren't should be released
-         */
-        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-            if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                recyclerView.post { categoryAdapter?.setVisibleSoundBoundaries() }
-            }
         }
     }
 
