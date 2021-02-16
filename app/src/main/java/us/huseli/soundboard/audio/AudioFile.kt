@@ -197,7 +197,7 @@ class AudioFile(
     }
 
     private fun doPlay() {
-        audioTrack.play()
+        // audioTrack.play()
         state = State.INIT_PLAY
         extractJob = scope.launch {
             overrunSampleData?.also {
@@ -376,6 +376,7 @@ class AudioFile(
 
     private fun onPlayStarted() {
         /** Called when the first block is about to be queued up */
+        audioTrack.play()
         state = State.PLAYING
         queuedStopJob = scope.launch { softStop(duration) }
     }
@@ -407,7 +408,10 @@ class AudioFile(
                 callback?.invoke(this@AudioFile)
                 state = State.READY
             }
-        } else state = State.READY
+        } else {
+            callback?.invoke(this@AudioFile)
+            state = State.READY
+        }
     }
 
     private suspend fun processInputBuffer(job: Job?): Boolean {
@@ -557,8 +561,6 @@ class AudioFile(
          */
         if (state == State.INIT_PLAY || state == State.PLAYING || state == State.PRIMING) {
             val sampleSize = buffer.remaining()
-            if (state == State.INIT_PLAY) onPlayStarted()
-
             audioTrack.write(buffer, sampleSize, AudioTrack.WRITE_BLOCKING).also {
                 when (it) {
                     AudioTrack.ERROR_BAD_VALUE -> onWarning(Error.OUTPUT_BAD_VALUE)
@@ -584,6 +586,7 @@ class AudioFile(
                     }
                 }
             }
+            if (state == State.INIT_PLAY) onPlayStarted()
         }
     }
 
@@ -659,7 +662,7 @@ class AudioFile(
         const val LOG_TAG = "AudioFile"
         const val WAIT_INTERVAL: Long = 50  // milliseconds
         const val SAMPLE_RATE = 44100
-        const val DO_PRIMING = true
+        const val DO_PRIMING = false
         const val MINIMUM_SAMPLE_SIZE = 75000
         private fun tryGetOutputBuffer(codec: MediaCodec, index: Int): ByteBuffer? {
             return try {

@@ -10,7 +10,7 @@ class Application : Application() {
     var deviceDefaultLanguage: String? = null
 
     override fun onCreate() {
-        if (BuildConfig.DEBUG) enableStrictMode()
+        // if (BuildConfig.DEBUG) enableStrictMode()
         super.onCreate()
         deviceDefaultLanguage = Locale.getDefault().language
     }
