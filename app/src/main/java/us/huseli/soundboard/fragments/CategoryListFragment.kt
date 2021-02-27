@@ -36,7 +36,8 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
         val config = resources.configuration
 
         val landscapeSpanCount = preferences.getInt("landscapeSpanCount", 0)
-        initialSpanCount = appViewModel.setup(config.orientation, config.screenWidthDp, config.screenHeightDp, landscapeSpanCount)
+        initialSpanCount = appViewModel.setup(
+            config.orientation, config.screenWidthDp, config.screenHeightDp, landscapeSpanCount)
         appViewModel.spanCountLandscape.observe(viewLifecycleOwner) {
             if (it != null) {
                 preferences.edit {
@@ -81,12 +82,12 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
 
         binding?.also { binding ->
             categoryAdapter = CategoryAdapter(
-                    appViewModel,
-                    initialSpanCount ?: AppViewModel.DEFAULT_SPANCOUNT_PORTRAIT,
-                    soundViewModel,
-                    categoryListViewModel,
-                    requireActivity(),
-                    SoundScroller(binding.categoryList, 10, 10)
+                appViewModel,
+                initialSpanCount ?: AppViewModel.DEFAULT_SPANCOUNT_PORTRAIT,
+                soundViewModel,
+                categoryListViewModel,
+                requireActivity(),
+                SoundScroller(binding.categoryList, 10, 10)
             ).also { categoryAdapter ->
                 binding.categoryList.apply {
                     categoryAdapter.itemTouchHelper.attachToRecyclerView(this)
@@ -101,15 +102,20 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
                     binding.categoryList.setItemViewCacheSize(it.size)
                     categoryAdapter.submitList(it)
                 }
-                binding.root.viewTreeObserver.addOnGlobalLayoutListener {
-                    categoryAdapter.setVisibleSoundBoundaries()
-                }
+                binding.root.viewTreeObserver.addOnGlobalLayoutListener { setVisibleSoundBoundaries() }
             }
             binding.categoryList.addOnScrollListener(OnScrollListener())
         } ?: run {
             if (BuildConfig.DEBUG) Log.e(LOG_TAG, "onViewCreated: binding is null")
         }
     }
+
+    private fun setVisibleSoundBoundaries() {
+        val firstVisibleSound = categoryAdapter?.firstVisibleViewHolder?.soundAdapter?.firstVisibleItem
+        val lastVisibleSound = categoryAdapter?.lastVisibleViewHolder?.soundAdapter?.lastVisibleItem
+        soundViewModel.setVisibleSoundBoundaries(firstVisibleSound, lastVisibleSound)
+    }
+
 
     inner class OnScrollListener : RecyclerView.OnScrollListener() {
         /**
@@ -123,9 +129,7 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
          * All sounds that aren't should be released
          */
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-            if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                recyclerView.post { categoryAdapter?.setVisibleSoundBoundaries() }
-            }
+            if (newState == RecyclerView.SCROLL_STATE_IDLE) recyclerView.post { setVisibleSoundBoundaries() }
         }
     }
 

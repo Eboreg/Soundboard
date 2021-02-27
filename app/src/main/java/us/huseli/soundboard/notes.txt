@@ -1,3 +1,65 @@
+    private fun extractEncoded(priming: Boolean) = runBlocking {
+        /**
+         * When priming: Ideally extract exactly `bufferSize` bytes of audio data. If there is some
+         * overshoot, put it in `overrunSampleData`. Try to accomplish this by running codec input
+         * and output "serially", i.e. only get input buffer when there has been a successful
+         * output buffer get just before (except for the first iteration, of course).
+         */
+        var inputEos = false
+        var outputRetries = 0
+        var outputStopped = false
+        var doExtraction = true
+        var totalSize = primedSize
+        
+        try {
+            while (!outputStopped && isActive) {
+                if (!inputEos && doExtraction) inputEos = processInputBuffer()
+                val (outputResult, sampleSize, buffer) = processOutputBuffer(totalSize)
+                if (buffer != null) writeAudioTrack(buffer)
+                totalSize += sampleSize
+                when (outputResult) {
+                    ProcessOutputResult.SUCCESS -> {
+                        outputRetries = 0
+                        // We don't _know_ that the next buffer will be of the same size as the current
+                        // one, but it's an educated guess that's good enough:
+                        if (priming) doExtraction = totalSize + sampleSize < bufferSize
+                        outputStopped = false
+                    }
+                    ProcessOutputResult.EOS -> {
+                        if (priming) doExtraction = false
+                        outputStopped = true
+                    }
+                    else -> {
+                        if (priming) doExtraction = false
+                        outputStopped = outputRetries++ >= 5
+                    }
+                }
+                if (BuildConfig.DEBUG) Log.d(
+                    LOG_TAG,
+                    "extractEncoded: outputResult=$outputResult, outputRetries=$outputRetries, outputStopped=$outputStopped, doExtraction=$doExtraction, state=$state, priming=$priming, sound=$sound"
+                )
+            }
+            if (BuildConfig.DEBUG) Log.d(
+                LOG_TAG,
+                "**** extractEncoded: Extract finished: totalSize=$totalSize, totalSize before extract=$primedSize, added=${totalSize - primedSize}, state=$state, priming=$priming, sound=$sound"
+            )
+            if (priming) primedSize = totalSize
+        } finally {
+            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "extractEncoded: cancelled")
+        }
+    }
+
+
+
+soundplayer state READY
+AudioFile@12753
+
+
+
+
+
+
+
 val collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
 val projection = arrayOf(MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.MIME_TYPE)
 val selection = "${MediaStore.Audio.Media.DURATION} <= ?"

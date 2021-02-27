@@ -3,7 +3,8 @@ package us.huseli.soundboard.data
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import androidx.lifecycle.liveData
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -18,11 +19,11 @@ import javax.inject.Singleton
 
 @Singleton
 class PlayerRepository @Inject constructor(@ApplicationContext context: Context) {
-    private val _players = HashMap<Sound, SoundPlayer>()
+    private val _players = mutableListOf<SoundPlayer>()
+    private val _playersLive = MutableLiveData<List<SoundPlayer>>(emptyList())
+
     private var bufferSize = Constants.DEFAULT_BUFFER_SIZE
-    private val scope = CoroutineScope(Job() + Dispatchers.IO)
-    private var previousSounds: List<Sound>? = null
-    private var setJob: Job? = null
+    private val scope = CoroutineScope(Job() + Dispatchers.Default)
     private val preferenceListener =
         SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
             if (key == "bufferSize") {
@@ -30,11 +31,14 @@ class PlayerRepository @Inject constructor(@ApplicationContext context: Context)
                     val newValue = Functions.seekbarValueToBufferSize(it)
                     if (newValue != bufferSize) {
                         bufferSize = newValue
-                        _players.values.forEach { player -> player.setBufferSize(newValue) }
+                        _players.forEach { player -> player.setBufferSize(newValue) }
                     }
                 }
             }
-    }
+        }
+
+    val players: LiveData<List<SoundPlayer>>
+        get() = _playersLive
 
     init {
         scope.launch {
@@ -51,56 +55,32 @@ class PlayerRepository @Inject constructor(@ApplicationContext context: Context)
         }
     }
 
-    private fun addIfNotExists(sound: Sound) {
-        if (!_players.containsKey(sound)) {
-            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "addIfNotExists: add $sound")
-            _players[sound] = SoundPlayer(sound, bufferSize)
-        }
-    }
-
     fun set(sounds: List<Sound>) {
-        if (BuildConfig.DEBUG) {
-            if (sounds.isNotEmpty()) Log.d(
-                LOG_TAG,
-                "set: sounds=${sounds.first()} to ${sounds.last()}"
-            )
-            else Log.d(LOG_TAG, "set: sounds is empty")
-        }
-        // Release & remove players whose sound is not in `sounds`
-        _players.filterNot { sounds.contains(it.key) }.forEach {
-            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: remove ${it.key}")
-            it.value.release()
-            _players.remove(it.key)
-        }
-        sounds.forEach { addIfNotExists(it) }
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: starting, sounds=$sounds, _players=$_players")
 
-/*
-        if (sounds != previousSounds) {
-            setJob?.cancel()
-            setJob = scope.launch {
-                if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: sounds=${sounds.first()} to ${sounds.last()}")
-                // Release & remove players whose sound is not in `sounds`
-                _players.filterNot { sounds.contains(it.key) }.forEach {
-                    if (isActive) {
-                        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: remove ${it.key}")
-                        it.value.release()
-                        _players.remove(it.key)
-                    }
-                }
-                sounds.forEach {
-                    if (isActive) addIfNotExists(it)
-                }
-                previousSounds = sounds
+        // 1. Release SoundPlayers whose sounds are not in list
+        _players.filter { !sounds.contains(it.sound) && it.state != SoundPlayer.State.RELEASED }.forEach {
+            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: release ${it.sound}")
+            it.release()
+        }
+
+        // 2. Add SoundPlayers for sounds that don't have any
+        val newSounds = sounds.filterNot { _players.map { player -> player.sound }.contains(it) }
+        if (newSounds.isNotEmpty()) {
+            newSounds.forEach { sound ->
+                if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: add $sound")
+                _players.add(SoundPlayer(sound, bufferSize))
             }
+            // 2.1. Replace players.value with new list
+            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: postValue $_players")
+            _playersLive.postValue(_players)
         }
-*/
-    }
 
-    fun get(sound: Sound?) = liveData(Dispatchers.Default) {
-        emit(sound?.let {
-            addIfNotExists(sound)
-            _players[sound]
-        })
+        // 3. Reinit SoundPlayers whose sounds are in list but were previously released
+        _players.filter { sounds.contains(it.sound) && it.state == SoundPlayer.State.RELEASED }.forEach {
+            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: reinit $it")
+            it.reinit()
+        }
     }
 
 

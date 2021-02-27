@@ -123,17 +123,11 @@ class MainActivity :
 
         addSoundLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-                onAddSoundResult(
-                    it.data,
-                    it.resultCode
-                )
+                onAddSoundResult(it.data, it.resultCode)
             }
         reinitSoundsLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-                onReInitSoundResult(
-                    it.data,
-                    it.resultCode
-                )
+                onReInitSoundResult(it.data, it.resultCode)
             }
 
         when (intent?.action) {
@@ -190,11 +184,7 @@ class MainActivity :
 
         soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
 
-        soundViewModel.allSounds.observe(this) { list ->
-            allSounds = list
-            // TODO: This is what needs to be done with sounds from CategoryAdapter.setVisibleSoundBoundaries
-            playerRepository.set(list.map { it.sound })
-        }
+        soundViewModel.allSounds.observe(this) { allSounds = it }
 
         categoryListViewModel.categories.observe(this) {
             // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment
@@ -291,30 +281,15 @@ class MainActivity :
     override fun showCategoryAddDialog() =
         showDialogFragment(
             AddCategoryDialogFragment.newInstance(
-                DIALOG_TAGS.indexOf(
-                    CATEGORY_ADD_DIALOG_TAG
-                )
-            ), CATEGORY_ADD_DIALOG_TAG
-        )
+                DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG)), CATEGORY_ADD_DIALOG_TAG)
 
     override fun showCategoryDeleteDialog(id: Int, name: String, soundCount: Int) =
-        showDialogFragment(
-            DeleteCategoryFragment.newInstance(
-                id,
-                name,
-                soundCount,
-                categories.size
-            )
-        )
+        showDialogFragment(DeleteCategoryFragment.newInstance(id, name, soundCount, categories.size))
 
     override fun showCategoryEditDialog(id: Int) =
         showDialogFragment(
-            EditCategoryDialogFragment.newInstance(
-                id, DIALOG_TAGS.indexOf(
-                    CATEGORY_EDIT_DIALOG_TAG
-                )
-            ), CATEGORY_EDIT_DIALOG_TAG
-        )
+            EditCategoryDialogFragment.newInstance(id, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)),
+            CATEGORY_EDIT_DIALOG_TAG)
 
     override fun showCategorySortDialog(id: Int, name: String) =
         showDialogFragment(SortCategoryDialogFragment.newInstance(id, name))
@@ -375,11 +350,9 @@ class MainActivity :
             }
         }
 
-        soundAddViewModel.setup(
-            sounds,
+        soundAddViewModel.setup(sounds,
             this.allSounds.map { it.sound },
-            getString(R.string.multiple_sounds_selected, sounds.size)
-        )
+            getString(R.string.multiple_sounds_selected, sounds.size))
 
         when {
             soundAddViewModel.hasDuplicates -> showDialogFragment(AddDuplicateSoundDialogFragment())
@@ -473,21 +446,14 @@ class MainActivity :
     private fun onRepressModeChange(mode: SoundPlayer.RepressMode) {
         val icon = when (mode) {
             SoundPlayer.RepressMode.OVERLAP -> ResourcesCompat.getDrawable(
-                resources,
-                R.drawable.ic_repress_overlap, theme
-            )
+                resources, R.drawable.ic_repress_overlap, theme)
             SoundPlayer.RepressMode.RESTART -> ResourcesCompat.getDrawable(
-                resources,
-                R.drawable.ic_repress_restart, theme
-            )
+                resources, R.drawable.ic_repress_restart, theme)
             SoundPlayer.RepressMode.STOP -> ResourcesCompat.getDrawable(
-                resources,
-                R.drawable.ic_repress_stop, theme
-            )
+                resources, R.drawable.ic_repress_stop, theme)
         }
         binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_set_repress_mode)?.icon = icon
-        binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_set_repress_mode)?.icon =
-            icon
+        binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_set_repress_mode)?.icon = icon
         if (this.repressMode != null) showSnackbar(getString(R.string.on_repress, mode))
         this.repressMode = mode
     }
@@ -534,16 +500,13 @@ class MainActivity :
         // TODO: Generalize this shit somehow (with ordinary open file stuff), take up work on this stuff
         soundViewModel.failedSounds.forEach { sound ->
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) intent.putExtra(
-                DocumentsContract.EXTRA_INITIAL_URI,
-                sound.uri
-            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, sound.uri)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
                 intent.addFlags(
                     Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or
                             Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                            Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
-                )
+                            Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
             else
                 intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
             intent.type = "audio/*"
@@ -564,9 +527,8 @@ class MainActivity :
         binding.actionbar.actionbarLogo.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN) actionbarLogoTouchTimes.add(event.eventTime)
             if (actionbarLogoTouchTimes.size == 3) {
-                if (actionbarLogoTouchTimes.first() + 1000 >= event.eventTime) showDialogFragment(
-                    EasterEggFragment()
-                )
+                if (actionbarLogoTouchTimes.first() + 1000 >= event.eventTime)
+                    showDialogFragment(EasterEggFragment())
                 actionbarLogoTouchTimes.clear()
             } else if (actionbarLogoTouchTimes.size > 3)
                 actionbarLogoTouchTimes.clear()

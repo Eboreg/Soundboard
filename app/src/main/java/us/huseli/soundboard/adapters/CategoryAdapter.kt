@@ -40,10 +40,8 @@ class CategoryAdapter(
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         val item = getItem(position)
-        if (BuildConfig.DEBUG) Log.d(
-            LOG_TAG,
-            "onBindViewHolder: item=$item, holder=$holder, position=$position, adapter=$this"
-        )
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG,
+            "onBindViewHolder: item=$item, holder=$holder, position=$position, adapter=$this")
         holder.bind(item)
     }
 
@@ -71,11 +69,9 @@ class CategoryAdapter(
         }
     }
 
-    fun setVisibleSoundBoundaries() {
-        val firstVisibleSound = firstVisibleViewHolder?.soundAdapter?.firstVisibleItem
-        val lastVisibleSound = lastVisibleViewHolder?.soundAdapter?.lastVisibleItem
-        // Log.d(LOG_TAG, "setVisibleSoundBoundaries: firstVisibleSound=$firstVisibleSound, lastVisibleSound=$lastVisibleSound")
-        soundViewModel.setVisibleSoundBoundaries(firstVisibleSound, lastVisibleSound)
+
+    companion object {
+        const val LOG_TAG = "CategoryAdapter"
     }
 
 
@@ -99,9 +95,6 @@ class CategoryAdapter(
         View.OnClickListener,
         View.OnTouchListener,
         LifecycleViewHolder<Category>(binding.root) {
-        @Suppress("PrivatePropertyName")
-        private val LOG_TAG = "CategoryViewHolder"
-
         private val activity = adapter.activity
         private val appViewModel = adapter.appViewModel
         private val categoryListViewModel = adapter.categoryViewModel
@@ -282,12 +275,8 @@ class CategoryAdapter(
                     when (v) {
                         binding.categoryEditButton -> activity.showCategoryEditDialog(catId)
                         binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(
-                            catId, category.name, soundCount ?: 0
-                        )
-                        binding.categorySortButton -> activity.showCategorySortDialog(
-                            catId,
-                            category.name
-                        )
+                            catId, category.name, soundCount ?: 0)
+                        binding.categorySortButton -> activity.showCategorySortDialog(catId, category.name)
                         binding.categoryCollapse -> toggleCollapsed()
                     }
                 }
@@ -309,14 +298,14 @@ class CategoryAdapter(
         }
 
 
+        companion object {
+            const val LOG_TAG = "CategoryViewHolder"
+        }
+
+
         inner class SoundLayoutManager(context: Context, spanCount: Int) :
             GridLayoutManager(context, spanCount) {
             override fun isAutoMeasureEnabled() = true
         }
-    }
-
-
-    companion object {
-        const val LOG_TAG = "CategoryAdapter"
     }
 }

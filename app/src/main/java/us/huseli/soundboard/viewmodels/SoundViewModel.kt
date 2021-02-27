@@ -29,7 +29,6 @@ class SoundViewModel
     private val _filterTerm = MutableLiveData("")
     private val _reorderEnabled = MutableLiveData(false)
 
-    // val allSounds = repository.listLive()
     val allSounds = repository.listLiveWithCategory().map { list ->
         list.forEach {
             it.sound.textColor = colorHelper.getColorOnBackgroundColor(it.category.backgroundColor)
@@ -76,17 +75,17 @@ class SoundViewModel
                     if (visibleStartIdx == -1) 0 else max(0, visibleStartIdx - (visibleCount / 2))
                 val endIdx = min(max(soundsWithCategory.size - 1, 0), startIdx + 100)
                 if (endIdx - startIdx < 100) startIdx = max(0, endIdx - 100)
-                val subList = soundsWithCategory.subList(startIdx, endIdx).map { it.sound }
-                // playerRepository.set(subList)
+                val subList = soundsWithCategory.subList(startIdx, endIdx + 1).map { it.sound }
+
+                playerRepository.set(subList)
+
                 if (BuildConfig.DEBUG) {
-                    if (soundsWithCategory.size > 0) Log.d(
-                        LOG_TAG,
-                        "setVisibleSoundBoundaries: visibleStartIdx=$visibleStartIdx, visibleEndIdx=$visibleEndIdx, visibleCount=$visibleCount, startIdx=$startIdx, endIdx=$endIdx, count=${endIdx - startIdx}, startsound=${soundsWithCategory[startIdx]}, endsound=${soundsWithCategory[endIdx]}"
-                    )
-                    else Log.d(
-                        LOG_TAG,
-                        "setVisibleSoundBoundaries: visibleStartIdx=$visibleStartIdx, visibleEndIdx=$visibleEndIdx, visibleCount=$visibleCount, startIdx=$startIdx, endIdx=$endIdx, count=${endIdx - startIdx}"
-                    )
+                    if (soundsWithCategory.isNotEmpty())
+                        Log.d(LOG_TAG,
+                            "setVisibleSoundBoundaries: visibleStartIdx=$visibleStartIdx, visibleEndIdx=$visibleEndIdx, visibleCount=$visibleCount, startIdx=$startIdx, endIdx=$endIdx, count=${endIdx - startIdx}, startsound=${soundsWithCategory[startIdx]}, endsound=${soundsWithCategory[endIdx]}")
+                    else
+                        Log.d(LOG_TAG,
+                            "setVisibleSoundBoundaries: visibleStartIdx=$visibleStartIdx, visibleEndIdx=$visibleEndIdx, visibleCount=$visibleCount, startIdx=$startIdx, endIdx=$endIdx, count=${endIdx - startIdx}")
                 }
             }
         }
