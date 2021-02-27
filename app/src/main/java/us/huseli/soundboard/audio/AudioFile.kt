@@ -10,11 +10,7 @@ import java.nio.ByteBuffer
 import kotlin.math.min
 
 @Suppress("RedundantSuspendModifier")
-class AudioFile(
-    private val sound: Sound,
-    baseBufferSize: Int,
-    stateListener: StateListener? = null,
-) {
+class AudioFile(private val sound: Sound, baseBufferSize: Int, stateListener: StateListener? = null) {
     // Public val's & var's
     val duration: Long
     val isPlaying: Boolean
@@ -40,9 +36,9 @@ class AudioFile(
     private var audioTrack: AudioTrack? = null
     private var codec: MediaCodec? = null
     private var extractJob: Job? = null
-    private var queuedStopJob: Job? = null
     private var overrunSampleData: ByteBuffer? = null
     private var primedSize = 0
+    private var queuedStopJob: Job? = null
 
     private var state = State.INITIALIZING
         set(value) {

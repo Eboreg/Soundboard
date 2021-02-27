@@ -232,19 +232,15 @@ class SoundAdapter(
 
         private val appViewModel = adapter.appViewModel
         private val clickAnimator = (AnimatorInflater.loadAnimator(
-            context,
-            R.animator.sound_item_click_animator
-        ) as AnimatorSet).apply {
+            context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
             setTarget(binding.soundCard)
         }
         private val soundViewModel = adapter.soundViewModel
         private val activity = adapter.activity
         private val colorHelper = EntryPointAccessors.fromApplication(
-            activity.applicationContext, SoundViewHolderEntryPoint::class.java
-        ).colorHelper()
+            activity.applicationContext, SoundViewHolderEntryPoint::class.java).colorHelper()
         private val playerRepository = EntryPointAccessors.fromApplication(
-            activity.applicationContext, SoundViewHolderEntryPoint::class.java
-        ).playerRepository()
+            activity.applicationContext, SoundViewHolderEntryPoint::class.java).playerRepository()
 
         private var longClickAnimator: SoundItemLongClickAnimator? = null
         private var player: SoundPlayer? = null

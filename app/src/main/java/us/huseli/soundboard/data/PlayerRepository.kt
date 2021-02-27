@@ -1,7 +1,6 @@
 package us.huseli.soundboard.data
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -24,18 +23,6 @@ class PlayerRepository @Inject constructor(@ApplicationContext context: Context)
 
     private var bufferSize = Constants.DEFAULT_BUFFER_SIZE
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
-    private val preferenceListener =
-        SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
-            if (key == "bufferSize") {
-                prefs?.getInt(key, Constants.DEFAULT_BUFFER_SIZE)?.let {
-                    val newValue = Functions.seekbarValueToBufferSize(it)
-                    if (newValue != bufferSize) {
-                        bufferSize = newValue
-                        _players.forEach { player -> player.setBufferSize(newValue) }
-                    }
-                }
-            }
-        }
 
     val players: LiveData<List<SoundPlayer>>
         get() = _playersLive
@@ -43,15 +30,25 @@ class PlayerRepository @Inject constructor(@ApplicationContext context: Context)
     init {
         scope.launch {
             PreferenceManager.getDefaultSharedPreferences(context).apply {
-                registerOnSharedPreferenceChangeListener(preferenceListener)
-                bufferSize = Functions.seekbarValueToBufferSize(
-                    getInt(
-                        "bufferSize", Functions.bufferSizeToSeekbarValue(
-                            Constants.DEFAULT_BUFFER_SIZE
-                        )
-                    )
-                )
+                registerOnSharedPreferenceChangeListener { prefs, key ->
+                    if (key == "bufferSize") {
+                        prefs?.getInt(key, Functions.bufferSizeToSeekbarValue(Constants.DEFAULT_BUFFER_SIZE))?.also {
+                            onBufferSizeChange(it)
+                        }
+                    }
+                }
+                // Check initial value
+                onBufferSizeChange(getInt("bufferSize",
+                    Functions.bufferSizeToSeekbarValue(Constants.DEFAULT_BUFFER_SIZE)))
             }
+        }
+    }
+
+    private fun onBufferSizeChange(seekbarValue: Int) {
+        val newValue = Functions.seekbarValueToBufferSize(seekbarValue)
+        if (newValue != bufferSize) {
+            bufferSize = newValue
+            _players.forEach { player -> player.setBufferSize(newValue) }
         }
     }
 
