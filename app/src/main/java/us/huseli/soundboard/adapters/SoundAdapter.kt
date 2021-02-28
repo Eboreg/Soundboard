@@ -338,10 +338,7 @@ class SoundAdapter(
                 binding.durationCard.visibility = View.VISIBLE
                 if (playerTimer?.duration != value)
                     playerTimer = SoundPlayerTimer(
-                        value,
-                        binding.volumeBar,
-                        item?.sound?.volume ?: Constants.DEFAULT_VOLUME
-                    )
+                        value, binding.volumeBar, item?.sound?.volume ?: Constants.DEFAULT_VOLUME)
                 else
                     item?.sound?.volume?.let { playerTimer?.originalProgress = it }
             }

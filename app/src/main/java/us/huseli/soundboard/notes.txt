@@ -1,3 +1,30 @@
+2021-02-28 05:15:51.440 28814-28814 E/AndroidRuntime: FATAL EXCEPTION: main
+    Process: us.huseli.soundboard.debug, PID: 28814
+    java.util.ConcurrentModificationException
+        at java.util.ArrayList$Itr.next(ArrayList.java:860)
+        at us.huseli.soundboard.audio.SoundPlayer.togglePlay(SoundPlayer.kt:243)
+        at us.huseli.soundboard.adapters.SoundAdapter$SoundViewHolder.onClick(SoundAdapter.kt:392)
+        at android.view.View.performClick(View.java:7862)
+        at android.view.View.performClickInternal(View.java:7831)
+        at android.view.View.access$3600(View.java:879)
+        at android.view.View$PerformClick.run(View.java:29359)
+        at android.os.Handler.handleCallback(Handler.java:883)
+        at android.os.Handler.dispatchMessage(Handler.java:100)
+        at android.os.Looper.loop(Looper.java:237)
+        at android.app.ActivityThread.main(ActivityThread.java:8167)
+        at java.lang.reflect.Method.invoke(Native Method)
+        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:496)
+        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1100)
+
+
+tempaudioplayers spelar till slut:
+    för var och en körs vid onStop:
+        if (!isPlaying()) _state = State.READY > loopar igenom alla tempaudioplayers. Om ingen av
+        dem har isPlaying == true, sätt State.READY
+    dvs:
+
+
+
     private fun extractEncoded(priming: Boolean) = runBlocking {
         /**
          * When priming: Ideally extract exactly `bufferSize` bytes of audio data. If there is some
