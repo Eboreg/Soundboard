@@ -7,6 +7,7 @@ import kotlinx.coroutines.*
 import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.data.Sound
 import java.nio.ByteBuffer
+import kotlin.coroutines.coroutineContext
 import kotlin.math.min
 
 @Suppress("RedundantSuspendModifier")
@@ -72,17 +73,19 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, stateListener: St
         bufferSize = baseBufferSize * channelCount
         outputAudioFormat = getAudioFormat(inputMediaFormat, null).second
 
-        stateListeners.forEach { it.onInit() }
+        stateListeners.forEach { it.onInit(this) }
 
         if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-            "init finished: this=$this, sound=$sound, audioTrack=$audioTrack, mime=$mime, channelCount=$channelCount, inputFormat=$inputMediaFormat, outputFormat=$outputAudioFormat")
+            "init finished: this=$this, sound=$sound, audioTrack=$audioTrack, mime=$mime, channelCount=$channelCount, inputFormat=$inputMediaFormat, outputFormat=$outputAudioFormat, baseBufferSize=$baseBufferSize, bufferSize=$bufferSize")
     }
 
     /********** PUBLIC METHODS **********/
 
-    fun changeBufferSize(value: Int) {
-        if (value * channelCount != bufferSize) {
-            bufferSize = value * channelCount
+    fun changeBufferSize(baseBufferSize: Int) {
+        if (baseBufferSize * channelCount != bufferSize) {
+            bufferSize = baseBufferSize * channelCount
+            if (BuildConfig.DEBUG) Log.d(LOG_TAG,
+                "changeBufferSize: baseBufferSize=$baseBufferSize, bufferSize=$bufferSize")
             if (state != State.RELEASED && state != State.ERROR) {
                 state = State.INITIALIZING
                 audioTrack = buildAudioTrack()
@@ -99,7 +102,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, stateListener: St
                     // Try forcing stop if something got fucked up
                     doStop()
                     prepare()
-                    awaitState(State.READY, 1000L) { runBlocking { doPlay() } }
+                    awaitState(State.READY, 1000L) { launch { doPlay() } }
                 }
             }
         }
@@ -117,7 +120,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, stateListener: St
         if (overrunSampleData != null && BuildConfig.DEBUG)
             Log.d(LOG_TAG, "**** prepare: overrunSampleData=$overrunSampleData, sound=$sound")
         overrunSampleData = null
-        if (DO_PRIMING) prime()
+        if (DO_PRIMING) scope.launch { prime() }
         state = State.READY
         return this
     }
@@ -159,7 +162,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, stateListener: St
     fun stop(): AudioFile {
         /** Used for user-initiated hard stop, cancels any queued future stop job */
         queuedStopJob?.cancel()
-        doStop()
+        runBlocking { doStop() }
         return this
     }
 
@@ -176,7 +179,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, stateListener: St
     }
 
     private fun buildAudioTrack(): AudioTrack? {
-        return try {
+        val track = try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 val builder = AudioTrack.Builder()
                     .setAudioAttributes(audioAttributes)
@@ -198,9 +201,11 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, stateListener: St
             onError(Error.BUILD_AUDIO_TRACK, e)
             null
         }
+        track?.setVolume(sound.volume.toFloat() / 100)
+        return track
     }
 
-    @Synchronized
+    // @Synchronized
     private suspend fun doPlay() {
         if (BuildConfig.DEBUG) Log.d(LOG_TAG, "doPlay: playing sound=$sound, audioTrack=$audioTrack, this=$this")
         audioTrack?.play()
@@ -217,21 +222,21 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, stateListener: St
         }
     }
 
-    private fun doStop() = runBlocking {
+    private suspend fun doStop() {
         /** Stop immediately. force = don't care about present state */
-        if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-            "**** doStop() called, sound=$sound, state=$state")
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "doStop: cancelling extractJob, sound=$sound, state=$state")
+        extractJob?.cancelAndJoin()
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "doStop: extractJob cancelled, sound=$sound, state=$state")
         try {
             audioTrack?.pause()
         } catch (e: Exception) {
         }
         state = State.STOPPED
-        extractJob?.cancelAndJoin()
         audioTrack?.flush()
     }
 
-    @Synchronized
-    private fun extract(priming: Boolean = false) = runBlocking {
+    // @Synchronized
+    private suspend fun extract(priming: Boolean = false) {
         /**
          * Extracts sample data from extractor and feeds it to audioTrack.
          * Before: Make sure extractor is positioned at the correct sample and audioTrack is ready
@@ -245,22 +250,24 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, stateListener: St
         }
     }
 
-    private fun extractEncoded(codec: MediaCodec, priming: Boolean) = runBlocking {
+    private suspend fun extractEncoded(codec: MediaCodec, priming: Boolean) {
         /**
          * When priming: Ideally extract exactly `bufferSize` bytes of audio data. If there is some
          * overshoot, put it in `overrunSampleData`. Try to accomplish this by running codec input
          * and output "serially", i.e. only get input buffer when there has been a successful
          * output buffer get just before (except for the first iteration, of course).
          */
+        val job = coroutineContext[Job]
+
         var stop = false
         var inputResult = ProcessInputResult.CONTINUE
         var totalSize = primedSize
         var outputRetries = 0
         var doExtraction = true
 
-        while (!stop && isActive) {
-            if (inputResult != ProcessInputResult.END && doExtraction) inputResult =
-                processInputBuffer(codec, inputResult)
+        while (!stop && job?.isActive == true) {
+            if (inputResult != ProcessInputResult.END && doExtraction)
+                inputResult = processInputBuffer(codec, inputResult)
             val (outputResult, sampleSize) = processOutputBuffer(codec, totalSize)
             totalSize += sampleSize
             when (outputResult) {
@@ -283,15 +290,18 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, stateListener: St
             if (BuildConfig.DEBUG) Log.d(LOG_TAG,
                 "extractEncoded: inputResult=$inputResult, outputResult=$outputResult, outputRetries=$outputRetries, stop=$stop, doExtraction=$doExtraction, state=$state, priming=$priming, sound=$sound")
         }
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "extractEncoded: finished, stop=$stop, isActive=${job?.isActive}")
     }
 
 
-    private fun extractRaw() = runBlocking {
+    private suspend fun extractRaw() {
         val buffer = ByteBuffer.allocate(bufferSize)
+        val job = coroutineContext[Job]
+
         var totalSize = primedSize
         var extractorDone = false
         var bufferFull = false
-        while (!extractorDone && !bufferFull && isActive) {
+        while (!extractorDone && !bufferFull && job?.isActive == true) {
             val sampleSize = extractor.readSampleData(buffer, 0)
             if (sampleSize >= 0) {
                 totalSize += sampleSize
@@ -404,7 +414,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, stateListener: St
         stateListeners.forEach { it.onWarning(errorType) }
     }
 
-    private fun prime() = runBlocking {
+    private suspend fun prime() {
         /**
          * Pre-load audioTrack with some reasonable amount of data for low latency.
          * Expects extractor to be ready and positioned at beginning of track.
@@ -414,8 +424,9 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, stateListener: St
         extractJob = scope.launch { extract(true) }
     }
 
-    private fun processInputBuffer(codec: MediaCodec, previousResult: ProcessInputResult): ProcessInputResult {
+    private suspend fun processInputBuffer(codec: MediaCodec, previousResult: ProcessInputResult): ProcessInputResult {
         /** Return: extractorDone */
+        val job = coroutineContext[Job]
         val timeoutUs = 1000L
         var extractorDone = false
         var sampleSize: Int
@@ -439,7 +450,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, stateListener: St
                         extractorDone = !extractor.advance()
                         if (BuildConfig.DEBUG) Log.d(LOG_TAG,
                             "processInputBuffer: index=$index, sampleSize=$sampleSize, extractorDone=$extractorDone, state=$state, sound=$sound")
-                    } while (sampleSize == 0)
+                    } while (sampleSize == 0 && job?.isActive == true)
                 }
             }
         } catch (e: Exception) {
@@ -602,7 +613,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, stateListener: St
 
     interface StateListener {
         fun onError(errorType: Error)
-        fun onInit()
+        fun onInit(audioFile: AudioFile)
         fun onPlay()
         fun onReady()
         fun onReleased()

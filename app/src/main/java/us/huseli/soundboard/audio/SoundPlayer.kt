@@ -1,13 +1,18 @@
 package us.huseli.soundboard.audio
 
 import android.util.Log
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.data.Sound
+import java.util.*
 
 class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.StateListener {
+    private val _tempAudioFiles = mutableListOf<AudioFile>()
     private var audioFile: AudioFile? = null
-    private val tempAudioFiles = mutableListOf<AudioFile>()
+    private val tempAudioFiles = Collections.synchronizedList(_tempAudioFiles)
 
     private var job: Job? = null
     private var listener: Listener? = null
@@ -87,25 +92,12 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Sta
     }
 
     private fun isPlaying(): Boolean {
-        /**
-         * This once threw "Attempt to invoke virtual method 'boolean
-         * us.huseli.soundboard.helpers.AudioFile.isPlaying()' on a null object reference". No
-         * idea how that could happen, but might as well compensate for it.
-         */
-        return try {
-            audioFile?.isPlaying == true || tempAudioFiles.any {
-                try {
-                    it.isPlaying
-                } catch (e: NullPointerException) {
-                    false
-                }
-            }
-        } catch (e: NullPointerException) {
-            false
+        return synchronized(tempAudioFiles) {
+            audioFile?.isPlaying == true || tempAudioFiles.any { it.isPlaying }
         }
     }
 
-    fun setBufferSize(value: Int) = runBlocking {
+    suspend fun setBufferSize(value: Int) {
         if (value != bufferSize) {
             bufferSize = value
             _state = State.INITIALIZING
@@ -120,8 +112,12 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Sta
             when (repressMode) {
                 RepressMode.STOP -> {
                     _state = State.STOPPED
-                    audioFile?.stop()?.prepare()
-                    stopAndClearTempPlayers()
+                    audioFile?.stop()
+                    synchronized(tempAudioFiles) {
+                        tempAudioFiles.forEach { it.stop() }
+                    }
+                    tempAudioFiles.clear()
+                    audioFile?.prepare()
                 }
                 RepressMode.RESTART -> {
                     audioFile?.restart()
@@ -139,14 +135,8 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Sta
     private fun createAndStartTempPlayer() {
         AudioFile(sound, bufferSize, TempAudioFileListener()).prepare().let {
             it.play()
-            synchronized(this) { tempAudioFiles.add(it) }
+            tempAudioFiles.add(it)
         }
-    }
-
-    private fun stopAndClearTempPlayers() = synchronized(this) {
-        // Stop and release them to be on the safe side
-        tempAudioFiles.forEach { it.stop().release() }
-        tempAudioFiles.clear()
     }
 
     fun setListener(listener: Listener?) {
@@ -157,16 +147,20 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Sta
         )
     }
 
-    fun reinit() = runBlocking {
+    suspend fun reinit() {
         job?.join()
         job = scope.launch { audioFile?.reinit() }
     }
 
-    fun release() = runBlocking {
+    suspend fun release() {
         _state = State.RELEASED
         audioFile?.release()
         job?.join()
-        stopAndClearTempPlayers()
+        synchronized(tempAudioFiles) {
+            // This will also call release() on them via listener below
+            tempAudioFiles.forEach { it.stop() }
+        }
+        tempAudioFiles.clear()
         listener = null
     }
 
@@ -175,12 +169,9 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Sta
         _errorMessage = errorMessageFromType(errorType)
     }
 
-    override fun onInit() {
-        audioFile?.also {
-            _duration = it.duration.toInt()
-            it.setVolume(volume)
-            _state = State.READY
-        }
+    override fun onInit(audioFile: AudioFile) {
+        _duration = audioFile.duration.toInt()
+        _state = State.READY
     }
 
     override fun onPlay() {
@@ -220,7 +211,7 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Sta
 
     inner class TempAudioFileListener : AudioFile.StateListener {
         override fun onError(errorType: AudioFile.Error) {}
-        override fun onInit() {}
+        override fun onInit(audioFile: AudioFile) {}
         override fun onReady() {}
         override fun onReleased() {}
         override fun onWarning(errorType: AudioFile.Error) {}
@@ -231,7 +222,13 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Sta
 
         override fun onStop(audioFile: AudioFile) {
             audioFile.release()
-            synchronized(this) { tempAudioFiles.remove(audioFile) }
+            /**
+             * If state is already STOPPED, it means the user has stopped playback manually. In this case, togglePlay()
+             * will probably be in the process of looping through tempAudioFiles, and so we shouldn't tamper with it,
+             * but instead clear the whole list in togglePlay() once it's done looping.
+             * If state is RELEASED, it's basically the same thing. Leave the loop alone.
+             */
+            if (state != State.STOPPED && state != State.RELEASED) tempAudioFiles.remove(audioFile)
             if (!isPlaying()) _state = State.READY
         }
     }
