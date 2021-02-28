@@ -1,6 +1,7 @@
 package us.huseli.soundboard.data
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -23,6 +24,14 @@ class PlayerRepository @Inject constructor(@ApplicationContext context: Context)
 
     private var bufferSize = Constants.DEFAULT_BUFFER_SIZE
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
+    private val preferenceListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
+            if (key == "bufferSize") {
+                prefs?.getInt(key, Functions.bufferSizeToSeekbarValue(Constants.DEFAULT_BUFFER_SIZE))?.let {
+                    scope.launch { onBufferSizeChange(it) }
+                }
+            }
+        }
 
     val players: LiveData<List<SoundPlayer>>
         get() = _playersLive
@@ -30,13 +39,7 @@ class PlayerRepository @Inject constructor(@ApplicationContext context: Context)
     init {
         scope.launch {
             PreferenceManager.getDefaultSharedPreferences(context).apply {
-                registerOnSharedPreferenceChangeListener { prefs, key ->
-                    if (key == "bufferSize") {
-                        prefs?.getInt(key, Functions.bufferSizeToSeekbarValue(Constants.DEFAULT_BUFFER_SIZE))?.also {
-                            onBufferSizeChange(it)
-                        }
-                    }
-                }
+                registerOnSharedPreferenceChangeListener(preferenceListener)
                 // Check initial value
                 onBufferSizeChange(getInt("bufferSize",
                     Functions.bufferSizeToSeekbarValue(Constants.DEFAULT_BUFFER_SIZE)))
@@ -44,15 +47,16 @@ class PlayerRepository @Inject constructor(@ApplicationContext context: Context)
         }
     }
 
-    private fun onBufferSizeChange(seekbarValue: Int) {
+    private suspend fun onBufferSizeChange(seekbarValue: Int) {
         val newValue = Functions.seekbarValueToBufferSize(seekbarValue)
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "onBufferSizeChange: newValue=$newValue, bufferSize=$bufferSize")
         if (newValue != bufferSize) {
             bufferSize = newValue
             _players.forEach { player -> player.setBufferSize(newValue) }
         }
     }
 
-    fun set(sounds: List<Sound>) {
+    suspend fun set(sounds: List<Sound>) {
         if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: starting, sounds=$sounds, _players=$_players")
 
         // 1. Release SoundPlayers whose sounds are not in list
