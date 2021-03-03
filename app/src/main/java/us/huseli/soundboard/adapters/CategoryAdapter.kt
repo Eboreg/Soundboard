@@ -36,6 +36,12 @@ class CategoryAdapter(
     LifecycleAdapter<Category, CategoryAdapter.CategoryViewHolder>(DiffCallback()) {
     internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
 
+    override val firstVisibleViewHolder: CategoryViewHolder?
+        get() = viewHolders.firstOrNull { it.isVisible() && it.soundAdapter.isNotEmpty() }
+
+    override val lastVisibleViewHolder: CategoryViewHolder?
+        get() = viewHolders.lastOrNull { it.isVisible() && it.soundAdapter.isNotEmpty() }
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         super.onBindViewHolder(holder, position)

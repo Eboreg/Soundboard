@@ -1,3 +1,9 @@
+Try to avoid running flushCodec and extractor.seekTo() on prepare() if not necessary (takes ~3 ms)
+
+
+After non-working fucking sound has been "played", duration view disappears
+
+
 Can I get sound "range select" to work over category boundaries?
 
 

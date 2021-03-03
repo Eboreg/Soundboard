@@ -57,8 +57,6 @@ class PlayerRepository @Inject constructor(@ApplicationContext context: Context)
     }
 
     suspend fun set(sounds: List<Sound>) {
-        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: starting, sounds=$sounds, _players=$_players")
-
         // 1. Release SoundPlayers whose sounds are not in list
         _players.filter { !sounds.contains(it.sound) && it.state != SoundPlayer.State.RELEASED }.forEach {
             if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: release ${it.sound}")

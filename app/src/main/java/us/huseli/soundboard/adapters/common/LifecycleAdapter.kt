@@ -7,27 +7,15 @@ abstract class LifecycleAdapter<T, VH : LifecycleViewHolder<T>>(diffCallback: Di
     ListAdapter<T, VH>(diffCallback) {
     @Suppress("PrivatePropertyName")
     private val LOG_TAG = "LifecycleAdapter"
-    private val viewHolders = mutableListOf<VH>()
+    protected val viewHolders = mutableListOf<VH>()
 
-    val firstVisibleViewHolder: VH?
-        get() {
-            val location = IntArray(2)
-            return viewHolders.firstOrNull {
-                it.itemView.getLocationOnScreen(location)
-                location[1] != 0 && location[1] + it.itemView.height >= 0
-            }
-        }
+    open val firstVisibleViewHolder: VH?
+        get() = viewHolders.firstOrNull { it.isVisible() }
     val firstVisibleItem: T?
         get() = firstVisibleViewHolder?.item
 
-    val lastVisibleViewHolder: VH?
-        get() {
-            val location = IntArray(2)
-            return viewHolders.lastOrNull {
-                it.itemView.getLocationOnScreen(location)
-                location[1] != 0 && location[1] <= it.itemView.context.resources.displayMetrics.heightPixels
-            }
-        }
+    open val lastVisibleViewHolder: VH?
+        get() = viewHolders.lastOrNull { it.isVisible() }
     val lastVisibleItem: T?
         get() = lastVisibleViewHolder?.item
 

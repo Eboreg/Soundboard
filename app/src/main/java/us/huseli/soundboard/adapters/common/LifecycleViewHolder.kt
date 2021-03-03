@@ -12,6 +12,12 @@ abstract class LifecycleViewHolder<T>(view: View) : RecyclerView.ViewHolder(view
 
     private var wasPaused = false
 
+    fun isVisible(): Boolean {
+        val location = IntArray(2)
+        itemView.getLocationOnScreen(location)
+        return location[1] != 0 && location[1] + itemView.height >= 0 && location[1] <= itemView.context.resources.displayMetrics.heightPixels
+    }
+
     fun markCreated() {
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
     }

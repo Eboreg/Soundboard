@@ -9,7 +9,7 @@ import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.data.Sound
 import java.util.*
 
-class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.StateListener {
+class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Listener {
     private val _tempAudioFiles = mutableListOf<AudioFile>()
     private var audioFile: AudioFile? = null
     private val tempAudioFiles = Collections.synchronizedList(_tempAudioFiles)
@@ -19,6 +19,12 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Sta
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
 
     private var _duration: Int = -1
+        set(value) {
+            if (value != field) {
+                field = value
+                if (value > -1) listener?.onSoundPlayerDurationChange(value)
+            }
+        }
     private var _errorMessage = ""
     private var _state = State.INITIALIZING
         set(value) {
@@ -61,33 +67,17 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Sta
 
     private fun createAudioFile(): AudioFile? {
         return try {
-            AudioFile(sound, bufferSize, this).prepare()
+            AudioFile(sound, bufferSize, this).prepare().also { _duration = it.duration.toInt() }
         } catch (e: AudioFile.AudioFileException) {
-            _errorMessage = errorMessageFromType(e.errorType)
+            _errorMessage = e.message
             _state = State.ERROR
+            Log.e(LOG_TAG, "Error initializing ${sound.name}: ${e.message}", e)
             null
         } catch (e: Exception) {
             _errorMessage = "Error initializing ${sound.name}"
             _state = State.ERROR
+            Log.e(LOG_TAG, "Error initializing ${sound.name}", e)
             null
-        }
-    }
-
-    private fun errorMessageFromType(errorType: AudioFile.Error): String {
-        return when (errorType) {
-            AudioFile.Error.BUILD_AUDIO_TRACK -> "Error building audio track"
-            AudioFile.Error.CODEC -> "Codec error"
-            AudioFile.Error.CODEC_GET_WRITE_OUTPUT_BUFFER -> "Error getting/writing codec output buffer"
-            AudioFile.Error.CODEC_START -> "Error starting codec"
-            AudioFile.Error.CODEC_WRONG_STATE -> "Wrong codec state"
-            AudioFile.Error.GET_MEDIA_TYPE -> "Could not get media type"
-            AudioFile.Error.GET_MIME_TYPE -> "Could not get MIME type"
-            AudioFile.Error.NO_SUITABLE_CODEC -> "Could not find a suitable codec"
-            AudioFile.Error.OUTPUT -> "Error outputting audio"
-            AudioFile.Error.OUTPUT_BAD_VALUE -> "Audio output: bad value"
-            AudioFile.Error.OUTPUT_DEAD_OBJECT -> "Audio output: dead object"
-            AudioFile.Error.OUTPUT_NOT_PROPERLY_INITIALIZED -> "Audio output: not properly initialized"
-            AudioFile.Error.TIMEOUT -> "Operation timed out"
         }
     }
 
@@ -164,34 +154,26 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Sta
         listener = null
     }
 
-    override fun onError(errorType: AudioFile.Error) {
-        _state = State.ERROR
-        _errorMessage = errorMessageFromType(errorType)
-    }
-
-    override fun onInit(audioFile: AudioFile) {
-        _duration = audioFile.duration.toInt()
-        _state = State.READY
-    }
-
-    override fun onPlay() {
-        _state = State.PLAYING
-    }
-
-    override fun onReady() {
-        if (!isPlaying()) {
-            _state = State.READY
+    override fun onAudioFileStateChange(state: AudioFile.State, audioFile: AudioFile, message: String?) {
+        @Suppress("NON_EXHAUSTIVE_WHEN")
+        when (state) {
+            AudioFile.State.INITIALIZING -> _state = State.INITIALIZING
+            AudioFile.State.PLAYING -> _state = State.PLAYING
+            AudioFile.State.READY -> if (!isPlaying()) _state = State.READY
+            AudioFile.State.STOPPED -> {
+                if (!isPlaying()) _state = State.STOPPED
+                audioFile.prepare()
+            }
         }
     }
 
-    override fun onReleased() {}
-
-    override fun onStop(audioFile: AudioFile) {
-        if (!isPlaying()) _state = State.STOPPED
+    override fun onAudioFileError(message: String) {
+        _state = State.ERROR
+        _errorMessage = message
     }
 
-    override fun onWarning(errorType: AudioFile.Error) {
-        listener?.onSoundPlayerWarning(errorMessageFromType(errorType))
+    override fun onAudioFileWarning(message: String) {
+        listener?.onSoundPlayerWarning(message)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -209,32 +191,32 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Sta
         return "SoundPlayer $hashCode <sound=$sound, state=$state>"
     }
 
-    inner class TempAudioFileListener : AudioFile.StateListener {
-        override fun onError(errorType: AudioFile.Error) {}
-        override fun onInit(audioFile: AudioFile) {}
-        override fun onReady() {}
-        override fun onReleased() {}
-        override fun onWarning(errorType: AudioFile.Error) {}
-
-        override fun onPlay() {
-            _state = State.PLAYING
+    inner class TempAudioFileListener : AudioFile.Listener {
+        override fun onAudioFileStateChange(state: AudioFile.State, audioFile: AudioFile, message: String?) {
+            @Suppress("NON_EXHAUSTIVE_WHEN")
+            when (state) {
+                AudioFile.State.PLAYING -> _state = State.PLAYING
+                AudioFile.State.STOPPED -> {
+                    audioFile.release()
+                    /**
+                     * If state is already STOPPED, it means the user has stopped playback manually. In this case, togglePlay()
+                     * will probably be in the process of looping through tempAudioFiles, and so we shouldn't tamper with it,
+                     * but instead clear the whole list in togglePlay() once it's done looping.
+                     * If state is RELEASED, it's basically the same thing. Leave the loop alone.
+                     */
+                    if (_state != State.STOPPED && _state != State.RELEASED) tempAudioFiles.remove(audioFile)
+                    if (!isPlaying()) _state = State.READY
+                }
+            }
         }
 
-        override fun onStop(audioFile: AudioFile) {
-            audioFile.release()
-            /**
-             * If state is already STOPPED, it means the user has stopped playback manually. In this case, togglePlay()
-             * will probably be in the process of looping through tempAudioFiles, and so we shouldn't tamper with it,
-             * but instead clear the whole list in togglePlay() once it's done looping.
-             * If state is RELEASED, it's basically the same thing. Leave the loop alone.
-             */
-            if (state != State.STOPPED && state != State.RELEASED) tempAudioFiles.remove(audioFile)
-            if (!isPlaying()) _state = State.READY
-        }
+        override fun onAudioFileError(message: String) {}
+        override fun onAudioFileWarning(message: String) {}
     }
 
 
     interface Listener {
+        fun onSoundPlayerDurationChange(duration: Int)
         fun onSoundPlayerStateChange(player: SoundPlayer, state: State): Any?
         fun onSoundPlayerWarning(message: String): Any?
     }

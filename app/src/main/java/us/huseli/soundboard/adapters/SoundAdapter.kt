@@ -143,6 +143,8 @@ class SoundAdapter(
 
     internal fun isEmpty() = currentList.isEmpty()
 
+    internal fun isNotEmpty() = !isEmpty()
+
     internal fun markSoundsForDrop(adapterPosition: Int) {
         /**
          * adapterPosition = position we would move to, were we to drop right now
@@ -273,7 +275,7 @@ class SoundAdapter(
             setBackgroundColor(soundWithCategory.category.backgroundColor)
 
             playerRepository.players.observe(this) { players ->
-                if (BuildConfig.DEBUG) Log.d(LOG_TAG, "playerRepository.players: players=$players")
+                // if (BuildConfig.DEBUG) Log.d(LOG_TAG, "playerRepository.players: players=$players")
                 players?.firstOrNull { it.sound == soundWithCategory.sound }?.also { newPlayer ->
                     if (newPlayer != player) {
                         if (BuildConfig.DEBUG)
@@ -415,6 +417,8 @@ class SoundAdapter(
             return true
         }
 
+        override fun onSoundPlayerDurationChange(duration: Int) = activity.runOnUiThread { setDuration(duration) }
+
         override fun onSoundPlayerStateChange(player: SoundPlayer, state: SoundPlayer.State) {
             /**
              * This will likely be called from a non-UI thread, hence View.post()
@@ -422,29 +426,28 @@ class SoundAdapter(
              */
             binding.root.post {
                 Log.d(LOG_TAG, "onSoundPlayerStateChange: item=$item, state=$state")
+
                 if (state == SoundPlayer.State.PLAYING) {
                     playerTimer?.start()
                     binding.playIcon.visibility = View.VISIBLE
                 } else binding.playIcon.visibility = View.INVISIBLE
+
                 if (state == SoundPlayer.State.STOPPED || state == SoundPlayer.State.READY) {
                     playerTimer?.apply {
                         cancel()
                         onFinish()
                     }
                 }
+
                 binding.failIcon.visibility =
                     if (state == SoundPlayer.State.ERROR) View.VISIBLE else View.INVISIBLE
 
-                if (state == SoundPlayer.State.INITIALIZING) {
-                    binding.soundLoading.visibility = View.VISIBLE
-                    binding.soundName.visibility = View.INVISIBLE
-                } else {
-                    binding.soundLoading.visibility = View.INVISIBLE
-                    binding.soundName.visibility = View.VISIBLE
-                }
-                if (state == SoundPlayer.State.READY) setDuration(player.duration)
-                if (state == SoundPlayer.State.ERROR || state == SoundPlayer.State.INITIALIZING) binding.durationCard.visibility =
-                    View.GONE
+                binding.soundLoading.visibility =
+                    if (listOf(SoundPlayer.State.INITIALIZING,
+                            SoundPlayer.State.STOPPED,
+                            SoundPlayer.State.RELEASED).contains(state))
+                        View.VISIBLE
+                    else View.INVISIBLE
             }
         }
 

@@ -1,3 +1,125 @@
+2021-03-02 03:01:26.464 18049-21277 E/SoundPlayer: Error initializing Bobbo Viking
+    java.lang.RuntimeException: Can't create handler inside thread Thread[DefaultDispatcher-worker-8,5,main] that has not called Looper.prepare()
+        at android.os.Handler.<init>(Handler.java:207)
+        at android.os.Handler.<init>(Handler.java:119)
+        at android.os.CountDownTimer$1.<init>(CountDownTimer.java:114)
+        at android.os.CountDownTimer.<init>(CountDownTimer.java:114)
+        at us.huseli.soundboard.helpers.SoundPlayerTimer.<init>(SoundPlayerTimer.kt:10)
+        at us.huseli.soundboard.adapters.SoundAdapter$SoundViewHolder.setDuration(SoundAdapter.kt:340)
+        at us.huseli.soundboard.adapters.SoundAdapter$SoundViewHolder.onSoundPlayerDurationChange(SoundAdapter.kt:418)
+        at us.huseli.soundboard.audio.SoundPlayer.set_duration(SoundPlayer.kt:25)
+        at us.huseli.soundboard.audio.SoundPlayer.createAudioFile(SoundPlayer.kt:70)
+        at us.huseli.soundboard.audio.SoundPlayer.access$createAudioFile(SoundPlayer.kt:12)
+        at us.huseli.soundboard.audio.SoundPlayer$1.invokeSuspend(SoundPlayer.kt:60)
+        at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+        at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:106)
+        at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:571)
+        at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:750)
+        at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:678)
+        at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:665)
+
+
+2021-03-02 03:01:26.479 18049-21220 E/SoundPlayer: Error initializing Ah, Music
+    android.view.ViewRootImpl$CalledFromWrongThreadException: Only the original thread that created a view hierarchy can touch its views.
+        at android.view.ViewRootImpl.checkThread(ViewRootImpl.java:9873)
+        at android.view.ViewRootImpl.requestLayout(ViewRootImpl.java:1871)
+        at android.view.View.requestLayout(View.java:26335)
+        at android.view.View.requestLayout(View.java:26335)
+        at android.view.View.requestLayout(View.java:26335)
+        at android.view.View.requestLayout(View.java:26335)
+        at android.view.View.requestLayout(View.java:26335)
+        at android.view.View.requestLayout(View.java:26335)
+        at androidx.constraintlayout.widget.ConstraintLayout.requestLayout(ConstraintLayout.java:3504)
+        at android.view.View.requestLayout(View.java:26335)
+        at android.view.View.requestLayout(View.java:26335)
+        at android.view.View.requestLayout(View.java:26335)
+        at android.view.View.requestLayout(View.java:26335)
+        at androidx.recyclerview.widget.RecyclerView.requestLayout(RecyclerView.java:4586)
+        at android.view.View.requestLayout(View.java:26335)
+        at android.view.View.requestLayout(View.java:26335)
+        at androidx.recyclerview.widget.RecyclerView.requestLayout(RecyclerView.java:4586)
+        at android.view.View.requestLayout(View.java:26335)
+        at androidx.constraintlayout.widget.ConstraintLayout.requestLayout(ConstraintLayout.java:3504)
+        at android.view.View.requestLayout(View.java:26335)
+        at android.view.View.requestLayout(View.java:26335)
+        at androidx.constraintlayout.widget.ConstraintLayout.requestLayout(ConstraintLayout.java:3504)
+        at android.view.View.requestLayout(View.java:26335)
+        at android.view.View.setFlags(View.java:16790)
+        at android.view.View.setVisibility(View.java:11622)
+        at us.huseli.soundboard.adapters.SoundAdapter$SoundViewHolder.setDuration(SoundAdapter.kt:338)
+        at us.huseli.soundboard.adapters.SoundAdapter$SoundViewHolder.onSoundPlayerDurationChange(SoundAdapter.kt:418)
+        at us.huseli.soundboard.audio.SoundPlayer.set_duration(SoundPlayer.kt:25)
+        at us.huseli.soundboard.audio.SoundPlayer.createAudioFile(SoundPlayer.kt:70)
+        at us.huseli.soundboard.audio.SoundPlayer.access$createAudioFile(SoundPlayer.kt:12)
+        at us.huseli.soundboard.audio.SoundPlayer$1.invokeSuspend(SoundPlayer.kt:60)
+        at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+        at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:106)
+        at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:571)
+        at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:750)
+        at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:678)
+        at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:665)
+
+
+
+
+
+Scenario:
+* Massa ljud laddade
+* scrollade ned
+* ljud slutade spela men fick play-ikon och progressbar uppdaterades
+* när progressbar nått slut, togs ej play-ikon bort
+* efter detta frös allting:
+
+2021-02-28 05:50:48.418 3558-3558 I/ViewRootImpl@9b5448c[MainActivity]: ViewPostIme pointer 0
+2021-02-28 05:50:48.443 3558-3558 I/ViewRootImpl@9b5448c[MainActivity]: ViewPostIme pointer 1
+2021-02-28 05:50:48.450 3558-30221 D/AudioFile: doPlay: playing sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>, audioTrack=android.media.AudioTrack@4bcf92b, this=us.huseli.soundboard.audio.AudioFile@d14e957
+2021-02-28 05:50:48.453 3558-30221 D/AudioFile: state changed from READY to INIT_PLAY, this=us.huseli.soundboard.audio.AudioFile@d14e957, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.456 3558-32058 D/AudioFile: **** Begin extract(), state=INIT_PLAY, primedSize=0, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.458 3558-32058 D/AudioFile: processInputBuffer: index=1, sampleSize=8737, extractorDone=false, state=INIT_PLAY, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.460 3558-32058 D/AudioFile: extractEncoded: inputResult=CONTINUE, outputResult=OUTPUT_FORMAT_CHANGED, outputRetries=1, stop=false, doExtraction=true, state=INIT_PLAY, priming=false, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.461 3558-32058 D/AudioFile: processInputBuffer: index=2, sampleSize=9149, extractorDone=false, state=INIT_PLAY, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.461 3558-32058 D/AudioFile: processOutputBuffer: index=0, buffer=java.nio.DirectByteBuffer[pos=0 lim=16384 cap=294912], outputEos=false, state=INIT_PLAY, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.462 3558-32058 D/AudioFile: state changed from INIT_PLAY to PLAYING, this=us.huseli.soundboard.audio.AudioFile@d14e957, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.462 3558-32058 D/SoundPlayer: state change: this=SoundPlayer 14d22ef <sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>, state=PLAYING>, uri=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>, onStateChangeListener=SoundAdapter.ViewHolder de7c4a2 <adapterPosition=90, sound=SoundWithCategory(sound=Sound 3eed8a1 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>, category=Default)>, state=PLAYING, listener=SoundAdapter.ViewHolder de7c4a2 <adapterPosition=90, sound=SoundWithCategory(sound=Sound 3eed8a1 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>, category=Default)>
+2021-02-28 05:50:48.462 3558-3558 D/SoundViewHolder: onSoundPlayerStateChange: item=SoundWithCategory(sound=Sound 3eed8a1 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>, category=Default), state=PLAYING
+2021-02-28 05:50:48.463 3558-32058 D/AudioFile: writeAudioTrack: writing to audioTrack=android.media.AudioTrack@4bcf92b, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.463 3558-32058 D/AudioFile: writeAudioTrack: wrote 16384 bytes, buffer=java.nio.DirectByteBuffer[pos=16384 lim=16384 cap=294912], state=PLAYING, sampleSize=16384, overshoot=0, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.463 3558-32058 D/AudioFile: extractEncoded: inputResult=CONTINUE, outputResult=SUCCESS, outputRetries=0, stop=false, doExtraction=true, state=PLAYING, priming=false, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.467 3558-32058 D/AudioFile: processInputBuffer: index=3, sampleSize=8796, extractorDone=false, state=PLAYING, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.467 3558-32058 D/AudioFile: processOutputBuffer: index=1, buffer=java.nio.DirectByteBuffer[pos=0 lim=16384 cap=294912], outputEos=false, state=PLAYING, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.467 3558-32058 D/AudioFile: writeAudioTrack: writing to audioTrack=android.media.AudioTrack@4bcf92b, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.468 3558-32058 D/AudioFile: writeAudioTrack: wrote 16384 bytes, buffer=java.nio.DirectByteBuffer[pos=16384 lim=16384 cap=294912], state=PLAYING, sampleSize=16384, overshoot=0, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.468 3558-32058 D/AudioFile: extractEncoded: inputResult=CONTINUE, outputResult=SUCCESS, outputRetries=0, stop=false, doExtraction=true, state=PLAYING, priming=false, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.469 3558-32058 D/AudioFile: processInputBuffer: index=4, sampleSize=8559, extractorDone=false, state=PLAYING, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.470 3558-32058 D/AudioFile: processOutputBuffer: index=2, buffer=java.nio.DirectByteBuffer[pos=0 lim=16384 cap=294912], outputEos=false, state=PLAYING, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.470 3558-32058 D/AudioFile: writeAudioTrack: writing to audioTrack=android.media.AudioTrack@4bcf92b, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.470 3558-32058 D/AudioFile: writeAudioTrack: wrote 16384 bytes, buffer=java.nio.DirectByteBuffer[pos=16384 lim=16384 cap=294912], state=PLAYING, sampleSize=16384, overshoot=0, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.470 3558-32058 D/AudioFile: extractEncoded: inputResult=CONTINUE, outputResult=SUCCESS, outputRetries=0, stop=false, doExtraction=true, state=PLAYING, priming=false, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.472 3558-32058 D/AudioFile: processInputBuffer: index=0, sampleSize=8238, extractorDone=false, state=PLAYING, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.473 3558-32058 D/AudioFile: processOutputBuffer: index=3, buffer=java.nio.DirectByteBuffer[pos=0 lim=16384 cap=294912], outputEos=false, state=PLAYING, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.473 3558-32058 D/AudioFile: writeAudioTrack: writing to audioTrack=android.media.AudioTrack@4bcf92b, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.473 3558-32058 D/AudioFile: writeAudioTrack: wrote 16384 bytes, buffer=java.nio.DirectByteBuffer[pos=16384 lim=16384 cap=294912], state=PLAYING, sampleSize=16384, overshoot=0, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.473 3558-32058 D/AudioFile: extractEncoded: inputResult=CONTINUE, outputResult=SUCCESS, outputRetries=0, stop=false, doExtraction=true, state=PLAYING, priming=false, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.473 3558-32058 D/AudioFile: processInputBuffer: index=1, sampleSize=7957, extractorDone=false, state=PLAYING, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.474 3558-32058 D/AudioFile: processOutputBuffer: index=4, buffer=java.nio.DirectByteBuffer[pos=0 lim=16384 cap=294912], outputEos=false, state=PLAYING, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.474 3558-32058 D/AudioFile: writeAudioTrack: writing to audioTrack=android.media.AudioTrack@4bcf92b, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.475 3558-32058 D/AudioFile: writeAudioTrack: wrote 16384 bytes, buffer=java.nio.DirectByteBuffer[pos=16384 lim=16384 cap=294912], state=PLAYING, sampleSize=16384, overshoot=0, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.475 3558-32058 D/AudioFile: extractEncoded: inputResult=CONTINUE, outputResult=SUCCESS, outputRetries=0, stop=false, doExtraction=true, state=PLAYING, priming=false, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.476 3558-32058 D/AudioFile: processInputBuffer: index=2, sampleSize=8623, extractorDone=false, state=PLAYING, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.476 3558-32058 D/AudioFile: processOutputBuffer: index=5, buffer=java.nio.DirectByteBuffer[pos=0 lim=16384 cap=294912], outputEos=false, state=PLAYING, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:48.476 3558-32058 D/AudioFile: writeAudioTrack: writing to audioTrack=android.media.AudioTrack@4bcf92b, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>
+2021-02-28 05:50:49.553 3558-3558 I/ViewRootImpl@9b5448c[MainActivity]: ViewPostIme pointer 0
+2021-02-28 05:50:49.587 3558-3558 I/ViewRootImpl@9b5448c[MainActivity]: ViewPostIme pointer 1
+2021-02-28 05:50:49.598 3558-3558 D/SoundPlayer: state change: this=SoundPlayer 14d22ef <sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>, state=STOPPED>, uri=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>, onStateChangeListener=SoundAdapter.ViewHolder de7c4a2 <adapterPosition=90, sound=SoundWithCategory(sound=Sound 3eed8a1 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>, category=Default)>, state=STOPPED, listener=SoundAdapter.ViewHolder de7c4a2 <adapterPosition=90, sound=SoundWithCategory(sound=Sound 3eed8a1 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>, category=Default)>
+2021-02-28 05:50:49.602 3558-3558 D/AudioFile: doStop: cancelling extractJob, sound=Sound 49fd3d4 <id=383, name=MYSTERY TRACK boing boing, categoryId=1>, state=PLAYING
+
+
+
+
+
+
+
+
 2021-02-28 05:15:51.440 28814-28814 E/AndroidRuntime: FATAL EXCEPTION: main
     Process: us.huseli.soundboard.debug, PID: 28814
     java.util.ConcurrentModificationException

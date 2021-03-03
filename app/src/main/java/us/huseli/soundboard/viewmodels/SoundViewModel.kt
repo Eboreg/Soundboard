@@ -68,6 +68,8 @@ class SoundViewModel
             filteredSounds.value?.filterNot { it.category.collapsed }?.also { soundsWithCategory ->
                 val visibleStartIdx = soundsWithCategory.indexOf(from)
                 val visibleEndIdx = soundsWithCategory.indexOf(to)
+                if (BuildConfig.DEBUG) Log.d(LOG_TAG,
+                    "setVisibleSoundBoundaries: from=$from, to=$to, visibleStartIdx=$visibleStartIdx, visibleEndIdx=$visibleEndIdx")
                 // Is 0 if both are -1:
                 val visibleCount =
                     (visibleEndIdx - visibleStartIdx).let { if (it == 0) 100 else it }
