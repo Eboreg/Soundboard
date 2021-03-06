@@ -70,10 +70,7 @@ class SoundDragListener(
          * - Just reset shit
          */
         if (event.localState !is DraggedSound) {
-            if (BuildConfig.DEBUG) Log.e(
-                LOG_TAG,
-                "event.localState (${event.localState}) is not DraggedSound"
-            )
+            Log.e(LOG_TAG, "event.localState (${event.localState}) is not DraggedSound")
             return false
         }
         val draggedSound = event.localState as DraggedSound

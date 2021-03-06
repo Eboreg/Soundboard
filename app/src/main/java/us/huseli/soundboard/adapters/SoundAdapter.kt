@@ -60,7 +60,7 @@ class SoundAdapter(
         try {
             return getItem(position).sound.id!!.toLong()
         } catch (e: NullPointerException) {
-            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "Sound at $position (${getItem(position)}) has null id")
+            Log.e(LOG_TAG, "Sound at $position (${getItem(position)}) has null id")
             throw e
         }
     }
@@ -266,7 +266,7 @@ class SoundAdapter(
             item = soundWithCategory
             val soundId = soundWithCategory.sound.id
             if (soundId == null) {
-                if (BuildConfig.DEBUG) Log.e(LOG_TAG, "bind: got Sound with id==null")
+                Log.e(LOG_TAG, "bind: got Sound with id==null")
                 return
             }
 
@@ -425,7 +425,7 @@ class SoundAdapter(
              * https://developer.android.com/guide/components/processes-and-threads#WorkerThreads
              */
             binding.root.post {
-                Log.d(LOG_TAG, "onSoundPlayerStateChange: item=$item, state=$state")
+                if (BuildConfig.DEBUG) Log.d(LOG_TAG, "onSoundPlayerStateChange: item=$item, state=$state")
 
                 if (state == SoundPlayer.State.PLAYING) {
                     playerTimer?.start()

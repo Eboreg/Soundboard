@@ -279,7 +279,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
             /** Await end of stream, then stop */
             delay(delay)
             if (audioTrack?.playbackHeadPosition ?: 0 <= 0) {
-                if (BuildConfig.DEBUG) Log.w(LOG_TAG,
+                Log.w(LOG_TAG,
                     "enqueueStop: Waited $delay ms but playhead is still <= 0, stopping anyway; audioTrack=$audioTrack, sound=$sound")
             } else {
                 framesToMilliseconds(audioTrack?.playbackHeadPosition ?: 0).also { ms ->
@@ -366,7 +366,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
         try {
             codec?.flush()
         } catch (e: IllegalStateException) {
-            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "flushCodec error, sound=$sound", e)
+            Log.e(LOG_TAG, "flushCodec error, sound=$sound", e)
         }
     }
 
@@ -453,12 +453,12 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
 
     private fun onError(message: String, exception: Throwable? = null) {
         state = State.ERROR
-        if (BuildConfig.DEBUG) Log.e(LOG_TAG, "message=$message, sound=$sound", exception)
+        Log.e(LOG_TAG, "message=$message, sound=$sound", exception)
         stateListeners.forEach { it.onAudioFileError(message) }
     }
 
     private fun onWarning(message: String, verboseMessage: String? = null, exception: Exception? = null) {
-        if (BuildConfig.DEBUG) Log.w(LOG_TAG,
+        Log.w(LOG_TAG,
             "message=${verboseMessage ?: message}, exception=$exception, sound=$sound", exception)
         stateListeners.forEach { it.onAudioFileWarning(message) }
     }
@@ -492,7 +492,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
                 }
             }
         } catch (e: Exception) {
-            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "Error in codec input, sound=$sound", e)
+            Log.e(LOG_TAG, "Error in codec input, sound=$sound", e)
         }
         return when {
             previousResult == ProcessInputResult.END_NEXT -> ProcessInputResult.END
@@ -553,7 +553,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
                 else -> return Pair(ProcessOutputResult.NO_BUFFER, 0)
             }
         } catch (e: Exception) {
-            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "Error in codec output, sound=$sound", e)
+            Log.e(LOG_TAG, "Error in codec output, sound=$sound", e)
             return Pair(ProcessOutputResult.ERROR, 0)
         }
     }
@@ -622,8 +622,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
         constructor(message: String, sound: Sound) : this(message, null, sound)
 
         init {
-            if (BuildConfig.DEBUG)
-                Log.e(LOG_TAG, "AudioFile threw error: $message, sound=$sound", cause)
+            Log.e(LOG_TAG, "AudioFile threw error: $message, sound=$sound", cause)
         }
     }
 

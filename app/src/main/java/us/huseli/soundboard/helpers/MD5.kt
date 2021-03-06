@@ -1,7 +1,6 @@
 package us.huseli.soundboard.helpers
 
 import android.util.Log
-import us.huseli.soundboard.BuildConfig
 import java.io.*
 import java.math.BigInteger
 import java.security.MessageDigest
@@ -23,10 +22,10 @@ object MD5 {
             val bigInt = BigInteger(1, digest.digest())
             return String.format("%32s", bigInt.toString(16)).replace(" ", "0")
         } catch (e: NoSuchAlgorithmException) {
-            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "MessageDigest: No such algorithm ($e)")
+            Log.e(LOG_TAG, "MessageDigest: No such algorithm ($e)")
             return null
         } catch (e: IOException) {
-            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "Unable to process file for MD5: $e")
+            Log.e(LOG_TAG, "Unable to process file for MD5: $e")
         }
         return null
     }
@@ -36,7 +35,7 @@ object MD5 {
         try {
             inputStream = FileInputStream(file)
         } catch (e: FileNotFoundException) {
-            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "File not found: $file")
+            Log.e(LOG_TAG, "File not found: $file")
             return null
         }
         return calculate(inputStream).also { inputStream.close() }

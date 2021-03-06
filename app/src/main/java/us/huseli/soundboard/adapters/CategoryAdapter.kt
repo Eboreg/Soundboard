@@ -155,7 +155,7 @@ class CategoryAdapter(
             item = category
             val categoryId = category.id
             if (categoryId == null) {
-                if (BuildConfig.DEBUG) Log.e(LOG_TAG, "bind: got Category with id==null")
+                Log.e(LOG_TAG, "bind: got Category with id==null")
                 return
             }
 

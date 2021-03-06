@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.CategoryRepository
 import us.huseli.soundboard.helpers.ColorHelper
@@ -51,11 +50,7 @@ class CategoryAddViewModel @Inject constructor(
         if (name != null && backgroundColor != null) {
             val category = Category(name, backgroundColor)
             repository.insert(category)
-        } else
-            if (BuildConfig.DEBUG) Log.e(
-                LOG_TAG,
-                "save(): name ($name) or backgroundColor ($backgroundColor) is null"
-            )
+        } else Log.e(LOG_TAG, "save(): name ($name) or backgroundColor ($backgroundColor) is null")
     }
 
 
