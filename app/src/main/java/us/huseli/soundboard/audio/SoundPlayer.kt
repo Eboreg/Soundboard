@@ -10,14 +10,6 @@ import us.huseli.soundboard.data.Sound
 import java.util.*
 
 class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Listener {
-    private val _tempAudioFiles = mutableListOf<AudioFile>()
-    private var audioFile: AudioFile? = null
-    private val tempAudioFiles = Collections.synchronizedList(_tempAudioFiles)
-
-    private var job: Job? = null
-    private var listener: Listener? = null
-    private val scope = CoroutineScope(Job() + Dispatchers.Default)
-
     private var _duration: Int = -1
         set(value) {
             if (value != field) {
@@ -28,18 +20,20 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
     private var _errorMessage = ""
     private var _state = State.INITIALIZING
         set(value) {
-            field = value
-            if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-                "state change: this=$this, uri=$sound, onStateChangeListener=$listener, state=$value, listener=$listener")
-            listener?.onSoundPlayerStateChange(this, state)
+            if (field != value) {
+                field = value
+                if (BuildConfig.DEBUG) Log.d(LOG_TAG,
+                    "state change: this=$this, uri=$sound, onStateChangeListener=$listener, state=$value, listener=$listener")
+                listener?.onSoundPlayerStateChange(this, value)
+            }
         }
+    private var audioFile: AudioFile? = null
+    private var job: Job? = null
+    private var listener: Listener? = null
+    private val scope = CoroutineScope(Job() + Dispatchers.Default)
+    private val tempAudioFiles = Collections.synchronizedList(mutableListOf<AudioFile>())
 
     var repressMode = RepressMode.STOP
-    var volume: Int = sound.volume
-        set(value) {
-            field = value
-            audioFile?.setVolume(value)
-        }
 
     val duration: Int
         get() = _duration
@@ -60,9 +54,105 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
         job = scope.launch { audioFile = createAudioFile() }
     }
 
+    /********** OVERRIDDEN METHODS **********/
+
+    override fun equals(other: Any?): Boolean {
+        return when {
+            this === other -> true
+            other is SoundPlayer && this.hashCode() == other.hashCode() -> true
+            else -> false
+        }
+    }
+
+    override fun hashCode() = sound.id.hashCode()
+
+    override fun onAudioFileError(message: String) {
+        _state = State.ERROR
+        _errorMessage = message
+    }
+
+    override fun onAudioFileStateChange(state: AudioFile.State, audioFile: AudioFile, message: String?) {
+        @Suppress("NON_EXHAUSTIVE_WHEN")
+        when (state) {
+            AudioFile.State.INITIALIZING -> this._state = State.INITIALIZING
+            AudioFile.State.PLAYING -> this._state = State.PLAYING
+            AudioFile.State.READY -> if (!isPlaying()) this._state = State.READY
+            AudioFile.State.STOPPED -> if (!isPlaying()) this._state = State.STOPPED
+        }
+    }
+
+    override fun onAudioFileWarning(message: String) {
+        listener?.onSoundPlayerWarning(message)
+    }
+
+    override fun toString(): String {
+        val hashCode = Integer.toHexString(System.identityHashCode(this))
+        return "SoundPlayer $hashCode <sound=$sound, state=$_state>"
+    }
+
+
+    /********** PUBLIC METHODS **********/
+
     @Suppress("unused")
     fun isAtPosition(posX: Float, posY: Float): Boolean {
         return posX in left..right && posY in top..bottom
+    }
+
+    suspend fun reinit() {
+        job?.join()
+        job = scope.launch { audioFile?.prepare() }
+    }
+
+    suspend fun release() {
+        _state = State.RELEASED
+        audioFile?.release()
+        job?.join()
+        stopAndClearTempPlayers()
+        tempAudioFiles.clear()
+        listener = null
+    }
+
+    fun setBufferSize(value: Int) {
+        if (value != bufferSize) {
+            bufferSize = value
+            audioFile?.changeBufferSize(value)
+        }
+    }
+
+    fun setListener(listener: Listener?) {
+        this.listener = listener
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "setListener: this=$this, uri=$sound, listener=$listener")
+    }
+
+    fun togglePlay() {
+        if (_state == State.PLAYING) {
+            when (repressMode) {
+                RepressMode.STOP -> {
+                    _state = State.STOPPED
+                    audioFile?.stop()
+                    stopAndClearTempPlayers()
+                }
+                RepressMode.RESTART -> {
+                    audioFile?.restart()
+                }
+                RepressMode.OVERLAP -> {
+                    // TODO: adjust volumes?
+                    createAndStartTempPlayer()
+                }
+            }
+        } else {
+            audioFile?.playAndPrepare()
+        }
+    }
+
+
+    /********** PRIVATE METHODS **********/
+
+    private fun createAndStartTempPlayer() {
+        AudioFile(sound, bufferSize, TempAudioFileListener()).prepare().let {
+            it.play()
+            tempAudioFiles.add(it)
+        }
     }
 
     private fun createAudioFile(): AudioFile? {
@@ -87,125 +177,31 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
         }
     }
 
-    suspend fun setBufferSize(value: Int) {
-        if (value != bufferSize) {
-            bufferSize = value
-            _state = State.INITIALIZING
-            job?.join()
-            job = scope.launch { audioFile?.changeBufferSize(value) }
-            // audioFile?.setBufferSize(value)
-        }
-    }
-
-    fun togglePlay() {
-        if (_state == State.PLAYING) {
-            when (repressMode) {
-                RepressMode.STOP -> {
-                    _state = State.STOPPED
-                    audioFile?.stop()
-                    synchronized(tempAudioFiles) {
-                        tempAudioFiles.forEach { it.stop() }
-                    }
-                    tempAudioFiles.clear()
-                    audioFile?.prepare()
-                }
-                RepressMode.RESTART -> {
-                    audioFile?.restart()
-                }
-                RepressMode.OVERLAP -> {
-                    // TODO: adjust volumes?
-                    createAndStartTempPlayer()
-                }
-            }
-        } else {
-            audioFile?.play()
-        }
-    }
-
-    private fun createAndStartTempPlayer() {
-        AudioFile(sound, bufferSize, TempAudioFileListener()).prepare().let {
-            it.play()
-            tempAudioFiles.add(it)
-        }
-    }
-
-    fun setListener(listener: Listener?) {
-        this.listener = listener
-        if (BuildConfig.DEBUG) Log.i(
-            LOG_TAG,
-            "setListener: this=$this, uri=$sound, listener=$listener"
-        )
-    }
-
-    suspend fun reinit() {
-        job?.join()
-        job = scope.launch { audioFile?.reinit() }
-    }
-
-    suspend fun release() {
-        _state = State.RELEASED
-        audioFile?.release()
-        job?.join()
-        synchronized(tempAudioFiles) {
-            // This will also call release() on them via listener below
-            tempAudioFiles.forEach { it.stop() }
-        }
+    private fun stopAndClearTempPlayers() {
+        // This will also call release() on them via listener below
+        synchronized(tempAudioFiles) { tempAudioFiles.forEach { it.stop() } }
         tempAudioFiles.clear()
-        listener = null
     }
 
-    override fun onAudioFileStateChange(state: AudioFile.State, audioFile: AudioFile, message: String?) {
-        @Suppress("NON_EXHAUSTIVE_WHEN")
-        when (state) {
-            AudioFile.State.INITIALIZING -> _state = State.INITIALIZING
-            AudioFile.State.PLAYING -> _state = State.PLAYING
-            AudioFile.State.READY -> if (!isPlaying()) _state = State.READY
-            AudioFile.State.STOPPED -> {
-                if (!isPlaying()) _state = State.STOPPED
-                audioFile.prepare()
-            }
-        }
-    }
 
-    override fun onAudioFileError(message: String) {
-        _state = State.ERROR
-        _errorMessage = message
-    }
-
-    override fun onAudioFileWarning(message: String) {
-        listener?.onSoundPlayerWarning(message)
-    }
-
-    override fun equals(other: Any?): Boolean {
-        return when {
-            this === other -> true
-            other is SoundPlayer && this.hashCode() == other.hashCode() -> true
-            else -> false
-        }
-    }
-
-    override fun hashCode() = sound.id.hashCode()
-
-    override fun toString(): String {
-        val hashCode = Integer.toHexString(System.identityHashCode(this))
-        return "SoundPlayer $hashCode <sound=$sound, state=$state>"
-    }
+    /********** INNER CLASSES/INTERFACES/ENUMS **********/
 
     inner class TempAudioFileListener : AudioFile.Listener {
         override fun onAudioFileStateChange(state: AudioFile.State, audioFile: AudioFile, message: String?) {
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (state) {
-                AudioFile.State.PLAYING -> _state = State.PLAYING
+                AudioFile.State.PLAYING -> this@SoundPlayer._state = State.PLAYING
                 AudioFile.State.STOPPED -> {
                     audioFile.release()
                     /**
-                     * If state is already STOPPED, it means the user has stopped playback manually. In this case, togglePlay()
-                     * will probably be in the process of looping through tempAudioFiles, and so we shouldn't tamper with it,
-                     * but instead clear the whole list in togglePlay() once it's done looping.
-                     * If state is RELEASED, it's basically the same thing. Leave the loop alone.
+                     * If state is already STOPPED, it means the user has stopped playback manually. In this case,
+                     * togglePlay() will probably be in the process of looping through tempAudioFiles, and so we
+                     * shouldn't tamper with it, but instead clear the whole list in togglePlay() once it's done
+                     * looping. If state is RELEASED, it's basically the same thing. Leave the loop alone.
                      */
-                    if (_state != State.STOPPED && _state != State.RELEASED) tempAudioFiles.remove(audioFile)
-                    if (!isPlaying()) _state = State.READY
+                    if (this@SoundPlayer._state != State.STOPPED && this@SoundPlayer._state != State.RELEASED) tempAudioFiles.remove(
+                        audioFile)
+                    if (!isPlaying()) this@SoundPlayer._state = State.READY
                 }
             }
         }

@@ -17,7 +17,12 @@ class EasterEggFragment : DialogFragment() {
     private var binding: FragmentEasterEggBinding? = null
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
 
-    private fun play(resourceId: Int) = scope.launch { MediaPlayer.create(requireContext(), resourceId).start() }
+    private fun play(resourceId: Int) = scope.launch {
+        MediaPlayer.create(requireContext(), resourceId).apply {
+            setOnCompletionListener { it.release() }
+            start()
+        }
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         val inflater = LayoutInflater.from(requireContext())

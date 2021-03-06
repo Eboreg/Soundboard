@@ -18,7 +18,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PlayerRepository @Inject constructor(@ApplicationContext context: Context) {
+class PlayerRepository @Inject constructor(@ApplicationContext private val context: Context) {
     private val _players = mutableListOf<SoundPlayer>()
     private val _playersLive = MutableLiveData<List<SoundPlayer>>(emptyList())
 
@@ -47,7 +47,7 @@ class PlayerRepository @Inject constructor(@ApplicationContext context: Context)
         }
     }
 
-    private suspend fun onBufferSizeChange(seekbarValue: Int) {
+    private fun onBufferSizeChange(seekbarValue: Int) {
         val newValue = Functions.seekbarValueToBufferSize(seekbarValue)
         if (BuildConfig.DEBUG) Log.d(LOG_TAG, "onBufferSizeChange: newValue=$newValue, bufferSize=$bufferSize")
         if (newValue != bufferSize) {
