@@ -3,12 +3,21 @@ package us.huseli.soundboard.adapters.common
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 
-abstract class LifecycleAdapter<T, VH : LifecycleViewHolder>(diffCallback: DiffUtil.ItemCallback<T>) :
+abstract class LifecycleAdapter<T, VH : LifecycleViewHolder<T>>(diffCallback: DiffUtil.ItemCallback<T>) :
     ListAdapter<T, VH>(diffCallback) {
     @Suppress("PrivatePropertyName")
     private val LOG_TAG = "LifecycleAdapter"
+    protected val viewHolders = mutableListOf<VH>()
 
-    private val viewHolders = mutableListOf<VH>()
+    open val firstVisibleViewHolder: VH?
+        get() = viewHolders.firstOrNull { it.isVisible() }
+    val firstVisibleItem: T?
+        get() = firstVisibleViewHolder?.item
+
+    open val lastVisibleViewHolder: VH?
+        get() = viewHolders.lastOrNull { it.isVisible() }
+    val lastVisibleItem: T?
+        get() = lastVisibleViewHolder?.item
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         holder.markCreated()
@@ -32,4 +41,5 @@ abstract class LifecycleAdapter<T, VH : LifecycleViewHolder>(diffCallback: DiffU
         viewHolders.forEach { it.markDestroyed() }
         viewHolders.clear()
     }
+
 }

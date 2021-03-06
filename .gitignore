@@ -8,7 +8,6 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .DS_Store
-/build
 /captures
 .externalNativeBuild
 .cxx
@@ -17,6 +16,5 @@ sentry.properties
 *.hprof
 keystore.properties
 *.apk
-/app/full-r8-config.txt
 /.gradle.backup/
 /.idea.backup/

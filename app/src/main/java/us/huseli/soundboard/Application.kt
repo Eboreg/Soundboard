@@ -15,6 +15,7 @@ class Application : Application() {
         deviceDefaultLanguage = Locale.getDefault().language
     }
 
+    @Suppress("unused")
     private fun enableStrictMode() {
         StrictMode.setThreadPolicy(
             StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build()

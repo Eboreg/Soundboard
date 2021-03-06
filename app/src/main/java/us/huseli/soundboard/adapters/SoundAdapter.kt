@@ -47,10 +47,7 @@ class SoundAdapter(
     private val categoryViewModel: CategoryViewModel,
     private val activity: FragmentActivity
 ) :
-    LifecycleAdapter<Sound, SoundAdapter.SoundViewHolder>(DiffCallback()) {
-    @Suppress("PrivatePropertyName")
-    private val LOG_TAG = "SoundAdapter"
-
+    LifecycleAdapter<SoundWithCategory, SoundAdapter.SoundViewHolder>(DiffCallback()) {
     var category: Category? = null
     private var selectEnabled = false
 
@@ -61,30 +58,24 @@ class SoundAdapter(
     /*********** OVERRIDDEN/IMPLEMENTED METHODS ***********/
     override fun getItemId(position: Int): Long {
         try {
-            return currentList[position].id!!.toLong()
+            return getItem(position).sound.id!!.toLong()
         } catch (e: NullPointerException) {
-            if (BuildConfig.DEBUG) Log.e(
-                LOG_TAG,
-                "Sound at $position (${currentList[position]}) has null id"
-            )
+            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "Sound at $position (${getItem(position)}) has null id")
             throw e
         }
     }
 
     override fun onBindViewHolder(holder: SoundViewHolder, position: Int) {
+        super.onBindViewHolder(holder, position)
         val item = getItem(position)
-        if (BuildConfig.DEBUG) Log.d(
-            LOG_TAG,
-            "onBindViewHolder: item=$item, holder=$holder, position=$position"
-        )
-        category?.let { holder.bind(item, it) }
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "onBindViewHolder: item=$item, holder=$holder, position=$position")
+        category?.let { holder.bind(item) }
             ?: run { Log.e(LOG_TAG, "onBindViewHolder: category is null") }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SoundViewHolder {
         val binding = ItemSoundBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val holder = SoundViewHolder(binding, parent.context, this)
-        // Log.d(LOG_TAG, "onCreateViewHolder: holder=$holder, adapter=$this")
         binding.lifecycleOwner = holder
 
         return holder
@@ -99,7 +90,8 @@ class SoundAdapter(
     /*********** OWN PUBLIC/INTERNAL METHODS ***********/
     internal fun collapseCategory() = categoryViewModel.collapse(category)
 
-    internal fun containsSound(sound: Sound) = currentList.indexOf(sound) > -1
+    internal fun contains(soundWithCategory: SoundWithCategory) =
+        currentList.indexOf(soundWithCategory) > -1
 
     internal fun expandCategory() = categoryViewModel.expand(category)
 
@@ -118,33 +110,40 @@ class SoundAdapter(
         return currentList.size
     }
 
-    internal fun insertOrMoveSound(sound: Sound, toPosition: Int) {
-        val fromPosition = currentList.indexOf(sound)
-        val sounds = currentList.toMutableList()
+    internal fun getSoundAt(position: Int) = getItem(position)
 
-        if (BuildConfig.DEBUG) Log.i(
-            LOG_TAG,
-            "insertOrMoveSound: fromPosition=$fromPosition, toPosition=$toPosition, sound=$sound, this=$this, sounds=$sounds"
-        )
+    internal fun insertOrMoveSound(soundWithCategory: SoundWithCategory, toPosition: Int) {
+        val fromPosition = currentList.indexOf(soundWithCategory)
+        val soundsWithCategory = currentList.toMutableList()
+
+        if (BuildConfig.DEBUG)
+            Log.i(LOG_TAG,
+                "insertOrMoveSound: fromPosition=$fromPosition, toPosition=$toPosition, sound=$soundWithCategory, this=$this, sounds=$soundsWithCategory")
 
         // "The construct when can have branches that overlap, in case of multiple matches the
         // first branch is chosen." -- https://superkotlin.com/kotlin-when-statement/
         when {
-            toPosition == -1 -> sounds.add(sound)
-            fromPosition == -1 -> sounds.add(toPosition, sound)
+            toPosition == -1 -> soundsWithCategory.add(soundWithCategory)
+            fromPosition == -1 -> soundsWithCategory.add(toPosition, soundWithCategory)
             fromPosition < toPosition -> for (i in fromPosition until toPosition - 1) Collections.swap(
-                sounds,
+                soundsWithCategory,
                 i,
                 i + 1
             )
-            else -> for (i in fromPosition downTo toPosition + 1) Collections.swap(sounds, i, i - 1)
+            else -> for (i in fromPosition downTo toPosition + 1) Collections.swap(
+                soundsWithCategory,
+                i,
+                i - 1
+            )
         }
 
         appViewModel.pushSoundUndoState(activity)
-        soundViewModel.update(sounds, category)
+        soundViewModel.update(soundsWithCategory)
     }
 
     internal fun isEmpty() = currentList.isEmpty()
+
+    internal fun isNotEmpty() = !isEmpty()
 
     internal fun markSoundsForDrop(adapterPosition: Int) {
         /**
@@ -187,8 +186,8 @@ class SoundAdapter(
         // Select all sound between `sound` and last selected one (if any).
         soundViewModel.getLastSelected(category, sound)?.let { lastSelected ->
             // TODO: Are these always consistent with adapter/layout positions?
-            val pos1 = currentList.indexOf(sound)
-            val pos2 = currentList.indexOf(lastSelected)
+            val pos1 = currentList.map { it.sound }.indexOf(sound)
+            val pos2 = currentList.map { it.sound }.indexOf(lastSelected)
             if (pos1 != -1 && pos2 != -1) {
                 val start = if (pos1 < pos2) pos1 else pos2
                 val end = if (start == pos1) pos2 else pos1
@@ -199,11 +198,17 @@ class SoundAdapter(
     }
 
 
-    class DiffCallback : DiffUtil.ItemCallback<Sound>() {
-        override fun areItemsTheSame(oldItem: Sound, newItem: Sound) = oldItem.id == newItem.id
+    companion object {
+        const val LOG_TAG = "SoundAdapter"
+    }
 
-        override fun areContentsTheSame(oldItem: Sound, newItem: Sound) =
-            oldItem.name == newItem.name && oldItem.order == newItem.order && oldItem.volume == newItem.volume
+
+    class DiffCallback : DiffUtil.ItemCallback<SoundWithCategory>() {
+        override fun areItemsTheSame(oldItem: SoundWithCategory, newItem: SoundWithCategory) =
+            oldItem.sound.id == newItem.sound.id
+
+        override fun areContentsTheSame(oldItem: SoundWithCategory, newItem: SoundWithCategory) =
+            oldItem.sound.name == newItem.sound.name && oldItem.sound.order == newItem.sound.order && oldItem.sound.volume == newItem.sound.volume
     }
 
 
@@ -218,7 +223,7 @@ class SoundAdapter(
         View.OnTouchListener,
         SoundPlayer.Listener,
         SoundViewModel.OnSelectAllListener,
-        LifecycleViewHolder(binding.root) {
+        LifecycleViewHolder<SoundWithCategory>(binding.root) {
 
         @InstallIn(SingletonComponent::class)
         @EntryPoint
@@ -227,33 +232,26 @@ class SoundAdapter(
             fun colorHelper(): ColorHelper
         }
 
-        @Suppress("PrivatePropertyName")
-        private val LOG_TAG = "SoundViewHolder"
-
         private val appViewModel = adapter.appViewModel
         private val clickAnimator = (AnimatorInflater.loadAnimator(
-            context,
-            R.animator.sound_item_click_animator
-        ) as AnimatorSet).apply {
+            context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
             setTarget(binding.soundCard)
         }
         private val soundViewModel = adapter.soundViewModel
         private val activity = adapter.activity
         private val colorHelper = EntryPointAccessors.fromApplication(
-            activity.applicationContext, SoundViewHolderEntryPoint::class.java
-        ).colorHelper()
+            activity.applicationContext, SoundViewHolderEntryPoint::class.java).colorHelper()
         private val playerRepository = EntryPointAccessors.fromApplication(
-            activity.applicationContext, SoundViewHolderEntryPoint::class.java
-        ).playerRepository()
+            activity.applicationContext, SoundViewHolderEntryPoint::class.java).playerRepository()
 
         private var longClickAnimator: SoundItemLongClickAnimator? = null
         private var player: SoundPlayer? = null
         private var playerLiveData: LiveData<SoundPlayer?>? = null
         private var playerTimer: SoundPlayerTimer? = null
         private var reorderEnabled = false
-        private var sound: Sound? = null
 
         override val lifecycleRegistry = LifecycleRegistry(this)
+        override var item: SoundWithCategory? = null
 
         init {
             binding.soundContainer.setOnClickListener(this)
@@ -264,31 +262,31 @@ class SoundAdapter(
 
 
         /********* PUBLIC/INTERNAL METHODS **********/
-        internal fun bind(sound: Sound, category: Category) {
-            this.sound = sound
-            val soundId = sound.id
+        internal fun bind(soundWithCategory: SoundWithCategory) {
+            item = soundWithCategory
+            val soundId = soundWithCategory.sound.id
             if (soundId == null) {
                 if (BuildConfig.DEBUG) Log.e(LOG_TAG, "bind: got Sound with id==null")
                 return
             }
 
-            binding.sound = sound
-            binding.category = category
-            setBackgroundColor(category.backgroundColor)
+            binding.sound = soundWithCategory.sound
+            // TODO: Is this necessary?
+            setBackgroundColor(soundWithCategory.category.backgroundColor)
 
-            // Stop any old player observer
-            playerLiveData?.removeObservers(this)
-
-            playerLiveData = playerRepository.get(sound).also { liveData ->
-                liveData.observe(this) { newPlayer ->
-                    if (newPlayer != null && newPlayer != player) {
+            playerRepository.players.observe(this) { players ->
+                // if (BuildConfig.DEBUG) Log.d(LOG_TAG, "playerRepository.players: players=$players")
+                players?.firstOrNull { it.sound == soundWithCategory.sound }?.also { newPlayer ->
+                    if (newPlayer != player) {
+                        if (BuildConfig.DEBUG)
+                            Log.d(LOG_TAG,
+                                "playerRepository.players: newPlayer=$newPlayer, player=$player, state=${newPlayer.state}")
                         newPlayer.setListener(this)
                         onSoundPlayerStateChange(newPlayer, newPlayer.state)
                         setDuration(newPlayer.duration)
                         appViewModel.repressMode.observe(this) { newPlayer.repressMode = it }
                         player = newPlayer
                     }
-                    // this.sound?.volume?.let { player?.volume = it }
                 }
             }
 
@@ -304,8 +302,8 @@ class SoundAdapter(
         }
 
         private fun onSelectEnabledChange(value: Boolean) {
-            if (value && soundViewModel.selectedSounds.contains(sound)) binding.selectedIcon.visibility =
-                View.VISIBLE
+            if (value && soundViewModel.selectedSounds.contains(item?.sound))
+                binding.selectedIcon.visibility = View.VISIBLE
             else if (!value) binding.selectedIcon.visibility = View.INVISIBLE
         }
 
@@ -328,7 +326,7 @@ class SoundAdapter(
 
         private fun setDuration(value: Int) {
             /** We get value as milliseconds but display it as seconds */
-            sound?.let { sound ->
+            item?.sound?.let { sound ->
                 if (sound.duration != value) {
                     sound.duration = value
                     soundViewModel.updateDuration(sound, value)
@@ -342,12 +340,9 @@ class SoundAdapter(
                 binding.durationCard.visibility = View.VISIBLE
                 if (playerTimer?.duration != value)
                     playerTimer = SoundPlayerTimer(
-                        value,
-                        binding.volumeBar,
-                        sound?.volume ?: Constants.DEFAULT_VOLUME
-                    )
+                        value, binding.volumeBar, item?.sound?.volume ?: Constants.DEFAULT_VOLUME)
                 else
-                    sound?.volume?.let { playerTimer?.originalProgress = it }
+                    item?.sound?.volume?.let { playerTimer?.originalProgress = it }
             }
         }
 
@@ -357,15 +352,12 @@ class SoundAdapter(
             }
 
         private fun startDragAndDrop(view: View) {
-            sound?.let { sound ->
+            item?.let { item ->
                 val data = ClipData.newPlainText("", "")
                 val shadowBuilder = View.DragShadowBuilder(view)
-                val draggedSound = DraggedSound(sound, bindingAdapterPosition, view.height)
+                val draggedSound = DraggedSound(item, bindingAdapterPosition, view.height)
 
-                if (BuildConfig.DEBUG) Log.d(
-                    LOG_TAG,
-                    "startDragAndDrop: draggedSound=$draggedSound, this=$this"
-                )
+                if (BuildConfig.DEBUG) Log.d(LOG_TAG, "startDragAndDrop: draggedSound=$draggedSound, this=$this")
 
                 @Suppress("DEPRECATION")
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
@@ -378,8 +370,8 @@ class SoundAdapter(
 
         /********* OVERRIDDEN METHODS **********/
         private fun deselect() {
-            sound?.let { sound ->
-                soundViewModel.deselect(sound)
+            item?.let { item ->
+                soundViewModel.deselect(item.sound)
                 binding.selectedIcon.visibility = View.INVISIBLE
             }
         }
@@ -390,9 +382,9 @@ class SoundAdapter(
         }
 
         override fun onClick(view: View) {
-            sound?.let { sound ->
+            item?.let { item ->
                 when {
-                    adapter.selectEnabled -> if (!soundViewModel.isSelected(sound)) select() else deselect()
+                    adapter.selectEnabled -> if (!soundViewModel.isSelected(item.sound)) select() else deselect()
                     player == null -> Snackbar.make(
                         binding.root,
                         R.string.soundplayer_not_initialized,
@@ -414,9 +406,9 @@ class SoundAdapter(
                 } else {
                     // Select is enabled; if this sound is not selected, select it and all
                     // between it and the last selected one (if any)
-                    sound?.let { sound ->
-                        if (!soundViewModel.isSelected(sound)) {
-                            adapter.selectAllInBetween(sound)
+                    item?.let { item ->
+                        if (!soundViewModel.isSelected(item.sound)) {
+                            adapter.selectAllInBetween(item.sound)
                         }
                     }
                 }
@@ -425,37 +417,37 @@ class SoundAdapter(
             return true
         }
 
+        override fun onSoundPlayerDurationChange(duration: Int) = activity.runOnUiThread { setDuration(duration) }
+
         override fun onSoundPlayerStateChange(player: SoundPlayer, state: SoundPlayer.State) {
             /**
              * This will likely be called from a non-UI thread, hence View.post()
              * https://developer.android.com/guide/components/processes-and-threads#WorkerThreads
              */
             binding.root.post {
+                Log.d(LOG_TAG, "onSoundPlayerStateChange: item=$item, state=$state")
+
                 if (state == SoundPlayer.State.PLAYING) {
                     playerTimer?.start()
                     binding.playIcon.visibility = View.VISIBLE
                 } else binding.playIcon.visibility = View.INVISIBLE
+
                 if (state == SoundPlayer.State.STOPPED || state == SoundPlayer.State.READY) {
                     playerTimer?.apply {
                         cancel()
                         onFinish()
                     }
                 }
+
                 binding.failIcon.visibility =
                     if (state == SoundPlayer.State.ERROR) View.VISIBLE else View.INVISIBLE
 
-                // At the moment a sound is only INITIALIZING just when it's created, but maybe in
-                // the future there will be some re-initialization
-                if (state == SoundPlayer.State.INITIALIZING) {
-                    binding.soundLoading.visibility = View.VISIBLE
-                    binding.soundName.visibility = View.INVISIBLE
-                } else {
-                    binding.soundLoading.visibility = View.INVISIBLE
-                    binding.soundName.visibility = View.VISIBLE
-                }
-                if (state == SoundPlayer.State.READY) setDuration(player.duration)
-                if (state == SoundPlayer.State.ERROR || state == SoundPlayer.State.INITIALIZING) binding.durationCard.visibility =
-                    View.GONE
+                binding.soundLoading.visibility =
+                    if (listOf(SoundPlayer.State.INITIALIZING,
+                            SoundPlayer.State.STOPPED,
+                            SoundPlayer.State.RELEASED).contains(state))
+                        View.VISIBLE
+                    else View.INVISIBLE
             }
         }
 
@@ -474,15 +466,20 @@ class SoundAdapter(
         }
 
         override fun select() {
-            sound?.let { sound ->
-                soundViewModel.select(sound)
+            item?.let { item ->
+                soundViewModel.select(item.sound)
                 binding.selectedIcon.visibility = View.VISIBLE
             }
         }
 
         override fun toString(): String {
             val hashCode = Integer.toHexString(System.identityHashCode(this))
-            return "SoundAdapter.ViewHolder $hashCode <adapterPosition=$bindingAdapterPosition, sound=$sound>"
+            return "SoundAdapter.ViewHolder $hashCode <adapterPosition=$bindingAdapterPosition, sound=$item>"
+        }
+
+
+        companion object {
+            const val LOG_TAG = "SoundViewHolder"
         }
     }
 }

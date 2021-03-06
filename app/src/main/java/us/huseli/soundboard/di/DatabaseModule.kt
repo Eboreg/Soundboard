@@ -23,5 +23,4 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideCategoryDao(database: SoundboardDatabase) = database.categoryDao()
-
 }

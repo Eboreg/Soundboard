@@ -36,8 +36,9 @@ interface SoundDao {
     @Query("SELECT * FROM Sound WHERE categoryId = :categoryId")
     fun listByCategory(categoryId: Int): List<Sound>
 
-    @Query("SELECT * FROM Sound ORDER BY `order`")
-    fun listLive(): LiveData<List<Sound>>
+    @Transaction
+    @Query("SELECT Sound.* FROM Sound JOIN SoundCategory ON Sound.categoryId = SoundCategory.id ORDER BY SoundCategory.`order`, Sound.`order`")
+    fun listLiveWithCategory(): LiveData<List<SoundWithCategory>>
 
     @Transaction
     fun reset(sounds: List<Sound>) {

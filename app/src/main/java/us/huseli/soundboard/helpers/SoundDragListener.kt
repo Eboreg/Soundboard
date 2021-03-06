@@ -23,13 +23,15 @@ class SoundDragListener(
     var isDragging = false
 
     private fun dumpLog(tag: String?, event: DragEvent?, comment: String?, extra: Map<String, Any?>?) {
-        var output = "${hashCode}:$logNumber  "
-        if (tag != null) output += "$tag: "
-        if (comment != null) Log.d(LOG_TAG, output + comment)
-        extra?.forEach { Log.d(LOG_TAG, output + "${it.key}=${it.value}") }
-        if (event != null) Log.d(LOG_TAG, output + "event=$event")
-        if (BuildConfig.DEBUG) Log.d(LOG_TAG, output + "soundAdapter=$soundAdapter")
-        logNumber++
+        if (BuildConfig.DEBUG) {
+            var output = "${hashCode}:$logNumber  "
+            if (tag != null) output += "$tag: "
+            if (comment != null) Log.d(LOG_TAG, output + comment)
+            extra?.forEach { Log.d(LOG_TAG, output + "${it.key}=${it.value}") }
+            if (event != null) Log.d(LOG_TAG, output + "event=$event")
+            Log.d(LOG_TAG, output + "soundAdapter=$soundAdapter")
+            logNumber++
+        }
     }
 
     private fun dumpLog(tag: String, event: DragEvent, comment: String?) = dumpLog(tag, event, comment, null)

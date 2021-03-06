@@ -1,3 +1,49 @@
+Tryck på ljud:
+play()
+    Om state == READY:
+        doPlay()
+            state = INIT_PLAY
+            Skapa audioTrack
+            Spela
+            state = PLAYING
+Vid stopp:
+    doStop()
+        audioTrack.pause()
+        state = STOPPED
+        audioTrack.release()
+        audioTrack = null
+prepare():
+    state = INITIALIZING
+    init/flush codec
+    extractor seekTo 0
+
+
+2021-03-05 01:52:23.413 513-15978 E/AF::Track: Track(554): no more tracks available
+2021-03-05 01:52:23.431 513-15978 E/AF::Track: Track(555): no more tracks available
+2021-03-05 01:52:23.450 513-15978 E/AF::Track: Track(556): no more tracks available
+2021-03-05 01:52:23.464 513-15978 E/AF::Track: Track(557): no more tracks available
+
+!!!! https://stackoverflow.com/questions/8388053/soundpool-error-no-more-track-names-available !!!!
+"For audio, there's a hard limit of 32 active AudioTrack objects per device (not per app: you need
+to share those 32 with rest of the system)"
+FFFFFUUUUUUU.
+So I guess AudioTrack has to be re-inited on each play and then released on stop.
+
+
+
+
+Try to avoid running flushCodec and extractor.seekTo() on prepare() if not necessary (takes ~3 ms)
+
+
+After non-working fucking sound has been "played", duration view disappears
+
+
+Can I get sound "range select" to work over category boundaries?
+
+
+Category.order does not seem to get set on category createion!
+
+
 Somehow detect how long time has gone between clicking on a sound card and sound actually beginning
 playing, and bail if some timeout has reached (could happen during heavy load).
 
