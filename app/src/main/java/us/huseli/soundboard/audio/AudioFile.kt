@@ -3,9 +3,6 @@ package us.huseli.soundboard.audio
 import android.media.*
 import android.os.Build
 import android.util.Log
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.*
 import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.data.Sound
@@ -24,12 +21,6 @@ import kotlin.math.min
  */
 
 class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listener? = null) {
-    @InstallIn(SingletonComponent::class)
-    @EntryPoint
-    interface AudioFileEntryPoint {
-        fun audioTrackProvider(): AudioTrackProvider
-    }
-
     // Public val's & var's
     val duration: Long
     val isPlaying: Boolean
