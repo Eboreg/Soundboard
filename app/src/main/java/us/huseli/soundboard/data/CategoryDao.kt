@@ -3,14 +3,13 @@ package us.huseli.soundboard.data
 import androidx.lifecycle.LiveData
 import androidx.room.*
 
-@Suppress("FunctionName")
 @Dao
 interface CategoryDao {
     @Query("SELECT MAX(`order`) FROM SoundCategory")
-    fun _getMaxOrder(): Int?
+    fun privateGetMaxOrder(): Int?
 
     @Insert
-    fun _insert(category: Category)
+    fun privateInsert(category: Category)
 
     @Query("DELETE FROM SoundCategory WHERE id = :id")
     fun delete(id: Int)
@@ -27,10 +26,10 @@ interface CategoryDao {
     @Transaction
     fun insert(category: Category) {
         if (category.order == -1) {
-            val maxOrder = _getMaxOrder() ?: -1
+            val maxOrder = privateGetMaxOrder() ?: -1
             category.order = maxOrder
         }
-        _insert(category)
+        privateInsert(category)
     }
 
     @Query("SELECT * FROM SoundCategory ORDER BY `order`, id")

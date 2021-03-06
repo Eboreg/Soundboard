@@ -3,11 +3,10 @@ package us.huseli.soundboard.data
 import androidx.lifecycle.LiveData
 import androidx.room.*
 
-@Suppress("FunctionName")
 @Dao
 interface SoundDao {
     @Insert
-    fun _insert(sound: Sound)
+    fun privateInsert(sound: Sound)
 
     @Query("DELETE FROM Sound WHERE id IN (:soundIds)")
     fun delete(soundIds: List<Int>)
@@ -24,7 +23,7 @@ interface SoundDao {
             val maxOrder = sound.categoryId?.let { categoryId -> getMaxOrder(categoryId) } ?: -1
             sound.order = maxOrder + 1
         }
-        _insert(sound)
+        privateInsert(sound)
     }
 
     @Transaction

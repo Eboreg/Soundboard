@@ -5,8 +5,6 @@ import androidx.recyclerview.widget.ListAdapter
 
 abstract class LifecycleAdapter<T, VH : LifecycleViewHolder<T>>(diffCallback: DiffUtil.ItemCallback<T>) :
     ListAdapter<T, VH>(diffCallback) {
-    @Suppress("PrivatePropertyName")
-    private val LOG_TAG = "LifecycleAdapter"
     protected val viewHolders = mutableListOf<VH>()
 
     open val firstVisibleViewHolder: VH?

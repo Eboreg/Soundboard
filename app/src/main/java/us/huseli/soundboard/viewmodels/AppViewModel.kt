@@ -131,12 +131,11 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    @Suppress("LocalVariableName")
     fun setup(orientation: Int, screenWidthDp: Int, screenHeightDp: Int, landscapeSpanCount: Int): Int {
         /**
          * Returns actual span count for the current screen orientation
          */
-        val _landscapeSpanCount = if (landscapeSpanCount > 0) landscapeSpanCount else DEFAULT_SPANCOUNT_LANDSCAPE
+        val localLandscapeSpanCount = if (landscapeSpanCount > 0) landscapeSpanCount else DEFAULT_SPANCOUNT_LANDSCAPE
         _orientation.value = orientation
 
         val ratio = when (orientation) {
@@ -145,11 +144,11 @@ class AppViewModel @Inject constructor(
         }
         _screenRatio.value = ratio
 
-        _spanCountLandscape.value = _landscapeSpanCount
-        val _portraitSpanCount = landscapeSpanCountToPortrait(_landscapeSpanCount, ratio)
-        _spanCountPortrait.value = _portraitSpanCount
+        _spanCountLandscape.value = localLandscapeSpanCount
+        val localPortraitSpanCount = landscapeSpanCountToPortrait(localLandscapeSpanCount, ratio)
+        _spanCountPortrait.value = localPortraitSpanCount
 
-        return if (orientation == Configuration.ORIENTATION_LANDSCAPE) _landscapeSpanCount else _portraitSpanCount
+        return if (orientation == Configuration.ORIENTATION_LANDSCAPE) localLandscapeSpanCount else localPortraitSpanCount
     }
 
     private fun zoom(factor: Int): Int? {

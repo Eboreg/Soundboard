@@ -42,7 +42,6 @@ class CategoryAdapter(
     override val lastVisibleViewHolder: CategoryViewHolder?
         get() = viewHolders.lastOrNull { it.isVisible() && it.soundAdapter.isNotEmpty() }
 
-    @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         val item = getItem(position)
@@ -96,7 +95,6 @@ class CategoryAdapter(
      * Represents one individual category with its sound list.
      * Layout: item_category.xml, see this file for binding
      */
-    @SuppressLint("ClickableViewAccessibility")
     class CategoryViewHolder(internal val binding: ItemCategoryBinding, adapter: CategoryAdapter) :
         View.OnClickListener,
         View.OnTouchListener,
@@ -139,6 +137,16 @@ class CategoryAdapter(
                     }
                 }
                 isNestedScrollingEnabled = false
+
+                // TODO: Does this actually work as intended?
+                viewTreeObserver.addOnGlobalLayoutListener {
+                    (layoutManager as SoundLayoutManager).let {
+                        val itemsShown =
+                            it.findLastVisibleItemPosition() - it.findFirstVisibleItemPosition() + 1
+                        binding.loadingBar.visibility =
+                            if (isCollapsed == true || itemsShown >= it.itemCount) View.GONE else View.VISIBLE
+                    }
+                }
             }
         }
 
@@ -169,16 +177,6 @@ class CategoryAdapter(
                     if (it > 20) binding.soundList.setItemViewCacheSize(it)
                 }
                 soundAdapter.submitList(sounds)
-
-                // TODO: Does this actually work as intended?
-                binding.soundList.viewTreeObserver.addOnGlobalLayoutListener {
-                    val layoutManager = binding.soundList.layoutManager as SoundLayoutManager
-                    val itemsShown =
-                        layoutManager.findLastVisibleItemPosition() - layoutManager.findFirstVisibleItemPosition() + 1
-                    binding.loadingBar.visibility =
-                        if (isCollapsed == true || itemsShown >= layoutManager.itemCount)
-                            View.GONE else View.VISIBLE
-                }
             }
 
             soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
@@ -196,6 +194,7 @@ class CategoryAdapter(
 
 
         /********* PRIVATE METHODS **********/
+        @SuppressLint("ClickableViewAccessibility")
         private fun disableClickAndTouch() {
             listOf(
                 binding.categoryEditButton,
@@ -211,6 +210,7 @@ class CategoryAdapter(
             binding.categoryMoveButton.isClickable = false
         }
 
+        @SuppressLint("ClickableViewAccessibility")
         private fun enableClickAndTouch() {
             listOf(
                 binding.categoryEditButton,

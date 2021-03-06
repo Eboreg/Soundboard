@@ -123,14 +123,13 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
     }
 
     fun prepare(): AudioFile {
-        if (!listOf(State.CREATED, State.STOPPED, State.RELEASED).contains(state)) {
-            onWarning("Prepare: Illegal state",
-                "prepare: illegal state $state, should be CREATED, STOPPED, or RELEASED")
-            return this
+        if (!listOf(State.CREATED, State.STOPPED, State.RELEASED).contains(state))
+            onWarning("Prepare: Illegal state", "prepare: illegal state $state, should be CREATED, STOPPED, RELEASED")
+        else {
+            state = State.INITIALIZING
+            doPrepare()
+            state = State.READY
         }
-        state = State.INITIALIZING
-        doPrepare()
-        state = State.READY
         return this
     }
 
@@ -144,10 +143,8 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
             }
             extractJob?.cancel()
             queuedStopJob?.cancel()
-            // audioTrackProvider.release(sound)
             audioTrack?.release()
             codec?.release()
-            extractor.release()
             audioTrack = null
             codec = null
             scope.cancel()
@@ -166,8 +163,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
                     audioTrack?.pause()
                     audioTrack?.flush()
                     extractJob?.cancelAndJoin()
-                    flushCodec(codec)
-                    extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+                    doPrepare()
                 } else state = State.INIT_PLAY
                 doPlay {
                     state = State.PLAYING
@@ -190,6 +186,20 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
         } else onWarning("Stop: Illegal state", "stop: illegal state $state, should be PLAYING or INIT_PLAY")
         return this
     }
+
+    fun stopAndPrepare(): AudioFile {
+        if (state == State.PLAYING || state == State.INIT_PLAY) {
+            queuedStopJob?.cancel()
+            runBlocking {
+                doStop {
+                    doPrepare()
+                    state = State.READY
+                }
+            }
+        } else onWarning("Stop: Illegal state", "stop: illegal state $state, should be PLAYING or INIT_PLAY")
+        return this
+    }
+
 
     /********** PRIVATE METHODS **********/
 
@@ -454,7 +464,6 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
     }
 
     private suspend fun processInputBuffer(codec: MediaCodec, previousResult: ProcessInputResult): ProcessInputResult {
-        /** Return: extractorDone */
         val job = coroutineContext[Job]
         val timeoutUs = 1000L
         var extractorDone = false
@@ -665,7 +674,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
      * RELEASED
      *    Means: Everything has been (or is being) released
      *    Begins: As soon as release() is run
-     *    Ends: Only when prepare() is run
+     *    Ends: Only when reinit() is run
      *    May change from: All except ERROR
      * ERROR
      *    Means: Any non-recoverable error has occurred

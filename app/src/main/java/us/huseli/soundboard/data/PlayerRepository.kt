@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.map
 import androidx.preference.PreferenceManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -18,9 +18,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PlayerRepository @Inject constructor(@ApplicationContext private val context: Context) {
+class PlayerRepository @Inject constructor(@ApplicationContext private val context: Context, soundDao: SoundDao) {
     private val _players = mutableListOf<SoundPlayer>()
-    private val _playersLive = MutableLiveData<List<SoundPlayer>>(emptyList())
 
     private var bufferSize = Constants.DEFAULT_BUFFER_SIZE
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
@@ -33,8 +32,29 @@ class PlayerRepository @Inject constructor(@ApplicationContext private val conte
             }
         }
 
-    val players: LiveData<List<SoundPlayer>>
-        get() = _playersLive
+    val players: LiveData<List<SoundPlayer>> = soundDao.listLiveWithCategory().map { soundsWithCategory ->
+        _players.removeAll(playersToRemove(soundsWithCategory))
+        _players.addAll(playersToAdd(soundsWithCategory))
+        _players
+    }
+
+    private fun playersToAdd(soundsWithCategory: List<SoundWithCategory>): List<SoundPlayer> {
+        /** Creates & returns SoundPlayers for those sounds that don't already have any */
+        val sounds = soundsWithCategory.map { it.sound }
+        return sounds.filterNot { _players.map { player -> player.sound }.contains(it) }.map { sound ->
+            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "addNew: add $sound")
+            SoundPlayer(sound, bufferSize)
+        }
+    }
+
+    private fun playersToRemove(soundsWithCategory: List<SoundWithCategory>): List<SoundPlayer> {
+        /** Releases & returns SoundPlayers for those sounds NOT in `soundsWithCategory` */
+        val sounds = soundsWithCategory.map { it.sound }
+        return _players.filterNot { sounds.contains(it.sound) }.onEach { player ->
+            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "removeOld: remove ${player.sound}")
+            player.release()
+        }
+    }
 
     init {
         scope.launch {
@@ -53,32 +73,6 @@ class PlayerRepository @Inject constructor(@ApplicationContext private val conte
         if (newValue != bufferSize) {
             bufferSize = newValue
             _players.forEach { player -> player.setBufferSize(newValue) }
-        }
-    }
-
-    suspend fun set(sounds: List<Sound>) {
-        // 1. Release SoundPlayers whose sounds are not in list
-        _players.filter { !sounds.contains(it.sound) && it.state != SoundPlayer.State.RELEASED }.forEach {
-            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: release ${it.sound}")
-            it.release()
-        }
-
-        // 2. Add SoundPlayers for sounds that don't have any
-        val newSounds = sounds.filterNot { _players.map { player -> player.sound }.contains(it) }
-        if (newSounds.isNotEmpty()) {
-            newSounds.forEach { sound ->
-                if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: add $sound")
-                _players.add(SoundPlayer(sound, bufferSize))
-            }
-            // 2.1. Replace players.value with new list
-            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: postValue $_players")
-            _playersLive.postValue(_players)
-        }
-
-        // 3. Reinit SoundPlayers whose sounds are in list but were previously released
-        _players.filter { sounds.contains(it.sound) && it.state == SoundPlayer.State.RELEASED }.forEach {
-            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "set: reinit $it")
-            it.reinit()
         }
     }
 

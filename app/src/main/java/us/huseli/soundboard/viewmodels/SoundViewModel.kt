@@ -8,20 +8,20 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.BuildConfig
-import us.huseli.soundboard.data.*
+import us.huseli.soundboard.data.Category
+import us.huseli.soundboard.data.Sound
+import us.huseli.soundboard.data.SoundRepository
+import us.huseli.soundboard.data.SoundWithCategory
 import us.huseli.soundboard.helpers.ColorHelper
 import us.huseli.soundboard.helpers.MD5
 import java.io.File
 import java.util.*
 import javax.inject.Inject
-import kotlin.math.max
-import kotlin.math.min
 
 @HiltViewModel
 class SoundViewModel
 @Inject constructor(
     private val repository: SoundRepository,
-    private val playerRepository: PlayerRepository,
     private val colorHelper: ColorHelper
 ) : ViewModel() {
     private val _failedSounds = mutableListOf<Sound>()
@@ -61,36 +61,6 @@ class SoundViewModel
             }
         }
     }
-
-    fun setVisibleSoundBoundaries(from: SoundWithCategory?, to: SoundWithCategory?) =
-        viewModelScope.launch(Dispatchers.IO) {
-            /** Make sure max 100 sounds are initialized */
-            filteredSounds.value?.filterNot { it.category.collapsed }?.also { soundsWithCategory ->
-                val visibleStartIdx = soundsWithCategory.indexOf(from)
-                val visibleEndIdx = soundsWithCategory.indexOf(to)
-                if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-                    "setVisibleSoundBoundaries: from=$from, to=$to, visibleStartIdx=$visibleStartIdx, visibleEndIdx=$visibleEndIdx")
-                // Is 0 if both are -1:
-                val visibleCount =
-                    (visibleEndIdx - visibleStartIdx).let { if (it == 0) 100 else it }
-                var startIdx =
-                    if (visibleStartIdx == -1) 0 else max(0, visibleStartIdx - (visibleCount / 2))
-                val endIdx = min(max(soundsWithCategory.size - 1, 0), startIdx + 100)
-                if (endIdx - startIdx < 100) startIdx = max(0, endIdx - 100)
-                val subList = soundsWithCategory.subList(startIdx, endIdx + 1).map { it.sound }
-
-                playerRepository.set(subList)
-
-                if (BuildConfig.DEBUG) {
-                    if (soundsWithCategory.isNotEmpty())
-                        Log.d(LOG_TAG,
-                            "setVisibleSoundBoundaries: visibleStartIdx=$visibleStartIdx, visibleEndIdx=$visibleEndIdx, visibleCount=$visibleCount, startIdx=$startIdx, endIdx=$endIdx, count=${endIdx - startIdx}, startsound=${soundsWithCategory[startIdx]}, endsound=${soundsWithCategory[endIdx]}")
-                    else
-                        Log.d(LOG_TAG,
-                            "setVisibleSoundBoundaries: visibleStartIdx=$visibleStartIdx, visibleEndIdx=$visibleEndIdx, visibleCount=$visibleCount, startIdx=$startIdx, endIdx=$endIdx, count=${endIdx - startIdx}")
-                }
-            }
-        }
 
     fun moveFilesToLocalStorage(context: Context) = viewModelScope.launch(Dispatchers.IO) {
         /** One-time thing at app version upgrade */

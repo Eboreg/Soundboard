@@ -103,10 +103,9 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
         job = scope.launch { audioFile?.prepare() }
     }
 
-    suspend fun release() {
+    fun release() {
         _state = State.RELEASED
         audioFile?.release()
-        job?.join()
         stopAndClearTempPlayers()
         tempAudioFiles.clear()
         listener = null
@@ -128,21 +127,14 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
         if (_state == State.PLAYING) {
             when (repressMode) {
                 RepressMode.STOP -> {
-                    _state = State.STOPPED
-                    audioFile?.stop()
+                    audioFile?.stopAndPrepare()
                     stopAndClearTempPlayers()
                 }
-                RepressMode.RESTART -> {
-                    audioFile?.restart()
-                }
-                RepressMode.OVERLAP -> {
-                    // TODO: adjust volumes?
-                    createAndStartTempPlayer()
-                }
+                RepressMode.RESTART -> audioFile?.restart()
+                // TODO: adjust volumes?
+                RepressMode.OVERLAP -> createAndStartTempPlayer()
             }
-        } else {
-            audioFile?.playAndPrepare()
-        }
+        } else audioFile?.playAndPrepare()
     }
 
 

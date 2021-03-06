@@ -6,8 +6,9 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.recyclerview.widget.RecyclerView
 
-abstract class LifecycleViewHolder(view: View) : RecyclerView.ViewHolder(view), LifecycleOwner {
+abstract class LifecycleViewHolder<T>(view: View) : RecyclerView.ViewHolder(view), LifecycleOwner {
     internal abstract val lifecycleRegistry: LifecycleRegistry
+    internal abstract var item: T?
 
     private var wasPaused = false
 

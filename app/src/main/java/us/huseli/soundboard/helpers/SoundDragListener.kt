@@ -94,7 +94,7 @@ class SoundDragListener(
 
     private fun onDragStarted(event: DragEvent, view: View, draggedSound: DraggedSound): Boolean {
         isDragging = true
-        if (soundAdapter.containsSound(draggedSound.sound)) {
+        if (soundAdapter.contains(draggedSound.soundWithCategory)) {
             dumpLog(
                 "ACTION_DRAG_STARTED",
                 event,
@@ -155,7 +155,10 @@ class SoundDragListener(
         dumpLog("ACTION_DROP", event, "$draggedSound dropped over view=$view; updating DB")
         categoryViewHolder.hideDropContainer()
         soundAdapter.removeMarksForDrop()
-        soundAdapter.insertOrMoveSound(draggedSound.sound, draggedSound.currentAdapterPosition)
+        soundAdapter.insertOrMoveSound(
+            draggedSound.soundWithCategory,
+            draggedSound.currentAdapterPosition
+        )
         return true
     }
 

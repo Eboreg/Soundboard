@@ -494,8 +494,8 @@ class MainActivity :
         }
     }
 
-    @Suppress("unused")
     @SuppressLint("QueryPermissionsNeeded")
+    @Suppress("unused")
     private fun reinitFailedSounds() {
         // TODO: Generalize this shit somehow (with ordinary open file stuff), take up work on this stuff
         soundViewModel.failedSounds.forEach { sound ->
