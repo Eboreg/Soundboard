@@ -145,6 +145,9 @@ class CategoryAdapter(
                             it.findLastVisibleItemPosition() - it.findFirstVisibleItemPosition() + 1
                         binding.loadingBar.visibility =
                             if (isCollapsed == true || itemsShown >= it.itemCount) View.GONE else View.VISIBLE
+                        if (BuildConfig.DEBUG)
+                            Log.d(LOG_TAG,
+                                "itemsShown=$itemsShown, itemCount=${it.itemCount} = loadingBar.visibility=" + if (binding.loadingBar.visibility == View.GONE) "GONE" else "VISIBLE")
                     }
                 }
             }

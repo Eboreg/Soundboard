@@ -126,7 +126,7 @@
             android:indeterminate="true"
             android:indeterminateOnly="true"
             android:indeterminateTint="@{category.backgroundColor}"
-            android:visibility="visible"
+            android:visibility="gone"
             tools:indeterminateTint="@color/purple_500"
             tools:visibility="visible" />
 
