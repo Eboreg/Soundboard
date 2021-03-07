@@ -29,7 +29,14 @@
         android:icon="@drawable/ic_settings"
         android:orderInCategory="3"
         android:title="@string/settings"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_help"
+        android:icon="@drawable/ic_help"
+        android:orderInCategory="4"
+        android:title="@string/help"
+        app:showAsAction="ifRoom" />
 
     <!--
         <item

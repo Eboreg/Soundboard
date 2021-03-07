@@ -208,7 +208,7 @@ class SoundAdapter(
             oldItem.sound.id == newItem.sound.id
 
         override fun areContentsTheSame(oldItem: SoundWithCategory, newItem: SoundWithCategory) =
-            oldItem.sound.name == newItem.sound.name && oldItem.sound.order == newItem.sound.order && oldItem.sound.volume == newItem.sound.volume
+            oldItem.sound.name == newItem.sound.name && oldItem.sound.order == newItem.sound.order && oldItem.sound.volume == newItem.sound.volume && oldItem.sound.backgroundColor == newItem.sound.backgroundColor
     }
 
 

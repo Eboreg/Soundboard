@@ -59,7 +59,7 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
     override fun equals(other: Any?): Boolean {
         return when {
             this === other -> true
-            other is SoundPlayer && this.hashCode() == other.hashCode() -> true
+            other is SoundPlayer && this.hashCode() == other.hashCode() && this.state == other.state -> true
             else -> false
         }
     }

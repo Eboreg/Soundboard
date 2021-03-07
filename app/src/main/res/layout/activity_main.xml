@@ -84,8 +84,7 @@
             app:layout_constraintTop_toBottomOf="@+id/filterBar">
 
             <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/category_list_container"
-                android:name="us.huseli.soundboard.fragments.CategoryListFragment"
+                android:id="@+id/content_container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 tools:layout="@layout/fragment_category_list" />

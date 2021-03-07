@@ -25,6 +25,9 @@ import androidx.core.content.edit
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.add
+import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
@@ -120,6 +123,13 @@ class MainActivity :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (savedInstanceState == null) {
+            supportFragmentManager.commit {
+                setReorderingAllowed(true)
+                add<CategoryListFragment>(R.id.content_container)
+            }
+        }
 
         addSoundLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -230,6 +240,13 @@ class MainActivity :
                 val intent = Intent(this, SettingsActivity::class.java)
                 startActivity(intent)
                 overridePendingTransition(0, 0)
+            }
+            R.id.action_help -> {
+                supportFragmentManager.commit {
+                    replace<HelpFragment>(R.id.content_container)
+                    setReorderingAllowed(true)
+                    addToBackStack("help")
+                }
             }
             R.id.action_toggle_filter -> toggleFilterEnabled()
             R.id.action_toggle_reorder -> soundViewModel.toggleReorderEnabled()
