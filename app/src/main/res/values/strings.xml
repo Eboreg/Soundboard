@@ -94,7 +94,6 @@
     <string name="edit_sound_or_sounds">Edit sound(s)</string>
     <string name="delete_sound_or_sounds">Delete sound(s)</string>
     <string name="category_actions">Category actions</string>
-    <string name="help_title_category_sort">Sort sounds</string>
     <string name="help_text_category_sort">This will let you reorder the sounds within this category by different parameters.</string>
     <string name="help">Hëlp!!</string>
 </resources>

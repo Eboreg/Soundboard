@@ -93,7 +93,6 @@
     <string name="edit_sound_or_sounds">Redigera ljud</string>
     <string name="delete_sound_or_sounds">Radera ljud</string>
     <string name="category_actions">Kategoriåtgärder</string>
-    <string name="help_title_category_sort">Sortera ljud</string>
     <string name="help_text_category_sort">Detta låter dig sortera om ljuden inom kategorin enligt olika parametrar.</string>
     <string name="help">Hjälp!!</string>
 </resources>
