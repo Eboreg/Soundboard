@@ -19,6 +19,7 @@
         <item name="actionBarStyle">@style/Soundboard.Style.Toolbar</item>
         <item name="actionModeStyle">@style/Soundboard.Style.ActionMode</item>
         <item name="popupMenuBackground">?attr/colorPrimary</item>
+        <item name="alertDialogTheme">@style/Soundboard.Theme.MaterialAlertDialog</item>
         <item name="materialAlertDialogTheme">@style/Soundboard.Theme.MaterialAlertDialog</item>
 
         <item name="windowActionModeOverlay">true</item>

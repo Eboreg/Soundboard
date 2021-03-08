@@ -1,4 +1,4 @@
-Both "custom" and "select" in select colour popup are very subdued
+Do some primitive priming without AudioTrack (pre-load a full buffer and keep it in memory)
 
 
 Can I get sound "range select" to work over category boundaries?
@@ -25,37 +25,6 @@ Layout takes lots of time (well, mostly while debugging, not so much on regular 
 Mostly RecyclerView.onMeasure() and ConstraintLayout.onMeasure() (for
 individual sounds). How to optimize? Something with autoMeasure perhaps?
 https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView.LayoutManager#isautomeasureenabled
-
-
-"Stress test" with lots of sounds; is it true that there's a limit of 128 AudioTrack objects?
-In that case, release those objects that are farthest from being visible
-
-
-Fix repress mode stuff (what??)
-
-
-On "instant replay" stop mode, make sure everything is completely initialized before running play() again
-
-
-Q: Some sounds (especially short ones) don't play? writeAudioTrack() gets called once but then nothing.
-A: "If you don't call write() first, or if you call write() but with an insufficient amount of data,
-then the track will be in underrun state at play(). In this case, playback will not actually start
-playing until the data path is filled to a device-specific minimum level."
--- https://developer.android.com/reference/kotlin/android/media/AudioTrack#play
-
-Maybe need to send it at least BUFFER_SIZE bytes? Trying padding last buffer with zeros.
-Padding seems to work! \o/
-
-
-AudioFile:
-We need to somehow:
-1. Know when the audio priming is ready (all priming data has been read from codec AND fed into audioTrack)
-2. Then, and at no time before, run codec.flush()
-
-On user initiated stop: do forceStop() which cuts playback and cancels codec etc
-After playback has run its length and has not been stopped by user:
-1. Somehow check if CodecCallback is still doing decoding/playback queuing
-2. When it's not: do the stop stuff
 
 
 Look at backup_descriptor.xml stuff
@@ -87,6 +56,3 @@ to be doing so automatically
 
 
 Write tests :-//////////////
-
-
-Trash CategoryListFragment, put it all in MainActivity?
