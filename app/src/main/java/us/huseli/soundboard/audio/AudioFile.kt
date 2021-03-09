@@ -47,6 +47,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
     private var audioTrack: AudioTrack? = null
     private var codec: MediaCodec? = null
     private var extractJob: Job? = null
+    private var extractorDone = false
     private var primedData: ByteBuffer? = null
     private var queuedStopJob: Job? = null
 
@@ -249,7 +250,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
             audioTrack = buildAudioTrack()
             audioTrack?.play()
             primedData?.also {
-                writeAudioTrack(it)
+                if (writeAudioTrack(it) > 0 && state == State.INIT_PLAY) onPlayStartCallback?.invoke()
                 primedData = null
             } ?: Log.w(LOG_TAG, "doPlay: primedData is empty! Maybe this is on purpose?")
             extractJob = scope.launch {
@@ -263,6 +264,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
     private fun doPrepare() {
         if (BuildConfig.DEBUG) checkNotOnMainThread("doPrepare")
 
+        extractorDone = false
         extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
         if (mime != MediaFormat.MIMETYPE_AUDIO_RAW) {
             if (codec == null) codec = initCodec()
@@ -273,19 +275,21 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
     private fun doPrime() {
         if (BuildConfig.DEBUG) checkNotOnMainThread("doPrime")
 
+        var totalSize = 0
+        extractorDone = false
+
         primedData = ByteBuffer.allocateDirect(bufferSize).also { primedData ->
             if (mime == MediaFormat.MIMETYPE_AUDIO_RAW) {
                 // Source: Raw audio
                 do {
-                    val sampleSize = extractor.readSampleData(primedData, 0)
-                    if (BuildConfig.DEBUG) Log.d(LOG_TAG, "doPrime: sampleSize=$sampleSize, state=$state, sound=$sound")
-                } while (sampleSize == 0)
+                    totalSize = extractor.readSampleData(primedData, 0)
+                    extractorDone = !extractor.advance()
+                } while (totalSize == 0 && !extractorDone)
             } else codec?.also { codec ->
                 // Source: Encoded audio
                 var inputResult = ProcessInputResult.CONTINUE
                 var outputRetries = 0
                 var stop = false
-                var totalSize = 0
 
                 while (!stop) {
                     if (inputResult != ProcessInputResult.END)
@@ -307,12 +311,12 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
                     }
                 }
                 primedData.limit(primedData.position()).rewind()
-                if (BuildConfig.DEBUG) {
-                    val logString =
-                        "doPrime: totalSize=$totalSize, primedData=$primedData, bufferSize=$bufferSize, state=$state, sound=$sound"
-                    if (totalSize == 0) Log.w(LOG_TAG, logString)
-                    else Log.d(LOG_TAG, logString)
-                }
+            }
+            if (BuildConfig.DEBUG) {
+                val logString =
+                    "doPrime: totalSize=$totalSize, primedData=$primedData, bufferSize=$bufferSize, state=$state, sound=$sound"
+                if (totalSize == 0) Log.w(LOG_TAG, logString)
+                else Log.d(LOG_TAG, logString)
             }
         }
     }
@@ -410,7 +414,6 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
         val job = coroutineContext[Job]
 
         var totalSize = 0
-        var extractorDone = false
         while (!extractorDone && job?.isActive == true) {
             val sampleSize = extractor.readSampleData(buffer, 0)
             if (sampleSize >= 0) {
@@ -496,6 +499,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
 
     private fun initExtractor(): MediaFormat? {
         try {
+            extractorDone = false
             extractor.setDataSource(sound.path)
             for (trackNumber in 0 until extractor.trackCount) {
                 val format = extractor.getTrackFormat(trackNumber)
@@ -526,11 +530,8 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
     private fun processInputBuffer(codec: MediaCodec, previousResult: ProcessInputResult): ProcessInputResult {
         if (BuildConfig.DEBUG) checkNotOnMainThread("processInputBuffer")
 
-        val timeoutUs = 1000L
-        var extractorDone = false
-
         try {
-            val index = codec.dequeueInputBuffer(timeoutUs)
+            val index = codec.dequeueInputBuffer(1000L)
             if (index >= 0) {
                 val buffer = codec.getInputBuffer(index)
                 if (buffer != null) {
