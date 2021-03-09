@@ -6,9 +6,6 @@ doPrime: Why do some get totalSize=0?
 2021-03-09 03:22:09.420 24116-31829 D/AudioFile: doPrime: totalSize=40960, primedData=java.nio.DirectByteBuffer[pos=0 lim=40960 cap=44100], bufferSize=44100, state=INITIALIZING, sound=Sound df91778 <id=320, name=Gayniggers female creatures 1, categoryId=1>
 
 
-Do some primitive priming without AudioTrack (pre-load a full buffer and keep it in memory)
-
-
 Can I get sound "range select" to work over category boundaries?
 
 
@@ -45,15 +42,6 @@ CategoryAdapter.onViewDetachedFromWindow() is run for that holder and it's hidde
 On ordering enabled: scroll with 2 fingers?
 
 
-Clean up Log calls
-
-
-After altering a category, play icon & volumebar on sounds dont work? (Cannot recreate?)
-
-
-In some instance, when creating categories and moving sounds around, an empty category was
-populated with another category's sounds (How to recreate?)
-
 
 Check for usages of adapterPosition/layoutPosition and correct according to
 https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView#positions-in-recyclerview:
@@ -64,3 +52,12 @@ to be doing so automatically
 
 
 Write tests :-//////////////
+
+
+NON-RECREATED
+-------------
+In some instance, when creating categories and moving sounds around, an empty category was
+populated with another category's sounds (How to recreate?)
+
+
+After altering a category, play icon & volumebar on sounds dont work? (Cannot recreate?)

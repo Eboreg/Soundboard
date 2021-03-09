@@ -307,8 +307,12 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
                     }
                 }
                 primedData.limit(primedData.position()).rewind()
-                if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-                    "doPrime: totalSize=$totalSize, primedData=$primedData, bufferSize=$bufferSize, state=$state, sound=$sound")
+                if (BuildConfig.DEBUG) {
+                    val logString =
+                        "doPrime: totalSize=$totalSize, primedData=$primedData, bufferSize=$bufferSize, state=$state, sound=$sound"
+                    if (totalSize == 0) Log.w(LOG_TAG, logString)
+                    else Log.d(LOG_TAG, logString)
+                }
             }
         }
     }
