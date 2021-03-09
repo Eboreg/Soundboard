@@ -1,13 +1,11 @@
 package us.huseli.soundboard.audio
 
 import android.util.Log
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.data.Sound
-import java.util.*
 
 class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Listener {
     private var _duration: Int = -1
@@ -31,7 +29,8 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
     private var job: Job? = null
     private var listener: Listener? = null
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
-    private val tempAudioFiles = Collections.synchronizedList(mutableListOf<AudioFile>())
+    private val tempAudioFiles = mutableListOf<AudioFile>()
+    private val tempAudioFileMutex = Mutex()
 
     var repressMode = RepressMode.STOP
 
@@ -106,8 +105,7 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
     fun release() {
         _state = State.RELEASED
         audioFile?.release()
-        stopAndClearTempPlayers()
-        tempAudioFiles.clear()
+        scope.launch { stopAndClearTempPlayers() }
         listener = null
     }
 
@@ -126,13 +124,13 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
     fun togglePlay() {
         if (_state == State.PLAYING) {
             when (repressMode) {
-                RepressMode.STOP -> {
+                RepressMode.STOP -> scope.launch {
                     audioFile?.stopAndPrepare()
                     stopAndClearTempPlayers()
                 }
-                RepressMode.RESTART -> audioFile?.restart()
+                RepressMode.RESTART -> scope.launch { audioFile?.restart() }
                 // TODO: adjust volumes?
-                RepressMode.OVERLAP -> createAndStartTempPlayer()
+                RepressMode.OVERLAP -> scope.launch { createAndStartTempPlayer() }
             }
         } else audioFile?.playAndPrepare()
     }
@@ -140,14 +138,14 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
 
     /********** PRIVATE METHODS **********/
 
-    private fun createAndStartTempPlayer() {
+    private suspend fun createAndStartTempPlayer() {
         AudioFile(sound, bufferSize, TempAudioFileListener()).prepare().let {
             it.play()
-            tempAudioFiles.add(it)
+            tempAudioFileMutex.withLock { tempAudioFiles.add(it) }
         }
     }
 
-    private suspend fun createAudioFile(): AudioFile? {
+    private fun createAudioFile(): AudioFile? {
         return try {
             AudioFile(sound, bufferSize, this).prepareAndPrime().also { _duration = it.duration.toInt() }
         } catch (e: AudioFile.AudioFileException) {
@@ -163,15 +161,13 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
         }
     }
 
-    private fun isPlaying(): Boolean {
-        return synchronized(tempAudioFiles) {
-            audioFile?.isPlaying == true || tempAudioFiles.any { it.isPlaying }
-        }
+    private fun isPlaying(): Boolean = runBlocking {
+        tempAudioFileMutex.withLock { (audioFile?.isPlaying == true || tempAudioFiles.any { it.isPlaying }) }
     }
 
-    private fun stopAndClearTempPlayers() {
+    private suspend fun stopAndClearTempPlayers() = tempAudioFileMutex.withLock {
         // This will also call release() on them via listener below
-        synchronized(tempAudioFiles) { tempAudioFiles.forEach { it.stop() } }
+        tempAudioFiles.forEach { it.stop() }
         tempAudioFiles.clear()
     }
 
@@ -182,8 +178,8 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
         override fun onAudioFileStateChange(state: AudioFile.State, audioFile: AudioFile, message: String?) {
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (state) {
-                AudioFile.State.PLAYING -> this@SoundPlayer._state = State.PLAYING
-                AudioFile.State.STOPPED -> {
+                AudioFile.State.PLAYING -> _state = State.PLAYING
+                AudioFile.State.STOPPED -> scope.launch {
                     audioFile.release()
                     /**
                      * If state is already STOPPED, it means the user has stopped playback manually. In this case,
@@ -191,13 +187,12 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
                      * shouldn't tamper with it, but instead clear the whole list in togglePlay() once it's done
                      * looping. If state is RELEASED, it's basically the same thing. Leave the loop alone.
                      */
-                    if (this@SoundPlayer._state != State.STOPPED && this@SoundPlayer._state != State.RELEASED) tempAudioFiles.remove(
-                        audioFile)
-                    if (!isPlaying()) this@SoundPlayer._state = State.READY
+                    if (_state != State.STOPPED && _state != State.RELEASED)
+                        tempAudioFileMutex.withLock { tempAudioFiles.remove(audioFile) }
+                    if (!isPlaying()) _state = State.READY
                 }
             }
         }
-
         override fun onAudioFileError(message: String) {}
         override fun onAudioFileWarning(message: String) {}
     }
