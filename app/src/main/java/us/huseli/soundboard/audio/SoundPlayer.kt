@@ -100,7 +100,7 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
 
     suspend fun reinit() {
         job?.join()
-        job = scope.launch { audioFile?.prepare() }
+        job = scope.launch { audioFile?.prepareAndPrime() }
     }
 
     fun release() {
@@ -147,9 +147,9 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
         }
     }
 
-    private fun createAudioFile(): AudioFile? {
+    private suspend fun createAudioFile(): AudioFile? {
         return try {
-            AudioFile(sound, bufferSize, this).prepare().also { _duration = it.duration.toInt() }
+            AudioFile(sound, bufferSize, this).prepareAndPrime().also { _duration = it.duration.toInt() }
         } catch (e: AudioFile.AudioFileException) {
             _errorMessage = e.message
             _state = State.ERROR
