@@ -18,12 +18,10 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
     private var _errorMessage = ""
     private var _state = State.INITIALIZING
         set(value) {
-            if (field != value) {
-                field = value
-                if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-                    "state change: this=$this, uri=$sound, onStateChangeListener=$listener, state=$value, listener=$listener")
-                listener?.onSoundPlayerStateChange(this, value)
-            }
+            field = value
+            if (BuildConfig.DEBUG) Log.d(LOG_TAG,
+                "state change: this=$this, uri=$sound, onStateChangeListener=$listener, state=$value, listener=$listener")
+            listener?.onSoundPlayerStateChange(this, value)
         }
     private var audioFile: AudioFile? = null
     private var job: Job? = null
