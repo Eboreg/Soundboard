@@ -18,7 +18,7 @@ data class Category(
     constructor(name: String, backgroundColor: Int, order: Int) : this(null, name, backgroundColor, order, false)
 
     @Ignore
-    constructor(name: String, backgroundColor: Int) : this(name, backgroundColor, 0)
+    constructor(name: String, backgroundColor: Int) : this(name, backgroundColor, -1)
 
     @Ignore
     constructor(name: String) : this(name, Color.DKGRAY)

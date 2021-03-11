@@ -27,7 +27,7 @@ interface CategoryDao {
     fun insert(category: Category) {
         if (category.order == -1) {
             val maxOrder = privateGetMaxOrder() ?: -1
-            category.order = maxOrder
+            category.order = maxOrder + 1
         }
         privateInsert(category)
     }

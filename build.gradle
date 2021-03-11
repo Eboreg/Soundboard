@@ -7,14 +7,14 @@ buildscript {
 
         // Local variables (use def)
         def android_hilt_version = '1.0.0-alpha03'
-        def fragment_version = '1.3.0'
+        def fragment_version = '1.3.1'
         def lifecycle_version = '2.3.0'
-        def room_version = '2.3.0-beta02'
+        def room_version = '2.3.0-beta03'
         def sentry_version = '4.3.0'
         def material_version = '1.3.0'
         def preference_version = '1.1.1'
         def coroutines_android_version = '1.4.3-native-mt'
-        def androidx_core_version = '1.5.0-beta02'
+        def androidx_core_version = '1.5.0-beta03'
         def constraintlayout_version = '2.1.0-alpha2'
         def activity_version = '1.3.0-alpha03'
         def recyclerview_version = '1.2.0-beta02'
@@ -85,10 +85,10 @@ buildscript {
     }
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.0-beta05'
+        classpath 'com.android.tools.build:gradle:4.2.0-beta06'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "io.sentry:sentry-android-gradle-plugin:1.7.36"
         classpath "com.google.dagger:hilt-android-gradle-plugin:$hilt_version"
@@ -101,7 +101,7 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 }
 
