@@ -14,20 +14,13 @@ class SoundEditViewModel @Inject constructor(private val repository: SoundReposi
     private var _newCategoryId: Int? = null
 
     override fun save(context: Context) = viewModelScope.launch(Dispatchers.IO) {
-        if (!multiple) {
-            // Check if category has changed, and if so, place sound last in new category
-            _newCategoryId?.let { newCategoryId ->
-                if (newCategoryId != sounds.first().categoryId)
-                    sounds.first().order = repository.getMaxOrder(newCategoryId) + 1
-            }
-        } else {
-            _newCategoryId?.let { categoryId ->
-                var order = repository.getMaxOrder(categoryId)
-                sounds.forEach { sound ->
-                    if (sound.categoryId != categoryId) {
-                        sound.categoryId = categoryId
-                        sound.order = ++order
-                    }
+        // Check if category has changed, and if so, place sounds last in new category
+        _newCategoryId?.let { categoryId ->
+            var order = repository.getMaxOrder(categoryId)
+            sounds.forEach { sound ->
+                if (sound.categoryId != categoryId) {
+                    sound.categoryId = categoryId
+                    sound.order = ++order
                 }
             }
         }
