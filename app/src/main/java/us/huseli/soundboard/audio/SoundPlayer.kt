@@ -5,6 +5,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import us.huseli.soundboard.BuildConfig
+import us.huseli.soundboard.data.Constants
 import us.huseli.soundboard.data.Sound
 
 class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Listener {
@@ -121,14 +122,15 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
 
     fun togglePlay() {
         if (_state == State.PLAYING) {
+            val timeoutUs = System.nanoTime() + Constants.SOUND_PLAY_TIMEOUT
             when (repressMode) {
                 RepressMode.STOP -> scope.launch {
                     audioFile?.stopAndPrepare()
                     stopAndClearTempPlayers()
                 }
-                RepressMode.RESTART -> scope.launch { audioFile?.restart() }
+                RepressMode.RESTART -> scope.launch { audioFile?.restart(timeoutUs) }
                 // TODO: adjust volumes?
-                RepressMode.OVERLAP -> scope.launch { createAndStartTempPlayer() }
+                RepressMode.OVERLAP -> scope.launch { createAndStartTempPlayer(timeoutUs) }
             }
         } else audioFile?.playAndPrepare()
     }
@@ -136,9 +138,9 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
 
     /********** PRIVATE METHODS **********/
 
-    private suspend fun createAndStartTempPlayer() {
+    private suspend fun createAndStartTempPlayer(timeoutUs: Long) {
         AudioFile(sound, bufferSize, TempAudioFileListener()).prepare().let {
-            it.play()
+            it.play(timeoutUs)
             tempAudioFileMutex.withLock { tempAudioFiles.add(it) }
         }
     }
