@@ -34,8 +34,8 @@ android {
         applicationId 'us.huseli.soundboard'
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 16
-        versionName '0.6.3'
+        versionCode 17
+        versionName '0.6.4'
         vectorDrawables {
             useSupportLibrary = true
         }

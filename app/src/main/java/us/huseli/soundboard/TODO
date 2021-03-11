@@ -9,10 +9,6 @@ doPrime: Why do some get totalSize=0?
 Can I get sound "range select" to work over category boundaries?
 
 
-Somehow detect how long time has gone between clicking on a sound card and sound actually beginning
-playing, and bail if some timeout has reached (could happen during heavy load).
-
-
 Maybe save repress mode and reinit on activity restart? (Not necessarily on application restart;
 I just want to preserve it when switching between activities)
 
