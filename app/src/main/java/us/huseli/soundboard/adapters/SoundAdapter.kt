@@ -37,6 +37,7 @@ import us.huseli.soundboard.helpers.SoundPlayerTimer
 import us.huseli.soundboard.viewmodels.AppViewModel
 import us.huseli.soundboard.viewmodels.CategoryViewModel
 import us.huseli.soundboard.viewmodels.SoundViewModel
+import java.text.DecimalFormat
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -237,6 +238,11 @@ class SoundAdapter(
             context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
             setTarget(binding.soundCard)
         }
+        private val decimalFormat = DecimalFormat(".#").also {
+            val symbols = it.decimalFormatSymbols
+            symbols.decimalSeparator = '.'
+            it.decimalFormatSymbols = symbols
+        }
         private val soundViewModel = adapter.soundViewModel
         private val activity = adapter.activity
         private val colorHelper = EntryPointAccessors.fromApplication(
@@ -290,7 +296,7 @@ class SoundAdapter(
                 }
             }
 
-            soundViewModel.reorderEnabled.observe(this) { value -> onReorderEnabledChange(value) }
+            appViewModel.reorderEnabled.observe(this) { value -> onReorderEnabledChange(value) }
             soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
         }
 
@@ -333,10 +339,11 @@ class SoundAdapter(
                 }
             }
             if (value > -1) {
-                binding.duration.text = context.getString(
-                    R.string.duration_seconds,
-                    (value.toDouble() / 1000).roundToInt()
-                )
+                val durationString = when {
+                    value < 950 -> decimalFormat.format(value.toDouble() / 1000)
+                    else -> (value.toDouble() / 1000).roundToInt().toString()
+                }
+                binding.duration.text = context.getString(R.string.duration_seconds, durationString)
                 binding.durationCard.visibility = View.VISIBLE
                 if (playerTimer?.duration != value)
                     playerTimer = SoundPlayerTimer(
@@ -403,6 +410,7 @@ class SoundAdapter(
                 if (!adapter.selectEnabled) {
                     // Select is not enabled; enable it
                     soundViewModel.enableSelect()
+                    appViewModel.disableReorder()
                 } else {
                     // Select is enabled; if this sound is not selected, select it and all
                     // between it and the last selected one (if any)

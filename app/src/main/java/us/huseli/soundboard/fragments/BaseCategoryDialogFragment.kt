@@ -23,7 +23,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogListener {
     private val dialogId by lazy { requireArguments().getInt(ARG_DIALOG_ID) }
-    private var binding: FragmentEditCategoryBinding? = null
+    protected var binding: FragmentEditCategoryBinding? = null
 
     internal val appViewModel by activityViewModels<AppViewModel>()
     internal abstract val viewModel: BaseCategoryEditViewModel
@@ -34,35 +34,38 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
 
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         val inflater = LayoutInflater.from(requireContext())
-        binding = FragmentEditCategoryBinding.inflate(inflater)
+        if (binding == null) binding = FragmentEditCategoryBinding.inflate(inflater)
         binding?.viewModel = viewModel
         binding?.selectColorButton?.setOnClickListener { onSelectColourClick() }
 
         val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setTitle(title)
-                .setView(binding?.root)
-                .setPositiveButton(R.string.save, null)
-                .setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
-                .create()
+            .setTitle(title)
+            .setView(binding?.root)
+            .setPositiveButton(R.string.save, null)
+            .setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
+            .create()
 
         // Custom listener to avoid automatic dismissal!
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val catName = binding?.categoryName?.text.toString().trim()
                 if (catName.isEmpty())
-                    binding?.root?.let { Snackbar.make(it, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show() }
-                else {
-                    viewModel.apply {
-                        appViewModel.pushCategoryUndoState(requireContext())
-                        setName(catName)
-                        save()
-                        dismiss()
+                    binding?.root?.let {
+                        Snackbar.make(it, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show()
                     }
-                }
+                else save()
             }
         }
-
         return dialog
+    }
+
+    protected open fun save() {
+        viewModel.apply {
+            appViewModel.pushCategoryUndoState(requireContext())
+            setName(binding?.categoryName?.text.toString().trim())
+            save()
+            dismiss()
+        }
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
@@ -82,7 +85,7 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) =
-            binding?.root
+        binding?.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

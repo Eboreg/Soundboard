@@ -572,7 +572,7 @@
                     <ImageView
                         android:layout_width="@dimen/icon_size"
                         android:layout_height="@dimen/icon_size"
-                        android:src="@drawable/ic_sort"
+                        android:src="@drawable/ic_edit"
                         tools:ignore="ContentDescription,TooManyViews" />
 
                     <androidx.appcompat.widget.LinearLayoutCompat
@@ -587,38 +587,16 @@
                             android:layout_marginBottom="@dimen/margin_normal"
                             android:gravity="center_vertical"
                             android:minHeight="@dimen/icon_size"
-                            android:text="@string/reorder_sounds_in_category"
+                            android:text="@string/edit_category"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:justificationMode="inter_word"
-                            android:text="@string/help_text_category_sort"
+                            android:text="@string/help_text_edit_category"
                             tools:ignore="UnusedAttribute" />
                     </androidx.appcompat.widget.LinearLayoutCompat>
-                </androidx.appcompat.widget.LinearLayoutCompat>
-
-                <androidx.appcompat.widget.LinearLayoutCompat
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/margin_normal"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="@dimen/icon_size"
-                        android:layout_height="@dimen/icon_size"
-                        android:src="@drawable/ic_edit"
-                        tools:ignore="ContentDescription" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/margin_normal"
-                        android:gravity="center_vertical"
-                        android:minHeight="@dimen/icon_size"
-                        android:text="@string/edit_category"
-                        android:textStyle="bold" />
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <androidx.appcompat.widget.LinearLayoutCompat

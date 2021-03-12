@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_normal"
             android:orientation="horizontal"
-            tools:background="@android:color/black">
+            tools:background="@color/purple_500">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/category_collapse"
@@ -63,19 +63,6 @@
                     tools:text="Category name"
                     tools:textColor="@android:color/white" />
             </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <ImageButton
-                android:id="@+id/category_sort_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/reorder_sounds_in_category"
-                android:padding="@dimen/margin_normal"
-                app:drawableColor="@{category.textColor}"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/category_edit_button"
-                app:srcCompat="@drawable/ic_sort" />
 
             <ImageButton
                 android:id="@+id/category_edit_button"

@@ -22,4 +22,13 @@
         <item name="android:textSize">@dimen/title_text</item>
     </style>
 
+    <style name="Soundboard.Style.Spinner" parent="Widget.AppCompat.Spinner">
+        <item name="android:popupBackground">?attr/colorBackgroundFloating</item>
+        <item name="android:popupElevation">@dimen/margin_small</item>
+    </style>
+
+    <style name="Soundboard.Style.Spinner.Item" parent="Widget.AppCompat.TextView.SpinnerItem">
+        <item name="android:padding">@dimen/margin_normal</item>
+    </style>
+
 </resources>

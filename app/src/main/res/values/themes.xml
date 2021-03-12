@@ -21,6 +21,9 @@
         <item name="popupMenuBackground">?attr/colorPrimary</item>
         <item name="alertDialogTheme">@style/Soundboard.Theme.MaterialAlertDialog</item>
         <item name="materialAlertDialogTheme">@style/Soundboard.Theme.MaterialAlertDialog</item>
+        <item name="spinnerStyle">@style/Soundboard.Style.Spinner</item>
+        <item name="android:spinnerStyle">@style/Soundboard.Style.Spinner</item>
+        <item name="android:spinnerItemStyle">@style/Soundboard.Style.Spinner.Item</item>
 
         <item name="windowActionModeOverlay">true</item>
     </style>

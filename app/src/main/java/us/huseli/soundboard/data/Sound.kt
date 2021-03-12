@@ -128,6 +128,7 @@ data class Sound(
                         else -> -1
                     }
                 }
+                SortParameter.UNDEFINED -> 0
             }
         }
     }
@@ -135,7 +136,7 @@ data class Sound(
 
     enum class SortOrder { ASCENDING, DESCENDING }
 
-    enum class SortParameter { NAME, DURATION, TIME_ADDED }
+    enum class SortParameter { UNDEFINED, NAME, DURATION, TIME_ADDED }
 
     companion object CREATOR : Parcelable.Creator<Sound> {
         override fun createFromParcel(parcel: Parcel) = Sound(parcel)

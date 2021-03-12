@@ -39,7 +39,7 @@
     <string name="load_failed">Kunde inte ladda</string>
     <string name="selected">Vald</string>
     <string name="add_sound_here">Lägg till ljud här</string>
-    <string name="duration_seconds">%1$ds</string>
+    <string name="duration_seconds">%1$ss</string>
     <string name="select_all">Välj alla</string>
     <string name="re_init_failed_sounds">Läs in misslyckade ljud igen</string>
     <string name="repress_mode">Återtrycksläge</string>
@@ -52,12 +52,6 @@
     <string name="toggle_filter">Filter på/av</string>
     <string name="close_filter">Stäng filtrering</string>
     <string name="undo">Ångra</string>
-    <string name="reorder_sounds_in_category">Sortera om ljud i kategorin</string>
-    <string name="sort_category_dialog_title">Sortera kategori: %1$s</string>
-    <string name="sort">Sortera</string>
-    <string name="by_name">Efter namn</string>
-    <string name="by_duration">Efter längd</string>
-    <string name="by_add_date">Efter tilläggsdatum</string>
     <string name="ascending">Stigande</string>
     <string name="descending">Fallande</string>
     <string name="cannot_enable_filter">Kan inte aktivera filter medan omsortering är aktiv</string>
@@ -71,7 +65,7 @@
     <string name="reset_buffer_size_to_default">Återställ buffertstorlek till default</string>
     <string name="no_sound_chosen">Inget ljud valt!</string>
     <string name="help_text_add_sound">Lägg till ett eller flera ljud i soundboarden. Av tekniska skäl kommer dessa att kopieras till appens interna lagringsutrymme.</string>
-    <string name="help_text_reorder">När denna aktiveras kan du sortera om ljuden genom att dra och släppa dem.</string>
+    <string name="help_text_reorder">När denna aktiveras kan du sortera om ljuden och kategorierna genom att dra och släppa dem.</string>
     <string name="help_title_add_sound">Lägg till ljud</string>
     <string name="help_title_filter">Filtrera</string>
     <string name="help_text_filter">När denna aktiveras kan du filtrera vilka ljud som visas genom att skriva in en sträng.</string>
@@ -93,6 +87,10 @@
     <string name="edit_sound_or_sounds">Redigera ljud</string>
     <string name="delete_sound_or_sounds">Radera ljud</string>
     <string name="category_actions">Kategoriåtgärder</string>
-    <string name="help_text_category_sort">Detta låter dig sortera om ljuden inom kategorin enligt olika parametrar.</string>
+    <string name="help_text_edit_category">Detta låter dig ändra namn och färg för kategorin samt sortera om dess ljud enligt olika parametrar.</string>
     <string name="help">Hjälp!!</string>
+    <string name="duration">Längd</string>
+    <string name="add_date">Tilläggsdatum</string>
+    <string name="sort_by">Sortera efter</string>
+    <string name="unchanged">(Oförändrad)</string>
 </resources>

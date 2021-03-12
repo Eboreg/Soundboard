@@ -13,7 +13,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/edit_sound_fragment"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:orientation="vertical"
@@ -78,7 +78,6 @@
 
         <Spinner
             android:id="@+id/category"
-            style="@style/Widget.AppCompat.Spinner"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_normal"

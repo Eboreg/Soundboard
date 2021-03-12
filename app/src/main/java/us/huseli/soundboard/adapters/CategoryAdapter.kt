@@ -151,6 +151,8 @@ class CategoryAdapter(
                     }
                 }
             }
+
+            appViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
         }
 
         /********* PUBLIC/INTERNAL METHODS **********/
@@ -197,43 +199,46 @@ class CategoryAdapter(
 
 
         /********* PRIVATE METHODS **********/
-        @SuppressLint("ClickableViewAccessibility")
         private fun disableClickAndTouch() {
             listOf(
                 binding.categoryEditButton,
                 binding.categoryDeleteButton,
-                binding.categorySortButton,
             ).forEach {
                 it.setOnClickListener(null)
                 it.alpha = 0.5f
                 it.isClickable = false
             }
-            binding.categoryMoveButton.setOnTouchListener(null)
-            binding.categoryMoveButton.alpha = 0.3f
-            binding.categoryMoveButton.isClickable = false
         }
 
-        @SuppressLint("ClickableViewAccessibility")
         private fun enableClickAndTouch() {
             listOf(
                 binding.categoryEditButton,
                 binding.categoryDeleteButton,
-                binding.categorySortButton,
                 binding.categoryCollapse,
             ).forEach {
                 it.setOnClickListener(this)
                 it.alpha = 1.0f
                 it.isClickable = true
             }
-            binding.categoryMoveButton.setOnTouchListener(this)
-            binding.categoryMoveButton.alpha = 1.0f
-            binding.categoryMoveButton.isClickable = true
         }
 
         private fun onCollapseChanged(value: Boolean) {
             if (!soundDragListener.isDragging) soundDragListener.wasCollapsed = value
             binding.soundList.visibility = if (value) View.GONE else View.VISIBLE
             isCollapsed = value
+        }
+
+        @SuppressLint("ClickableViewAccessibility")
+        private fun onReorderEnabledChange(value: Boolean?) {
+            if (value == false) {
+                binding.categoryMoveButton.setOnTouchListener(null)
+                binding.categoryMoveButton.alpha = 0.3f
+                binding.categoryMoveButton.isClickable = false
+            } else if (value == true) {
+                binding.categoryMoveButton.setOnTouchListener(this)
+                binding.categoryMoveButton.alpha = 1.0f
+                binding.categoryMoveButton.isClickable = true
+            }
         }
 
         private fun onSelectEnabledChange(value: Boolean) {
@@ -285,7 +290,6 @@ class CategoryAdapter(
                         binding.categoryEditButton -> activity.showCategoryEditDialog(catId)
                         binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(
                             catId, category.name, soundCount ?: 0)
-                        binding.categorySortButton -> activity.showCategorySortDialog(catId, category.name)
                         binding.categoryCollapse -> toggleCollapsed()
                     }
                 }

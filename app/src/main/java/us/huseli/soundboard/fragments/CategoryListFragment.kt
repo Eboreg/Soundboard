@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.adapters.CategoryAdapter
+import us.huseli.soundboard.data.Constants
 import us.huseli.soundboard.databinding.FragmentCategoryListBinding
 import us.huseli.soundboard.helpers.SoundScroller
 import us.huseli.soundboard.interfaces.ZoomInterface
@@ -34,7 +35,7 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
         val config = resources.configuration
 
         val landscapeSpanCount = preferences.getInt("landscapeSpanCount", 0)
-        initialSpanCount = appViewModel.setup(
+        initialSpanCount = appViewModel.setupLayout(
             config.orientation, config.screenWidthDp, config.screenHeightDp, landscapeSpanCount)
         appViewModel.spanCountLandscape.observe(viewLifecycleOwner) {
             if (it != null) {
@@ -81,7 +82,7 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
         binding?.also { binding ->
             categoryAdapter = CategoryAdapter(
                 appViewModel,
-                initialSpanCount ?: AppViewModel.DEFAULT_SPANCOUNT_PORTRAIT,
+                initialSpanCount ?: Constants.DEFAULT_SPANCOUNT_PORTRAIT,
                 soundViewModel,
                 categoryListViewModel,
                 requireActivity(),

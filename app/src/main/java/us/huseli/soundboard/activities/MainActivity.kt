@@ -223,7 +223,7 @@ class MainActivity :
         appViewModel.repressMode.observe(this) { onRepressModeChange(it) }
         appViewModel.zoomInPossible.observe(this) { onZoomInPossibleChange(it) }
         soundViewModel.filterEnabled.observe(this) { onFilterEnabledChange(it) }
-        soundViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
+        appViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
         appViewModel.undosAvailable.observe(this) { onUndosAvailableChange(it) }
         return true
     }
@@ -249,7 +249,7 @@ class MainActivity :
                 }
             }
             R.id.action_toggle_filter -> toggleFilterEnabled()
-            R.id.action_toggle_reorder -> soundViewModel.toggleReorderEnabled()
+            R.id.action_toggle_reorder -> appViewModel.toggleReorderEnabled()
             R.id.action_undo -> undo()
             R.id.action_zoom_in -> zoomIn()
             R.id.action_zoom_out -> zoomOut()
@@ -307,9 +307,6 @@ class MainActivity :
         showDialogFragment(
             EditCategoryDialogFragment.newInstance(id, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)),
             CATEGORY_EDIT_DIALOG_TAG)
-
-    override fun showCategorySortDialog(id: Int, name: String) =
-        showDialogFragment(SortCategoryDialogFragment.newInstance(id, name))
 
     override fun showSnackbar(text: CharSequence) =
         Snackbar.make(binding.appCoordinator, text, Snackbar.LENGTH_SHORT).show()
@@ -419,14 +416,11 @@ class MainActivity :
     private fun onFilterEnabledChange(value: Boolean) {
         filterEnabled = value
         val manager = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-        val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_filter)
         if (value) {
-            item?.icon?.alpha = 255
             binding.filterBar.visibility = View.VISIBLE
             binding.filterTerm.requestFocus()
             manager?.showSoftInput(binding.filterTerm, InputMethodManager.SHOW_IMPLICIT)
         } else {
-            item?.icon?.alpha = 128
             binding.filterBar.visibility = View.GONE
             manager?.hideSoftInputFromWindow(binding.filterTerm.windowToken, 0)
         }

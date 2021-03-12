@@ -16,14 +16,9 @@ import kotlin.math.roundToInt
 class AppViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository, private val soundRepository: SoundRepository
 ) : ViewModel() {
-    companion object {
-        const val DEFAULT_SPANCOUNT_LANDSCAPE = 8
-        const val DEFAULT_SPANCOUNT_PORTRAIT = 4
-        const val MAX_UNDO_STATES = 20
-    }
-
     private val undoStates = mutableListOf<UndoState>()
     private val _orientation = MutableLiveData<Int>()
+    private val _reorderEnabled = MutableLiveData(false)
     private val _repressMode = MutableLiveData(SoundPlayer.RepressMode.STOP)
     private val _screenRatio = MutableLiveData<Double>()  // (width / height) in portrait mode
     private val _spanCountLandscape = MutableLiveData<Int?>()
@@ -90,15 +85,26 @@ class AppViewModel @Inject constructor(
         if (undoStates.isEmpty()) _undosAvailable.postValue(false)
     }
 
+    /******* SOUND/CATEGORY REORDERING *******/
+    val reorderEnabled: LiveData<Boolean>
+        get() = _reorderEnabled
+
+    fun toggleReorderEnabled() {
+        _reorderEnabled.value = !(_reorderEnabled.value ?: false)
+    }
+
+    fun disableReorder() {
+        if (_reorderEnabled.value != false) _reorderEnabled.value = false
+    }
+
 
     /** PRIVATE METHODS */
-
     private fun getZoomPercent(): Int? {
         return when (_orientation.value) {
             Configuration.ORIENTATION_LANDSCAPE ->
-                _spanCountLandscape.value?.let { ((DEFAULT_SPANCOUNT_LANDSCAPE.toDouble() / it) * 100).roundToInt() }
+                _spanCountLandscape.value?.let { ((Constants.DEFAULT_SPANCOUNT_LANDSCAPE.toDouble() / it) * 100).roundToInt() }
             Configuration.ORIENTATION_PORTRAIT -> {
-                landscapeSpanCountToPortrait(DEFAULT_SPANCOUNT_LANDSCAPE)?.let { defaultSpanCount ->
+                landscapeSpanCountToPortrait(Constants.DEFAULT_SPANCOUNT_LANDSCAPE)?.let { defaultSpanCount ->
                     _spanCountPortrait.value?.let { ((defaultSpanCount.toDouble() / it) * 100).roundToInt() }
                 }
             }
@@ -118,7 +124,7 @@ class AppViewModel @Inject constructor(
         if (sounds != null || categories != null) {
             undoStates.add(UndoState(sounds, categories))
             _undosAvailable.postValue(true)
-            if (undoStates.size > MAX_UNDO_STATES) {
+            if (undoStates.size > Constants.MAX_UNDO_STATES) {
                 val removedState = undoStates.removeFirst()
                 val nextState = undoStates.first()
                 if (removedState.sounds != null && nextState.sounds != null)
@@ -131,11 +137,12 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    fun setup(orientation: Int, screenWidthDp: Int, screenHeightDp: Int, landscapeSpanCount: Int): Int {
+    fun setupLayout(orientation: Int, screenWidthDp: Int, screenHeightDp: Int, landscapeSpanCount: Int): Int {
         /**
          * Returns actual span count for the current screen orientation
          */
-        val localLandscapeSpanCount = if (landscapeSpanCount > 0) landscapeSpanCount else DEFAULT_SPANCOUNT_LANDSCAPE
+        val localLandscapeSpanCount =
+            if (landscapeSpanCount > 0) landscapeSpanCount else Constants.DEFAULT_SPANCOUNT_LANDSCAPE
         _orientation.value = orientation
 
         val ratio = when (orientation) {

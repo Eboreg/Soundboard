@@ -1,11 +1,14 @@
 package us.huseli.soundboard.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import us.huseli.soundboard.R
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.CategoryRepository
 import us.huseli.soundboard.data.SoundRepository
@@ -14,11 +17,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CategoryViewModel @Inject constructor(
+    @ApplicationContext context: Context,
     private val repository: CategoryRepository,
     private val soundRepository: SoundRepository,
     private val colorHelper: ColorHelper
 ) : ViewModel() {
-    private val emptyCategory = Category("(Unchanged)")
+    private val emptyCategory = Category(context.getString(R.string.unchanged))
 
     val categories = repository.categories.map { list ->
         list.forEach {

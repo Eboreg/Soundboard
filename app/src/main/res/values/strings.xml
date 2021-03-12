@@ -39,7 +39,7 @@
     <string name="load_failed">Load failed</string>
     <string name="selected">Selected</string>
     <string name="add_sound_here">Add sound here</string>
-    <string name="duration_seconds">%1$ds</string>
+    <string name="duration_seconds">%1$ss</string>
     <string name="select_all">Select all</string>
     <string name="re_init_failed_sounds" tools:keep="@string/re_init_failed_sounds">Re-init failed sounds</string>
     <string name="repress_mode">Re-press mode</string>
@@ -52,12 +52,6 @@
     <string name="toggle_filter">Toggle filtering</string>
     <string name="close_filter">Close filter</string>
     <string name="undo">Undo</string>
-    <string name="reorder_sounds_in_category">Reorder sounds in category</string>
-    <string name="sort_category_dialog_title">Sort category: %1$s</string>
-    <string name="sort">Sort</string>
-    <string name="by_name">By name</string>
-    <string name="by_duration">By duration</string>
-    <string name="by_add_date">By add date</string>
     <string name="ascending">Ascending</string>
     <string name="descending">Descending</string>
     <string name="cannot_enable_filter">Cannot enable filter while reordering is enabled</string>
@@ -72,7 +66,7 @@
     <string name="reset_buffer_size_to_default">Reset buffer size to default</string>
     <string name="no_sound_chosen">No sound chosen!</string>
     <string name="help_text_add_sound">Add one or more sounds to the soundboard. For technical reasons, they will be copied to the app\'s internal storage.</string>
-    <string name="help_text_reorder">When activated, you can reorder sounds by dragging and dropping them.</string>
+    <string name="help_text_reorder">When activated, you can reorder sounds and categories by dragging and dropping them.</string>
     <string name="help_title_add_sound">Add sound(s)</string>
     <string name="help_title_filter">Filter</string>
     <string name="help_text_filter">When activated, you can filter the displayed sounds by entering a string.</string>
@@ -94,6 +88,10 @@
     <string name="edit_sound_or_sounds">Edit sound(s)</string>
     <string name="delete_sound_or_sounds">Delete sound(s)</string>
     <string name="category_actions">Category actions</string>
-    <string name="help_text_category_sort">This will let you reorder the sounds within this category by different parameters.</string>
+    <string name="help_text_edit_category">This will let change a category\'s name and colour, as well as reorder the sounds within it by different parameters.</string>
     <string name="help">Hëlp!!</string>
+    <string name="duration">Duration</string>
+    <string name="add_date">Add date</string>
+    <string name="sort_by">Sort by</string>
+    <string name="unchanged">(Unchanged)</string>
 </resources>

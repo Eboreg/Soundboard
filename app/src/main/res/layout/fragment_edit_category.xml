@@ -11,7 +11,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/edit_sound_category_fragment"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:orientation="vertical"
@@ -51,7 +51,8 @@
             app:layout_constraintTop_toBottomOf="@+id/category_name" />
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/color_container"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_normal"
             android:gravity="center_vertical"
@@ -65,9 +66,9 @@
                 android:layout_width="@dimen/action_button_height"
                 android:layout_height="@dimen/action_button_height"
                 android:layout_marginEnd="@dimen/margin_normal"
-                android:src="@drawable/color_circle"
                 android:background="@drawable/color_circle"
                 android:elevation="@dimen/elevation_normal"
+                android:src="@drawable/color_circle"
                 app:drawableColor="@{viewModel.backgroundColor}"
                 tools:ignore="ContentDescription"
                 tools:targetApi="lollipop" />
@@ -78,6 +79,56 @@
                 android:layout_height="wrap_content"
                 android:text="@string/select_colour" />
         </LinearLayout>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/sort_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:layout_constraintTop_toBottomOf="@+id/color_container">
+
+            <View
+                android:id="@+id/divider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_margin="@dimen/margin_normal"
+                android:background="?android:attr/listDivider" />
+
+            <TextView
+                android:id="@+id/sort_by_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_normal"
+                android:text="@string/sort_by" />
+
+            <Spinner
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/sort_by" />
+
+            <RadioGroup
+                android:id="@+id/sort_order"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/sort_order_ascending"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/elevation_big"
+                    android:text="@string/ascending" />
+
+                <RadioButton
+                    android:id="@+id/sort_order_descending"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/descending" />
+            </RadioGroup>
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

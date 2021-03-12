@@ -26,7 +26,6 @@ class SoundViewModel
     private val _failedSounds = mutableListOf<Sound>()
     private val _filterEnabled = MutableLiveData(false)
     private val _filterTerm = MutableLiveData("")
-    private val _reorderEnabled = MutableLiveData(false)
 
     val allSounds = repository.listLiveWithCategory().map { list ->
         list.forEach {
@@ -176,7 +175,6 @@ class SoundViewModel
 
     fun enableSelect() {
         if (_selectEnabled.value != true) _selectEnabled.value = true
-        if (_reorderEnabled.value != false) _reorderEnabled.value = false
     }
 
     fun getLastSelected(category: Category?, except: Sound) = category?.id?.let { categoryId ->
@@ -197,15 +195,6 @@ class SoundViewModel
 
     fun selectAll() {
         onSelectAllListeners.forEach { it.select() }
-    }
-
-
-    /******* SOUND REORDERING *******/
-    val reorderEnabled: LiveData<Boolean>
-        get() = _reorderEnabled
-
-    fun toggleReorderEnabled() {
-        _reorderEnabled.value = !(_reorderEnabled.value ?: false)
     }
 
 

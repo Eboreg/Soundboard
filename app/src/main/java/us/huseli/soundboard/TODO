@@ -1,3 +1,11 @@
+Freshen up light mode colours a bit (white background feels too bright, or other backgrounds too
+dark)
+
+
+If you delete sounds and then exit app, when will they actually be deleted? (Since they are
+in realtiy saved for undo)
+
+
 doPrime: Why do some get totalSize=0?
 2021-03-09 03:22:09.324 24116-31747 D/AudioFile: doPrime: totalSize=40960, primedData=java.nio.DirectByteBuffer[pos=0 lim=40960 cap=44100], bufferSize=44100, state=INITIALIZING, sound=Sound e0110db <id=319, name=Gayniggers 2, categoryId=1>
 2021-03-09 03:22:09.326 24116-31690 D/AudioFile: doPrime: totalSize=81920, primedData=java.nio.DirectByteBuffer[pos=0 lim=81920 cap=88200], bufferSize=88200, state=INITIALIZING, sound=Sound 90eb7bf <id=315, name=Flim Flam Flum, categoryId=1>
