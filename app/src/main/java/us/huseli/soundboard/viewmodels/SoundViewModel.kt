@@ -31,7 +31,7 @@ class SoundViewModel
             it.sound.textColor = colorHelper.getColorOnBackgroundColor(it.category.backgroundColor)
             it.sound.backgroundColor = it.category.backgroundColor
         }
-        list
+        list.map { it.sound }
     }
 
     val failedSounds: List<Sound>
@@ -107,7 +107,7 @@ class SoundViewModel
     private val _filteredSounds = _filterTerm.switchMap { term ->
         allSounds.map { sounds ->
             sounds.filter { sound ->
-                sound.sound.name.toLowerCase(Locale.getDefault())
+                sound.name.toLowerCase(Locale.getDefault())
                     .contains(term.toLowerCase(Locale.getDefault()))
             }
         }

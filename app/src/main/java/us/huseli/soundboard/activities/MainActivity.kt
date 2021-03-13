@@ -41,7 +41,6 @@ import us.huseli.soundboard.audio.SoundPlayer
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.PlayerRepository
 import us.huseli.soundboard.data.Sound
-import us.huseli.soundboard.data.SoundWithCategory
 import us.huseli.soundboard.databinding.ActivityMainBinding
 import us.huseli.soundboard.fragments.*
 import us.huseli.soundboard.interfaces.EditCategoryInterface
@@ -74,7 +73,7 @@ class MainActivity :
 
     private var actionMode: ActionMode? = null
     private var addSoundLauncher: ActivityResultLauncher<Intent>? = null
-    private var allSounds = emptyList<SoundWithCategory>()  // used for soundAddViewModel
+    private var allSounds = emptyList<Sound>()  // used for soundAddViewModel
     private var categories = emptyList<Category>()
     private var filterEnabled: Boolean = false
     private var filterWasEnabled: Boolean = false
@@ -364,9 +363,7 @@ class MainActivity :
             }
         }
 
-        soundAddViewModel.setup(sounds,
-            this.allSounds.map { it.sound },
-            getString(R.string.multiple_sounds_selected, sounds.size))
+        soundAddViewModel.setup(sounds, this.allSounds, getString(R.string.multiple_sounds_selected, sounds.size))
 
         when {
             soundAddViewModel.hasDuplicates -> showDialogFragment(AddDuplicateSoundDialogFragment())

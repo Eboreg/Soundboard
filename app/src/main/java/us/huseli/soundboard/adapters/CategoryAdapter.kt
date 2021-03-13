@@ -15,7 +15,6 @@ import us.huseli.soundboard.adapters.common.LifecycleViewHolder
 import us.huseli.soundboard.animators.CollapseButtonAnimator
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
-import us.huseli.soundboard.data.SoundWithCategory
 import us.huseli.soundboard.databinding.ItemCategoryBinding
 import us.huseli.soundboard.helpers.CategoryItemDragHelperCallback
 import us.huseli.soundboard.helpers.SoundDragListener
@@ -137,19 +136,6 @@ class CategoryAdapter(
                     }
                 }
                 isNestedScrollingEnabled = false
-
-                // TODO: Does this actually work as intended?
-                viewTreeObserver.addOnGlobalLayoutListener {
-                    (layoutManager as SoundLayoutManager).let {
-                        val itemsShown =
-                            it.findLastVisibleItemPosition() - it.findFirstVisibleItemPosition() + 1
-                        binding.loadingBar.visibility =
-                            if (isCollapsed == true || itemsShown >= it.itemCount) View.GONE else View.VISIBLE
-                        if (BuildConfig.DEBUG)
-                            Log.d(LOG_TAG,
-                                "itemsShown=$itemsShown, itemCount=${it.itemCount} = loadingBar.visibility=" + if (binding.loadingBar.visibility == View.GONE) "GONE" else "VISIBLE")
-                    }
-                }
             }
 
             appViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
@@ -173,7 +159,7 @@ class CategoryAdapter(
 
             binding.categoryHeader.setBackgroundColor(category.backgroundColor)
             soundViewModel.filteredSounds.observe(this) { allSounds ->
-                val sounds = allSounds.filter { it.category == category }
+                val sounds = allSounds.filter { it.categoryId == category.id }
                 // Log.d(LOG_TAG, "ViewHolder sound list observer: viewHolder=$this, category=$category, sounds=$sounds")
                 // TODO: Remove test call + method when not needed
                 // submitListWithInvalidSound(sounds)
@@ -248,7 +234,7 @@ class CategoryAdapter(
         }
 
         @Suppress("unused")
-        private fun submitListWithInvalidSound(soundsWithCategory: List<SoundWithCategory>) {
+        private fun submitListWithInvalidSound(sounds: List<Sound>) {
             val uri = Uri.fromParts(
                 "content",
                 "//com.android.externalstorage.documents/document/0000-0000:Music/Soundboard/Uh! Sorry!.flac",
@@ -256,9 +242,9 @@ class CategoryAdapter(
             )
             val invalidSound =
                 Sound(666, item?.id, "fail", uri.path!!, 10, 100, Date(), -1, null)
-            val invalidSoundWithCategory = SoundWithCategory(invalidSound, item!!)
-            val mutableSounds = soundsWithCategory.toMutableList()
-            mutableSounds.add(invalidSoundWithCategory)
+            // val invalidSoundWithCategory = SoundWithCategory(invalidSound, item!!)
+            val mutableSounds = sounds.toMutableList()
+            mutableSounds.add(invalidSound)
             soundCount = mutableSounds.count()
             soundAdapter.submitList(mutableSounds)
         }
@@ -316,9 +302,23 @@ class CategoryAdapter(
         }
 
 
-        inner class SoundLayoutManager(context: Context, spanCount: Int) :
-            GridLayoutManager(context, spanCount) {
+        inner class SoundLayoutManager(context: Context, spanCount: Int) : GridLayoutManager(context, spanCount) {
             override fun isAutoMeasureEnabled() = true
+
+            // TODO: Graphically buggy bastard, maybe try again with something else someday
+/*
+            override fun onLayoutChildren(recycler: RecyclerView.Recycler?, state: RecyclerView.State?) {
+                super.onLayoutChildren(recycler, state)
+                binding.loadingBar.visibility = when {
+                    isCollapsed == true || itemCount == 0 -> View.GONE
+                    state != null && (state.isPreLayout || state.isMeasuring) -> View.VISIBLE
+                    else -> View.GONE
+                }
+                if (BuildConfig.DEBUG)
+                    Log.d(LOG_TAG,
+                        "onLayoutChildren: category=$item, itemCount=$itemCount, state=$state = loadingBar.visibility=" + if (binding.loadingBar.visibility == View.GONE) "GONE" else "VISIBLE")
+            }
+*/
         }
     }
 }

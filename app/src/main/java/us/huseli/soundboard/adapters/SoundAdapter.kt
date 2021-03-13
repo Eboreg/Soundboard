@@ -47,7 +47,7 @@ class SoundAdapter(
     private val categoryViewModel: CategoryViewModel,
     private val activity: FragmentActivity
 ) :
-    LifecycleAdapter<SoundWithCategory, SoundAdapter.SoundViewHolder>(DiffCallback()) {
+    LifecycleAdapter<Sound, SoundAdapter.SoundViewHolder>(DiffCallback()) {
     var category: Category? = null
     private var selectEnabled = false
 
@@ -58,7 +58,7 @@ class SoundAdapter(
     /*********** OVERRIDDEN/IMPLEMENTED METHODS ***********/
     override fun getItemId(position: Int): Long {
         try {
-            return getItem(position).sound.id!!.toLong()
+            return getItem(position).id!!.toLong()
         } catch (e: NullPointerException) {
             Log.e(LOG_TAG, "Sound at $position (${getItem(position)}) has null id")
             throw e
@@ -91,8 +91,8 @@ class SoundAdapter(
     /*********** OWN PUBLIC/INTERNAL METHODS ***********/
     internal fun collapseCategory() = categoryViewModel.collapse(category)
 
-    internal fun contains(soundWithCategory: SoundWithCategory) =
-        currentList.indexOf(soundWithCategory) > -1
+    internal fun contains(sound: Sound) =
+        currentList.indexOf(sound) > -1
 
     internal fun expandCategory() = categoryViewModel.expand(category)
 
@@ -114,9 +114,9 @@ class SoundAdapter(
     internal fun getSoundAt(position: Int) = getItem(position)
 
     internal fun insertOrMoveSound(sound: Sound, toPosition: Int) {
-        val fromPosition = currentList.map { it.sound }.indexOf(sound)
+        val fromPosition = currentList.indexOf(sound)
         // val fromPosition = currentList.indexOf(sound)
-        val sounds = currentList.map { it.sound }.toMutableList()
+        val sounds = currentList.toMutableList()
 
         if (BuildConfig.DEBUG)
             Log.i(LOG_TAG,
@@ -181,8 +181,8 @@ class SoundAdapter(
         // Select all sound between `sound` and last selected one (if any).
         soundViewModel.getLastSelected(category, sound)?.let { lastSelected ->
             // TODO: Are these always consistent with adapter/layout positions?
-            val pos1 = currentList.map { it.sound }.indexOf(sound)
-            val pos2 = currentList.map { it.sound }.indexOf(lastSelected)
+            val pos1 = currentList.indexOf(sound)
+            val pos2 = currentList.indexOf(lastSelected)
             if (pos1 != -1 && pos2 != -1) {
                 val start = if (pos1 < pos2) pos1 else pos2
                 val end = if (start == pos1) pos2 else pos1
@@ -198,16 +198,16 @@ class SoundAdapter(
     }
 
 
-    class DiffCallback : DiffUtil.ItemCallback<SoundWithCategory>() {
-        override fun areItemsTheSame(oldItem: SoundWithCategory, newItem: SoundWithCategory) =
-            oldItem.sound.id == newItem.sound.id && oldItem.category.id == newItem.category.id
+    class DiffCallback : DiffUtil.ItemCallback<Sound>() {
+        override fun areItemsTheSame(oldItem: Sound, newItem: Sound) =
+            oldItem.id == newItem.id && oldItem.categoryId == newItem.categoryId
 
-        override fun areContentsTheSame(oldItem: SoundWithCategory, newItem: SoundWithCategory) =
-            oldItem.sound.name == newItem.sound.name &&
-                    oldItem.sound.order == newItem.sound.order &&
-                    oldItem.sound.volume == newItem.sound.volume &&
-                    oldItem.sound.backgroundColor == newItem.sound.backgroundColor &&
-                    oldItem.sound.duration == newItem.sound.duration
+        override fun areContentsTheSame(oldItem: Sound, newItem: Sound) =
+            oldItem.name == newItem.name &&
+                    oldItem.order == newItem.order &&
+                    oldItem.volume == newItem.volume &&
+                    oldItem.backgroundColor == newItem.backgroundColor &&
+                    oldItem.duration == newItem.duration
     }
 
 
@@ -222,7 +222,7 @@ class SoundAdapter(
         View.OnTouchListener,
         SoundPlayer.StateListener,
         SoundViewModel.OnSelectAllListener,
-        LifecycleViewHolder<SoundWithCategory>(binding.root) {
+        LifecycleViewHolder<Sound>(binding.root) {
 
         @InstallIn(SingletonComponent::class)
         @EntryPoint
@@ -254,7 +254,7 @@ class SoundAdapter(
         private var reorderEnabled = false
 
         override val lifecycleRegistry = LifecycleRegistry(this)
-        override var item: SoundWithCategory? = null
+        override var item: Sound? = null
 
         init {
             binding.soundContainer.setOnClickListener(this)
@@ -265,21 +265,21 @@ class SoundAdapter(
 
 
         /********* PUBLIC/INTERNAL METHODS **********/
-        internal fun bind(soundWithCategory: SoundWithCategory) {
-            item = soundWithCategory
-            val soundId = soundWithCategory.sound.id
+        internal fun bind(sound: Sound) {
+            item = sound
+            val soundId = sound.id
             if (soundId == null) {
                 Log.e(LOG_TAG, "bind: got Sound with id==null")
                 return
             }
 
-            binding.sound = soundWithCategory.sound
-            setDuration(soundWithCategory.sound.duration)
-            // TODO: Is this necessary?
-            setBackgroundColor(soundWithCategory.category.backgroundColor)
+            binding.sound = sound
+
+            setDuration(sound.duration)
+            sound.backgroundColor?.let { setBackgroundColor(it) }
 
             playerRepository.players.observe(this) { players ->
-                players[soundWithCategory.sound]?.also { newPlayer ->
+                players[sound]?.also { newPlayer ->
                     if (BuildConfig.DEBUG)
                         Log.d(LOG_TAG,
                             "playerRepository.players: newPlayer=$newPlayer, player=$player, state=${newPlayer.state}")
@@ -303,7 +303,7 @@ class SoundAdapter(
         }
 
         private fun onSelectEnabledChange(value: Boolean) {
-            if (value && soundViewModel.selectedSounds.contains(item?.sound))
+            if (value && soundViewModel.selectedSounds.contains(item))
                 binding.selectedIcon.visibility = View.VISIBLE
             else if (!value) binding.selectedIcon.visibility = View.INVISIBLE
         }
@@ -330,9 +330,9 @@ class SoundAdapter(
                 binding.durationCard.visibility = View.VISIBLE
                 if (playerTimer?.duration != value)
                     playerTimer = SoundPlayerTimer(
-                        value, binding.volumeBar, item?.sound?.volume ?: Constants.DEFAULT_VOLUME)
+                        value, binding.volumeBar, item?.volume ?: Constants.DEFAULT_VOLUME)
                 else
-                    item?.sound?.volume?.let { playerTimer?.originalProgress = it }
+                    item?.volume?.let { playerTimer?.originalProgress = it }
             }
         }
 
@@ -361,7 +361,7 @@ class SoundAdapter(
         /********* OVERRIDDEN METHODS **********/
         private fun deselect() {
             item?.let { item ->
-                soundViewModel.deselect(item.sound)
+                soundViewModel.deselect(item)
                 binding.selectedIcon.visibility = View.INVISIBLE
             }
         }
@@ -382,7 +382,7 @@ class SoundAdapter(
         override fun onClick(view: View) {
             item?.let { item ->
                 when {
-                    adapter.selectEnabled -> if (!soundViewModel.isSelected(item.sound)) select() else deselect()
+                    adapter.selectEnabled -> if (!soundViewModel.isSelected(item)) select() else deselect()
                     player == null -> Snackbar.make(
                         binding.root,
                         R.string.soundplayer_not_initialized,
@@ -406,8 +406,8 @@ class SoundAdapter(
                     // Select is enabled; if this sound is not selected, select it and all
                     // between it and the last selected one (if any)
                     item?.let { item ->
-                        if (!soundViewModel.isSelected(item.sound)) {
-                            adapter.selectAllInBetween(item.sound)
+                        if (!soundViewModel.isSelected(item)) {
+                            adapter.selectAllInBetween(item)
                         }
                     }
                 }
@@ -464,7 +464,7 @@ class SoundAdapter(
 
         override fun select() {
             item?.let { item ->
-                soundViewModel.select(item.sound)
+                soundViewModel.select(item)
                 binding.selectedIcon.visibility = View.VISIBLE
             }
         }
