@@ -31,7 +31,4 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
     fun update(sound: Sound) = soundDao.update(sound)
 
     fun update(sounds: List<Sound>) = soundDao.update(sounds)
-
-    fun updateDuration(sound: Sound, duration: Int) =
-            sound.id?.let { soundDao.updateDuration(it, duration) }
 }

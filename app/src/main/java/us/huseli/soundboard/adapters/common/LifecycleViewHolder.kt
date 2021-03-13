@@ -18,11 +18,11 @@ abstract class LifecycleViewHolder<T>(view: View) : RecyclerView.ViewHolder(view
         return location[1] != 0 && location[1] + itemView.height >= 0 && location[1] <= itemView.context.resources.displayMetrics.heightPixels
     }
 
-    fun markCreated() {
+    open fun markCreated() {
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
     }
 
-    fun markAttach() {
+    open fun markAttach() {
         if (wasPaused) {
             lifecycleRegistry.currentState = Lifecycle.State.RESUMED
             wasPaused = false
@@ -30,7 +30,7 @@ abstract class LifecycleViewHolder<T>(view: View) : RecyclerView.ViewHolder(view
             lifecycleRegistry.currentState = Lifecycle.State.STARTED
     }
 
-    fun markDetach() {
+    open fun markDetach() {
         wasPaused = true
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
     }

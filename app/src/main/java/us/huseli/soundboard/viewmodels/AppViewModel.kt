@@ -73,7 +73,7 @@ class AppViewModel @Inject constructor(
         pushUndoState(soundRepository.list(), null, context)
     }
 
-    fun pushUndoState(context: Context) = viewModelScope.launch(Dispatchers.IO) {
+    fun pushSoundAndCategoryUndoState(context: Context) = viewModelScope.launch(Dispatchers.IO) {
         pushUndoState(soundRepository.list(), categoryRepository.list(), context)
     }
 
@@ -125,9 +125,11 @@ class AppViewModel @Inject constructor(
             undoStates.add(UndoState(sounds, categories))
             _undosAvailable.postValue(true)
             if (undoStates.size > Constants.MAX_UNDO_STATES) {
+                /** If max undo states is reached, delete the first one */
                 val removedState = undoStates.removeFirst()
                 val nextState = undoStates.first()
                 if (removedState.sounds != null && nextState.sounds != null)
+                /** If the deleted state involved removing sounds, now is the time to actually delete the files */
                     removedState.sounds.subtract(nextState.sounds).forEach {
                         context.getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE)?.listFiles()?.forEach { file ->
                             if (file.path == it.path) file.delete()

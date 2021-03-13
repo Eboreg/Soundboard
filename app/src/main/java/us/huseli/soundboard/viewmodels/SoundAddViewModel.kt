@@ -43,10 +43,11 @@ class SoundAddViewModel @Inject constructor(private val repository: SoundReposit
         onDuplicateStrategyChange()
     }
 
-    override fun setCategoryId(value: Int) = sounds.forEach { it.categoryId = value }
-
     override fun save(context: Context) = viewModelScope.launch(Dispatchers.IO) {
         sounds.forEach { sound ->
+            if (!multiple) sound.name = name
+            newCategoryId?.let { sound.categoryId = it }
+            sound.volume = volume
             when (duplicateStrategy) {
                 DuplicateStrategy.UPDATE -> {
                     _duplicates.find { it.checksum == sound.checksum }?.let { duplicate ->

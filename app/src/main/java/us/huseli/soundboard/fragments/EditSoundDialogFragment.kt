@@ -14,8 +14,8 @@ class EditSoundDialogFragment : BaseEditSoundDialogFragment<SoundEditViewModel>(
         get() = if (viewModel.multiple) R.string.edit_sounds else R.string.edit_sound
 
     override fun getCategories() =
-            if (multiple) categoryListViewModel.categoriesWithEmpty
-            else super.getCategories()
+        if (multiple) categoryListViewModel.categoriesWithEmpty
+        else super.getCategories()
 
     override fun onAttach(context: Context) {
         super.onAttach(context)

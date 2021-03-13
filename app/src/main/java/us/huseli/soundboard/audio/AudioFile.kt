@@ -22,7 +22,12 @@ import kotlin.math.min
  *    as possible
  */
 
-class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listener? = null) {
+class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, listener: Listener? = null) {
+    constructor(sound: Sound, baseBufferSize: Int, listener: Listener?) : this(sound,
+        sound.volume,
+        baseBufferSize,
+        listener)
+
     // Public val's & var's
     val duration: Long
     val isPlaying: Boolean
@@ -243,7 +248,7 @@ class AudioFile(private val sound: Sound, baseBufferSize: Int, listener: Listene
             AudioTrack.MODE_STREAM,
             AudioManager.AUDIO_SESSION_ID_GENERATE
         )
-        track.setVolume(sound.volume.toFloat() / 100)
+        track.setVolume(volume.toFloat() / 100)
         return track
     }
 

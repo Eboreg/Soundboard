@@ -153,7 +153,7 @@ class SoundDragListener(
         categoryViewHolder.hideDropContainer()
         soundAdapter.removeMarksForDrop()
         soundAdapter.insertOrMoveSound(
-            draggedSound.soundWithCategory,
+            draggedSound.soundWithCategory.sound,
             draggedSound.currentAdapterPosition
         )
         return true

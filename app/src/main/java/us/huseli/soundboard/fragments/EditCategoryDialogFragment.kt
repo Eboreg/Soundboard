@@ -60,7 +60,7 @@ class EditCategoryDialogFragment : BaseCategoryDialogFragment() {
         if (sortBy != null && sortBy != Sound.SortParameter.UNDEFINED) {
             // Sounds have been re-sorted
             soundViewModel.sort(categoryId, sortBy, sortOrder)
-            appViewModel.pushUndoState(requireContext())
+            appViewModel.pushSoundAndCategoryUndoState(requireContext())
         } else appViewModel.pushCategoryUndoState(requireContext())
 
         viewModel.apply {

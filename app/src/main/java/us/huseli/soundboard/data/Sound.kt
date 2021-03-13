@@ -29,7 +29,7 @@ data class Sound(
     var order: Int,
     var volume: Int,
     val added: Date,
-    var duration: Int,
+    val duration: Int,
     var checksum: String?,
     @Ignore val uri: Uri?,
     @Ignore var textColor: Int? = null,
@@ -145,7 +145,6 @@ data class Sound(
 
         fun createTemporary(uri: Uri, context: Context): Sound {
             /** Create Sound object from non-local URI, not to be saved to DB */
-            // val application = GlobalApplication.application
             val inputStream = context.contentResolver.openInputStream(uri)
                 ?: throw Exception("File provider returned null")
             val checksum = MD5.calculate(inputStream)
@@ -173,6 +172,8 @@ data class Sound(
                 }
             }
 
+
+
             return Sound(
                 null,
                 null,
@@ -194,11 +195,11 @@ data class Sound(
                 ?: throw Exception("File provider returned null")
 
             /** Some paranoid extra measures */
-            val filename = tempSound.checksum
+            val checksum = tempSound.checksum
                 ?: MD5.calculate(inputStream)
                 ?: throw Exception("MD5.calculate returned null")
             //val file = File(context.soundDir, filename)
-            val file = File(context.getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE), filename)
+            val file = File(context.getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE), checksum)
             val outputStream = FileOutputStream(file)
             //val outputStream = application.applicationContext.openFileOutput(filename, Context.MODE_PRIVATE)
             val buf = ByteArray(1024)
@@ -217,7 +218,7 @@ data class Sound(
                 tempSound.volume,
                 tempSound.added,
                 tempSound.duration,
-                tempSound.checksum
+                checksum
             )
         }
     }

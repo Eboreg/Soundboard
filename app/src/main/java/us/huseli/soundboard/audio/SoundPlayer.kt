@@ -8,12 +8,14 @@ import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.data.Constants
 import us.huseli.soundboard.data.Sound
 
-class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Listener {
+class SoundPlayer(private var sound: Sound,
+                  private var bufferSize: Int,
+                  private var durationListener: DurationListener?) : AudioFile.Listener {
     private var _duration: Int = -1
         set(value) {
             if (value != field) {
                 field = value
-                if (value > -1) listener?.onSoundPlayerDurationChange(value)
+                if (value > -1) durationListener?.onSoundPlayerDurationChange(sound, value)
             }
         }
     private var _errorMessage = ""
@@ -21,12 +23,13 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
         set(value) {
             field = value
             if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-                "state change: this=$this, uri=$sound, onStateChangeListener=$listener, state=$value, listener=$listener")
-            listener?.onSoundPlayerStateChange(this, value)
+                "state change: this=$this, uri=$sound, onStateChangeListener=$stateListener, state=$value, listener=$stateListener")
+            stateListener?.onSoundPlayerStateChange(this, value)
         }
+    private var _volume = sound.volume
     private var audioFile: AudioFile? = null
     private var job: Job? = null
-    private var listener: Listener? = null
+    private var stateListener: StateListener? = null
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
     private val tempAudioFiles = mutableListOf<AudioFile>()
     private val tempAudioFileMutex = Mutex()
@@ -39,6 +42,8 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
         get() = _errorMessage
     val state: State
         get() = _state
+    val volume: Int
+        get() = _volume
 
     // Physical position (relative to screen) & dimensions of sound view for maximum quick access
     // TODO: Putting this on hold
@@ -80,7 +85,7 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
     }
 
     override fun onAudioFileWarning(message: String) {
-        listener?.onSoundPlayerWarning(message)
+        stateListener?.onSoundPlayerWarning(message)
     }
 
     override fun toString(): String {
@@ -105,7 +110,8 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
         _state = State.RELEASED
         audioFile?.release()
         scope.launch { stopAndClearTempPlayers() }
-        listener = null
+        stateListener = null
+        durationListener = null
     }
 
     fun setBufferSize(value: Int) {
@@ -115,9 +121,14 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
         }
     }
 
-    fun setListener(listener: Listener?) {
-        this.listener = listener
+    fun setStateListener(listener: StateListener?) {
+        stateListener = listener
         if (BuildConfig.DEBUG) Log.d(LOG_TAG, "setListener: this=$this, uri=$sound, listener=$listener")
+    }
+
+    fun setVolume(value: Int) {
+        _volume = value
+        audioFile?.volume = value
     }
 
     fun togglePlay() {
@@ -139,7 +150,7 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
     /********** PRIVATE METHODS **********/
 
     private suspend fun createAndStartTempPlayer(timeoutUs: Long) {
-        AudioFile(sound, bufferSize, TempAudioFileListener()).prepare().let {
+        AudioFile(sound, _volume, bufferSize, TempAudioFileListener()).prepare().let {
             it.play(timeoutUs)
             tempAudioFileMutex.withLock { tempAudioFiles.add(it) }
         }
@@ -193,15 +204,19 @@ class SoundPlayer(val sound: Sound, private var bufferSize: Int) : AudioFile.Lis
                 }
             }
         }
+
         override fun onAudioFileError(message: String) {}
         override fun onAudioFileWarning(message: String) {}
     }
 
 
-    interface Listener {
-        fun onSoundPlayerDurationChange(duration: Int)
+    interface StateListener {
         fun onSoundPlayerStateChange(player: SoundPlayer, state: State): Any?
         fun onSoundPlayerWarning(message: String): Any?
+    }
+
+    interface DurationListener {
+        fun onSoundPlayerDurationChange(sound: Sound, duration: Int)
     }
 
     // Keeping STOPPED just because there may be a tiny time gap between a sound stopping and it

@@ -1,9 +1,10 @@
-Freshen up light mode colours a bit (white background feels too bright, or other backgrounds too
-dark)
+Volume change not working??
 
 
-If you delete sounds and then exit app, when will they actually be deleted? (Since they are
-in realtiy saved for undo)
+Look at backup_descriptor.xml stuff
+
+
+Can I get sound "range select" to work over category boundaries?
 
 
 doPrime: Why do some get totalSize=0?
@@ -14,7 +15,8 @@ doPrime: Why do some get totalSize=0?
 2021-03-09 03:22:09.420 24116-31829 D/AudioFile: doPrime: totalSize=40960, primedData=java.nio.DirectByteBuffer[pos=0 lim=40960 cap=44100], bufferSize=44100, state=INITIALIZING, sound=Sound df91778 <id=320, name=Gayniggers female creatures 1, categoryId=1>
 
 
-Can I get sound "range select" to work over category boundaries?
+Freshen up light mode colours a bit (white background feels too bright, or other backgrounds too
+dark)
 
 
 Maybe save repress mode and reinit on activity restart? (Not necessarily on application restart;
@@ -31,9 +33,6 @@ Layout takes lots of time (well, mostly while debugging, not so much on regular 
 Mostly RecyclerView.onMeasure() and ConstraintLayout.onMeasure() (for
 individual sounds). How to optimize? Something with autoMeasure perhaps?
 https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView.LayoutManager#isautomeasureenabled
-
-
-Look at backup_descriptor.xml stuff
 
 
 When collapsing last category, its header disappears from view until you scroll, then reappears

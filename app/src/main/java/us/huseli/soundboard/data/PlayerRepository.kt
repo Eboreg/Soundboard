@@ -18,8 +18,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PlayerRepository @Inject constructor(@ApplicationContext private val context: Context, soundDao: SoundDao) {
-    private val _players = mutableListOf<SoundPlayer>()
+class PlayerRepository @Inject constructor(@ApplicationContext private val context: Context,
+                                           private val soundDao: SoundDao) :
+    SoundPlayer.DurationListener {
+    private val _players = mutableMapOf<Sound, SoundPlayer>()
 
     private var bufferSize = Constants.DEFAULT_BUFFER_SIZE
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
@@ -32,27 +34,35 @@ class PlayerRepository @Inject constructor(@ApplicationContext private val conte
             }
         }
 
-    val players: LiveData<List<SoundPlayer>> = soundDao.listLiveWithCategory().map { soundsWithCategory ->
-        _players.removeAll(playersToRemove(soundsWithCategory))
-        _players.addAll(playersToAdd(soundsWithCategory))
+    val players: LiveData<Map<Sound, SoundPlayer>> = soundDao.listLiveWithCategory().map { soundsWithCategory ->
+        val sounds = soundsWithCategory.map { it.sound }
+        removePlayers(sounds)
+        addPlayers(sounds)
+        updatePlayers(sounds)
         _players
     }
 
-    private fun playersToAdd(soundsWithCategory: List<SoundWithCategory>): List<SoundPlayer> {
-        /** Creates & returns SoundPlayers for those sounds that don't already have any */
-        val sounds = soundsWithCategory.map { it.sound }
-        return sounds.filterNot { _players.map { player -> player.sound }.contains(it) }.map { sound ->
-            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "addNew: add $sound")
-            SoundPlayer(sound, bufferSize)
+    private fun updatePlayers(sounds: List<Sound>) {
+        /** Checks for relevant changes and update. Currently only volume. */
+        sounds.forEach { sound ->
+            _players[sound]?.let { player ->
+                if (player.volume != sound.volume) player.setVolume(sound.volume)
+            }
         }
     }
 
-    private fun playersToRemove(soundsWithCategory: List<SoundWithCategory>): List<SoundPlayer> {
-        /** Releases & returns SoundPlayers for those sounds NOT in `soundsWithCategory` */
-        val sounds = soundsWithCategory.map { it.sound }
-        return _players.filterNot { sounds.contains(it.sound) }.onEach { player ->
-            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "removeOld: remove ${player.sound}")
-            player.release()
+    private fun removePlayers(sounds: List<Sound>) {
+        _players.filterNot { sounds.contains(it.key) }.forEach {
+            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "removePlayers: remove ${it.key}")
+            it.value.release()
+            _players.remove(it.key)
+        }
+    }
+
+    private fun addPlayers(sounds: List<Sound>) {
+        sounds.filterNot { _players.contains(it) }.forEach { sound ->
+            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "addPlayers: add $sound")
+            _players[sound] = SoundPlayer(sound, bufferSize, this)
         }
     }
 
@@ -72,8 +82,12 @@ class PlayerRepository @Inject constructor(@ApplicationContext private val conte
         if (BuildConfig.DEBUG) Log.d(LOG_TAG, "onBufferSizeChange: newValue=$newValue, bufferSize=$bufferSize")
         if (newValue != bufferSize) {
             bufferSize = newValue
-            _players.forEach { player -> player.setBufferSize(newValue) }
+            _players.forEach { it.value.setBufferSize(newValue) }
         }
+    }
+
+    override fun onSoundPlayerDurationChange(sound: Sound, duration: Int) {
+        sound.id?.let { soundId -> soundDao.updateDuration(soundId, duration) }
     }
 
 

@@ -31,7 +31,7 @@ class DeleteCategoryFragment : DialogFragment() {
                     else -> setMessage(resources.getQuantityString(R.plurals.delete_category_with_name_and_sounds, soundCount, name, soundCount))
                 }
                 setPositiveButton(R.string.ok) { _, _ ->
-                    appViewModel.pushUndoState(requireContext())
+                    appViewModel.pushSoundAndCategoryUndoState(requireContext())
                     categoryListViewModel.delete(id)
                 }
             }

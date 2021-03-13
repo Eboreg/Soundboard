@@ -1,60 +1,58 @@
 package us.huseli.soundboard.viewmodels
 
 import android.content.Context
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import us.huseli.soundboard.data.Constants
 import us.huseli.soundboard.data.Sound
 
 abstract class BaseSoundEditViewModel : ViewModel() {
     /** Implemented by SoundAddViewModel and SoundEditViewModel */
-    private val _name = MutableLiveData("")
+    private var _name = ""
     private val _sounds = mutableListOf<Sound>()
-    private val _volume = MutableLiveData(Constants.DEFAULT_VOLUME)
-    private var _multiple = false
+    private var _volume = Constants.DEFAULT_VOLUME
 
-    internal var categoryIndex: Int? = null
+    protected var newCategoryId: Int? = null
 
-    internal val multiple: Boolean
-        get() = _multiple
+    var categoryIndex: Int? = null
 
-    val name: LiveData<String>
+    val multiple: Boolean
+        get() = _sounds.size > 1
+
+    val name: String
         get() = _name
 
     val sounds: List<Sound>
         get() = _sounds
 
-    val volume: LiveData<Int>
+    val volume: Int
         get() = _volume
 
-    open fun setName(value: String) {
-        _name.value = value
-        if (!multiple) sounds.forEach { it.name = value }
+    fun setCategoryId(value: Int) {
+        newCategoryId = value
+    }
+
+    fun setName(value: String) {
+        if (!multiple) _name = value
     }
 
     open fun setup(sounds: List<Sound>, multipleSoundsString: String) {
         _sounds.clear()
         _sounds.addAll(sounds)
-        if (_sounds.size == 1) {
-            _multiple = false
-            setName(_sounds.first().name)
-            setVolume(_sounds.first().volume)
+        if (!multiple) {
+            _name = sounds.first().name
+            _volume = sounds.first().volume
         } else {
-            _multiple = true
-            setName(multipleSoundsString)
-            setVolume(Constants.DEFAULT_VOLUME)
+            _name = multipleSoundsString
+            _volume = if (sounds.groupBy { it.volume }.size == 1) sounds.first().volume else Constants.DEFAULT_VOLUME
         }
     }
 
-    open fun setVolume(value: Int) {
-        _volume.value = value
-        sounds.forEach { it.volume = value }
+    fun setVolume(value: Int) {
+        _volume = value
     }
 
-    internal fun removeSounds(predicate: (Sound) -> Boolean): Boolean = _sounds.removeAll(predicate)
+    protected fun removeSounds(predicate: (Sound) -> Boolean): Boolean = _sounds.removeAll(predicate)
 
-    abstract fun setCategoryId(value: Int): Any?
     abstract fun save(context: Context): Any?
 
 }

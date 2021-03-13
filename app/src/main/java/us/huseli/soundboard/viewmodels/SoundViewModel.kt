@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.data.SoundRepository
-import us.huseli.soundboard.data.SoundWithCategory
 import us.huseli.soundboard.helpers.ColorHelper
 import us.huseli.soundboard.helpers.MD5
 import java.io.File
@@ -95,26 +94,13 @@ class SoundViewModel
             update(sounds, categoryId)
         }
 
-    fun update(sounds: List<Sound>, categoryId: Int) = viewModelScope.launch(Dispatchers.IO) {
-        //GlobalApplication.pushUndoState(_sounds.value, null)
-        sounds.forEachIndexed { index, sound ->
-            sound.order = index
-            sound.categoryId = categoryId
-        }
-        repository.update(sounds)
+    private fun update(sounds: List<Sound>, categoryId: Int) = viewModelScope.launch(Dispatchers.IO) {
+        repository.update(sounds.mapIndexed { index, sound ->
+            sound.copy(order = index, categoryId = categoryId)
+        })
     }
 
     fun update(sounds: List<Sound>, category: Category?) = category?.id?.let { update(sounds, it) }
-
-    fun update(soundsWithCategory: List<SoundWithCategory>) {
-        soundsWithCategory.groupBy { it.category }.forEach { entry ->
-            update(entry.value.map { it.sound }, entry.key)
-        }
-    }
-
-    fun updateDuration(sound: Sound, duration: Int) = viewModelScope.launch(Dispatchers.IO) {
-        repository.updateDuration(sound, duration)
-    }
 
 
     /******* FILTERING *******/

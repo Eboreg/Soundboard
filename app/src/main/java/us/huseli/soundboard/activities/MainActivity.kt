@@ -68,7 +68,7 @@ class MainActivity :
     private val appViewModel by viewModels<AppViewModel>()
     private val categoryListViewModel by viewModels<CategoryViewModel>()
     private val soundAddViewModel by viewModels<SoundAddViewModel>()
-    private val soundEditMultipleViewModel by viewModels<SoundEditViewModel>()
+    private val soundEditViewModel by viewModels<SoundEditViewModel>()
     private val soundViewModel by viewModels<SoundViewModel>()
     private val scope = CoroutineScope(Job() + Dispatchers.IO)
 
@@ -331,7 +331,7 @@ class MainActivity :
     override fun showSoundEditDialog(sound: Sound) = showSoundEditDialog(listOf(sound))
 
     override fun showSoundEditDialog(sounds: List<Sound>) {
-        soundEditMultipleViewModel.setup(
+        soundEditViewModel.setup(
             sounds,
             getString(R.string.multiple_sounds_selected, sounds.size)
         )

@@ -20,7 +20,8 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
     private fun onAddDuplicates() {
         viewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.ADD
         (requireActivity() as EditSoundInterface).apply {
-            if (viewModel.sounds.size > 1) viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
+            if (viewModel.sounds.size > 1) viewModel.setName(getString(R.string.multiple_sounds_selected,
+                viewModel.sounds.size))
             showSoundAddDialog()
         }
     }
@@ -29,7 +30,8 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
         viewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.SKIP
         if (viewModel.sounds.isEmpty()) (requireActivity() as SnackbarInterface).showSnackbar(R.string.no_sounds_to_add)
         else {
-            if (viewModel.sounds.size > 1) viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
+            if (viewModel.sounds.size > 1) viewModel.setName(getString(R.string.multiple_sounds_selected,
+                viewModel.sounds.size))
             (requireActivity() as EditSoundInterface).showSoundAddDialog()
         }
     }
@@ -52,10 +54,13 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         val inflater = LayoutInflater.from(requireContext())
         val binding = FragmentAddDuplicateSoundBinding.inflate(inflater).also { it.viewModel = viewModel }
-        return MaterialAlertDialogBuilder(requireContext(), R.style.Soundboard_Theme_MaterialAlertDialog_EqualButtons).run {
+        return MaterialAlertDialogBuilder(requireContext(),
+            R.style.Soundboard_Theme_MaterialAlertDialog_EqualButtons).run {
             setView(binding.root)
             setTitle(resources.getQuantityString(R.plurals.duplicate_sound_added, viewModel.duplicateCount))
-            setPositiveButton(resources.getQuantityString(R.plurals.add_duplicate, viewModel.duplicateCount)) { _, _ -> onAddDuplicates() }
+            setPositiveButton(resources.getQuantityString(R.plurals.add_duplicate, viewModel.duplicateCount)) { _, _ ->
+                onAddDuplicates()
+            }
             setNeutralButton(R.string.update_existing) { _, _ -> onUpdateExisting() }
             if (viewModel.sounds.size > 1)
                 setNegativeButton(R.string.skip) { _, _ -> onSkipDuplicates() }
