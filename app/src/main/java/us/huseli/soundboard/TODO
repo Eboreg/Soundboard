@@ -1,12 +1,3 @@
-Volumebar doesn't restart on repress when mode=overdub?
-Also not when mode=restart. And then the play icon doesn't clear either?
-
-
-
-Maybe save repress mode and reinit on activity restart? (Not necessarily on application restart;
-I just want to preserve it when switching between activities)
-
-
 Can I get sound "range select" to work over category boundaries?
 
 

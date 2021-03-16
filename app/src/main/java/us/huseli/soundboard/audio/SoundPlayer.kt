@@ -21,10 +21,10 @@ class SoundPlayer(private var sound: Sound,
     private var _errorMessage = ""
     private var _state = State.INITIALIZING
         set(value) {
-            field = value
             if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-                "state change: this=$this, uri=$sound, onStateChangeListener=$stateListener, state=$value, listener=$stateListener")
-            stateListener?.onSoundPlayerStateChange(this, value)
+                "state change: this=$this, uri=$sound, onStateChangeListener=$stateListener, state=$value, oldState = $field, listener=$stateListener")
+            stateListener?.onSoundPlayerStateChange(this, value, field)
+            field = value
         }
     private var _volume = sound.volume
     private var audioFile: AudioFile? = null
@@ -229,7 +229,7 @@ class SoundPlayer(private var sound: Sound,
 
 
     interface StateListener {
-        fun onSoundPlayerStateChange(player: SoundPlayer, state: State): Any?
+        fun onSoundPlayerStateChange(player: SoundPlayer, state: State, oldState: State? = null): Any?
         fun onSoundPlayerWarning(message: String): Any?
     }
 

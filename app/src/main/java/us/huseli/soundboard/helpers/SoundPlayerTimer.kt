@@ -1,6 +1,7 @@
 package us.huseli.soundboard.helpers
 
 import android.os.CountDownTimer
+import android.util.Log
 import android.widget.ProgressBar
 import kotlin.math.roundToInt
 
@@ -23,21 +24,29 @@ class SoundPlayerTimer(private var duration: Long,
     }
 
     fun start() {
-        if (millisLeft != duration) timer = CountDownTimerImpl(millisLeft)
         timer.start()
+        Log.d(LOG_TAG, "start: millisLeft=$millisLeft, duration=$duration, timer=$timer")
     }
 
     fun stop() {
         timer.cancel()
         onFinish()
+        Log.d(LOG_TAG, "stop: millisLeft=$millisLeft, duration=$duration, timer=$timer")
     }
 
     fun pause() = timer.cancel()
+
+    fun resume() {
+        if (millisLeft != duration) timer = CountDownTimerImpl(millisLeft)
+        timer.start()
+        Log.d(LOG_TAG, "resume: millisLeft=$millisLeft, duration=$duration, timer=$timer")
+    }
 
     private fun setDuration(value: Long) {
         if (value != duration) {
             duration = value
             timer = CountDownTimerImpl(duration)
+            Log.d(LOG_TAG, "setDuration: millisLeft=$millisLeft, duration=$duration, timer=$timer")
         }
     }
 
@@ -45,16 +54,22 @@ class SoundPlayerTimer(private var duration: Long,
         progressBar.progress = originalProgress
         millisLeft = duration
         if (timer.millisInFuture != duration) timer = CountDownTimerImpl(duration)
+        Log.d(LOG_TAG, "setDuration: millisLeft=$millisLeft, duration=$duration, timer=$timer")
     }
 
     private fun onTick(millisUntilFinished: Long) {
         millisLeft = millisUntilFinished
         progressBar.progress = percentage
+        Log.d(LOG_TAG, "onTick: millisLeft=$millisLeft, duration=$duration, timer=$timer")
     }
 
     inner class CountDownTimerImpl(val millisInFuture: Long) : CountDownTimer(millisInFuture, 50) {
         override fun onTick(millisUntilFinished: Long) = this@SoundPlayerTimer.onTick(millisUntilFinished)
 
         override fun onFinish() = this@SoundPlayerTimer.onFinish()
+    }
+
+    companion object {
+        const val LOG_TAG = "SoundPlayerTimer"
     }
 }

@@ -417,16 +417,20 @@ class SoundAdapter(
             return true
         }
 
-        override fun onSoundPlayerStateChange(player: SoundPlayer, state: SoundPlayer.State) {
+        override fun onSoundPlayerStateChange(player: SoundPlayer,
+                                              state: SoundPlayer.State,
+                                              oldState: SoundPlayer.State?) {
             /**
              * This will likely be called from a non-UI thread, hence View.post()
              * https://developer.android.com/guide/components/processes-and-threads#WorkerThreads
              */
             binding.root.post {
-                if (BuildConfig.DEBUG) Log.d(LOG_TAG, "onSoundPlayerStateChange: item=$item, state=$state")
+                if (BuildConfig.DEBUG) Log.d(LOG_TAG,
+                    "onSoundPlayerStateChange: item=$item, state=$state, oldState=$oldState")
 
                 if (state == SoundPlayer.State.PLAYING) {
-                    playerTimer?.start()
+                    if (oldState == SoundPlayer.State.PAUSED) playerTimer?.resume()
+                    else playerTimer?.start()
                     binding.playIcon.visibility = View.VISIBLE
                 } else binding.playIcon.visibility = View.INVISIBLE
 
