@@ -48,4 +48,11 @@
             android:value="https://4f67be61f466443fb90839fe1b41ded4@o453550.ingest.sentry.io/5442443" />
     </application>
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.GET_CONTENT" />
+            <data android:mimeType="audio/*" />
+        </intent>
+    </queries>
+
 </manifest>

@@ -151,17 +151,21 @@ class MainActivity :
 
         val pInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
 
-        scope.launch {
-            val prefs = getPreferences(Context.MODE_PRIVATE)
-            val lastVersion = prefs.getLong(PREF_LAST_VERSION, 0)
+        val prefs = getPreferences(Context.MODE_PRIVATE)
+        val lastVersion = prefs.getLong(PREF_LAST_VERSION, 0)
 
-            @Suppress("DEPRECATION")
-            val currentVersion =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) pInfo.longVersionCode else pInfo.versionCode.toLong()
-            if (lastVersion < currentVersion) onAppVersionUpgraded(lastVersion, currentVersion)
-            prefs.edit {
-                putLong(PREF_LAST_VERSION, currentVersion)
-                apply()
+        @Suppress("DEPRECATION")
+        val currentVersion =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) pInfo.longVersionCode else pInfo.versionCode.toLong()
+        if (lastVersion < currentVersion) onAppVersionUpgraded(lastVersion, currentVersion)
+        prefs.edit {
+            putLong(PREF_LAST_VERSION, currentVersion).apply()
+        }
+
+        prefs.getString(PREF_REPRESS_MODE, null)?.also { repressModeValue ->
+            try {
+                appViewModel.setRepressMode(SoundPlayer.RepressMode.valueOf(repressModeValue))
+            } catch (e: IllegalArgumentException) {
             }
         }
 
@@ -234,7 +238,15 @@ class MainActivity :
             R.id.action_add_category -> showCategoryAddDialog()
             R.id.action_add_sound -> startAddSoundActivity()
             // R.id.action_reinit_failed_sounds -> reinitFailedSounds()
-            R.id.action_set_repress_mode -> appViewModel.cycleRepressMode()
+            R.id.action_set_repress_mode -> {
+                val newMode = appViewModel.getNextRepressMode()
+                appViewModel.setRepressMode(newMode)
+                scope.launch {
+                    getPreferences(Context.MODE_PRIVATE).edit {
+                        putString(PREF_REPRESS_MODE, newMode.toString()).apply()
+                    }
+                }
+            }
             R.id.action_settings -> {
                 val intent = Intent(this, SettingsActivity::class.java)
                 startActivity(intent)
@@ -459,6 +471,8 @@ class MainActivity :
                 resources, R.drawable.ic_repress_restart, theme)
             SoundPlayer.RepressMode.STOP -> ResourcesCompat.getDrawable(
                 resources, R.drawable.ic_repress_stop, theme)
+            SoundPlayer.RepressMode.PAUSE -> ResourcesCompat.getDrawable(
+                resources, R.drawable.ic_pause, theme)
         }
         binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_set_repress_mode)?.icon = icon
         binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_set_repress_mode)?.icon = icon
@@ -502,7 +516,6 @@ class MainActivity :
         }
     }
 
-    @SuppressLint("QueryPermissionsNeeded")
     @Suppress("unused")
     private fun reinitFailedSounds() {
         // TODO: Generalize this shit somehow (with ordinary open file stuff), take up work on this stuff
@@ -554,7 +567,6 @@ class MainActivity :
 
     private fun showDialogFragment(fragment: Fragment) = showDialogFragment(fragment, null)
 
-    @SuppressLint("QueryPermissionsNeeded")
     private fun startAddSoundActivity() {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -582,6 +594,7 @@ class MainActivity :
         const val CATEGORY_ADD_DIALOG_TAG = "categoryAddDialog"
         const val CATEGORY_EDIT_DIALOG_TAG = "categoryEditDialog"
         const val PREF_LAST_VERSION = "lastRunVersionCode"
+        const val PREF_REPRESS_MODE = "repressMode"
         val DIALOG_TAGS = listOf(CATEGORY_ADD_DIALOG_TAG, CATEGORY_EDIT_DIALOG_TAG)
     }
 }

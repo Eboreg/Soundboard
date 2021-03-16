@@ -1,26 +1,60 @@
 package us.huseli.soundboard.helpers
 
 import android.os.CountDownTimer
-import android.util.Log
 import android.widget.ProgressBar
 import kotlin.math.roundToInt
 
-class SoundPlayerTimer(val duration: Int, private val progressBar: ProgressBar, var originalProgress: Int) :
-        CountDownTimer(duration.toLong(), 50) {
-    private fun toPercentage(millisUntilFinished: Long) =
-            (((duration - millisUntilFinished).toDouble() / duration) * 100).roundToInt()
+class SoundPlayerTimer(private var duration: Long,
+                       private val progressBar: ProgressBar,
+                       private var originalProgress: Int) {
+    constructor(duration: Int, progressBar: ProgressBar, originalProgress: Int) : this(duration.toLong(),
+        progressBar,
+        originalProgress)
 
-    override fun onTick(millisUntilFinished: Long) {
-        progressBar.progress = toPercentage(millisUntilFinished)
+    private var timer = CountDownTimerImpl(duration)
+    private var millisLeft = duration
+    private val percentage: Int
+        get() = (((duration - millisLeft).toDouble() / duration) * 100).roundToInt()
+
+    fun setDuration(value: Int) = setDuration(value.toLong())
+
+    fun setOriginalProgress(value: Int) {
+        originalProgress = value
     }
 
-    override fun onFinish() {
-        if (duration < 0) Log.w(LOG_TAG, "Duration is negative; not initialized properly?")
+    fun start() {
+        if (millisLeft != duration) timer = CountDownTimerImpl(millisLeft)
+        timer.start()
+    }
+
+    fun stop() {
+        timer.cancel()
+        onFinish()
+    }
+
+    fun pause() = timer.cancel()
+
+    private fun setDuration(value: Long) {
+        if (value != duration) {
+            duration = value
+            timer = CountDownTimerImpl(duration)
+        }
+    }
+
+    private fun onFinish() {
         progressBar.progress = originalProgress
+        millisLeft = duration
+        if (timer.millisInFuture != duration) timer = CountDownTimerImpl(duration)
     }
 
+    private fun onTick(millisUntilFinished: Long) {
+        millisLeft = millisUntilFinished
+        progressBar.progress = percentage
+    }
 
-    companion object {
-        const val LOG_TAG = "SoundPlayerTimer"
+    inner class CountDownTimerImpl(val millisInFuture: Long) : CountDownTimer(millisInFuture, 50) {
+        override fun onTick(millisUntilFinished: Long) = this@SoundPlayerTimer.onTick(millisUntilFinished)
+
+        override fun onFinish() = this@SoundPlayerTimer.onFinish()
     }
 }

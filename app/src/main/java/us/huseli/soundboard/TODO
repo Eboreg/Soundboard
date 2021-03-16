@@ -1,10 +1,24 @@
-New repress mode: pause??
+Volumebar doesn't restart on repress when mode=overdub?
+Also not when mode=restart. And then the play icon doesn't clear either?
 
 
-Look at backup_descriptor.xml stuff
+
+Maybe save repress mode and reinit on activity restart? (Not necessarily on application restart;
+I just want to preserve it when switching between activities)
 
 
 Can I get sound "range select" to work over category boundaries?
+
+
+Freshen up light mode colours a bit (white background feels too bright, or other backgrounds too
+dark)
+
+
+Instead of repress mode button: have a toolbar that shows up while a sound is playing, with those
+functions  -- no, because how would we deal with several sounds playing at once?
+
+
+Look at backup_descriptor.xml stuff
 
 
 doPrime: Why do some get totalSize=0?
@@ -13,14 +27,6 @@ doPrime: Why do some get totalSize=0?
 2021-03-09 03:22:09.361 24116-31691 D/AudioFile: doPrime: totalSize=0, primedData=java.nio.DirectByteBuffer[pos=0 lim=0 cap=88200], bufferSize=88200, state=INITIALIZING, sound=Sound 3fa9e8c <id=316, name=Fowley teenage woman, categoryId=1>
 2021-03-09 03:22:09.372 24116-31830 D/AudioFile: doPrime: totalSize=81920, primedData=java.nio.DirectByteBuffer[pos=0 lim=81920 cap=88200], bufferSize=88200, state=INITIALIZING, sound=Sound a4c59d5 <id=317, name=Fuck, suck and fight, categoryId=1>
 2021-03-09 03:22:09.420 24116-31829 D/AudioFile: doPrime: totalSize=40960, primedData=java.nio.DirectByteBuffer[pos=0 lim=40960 cap=44100], bufferSize=44100, state=INITIALIZING, sound=Sound df91778 <id=320, name=Gayniggers female creatures 1, categoryId=1>
-
-
-Freshen up light mode colours a bit (white background feels too bright, or other backgrounds too
-dark)
-
-
-Maybe save repress mode and reinit on activity restart? (Not necessarily on application restart;
-I just want to preserve it when switching between activities)
 
 
 Steps to speed up time from click to sound starting playing:

@@ -1,8 +1,11 @@
 package us.huseli.soundboard
 
 import android.app.Application
+import android.content.Context
 import android.os.StrictMode
+import androidx.core.content.edit
 import dagger.hilt.android.HiltAndroidApp
+import us.huseli.soundboard.activities.MainActivity
 import java.util.*
 
 @HiltAndroidApp
@@ -13,6 +16,8 @@ class Application : Application() {
         // if (BuildConfig.DEBUG) enableStrictMode()
         super.onCreate()
         deviceDefaultLanguage = Locale.getDefault().language
+        val prefs = getSharedPreferences(MainActivity::class.qualifiedName, Context.MODE_PRIVATE)
+        prefs.edit { remove(MainActivity.PREF_REPRESS_MODE).apply() }
     }
 
     @Suppress("unused")

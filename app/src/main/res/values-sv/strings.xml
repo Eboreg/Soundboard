@@ -93,4 +93,7 @@
     <string name="add_date">Tilläggsdatum</string>
     <string name="sort_by">Sortera efter</string>
     <string name="unchanged">(Oförändrad)</string>
+    <string name="paused">Pausat</string>
+    <string name="help_title_repress_pause">Pausa</string>
+    <string name="help_text_repress_pause">Ljudet kommer att pausas. När du trycker på det igen, återupptas det.</string>
 </resources>

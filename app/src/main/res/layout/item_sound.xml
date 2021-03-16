@@ -92,6 +92,19 @@
                     app:srcCompat="@drawable/ic_playing" />
 
                 <ImageView
+                    android:id="@+id/pause_icon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/paused"
+                    android:visibility="invisible"
+                    app:drawableColor="@{sound.textColor}"
+                    app:layout_constraintBottom_toTopOf="@+id/volume_bar"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/ic_pause" />
+
+                <ImageView
                     android:id="@+id/fail_icon"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"

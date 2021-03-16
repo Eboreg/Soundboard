@@ -47,14 +47,19 @@ class AppViewModel @Inject constructor(
 
     fun zoomOut() = zoom(1)
 
-    fun cycleRepressMode() {
-        _repressMode.value = _repressMode.value?.let {
+    fun getNextRepressMode(): SoundPlayer.RepressMode {
+        return _repressMode.value?.let {
             when (it) {
                 SoundPlayer.RepressMode.STOP -> SoundPlayer.RepressMode.RESTART
                 SoundPlayer.RepressMode.RESTART -> SoundPlayer.RepressMode.OVERLAP
-                SoundPlayer.RepressMode.OVERLAP -> SoundPlayer.RepressMode.STOP
+                SoundPlayer.RepressMode.OVERLAP -> SoundPlayer.RepressMode.PAUSE
+                SoundPlayer.RepressMode.PAUSE -> SoundPlayer.RepressMode.STOP
             }
         } ?: SoundPlayer.RepressMode.STOP
+    }
+
+    fun setRepressMode(value: SoundPlayer.RepressMode) {
+        _repressMode.postValue(value)
     }
 
     fun deleteOrphans(context: Context) = viewModelScope.launch(Dispatchers.IO) {

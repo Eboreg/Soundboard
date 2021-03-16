@@ -35,6 +35,13 @@ class SoundPlayer(private var sound: Sound,
     private val tempAudioFileMutex = Mutex()
 
     var repressMode = RepressMode.STOP
+        set(value) {
+            if (value != field && field == RepressMode.PAUSE && _state == State.PAUSED) {
+                // Mode was PAUSE and is not anymore, meaning we "unpause" any paused sound
+                audioFile?.prepareAndPrime()
+            }
+            field = value
+        }
 
     val duration: Int
         get() = _duration
@@ -81,6 +88,7 @@ class SoundPlayer(private var sound: Sound,
             AudioFile.State.PLAYING -> this._state = State.PLAYING
             AudioFile.State.READY -> if (!isPlaying()) this._state = State.READY
             AudioFile.State.STOPPED -> if (!isPlaying()) this._state = State.STOPPED
+            AudioFile.State.PAUSED -> this._state = State.PAUSED
         }
     }
 
@@ -132,18 +140,28 @@ class SoundPlayer(private var sound: Sound,
     }
 
     fun togglePlay() {
-        if (_state == State.PLAYING) {
-            val timeoutUs = System.nanoTime() + Constants.SOUND_PLAY_TIMEOUT
-            when (repressMode) {
-                RepressMode.STOP -> scope.launch {
-                    audioFile?.stopAndPrepare()
-                    stopAndClearTempPlayers()
+        when (_state) {
+            State.PLAYING -> {
+                val timeoutUs = System.nanoTime() + Constants.SOUND_PLAY_TIMEOUT
+                scope.launch {
+                    when (repressMode) {
+                        RepressMode.STOP -> {
+                            audioFile?.stopAndPrepare()
+                            stopAndClearTempPlayers()
+                        }
+                        RepressMode.RESTART -> audioFile?.restartAndPrepare(timeoutUs)
+                        // TODO: adjust volumes?
+                        RepressMode.OVERLAP -> createAndStartTempPlayer(timeoutUs)
+                        RepressMode.PAUSE -> {
+                            audioFile?.pause()
+                            stopAndClearTempPlayers()
+                        }
+                    }
                 }
-                RepressMode.RESTART -> scope.launch { audioFile?.restart(timeoutUs) }
-                // TODO: adjust volumes?
-                RepressMode.OVERLAP -> scope.launch { createAndStartTempPlayer(timeoutUs) }
             }
-        } else audioFile?.playAndPrepare()
+            State.PAUSED -> audioFile?.resumeAndPrepare()
+            else -> audioFile?.playAndPrepare()
+        }
     }
 
 
@@ -221,9 +239,9 @@ class SoundPlayer(private var sound: Sound,
 
     // Keeping STOPPED just because there may be a tiny time gap between a sound stopping and it
     // becoming READY again
-    enum class State { INITIALIZING, READY, STOPPED, PLAYING, ERROR, RELEASED }
+    enum class State { INITIALIZING, READY, STOPPED, PLAYING, PAUSED, ERROR, RELEASED }
 
-    enum class RepressMode { STOP, RESTART, OVERLAP }
+    enum class RepressMode { STOP, RESTART, OVERLAP, PAUSE }
 
     companion object {
         const val LOG_TAG = "SoundPlayer"

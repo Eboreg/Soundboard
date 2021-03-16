@@ -40,6 +40,7 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
 
     // Private val's initialized here
     private val extractor = MediaExtractor()
+    private val overflowBuffers = mutableListOf<ByteBuffer>()
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
     private val stateListeners =
         mutableListOf<Listener>().also { if (listener != null) it.add(listener) }
@@ -103,6 +104,18 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
         }
     }
 
+    fun pause(): AudioFile {
+        if (state != State.PLAYING)
+            onWarning("Pause: Illegal state", "pause: illegal state $state, should be PLAYING")
+        else {
+            audioTrack?.pause()
+            state = State.PAUSED
+            extractJob?.cancel()
+            queuedStopJob?.cancel()
+        }
+        return this
+    }
+
     fun play(timeoutUs: Long? = null) {
         if (state != State.READY)
             onWarning("Play: Illegal state", "play: illegal state $state, should be READY")
@@ -136,8 +149,10 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
     }
 
     fun prepare(): AudioFile {
-        if (!listOf(State.CREATED, State.STOPPED, State.RELEASED).contains(state))
-            onWarning("Prepare: Illegal state", "prepare: illegal state $state, should be CREATED, STOPPED, RELEASED")
+        if (!listOf(State.CREATED, State.STOPPED, State.RELEASED, State.PAUSED).contains(state))
+            onWarning(
+                "Prepare: Illegal state",
+                "prepare: illegal state $state, should be CREATED, STOPPED, RELEASED, PAUSED")
         else {
             state = State.INITIALIZING
             doPrepare()
@@ -147,9 +162,9 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
     }
 
     fun prepareAndPrime(): AudioFile {
-        if (!listOf(State.CREATED, State.STOPPED, State.RELEASED).contains(state))
+        if (!listOf(State.CREATED, State.STOPPED, State.RELEASED, State.PAUSED).contains(state))
             onWarning("Prepare: Illegal state",
-                "prepareAndPrime: illegal state $state, should be CREATED, STOPPED, RELEASED")
+                "prepareAndPrime: illegal state $state, should be CREATED, STOPPED, RELEASED, PAUSED")
         else {
             state = State.INITIALIZING
             doPrepare()
@@ -179,7 +194,7 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
         return this
     }
 
-    suspend fun restart(timeoutUs: Long): AudioFile {
+    suspend fun restartAndPrepare(timeoutUs: Long): AudioFile {
         if (BuildConfig.DEBUG) Log.d(LOG_TAG, "**** restart: init, sound=$sound")
         if (!listOf(State.PLAYING, State.INIT_PLAY, State.READY).contains(state))
             onWarning("Restart: Illegal state", "restart: illegal state $state, should be PLAYING, INIT_PLAY, or READY")
@@ -188,6 +203,7 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
                 state = State.INIT_PLAY
                 audioTrack?.pause()
                 audioTrack?.flush()
+                queuedStopJob?.cancel()
                 extractJob?.cancelAndJoin()
                 doPrepare()
             } else state = State.INIT_PLAY
@@ -197,10 +213,31 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
             }
             doPlay(timeoutUs, onTimeoutCallback) {
                 state = State.PLAYING
-                enqueueStop(duration) { state = State.STOPPED }
+                enqueueStop(duration) {
+                    doPrepare()
+                    doPrime()
+                    state = State.READY
+                }
             }
         }
         return this
+    }
+
+    fun resumeAndPrepare() {
+        if (state != State.PAUSED)
+            onWarning("Resume: Illegal state", "resume: illegal state $state, should be PAUSED")
+        else {
+            audioTrack?.play()
+            state = State.PLAYING
+            overflowBuffers.forEach { writeAudioTrack(it) }
+            overflowBuffers.clear()
+            extractJob = scope.launch { extract() }
+            enqueueStop(duration - framesToMilliseconds(audioTrack?.playbackHeadPosition ?: 0)) {
+                doPrepare()
+                doPrime()
+                state = State.READY
+            }
+        }
     }
 
     suspend fun stop(): AudioFile {
@@ -272,9 +309,7 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
                     if (writeAudioTrack(it) > 0 && state == State.INIT_PLAY) onPlayStartCallback?.invoke()
                     primedData = null
                 } ?: Log.w(LOG_TAG, "doPlay: primedData is empty! Maybe this is on purpose?")
-                extractJob = scope.launch {
-                    extract(onPlayStartCallback)
-                }
+                extractJob = scope.launch { extract(onPlayStartCallback) }
             }
         } catch (e: IllegalStateException) {
             onError("Error outputting audio")
@@ -314,13 +349,15 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
                 while (!stop) {
                     if (inputResult != ProcessInputResult.END)
                         inputResult = processInputBuffer(codec, inputResult)
-                    val (outputResult, outputBuffer) = processOutputBuffer(codec)
+                    val (outputResult, outputBuffer, index) = processOutputBuffer(codec)
                     stop = when (outputResult) {
                         ProcessOutputResult.SUCCESS -> {
-                            val sampleSize = if (outputBuffer != null) {
+                            val sampleSize: Int
+                            if (outputBuffer != null) {
                                 primedData.put(outputBuffer)
-                                outputBuffer.position()
-                            } else 0
+                                sampleSize = outputBuffer.position()
+                                if (index != null) codec.releaseOutputBuffer(index, false)
+                            } else sampleSize = 0
                             totalSize += sampleSize
                             outputRetries = 0
                             // Stop if another buffer of the same size as this one would overflow primedData
@@ -355,6 +392,7 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
         audioTrack?.release()
         audioTrack = null
         onStoppedCallback?.invoke()
+        overflowBuffers.clear()
         // prepare()
     }
 
@@ -370,7 +408,7 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
                 framesToMilliseconds(audioTrack?.playbackHeadPosition ?: 0).also { ms ->
                     if (ms < delay) {
                         if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-                            "enqueueStop: Playhead ($ms) still less than duration ($duration), waiting ${delay - ms} more ms, then stopping, sound=$sound")
+                            "enqueueStop: Playhead ($ms) still less than delay ($delay), waiting ${delay - ms} more ms, then stopping, sound=$sound")
                         delay(delay - ms)
                     } else if (BuildConfig.DEBUG) Log.d(LOG_TAG,
                         "enqueueStop: Stopping, playbackHeadPosition=$ms milliseconds, sound=$sound")
@@ -409,11 +447,12 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
         while (!stop && job?.isActive == true) {
             if (inputResult != ProcessInputResult.END)
                 inputResult = processInputBuffer(codec, inputResult)
-            val (outputResult, outputBuffer) = processOutputBuffer(codec, totalSize)
+            val (outputResult, outputBuffer, index) = processOutputBuffer(codec, totalSize)
             if (outputResult == ProcessOutputResult.SUCCESS && outputBuffer != null) {
                 totalSize += outputBuffer.remaining()
                 writeAudioTrack(outputBuffer)
-                if (state == State.INIT_PLAY) onPlayStartCallback?.invoke()
+                if (index != null) codec.releaseOutputBuffer(index, false)
+                if (state == State.INIT_PLAY && job.isActive) onPlayStartCallback?.invoke()
                 outputRetries = 0
             }
             stop = when (outputResult) {
@@ -579,7 +618,8 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
         }
     }
 
-    private fun processOutputBuffer(codec: MediaCodec, totalSize: Int? = null): Pair<ProcessOutputResult, ByteBuffer?> {
+    private fun processOutputBuffer(codec: MediaCodec, totalSize: Int? = null):
+            Triple<ProcessOutputResult, ByteBuffer?, Int?> {
         /** Return: ProcessOutputResult, buffer */
         if (BuildConfig.DEBUG) checkNotOnMainThread("processOutputBuffer")
 
@@ -594,7 +634,7 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
                     when {
                         (info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0 -> {
                             codec.releaseOutputBuffer(index, false)
-                            return Pair(ProcessOutputResult.CODEC_CONFIG, null)
+                            return Triple(ProcessOutputResult.CODEC_CONFIG, null, null)
                         }
                         buffer != null -> {
                             val outputEos = (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0
@@ -615,13 +655,14 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
                                     writableBuffer.rewind()
                                     writableBuffer
                                 } else buffer
-                            // TODO: Will it work if I release output buffer before writing buffer to AudioTrack?
-                            // val writtenSize = writeAudioTrack(outputBuffer)
-                            codec.releaseOutputBuffer(index, false)
-                            return Pair(
-                                if (outputEos) ProcessOutputResult.EOS else ProcessOutputResult.SUCCESS, outputBuffer)
+                            /**
+                             * Dont forget to run codec.releaseOutputBuffer(index, false) when done with it!
+                             */
+                            return Triple(
+                                if (outputEos) ProcessOutputResult.EOS else ProcessOutputResult.SUCCESS,
+                                outputBuffer, index)
                         }
-                        else -> return Pair(ProcessOutputResult.NO_BUFFER, null)
+                        else -> return Triple(ProcessOutputResult.NO_BUFFER, null, null)
                     }
                 }
                 index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
@@ -630,13 +671,13 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
                         outputAudioFormat = audioFormat
                         rebuildAudioTrack()
                     }
-                    return Pair(ProcessOutputResult.OUTPUT_FORMAT_CHANGED, null)
+                    return Triple(ProcessOutputResult.OUTPUT_FORMAT_CHANGED, null, null)
                 }
-                else -> return Pair(ProcessOutputResult.NO_BUFFER, null)
+                else -> return Triple(ProcessOutputResult.NO_BUFFER, null, null)
             }
         } catch (e: Exception) {
             Log.e(LOG_TAG, "Error in codec output, sound=$sound", e)
-            return Pair(ProcessOutputResult.ERROR, null)
+            return Triple(ProcessOutputResult.ERROR, null, null)
         }
     }
 
@@ -660,22 +701,26 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
 
         if (BuildConfig.DEBUG) Log.d(LOG_TAG,
             "writeAudioTrack: writing to audioTrack=$audioTrack, sound=$sound, buffer=$buffer, sampleSize=$sampleSize")
-        audioTrack?.write(buffer, sampleSize, AudioTrack.WRITE_BLOCKING)?.also {
-            when (it) {
+        audioTrack?.write(buffer, sampleSize, AudioTrack.WRITE_BLOCKING)?.also { result ->
+            when (result) {
                 AudioTrack.ERROR_BAD_VALUE -> onWarning("Audio output: bad value")
                 AudioTrack.ERROR_DEAD_OBJECT -> onWarning("Audio output: dead object")
                 AudioTrack.ERROR_INVALID_OPERATION -> onWarning("Audio output: not properly initialized")
                 AudioTrack.ERROR -> onWarning("Error outputting audio")
                 else -> {
                     if (BuildConfig.DEBUG) {
-                        when (val overshoot = sampleSize - it) {
+                        when (val overshoot = sampleSize - result) {
                             0 -> Log.d(LOG_TAG,
-                                "writeAudioTrack: wrote $it bytes, buffer=$buffer, state=$state, sampleSize=$sampleSize, sound=$sound")
-                            else -> Log.w(LOG_TAG,
-                                "writeAudioTrack: wrote $it bytes, buffer=$buffer, overshoot=$overshoot, state=$state, sampleSize=$sampleSize, sound=$sound")
+                                "writeAudioTrack: wrote $result bytes, buffer=$buffer, state=$state, sampleSize=$sampleSize, sound=$sound")
+                            else -> {
+                                Log.w(LOG_TAG,
+                                    "writeAudioTrack: wrote $result bytes, buffer=$buffer, overshoot=$overshoot, state=$state, sampleSize=$sampleSize, sound=$sound")
+                                overflowBuffers.add(
+                                    ByteBuffer.allocateDirect(overshoot).put(buffer).also { it.position(0) })
+                            }
                         }
                     }
-                    return it
+                    return result
                 }
             }
         }
@@ -736,6 +781,13 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
      *    Ends: On stop
      *    May change from: INIT_PLAY
      *    Changes to: STOPPED or ERROR
+     * PAUSED
+     *    Means: Sound has been playing but has been paused by user input
+     *    Begins: When user pressed pause
+     *    Ends: On play(), prepare(), or release()
+     *    May change from: PLAYING
+     *    // TODO: FINISH THIS
+     *    Changes to: PLAYING, ...
      * STOPPED
      *    Means: Playback has stopped and is not (yet) in initializing/ready state
      *    Begins: When user pressed stop or sound has played to the end
@@ -752,7 +804,7 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
      *    Ends: Never -- this is final
      *    May change from: Any
      */
-    enum class State { CREATED, INITIALIZING, READY, INIT_PLAY, PLAYING, STOPPED, ERROR, RELEASED }
+    enum class State { CREATED, INITIALIZING, READY, INIT_PLAY, PLAYING, PAUSED, STOPPED, ERROR, RELEASED }
 
     enum class ProcessInputResult { CONTINUE, END_NEXT, END }
 

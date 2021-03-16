@@ -328,11 +328,12 @@ class SoundAdapter(
                 }
                 binding.duration.text = context.getString(R.string.duration_seconds, durationString)
                 binding.durationCard.visibility = View.VISIBLE
-                if (playerTimer?.duration != value)
-                    playerTimer = SoundPlayerTimer(
-                        value, binding.volumeBar, item?.volume ?: Constants.DEFAULT_VOLUME)
-                else
-                    item?.volume?.let { playerTimer?.originalProgress = it }
+                playerTimer?.also { timer ->
+                    timer.setDuration(value)
+                    item?.volume?.let { timer.setOriginalProgress(it) }
+                } ?: run {
+                    playerTimer = SoundPlayerTimer(value, binding.volumeBar, item?.volume ?: Constants.DEFAULT_VOLUME)
+                }
             }
         }
 
@@ -430,11 +431,13 @@ class SoundAdapter(
                 } else binding.playIcon.visibility = View.INVISIBLE
 
                 if (state == SoundPlayer.State.STOPPED || state == SoundPlayer.State.READY) {
-                    playerTimer?.apply {
-                        cancel()
-                        onFinish()
-                    }
+                    playerTimer?.stop()
                 }
+
+                if (state == SoundPlayer.State.PAUSED) {
+                    binding.pauseIcon.visibility = View.VISIBLE
+                    playerTimer?.pause()
+                } else binding.pauseIcon.visibility = View.INVISIBLE
 
                 binding.failIcon.visibility =
                     if (state == SoundPlayer.State.ERROR) View.VISIBLE else View.INVISIBLE

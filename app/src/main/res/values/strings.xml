@@ -94,4 +94,7 @@
     <string name="add_date">Add date</string>
     <string name="sort_by">Sort by</string>
     <string name="unchanged">(Unchanged)</string>
+    <string name="paused">Paused</string>
+    <string name="help_title_repress_pause">Pause</string>
+    <string name="help_text_repress_pause">The sound will pause. When you press it again, it will resume.</string>
 </resources>
