@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:orientation="vertical"
-        android:padding="@dimen/margin_big"
+        android:padding="@dimen/margin_xlarge"
         tools:context=".fragments.EditCategoryDialogFragment">
 
         <TextView
@@ -118,7 +118,7 @@
                     android:id="@+id/sort_order_ascending"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/elevation_big"
+                    android:layout_marginEnd="@dimen/elevation_large"
                     android:text="@string/ascending" />
 
                 <RadioButton

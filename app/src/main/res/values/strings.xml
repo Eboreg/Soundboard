@@ -65,36 +65,10 @@
     <string name="soundboard_settings" translatable="false">Söun̈dböard Sëttin̈gs</string>
     <string name="reset_buffer_size_to_default">Reset buffer size to default</string>
     <string name="no_sound_chosen">No sound chosen!</string>
-    <string name="help_text_add_sound">Add one or more sounds to the soundboard. For technical reasons, they will be copied to the app\'s internal storage.</string>
-    <string name="help_text_reorder">When activated, you can reorder sounds and categories by dragging and dropping them.</string>
-    <string name="help_title_add_sound">Add sound(s)</string>
-    <string name="help_title_filter">Filter</string>
-    <string name="help_text_filter">When activated, you can filter the displayed sounds by entering a string.</string>
-    <string name="help_text_settings">A few basic app settings.</string>
-    <string name="help_title_zoom">Zoom</string>
-    <string name="help_text_zoom">You may also zoom in and out by pinching with two fingers.</string>
-    <string name="help_text_undo">Undo the latest addition/modification/deletion/reordering of sounds or categories. You can undo the last 20 actions.</string>
-    <string name="menu_selections">Menu selections</string>
-    <string name="help_title_repress_stop">Stop</string>
-    <string name="help_text_repress_mode">This dictates what will happen when you press a sound while it\'s already playing. The icon depends on the mode currently chosen.</string>
-    <string name="help_text_repress_stop">The sound will just stop.</string>
-    <string name="help_title_repress_restart">Restart</string>
-    <string name="help_text_repress_restart">The sound will stop and immediately restart.</string>
-    <string name="help_title_repress_overlap">Overlap</string>
-    <string name="help_text_repress_overlap">The same sound will play again, overdubbing what is already playing.</string>
-    <string name="sound_selection">Sound selection</string>
-    <string name="help_text_sound_selection">Long press on any sound to activate the sound selection mode. After that, these options are available:</string>
-    <string name="select_all_sounds">Select all sounds</string>
-    <string name="edit_sound_or_sounds">Edit sound(s)</string>
-    <string name="delete_sound_or_sounds">Delete sound(s)</string>
-    <string name="category_actions">Category actions</string>
-    <string name="help_text_edit_category">This will let change a category\'s name and colour, as well as reorder the sounds within it by different parameters.</string>
     <string name="help">Hëlp!!</string>
     <string name="duration">Duration</string>
     <string name="add_date">Add date</string>
     <string name="sort_by">Sort by</string>
     <string name="unchanged">(Unchanged)</string>
     <string name="paused">Paused</string>
-    <string name="help_title_repress_pause">Pause</string>
-    <string name="help_text_repress_pause">The sound will pause. When you press it again, it will resume.</string>
 </resources>

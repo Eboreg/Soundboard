@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:theme="@style/Soundboard.Theme.MaterialAlertDialog.EqualButtons"
-        android:padding="@dimen/margin_big">
+        android:padding="@dimen/margin_xlarge">
 
         <TextView
             android:id="@+id/addDuplicateText1"
