@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.drawable.LayerDrawable
+import android.graphics.drawable.LevelListDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -22,7 +24,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.core.content.edit
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.add
@@ -174,7 +175,9 @@ class MainActivity :
         setContentView(binding.root)
 
         setSupportActionBar(binding.actionbar.actionbarToolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
+        supportActionBar?.apply {
+            setDisplayShowTitleEnabled(false)
+        }
         setupEasterEggClickListener()
         setupBottomBar()
 
@@ -218,10 +221,11 @@ class MainActivity :
         /** Inflates top menu */
         menuInflater.inflate(R.menu.appbar_menu, menu)
         // On wider screens, also inflate "bottom menu" here
-        if (resources.configuration.screenWidthDp >= 480) menuInflater.inflate(
-            R.menu.bottom_menu,
-            menu
-        )
+        if (resources.configuration.screenWidthDp >= 480) {
+            menuInflater.inflate(R.menu.bottom_menu, menu)
+            menu.findItem(R.id.action_open_repress_mode_menu)
+                ?.setIcon(R.drawable.repress_mode_menu_icon_with_down_caret)
+        }
         // This has to be done here, because the callbacks require the menu to exist
         appViewModel.repressMode.observe(this) { onRepressModeChange(it) }
         appViewModel.zoomInPossible.observe(this) { onZoomInPossibleChange(it) }
@@ -238,15 +242,10 @@ class MainActivity :
             R.id.action_add_category -> showCategoryAddDialog()
             R.id.action_add_sound -> startAddSoundActivity()
             // R.id.action_reinit_failed_sounds -> reinitFailedSounds()
-            R.id.action_set_repress_mode -> {
-                val newMode = appViewModel.getNextRepressMode()
-                appViewModel.setRepressMode(newMode)
-                scope.launch {
-                    getPreferences(Context.MODE_PRIVATE).edit {
-                        putString(PREF_REPRESS_MODE, newMode.toString()).apply()
-                    }
-                }
-            }
+            R.id.action_set_repress_mode_stop -> appViewModel.setRepressMode(SoundPlayer.RepressMode.STOP)
+            R.id.action_set_repress_mode_restart -> appViewModel.setRepressMode(SoundPlayer.RepressMode.RESTART)
+            R.id.action_set_repress_mode_overlap -> appViewModel.setRepressMode(SoundPlayer.RepressMode.OVERLAP)
+            R.id.action_set_repress_mode_pause -> appViewModel.setRepressMode(SoundPlayer.RepressMode.PAUSE)
             R.id.action_settings -> {
                 val intent = Intent(this, SettingsActivity::class.java)
                 startActivity(intent)
@@ -464,18 +463,16 @@ class MainActivity :
     }
 
     private fun onRepressModeChange(mode: SoundPlayer.RepressMode) {
-        val icon = when (mode) {
-            SoundPlayer.RepressMode.OVERLAP -> ResourcesCompat.getDrawable(
-                resources, R.drawable.ic_repress_overlap, theme)
-            SoundPlayer.RepressMode.RESTART -> ResourcesCompat.getDrawable(
-                resources, R.drawable.ic_repress_restart, theme)
-            SoundPlayer.RepressMode.STOP -> ResourcesCompat.getDrawable(
-                resources, R.drawable.ic_repress_stop, theme)
-            SoundPlayer.RepressMode.PAUSE -> ResourcesCompat.getDrawable(
-                resources, R.drawable.ic_pause, theme)
+        val level = when (mode) {
+            SoundPlayer.RepressMode.OVERLAP -> resources.getInteger(R.integer.repress_mode_overlap)
+            SoundPlayer.RepressMode.RESTART -> resources.getInteger(R.integer.repress_mode_restart)
+            SoundPlayer.RepressMode.STOP -> resources.getInteger(R.integer.repress_mode_stop)
+            SoundPlayer.RepressMode.PAUSE -> resources.getInteger(R.integer.repress_mode_pause)
         }
-        binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_set_repress_mode)?.icon = icon
-        binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_set_repress_mode)?.icon = icon
+        val menuItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_open_repress_mode_menu)
+            ?: binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_open_repress_mode_menu)
+        val icon = (menuItem?.icon as? LayerDrawable)?.getDrawable(0) as? LevelListDrawable
+        icon?.level = level
         if (this.repressMode != null) showSnackbar(getString(R.string.on_repress, mode))
         this.repressMode = mode
     }
@@ -506,11 +503,9 @@ class MainActivity :
     }
 
     private fun onZoomInPossibleChange(value: Boolean) {
-        binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_zoom_in)?.apply {
-            isEnabled = value
-            icon?.alpha = if (value) 255 else 128
-        }
-        binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_zoom_in)?.apply {
+        val zoomInItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_zoom_in)
+            ?: binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_zoom_in)
+        zoomInItem?.apply {
             isEnabled = value
             icon?.alpha = if (value) 255 else 128
         }
@@ -539,7 +534,9 @@ class MainActivity :
     }
 
     private fun setupBottomBar() {
-        binding.bottombar.bottombarToolbar?.setOnMenuItemClickListener { onOptionsItemSelected(it) }
+        binding.bottombar.bottombarToolbar?.apply {
+            setOnMenuItemClickListener { onOptionsItemSelected(it) }
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")

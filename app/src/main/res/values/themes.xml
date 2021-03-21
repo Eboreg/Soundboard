@@ -18,7 +18,7 @@
         <item name="actionBarSize">@dimen/actionbar_height</item>
         <item name="actionBarStyle">@style/Soundboard.Style.Toolbar</item>
         <item name="actionModeStyle">@style/Soundboard.Style.ActionMode</item>
-        <item name="popupMenuBackground">?attr/colorPrimary</item>
+        <item name="popupMenuBackground">@android:color/transparent</item>
         <item name="alertDialogTheme">@style/Soundboard.Theme.MaterialAlertDialog</item>
         <item name="materialAlertDialogTheme">@style/Soundboard.Theme.MaterialAlertDialog</item>
         <item name="spinnerStyle">@style/Soundboard.Style.Spinner</item>
@@ -37,7 +37,10 @@
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorOnSurface">@color/light_bg_dark_primary_text</item>
+        <item name="colorOnBackground">@color/light_bg_dark_primary_text</item>
         <item name="colorAccent">@color/teal_300</item>
+        <item name="colorSurface">@color/grey_100</item>
+        <item name="android:colorBackground">@color/grey_100</item>
     </style>
 
     <style name="Soundboard.Theme.NoActionBar">

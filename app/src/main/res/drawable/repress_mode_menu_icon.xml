@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<level-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_set_repress_mode_stop"
+        android:drawable="@drawable/ic_repress_stop"
+        android:maxLevel="@integer/repress_mode_stop" />
+    <item
+        android:id="@+id/action_set_repress_mode_restart"
+        android:drawable="@drawable/ic_repress_restart"
+        android:maxLevel="@integer/repress_mode_restart" />
+    <item
+        android:id="@+id/action_set_repress_mode_overlap"
+        android:drawable="@drawable/ic_repress_overlap"
+        android:maxLevel="@integer/repress_mode_overlap" />
+    <item
+        android:id="@+id/action_set_repress_mode_pause"
+        android:drawable="@drawable/ic_pause"
+        android:maxLevel="@integer/repress_mode_pause" />
+</level-list>

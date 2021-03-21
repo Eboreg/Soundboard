@@ -19,4 +19,4 @@ keystore.properties
 /.gradle.backup/
 /.idea.backup/
 /key.zip
-/app/release/app-release.aab
+*.aab

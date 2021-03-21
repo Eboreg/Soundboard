@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/repress_mode_icon"
+        android:gravity="center"
+        android:left="0dp"
+        android:drawable="@drawable/repress_mode_menu_icon" />
+    <item
+        android:left="35dp"
+        android:right="0dp"
+        android:drawable="@drawable/ic_caret_down"
+        android:gravity="center" />
+</layer-list>

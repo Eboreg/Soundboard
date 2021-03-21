@@ -10,6 +10,9 @@
         <item name="colorSecondaryVariant">@color/teal_900</item>
         <item name="colorOnSecondary">@color/dark_bg_light_primary_text</item>
         <item name="colorOnSurface">@color/dark_bg_light_primary_text</item>
+        <item name="colorOnBackground">@color/dark_bg_light_primary_text</item>
         <item name="colorAccent">@color/teal_300</item>
+        <item name="android:colorBackground">@color/grey_900</item>
+        <item name="colorSurface">@color/grey_900</item>
     </style>
 </resources>

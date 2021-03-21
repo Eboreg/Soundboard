@@ -1,12 +1,7 @@
+Fix the ugly as fuck animation when expanding a submenu from actionbar or bottombar - but how? D-:
+
+
 Can I get sound "range select" to work over category boundaries?
-
-
-Freshen up light mode colours a bit (white background feels too bright, or other backgrounds too
-dark)
-
-
-Instead of repress mode button: have a toolbar that shows up while a sound is playing, with those
-functions  -- no, because how would we deal with several sounds playing at once?
 
 
 Look at backup_descriptor.xml stuff

@@ -39,14 +39,12 @@ class SoundPlayerTimer(private var duration: Long,
     fun resume() {
         if (millisLeft != duration) timer = CountDownTimerImpl(millisLeft)
         timer.start()
-        Log.d(LOG_TAG, "resume: millisLeft=$millisLeft, duration=$duration, timer=$timer")
     }
 
     private fun setDuration(value: Long) {
         if (value != duration) {
             duration = value
             timer = CountDownTimerImpl(duration)
-            Log.d(LOG_TAG, "setDuration: millisLeft=$millisLeft, duration=$duration, timer=$timer")
         }
     }
 
@@ -54,13 +52,11 @@ class SoundPlayerTimer(private var duration: Long,
         progressBar.progress = originalProgress
         millisLeft = duration
         if (timer.millisInFuture != duration) timer = CountDownTimerImpl(duration)
-        Log.d(LOG_TAG, "setDuration: millisLeft=$millisLeft, duration=$duration, timer=$timer")
     }
 
     private fun onTick(millisUntilFinished: Long) {
         millisLeft = millisUntilFinished
         progressBar.progress = percentage
-        Log.d(LOG_TAG, "onTick: millisLeft=$millisLeft, duration=$duration, timer=$timer")
     }
 
     inner class CountDownTimerImpl(val millisInFuture: Long) : CountDownTimer(millisInFuture, 50) {

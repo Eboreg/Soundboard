@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.PreferenceManager
 import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.Application
@@ -13,24 +14,27 @@ import java.util.*
 @AndroidEntryPoint
 abstract class BaseActivity : AppCompatActivity() {
     override fun attachBaseContext(newBase: Context?) {
-        newBase?.let { super.attachBaseContext(updateBaseContextLocale(newBase)) }
+        newBase?.let { super.attachBaseContext(updateBaseContext(newBase)) }
     }
 
-    private fun updateBaseContextLocale(context: Context): Context {
-        return PreferenceManager.getDefaultSharedPreferences(context).getString("language", "en")
-            ?.let { language ->
-                val realLanguage =
-                    if (language == "default") (context.applicationContext as Application).deviceDefaultLanguage else language
-                if (realLanguage != null) {
-                    val locale = Locale(realLanguage)
-                    Locale.setDefault(locale)
-                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) return updateResourcesLocale(
-                        context,
-                        locale
-                    )
-                    updateResourcesLocaleLegacy(context, locale)
-                } else context
-            } ?: context
+    private fun updateBaseContext(context: Context): Context {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        var newContext = context
+
+        prefs.getString("language", "en")?.let { language ->
+            val realLanguage =
+                if (language == "default") (context.applicationContext as Application).deviceDefaultLanguage else language
+            if (realLanguage != null) {
+                val locale = Locale.forLanguageTag(realLanguage)
+                Locale.setDefault(locale)
+                newContext = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) updateResourcesLocale(context, locale)
+                else updateResourcesLocaleLegacy(context, locale)
+            }
+        }
+
+        setNightMode(prefs.getString("nightMode", "default"))
+
+        return newContext
     }
 
     @TargetApi(Build.VERSION_CODES.N_MR1)
@@ -45,6 +49,14 @@ abstract class BaseActivity : AppCompatActivity() {
         context.resources.configuration.locale = locale
         context.resources.updateConfiguration(resources.configuration, resources.displayMetrics)
         return context
+    }
+
+    fun setNightMode(value: String?) {
+        when (value) {
+            "default" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            "night" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            "day" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        }
     }
 
     fun setLanguage(language: String?) {

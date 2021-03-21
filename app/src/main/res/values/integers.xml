@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="repress_mode_stop">0</integer>
+    <integer name="repress_mode_restart">1</integer>
+    <integer name="repress_mode_overlap">2</integer>
+    <integer name="repress_mode_pause">3</integer>
+</resources>

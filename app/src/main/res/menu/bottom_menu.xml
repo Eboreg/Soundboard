@@ -1,21 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_set_repress_mode"
-        android:icon="@drawable/ic_repress_stop"
-        android:orderInCategory="10"
-        android:title="@string/repress_mode"
+        android:id="@+id/action_open_repress_mode_menu"
+        android:orderInCategory="11"
         app:showAsAction="always"
-        tools:ignore="AlwaysShowAction" />
+        android:icon="@drawable/repress_mode_menu_icon_with_up_caret"
+        android:title="@string/repress_mode">
+        <menu>
+            <item
+                android:id="@+id/action_set_repress_mode_stop"
+                android:icon="@drawable/ic_repress_stop"
+                android:title="@string/stop" />
+            <item
+                android:id="@+id/action_set_repress_mode_restart"
+                android:icon="@drawable/ic_repress_restart"
+                android:title="@string/restart" />
+            <item
+                android:id="@+id/action_set_repress_mode_overlap"
+                android:icon="@drawable/ic_repress_overlap"
+                android:title="@string/overlap" />
+            <item
+                android:id="@+id/action_set_repress_mode_pause"
+                android:icon="@drawable/ic_pause"
+                android:title="@string/pause" />
+        </menu>
+    </item>
 
     <item
         android:id="@+id/action_add_category"
         android:icon="@drawable/ic_add_category"
         android:orderInCategory="11"
         android:title="@string/add_category"
-        app:showAsAction="always" />
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction" />
 
     <item
         android:id="@+id/action_zoom_in"

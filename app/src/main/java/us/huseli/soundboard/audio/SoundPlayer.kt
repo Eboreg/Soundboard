@@ -64,54 +64,11 @@ class SoundPlayer(private var sound: Sound,
         job = scope.launch { audioFile = createAudioFile() }
     }
 
-    /********** OVERRIDDEN METHODS **********/
-
-    override fun equals(other: Any?): Boolean {
-        return when {
-            this === other -> true
-            other is SoundPlayer && this.hashCode() == other.hashCode() && this.state == other.state -> true
-            else -> false
-        }
-    }
-
-    override fun hashCode() = sound.id.hashCode()
-
-    override fun onAudioFileError(message: String) {
-        _state = State.ERROR
-        _errorMessage = message
-    }
-
-    override fun onAudioFileStateChange(state: AudioFile.State, audioFile: AudioFile, message: String?) {
-        @Suppress("NON_EXHAUSTIVE_WHEN")
-        when (state) {
-            AudioFile.State.INITIALIZING -> this._state = State.INITIALIZING
-            AudioFile.State.PLAYING -> this._state = State.PLAYING
-            AudioFile.State.READY -> if (!isPlaying()) this._state = State.READY
-            AudioFile.State.STOPPED -> if (!isPlaying()) this._state = State.STOPPED
-            AudioFile.State.PAUSED -> this._state = State.PAUSED
-        }
-    }
-
-    override fun onAudioFileWarning(message: String) {
-        stateListener?.onSoundPlayerWarning(message)
-    }
-
-    override fun toString(): String {
-        val hashCode = Integer.toHexString(System.identityHashCode(this))
-        return "SoundPlayer $hashCode <sound=$sound, state=$_state>"
-    }
-
-
     /********** PUBLIC METHODS **********/
 
     @Suppress("unused")
     fun isAtPosition(posX: Float, posY: Float): Boolean {
         return posX in left..right && posY in top..bottom
-    }
-
-    suspend fun reinit() {
-        job?.join()
-        job = scope.launch { audioFile?.prepareAndPrime() }
     }
 
     fun release() {
@@ -140,6 +97,8 @@ class SoundPlayer(private var sound: Sound,
     }
 
     fun togglePlay() {
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG,
+            "togglePlay: state=$_state, repressMode=$repressMode, audioFile=$audioFile")
         when (_state) {
             State.PLAYING -> {
                 val timeoutUs = System.nanoTime() + Constants.SOUND_PLAY_TIMEOUT
@@ -153,7 +112,7 @@ class SoundPlayer(private var sound: Sound,
                         // TODO: adjust volumes?
                         RepressMode.OVERLAP -> createAndStartTempPlayer(timeoutUs)
                         RepressMode.PAUSE -> {
-                            audioFile?.pause()
+                            if (audioFile?.isPlaying == true) audioFile?.pause()
                             stopAndClearTempPlayers()
                         }
                     }
@@ -162,6 +121,44 @@ class SoundPlayer(private var sound: Sound,
             State.PAUSED -> audioFile?.resumeAndPrepare()
             else -> audioFile?.playAndPrepare()
         }
+    }
+
+
+    /********** OVERRIDDEN METHODS **********/
+
+    override fun equals(other: Any?): Boolean {
+        return when {
+            this === other -> true
+            other is SoundPlayer && this.hashCode() == other.hashCode() && this.state == other.state -> true
+            else -> false
+        }
+    }
+
+    override fun hashCode() = sound.id.hashCode()
+
+    override fun onAudioFileError(message: String) {
+        _state = State.ERROR
+        _errorMessage = message
+    }
+
+    override fun onAudioFileStateChange(state: AudioFile.State, audioFile: AudioFile, message: String?) {
+        @Suppress("NON_EXHAUSTIVE_WHEN")
+        when (state) {
+            AudioFile.State.INITIALIZING -> this._state = State.INITIALIZING
+            AudioFile.State.PLAYING -> this._state = State.PLAYING
+            AudioFile.State.READY -> scope.launch { setReadyOnTempPlayersStopped() }
+            AudioFile.State.STOPPED -> if (!isPlaying()) this._state = State.STOPPED
+            AudioFile.State.PAUSED -> this._state = State.PAUSED
+        }
+    }
+
+    override fun onAudioFileWarning(message: String) {
+        stateListener?.onSoundPlayerWarning(message)
+    }
+
+    override fun toString(): String {
+        val hashCode = Integer.toHexString(System.identityHashCode(this))
+        return "SoundPlayer $hashCode <sound=$sound, state=$_state>"
     }
 
 
@@ -180,12 +177,12 @@ class SoundPlayer(private var sound: Sound,
         } catch (e: AudioFile.AudioFileException) {
             _errorMessage = e.message
             _state = State.ERROR
-            Log.e(LOG_TAG, "Error initializing ${sound.name}: ${e.message}", e)
+            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "Error initializing ${sound.name}: ${e.message}", e)
             null
         } catch (e: Exception) {
             _errorMessage = "Error initializing ${sound.name}"
             _state = State.ERROR
-            Log.e(LOG_TAG, "Error initializing ${sound.name}", e)
+            if (BuildConfig.DEBUG) Log.e(LOG_TAG, "Error initializing ${sound.name}", e)
             null
         }
     }
@@ -198,6 +195,11 @@ class SoundPlayer(private var sound: Sound,
         // This will also call release() on them via listener below
         tempAudioFiles.forEach { it.stop() }
         tempAudioFiles.clear()
+    }
+
+    private suspend fun setReadyOnTempPlayersStopped() {
+        while (isPlaying()) delay(50)
+        _state = State.READY
     }
 
 
@@ -218,7 +220,6 @@ class SoundPlayer(private var sound: Sound,
                      */
                     if (_state != State.STOPPED && _state != State.RELEASED)
                         tempAudioFileMutex.withLock { tempAudioFiles.remove(audioFile) }
-                    if (!isPlaying()) _state = State.READY
                 }
             }
         }

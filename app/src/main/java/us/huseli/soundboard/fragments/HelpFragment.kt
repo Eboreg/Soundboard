@@ -15,6 +15,10 @@ import us.huseli.soundboard.R
 import us.huseli.soundboard.databinding.FragmentHelpBinding
 
 class HelpFragment : Fragment(), View.OnClickListener {
+    /**
+     * https://github.com/tiagohm/MarkdownView
+     * https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet
+     */
     private var binding: FragmentHelpBinding? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -57,7 +61,7 @@ class HelpFragment : Fragment(), View.OnClickListener {
                 if (attr.type >= TypedValue.TYPE_FIRST_COLOR_INT && attr.type <= TypedValue.TYPE_LAST_COLOR_INT) {
                     String.format("%06X", 0xFFFFFF.and(attr.data))
                 } else null
-            context.theme.resolveAttribute(R.attr.colorOnPrimary, attr, true)
+            context.theme.resolveAttribute(R.attr.colorOnSurface, attr, true)
             val foregroundColor =
                 if (attr.type >= TypedValue.TYPE_FIRST_COLOR_INT && attr.type <= TypedValue.TYPE_LAST_COLOR_INT) {
                     String.format("%06X", 0xFFFFFF.and(attr.data))

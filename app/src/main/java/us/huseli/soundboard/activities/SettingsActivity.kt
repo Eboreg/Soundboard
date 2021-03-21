@@ -4,7 +4,6 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
@@ -46,13 +45,7 @@ class SettingsActivity : BaseActivity(), SharedPreferences.OnSharedPreferenceCha
         sharedPreferences?.also {
             when (key) {
                 "language" -> setLanguage(sharedPreferences.getString(key, "en"))
-                "nightMode" -> {
-                    when (sharedPreferences.getString(key, "default")) {
-                        "default" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-                        "night" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                        "day" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                    }
-                }
+                "nightMode" -> setNightMode(sharedPreferences.getString(key, "default"))
             }
         }
     }
