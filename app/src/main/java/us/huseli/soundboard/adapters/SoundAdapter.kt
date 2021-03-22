@@ -280,9 +280,6 @@ class SoundAdapter(
 
             playerRepository.players.observe(this) { players ->
                 players[sound]?.also { newPlayer ->
-                    if (BuildConfig.DEBUG)
-                        Log.d(LOG_TAG,
-                            "playerRepository.players: newPlayer=$newPlayer, player=$player, state=${newPlayer.state}")
                     newPlayer.setStateListener(this)
                     if (newPlayer.state != SoundPlayer.State.READY)
                         onSoundPlayerStateChange(newPlayer, newPlayer.state)

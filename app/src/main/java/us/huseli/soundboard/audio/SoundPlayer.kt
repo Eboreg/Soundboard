@@ -60,7 +60,6 @@ class SoundPlayer(private var sound: Sound,
     private var bottom: Float = 0f
 
     init {
-        if (BuildConfig.DEBUG) Log.i(LOG_TAG, "init: uri=$sound, path=${sound.path}")
         job = scope.launch { audioFile = createAudioFile() }
     }
 
@@ -88,7 +87,6 @@ class SoundPlayer(private var sound: Sound,
 
     fun setStateListener(listener: StateListener?) {
         stateListener = listener
-        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "setListener: this=$this, uri=$sound, listener=$listener")
     }
 
     fun setVolume(value: Int) {
