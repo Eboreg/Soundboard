@@ -1,4 +1,4 @@
-### Menyval
+### Menÿval
 
 | --- | --- |
 | ![](file:///android_asset/add_sound.svg)  |  **Lägg till ljud** |
@@ -21,7 +21,9 @@
 | ![](file:///android_asset/undo.svg)  |  **Ångra** |
 | | Ångra den senaste ändringen av ljud eller kategorier. Du kan ångra de senaste 20 ändringarna sedan den senaste app-omstarten. |
 
-### Återtrycksläge
+---
+
+### Återtrÿcksläge
 
 Denna avgör vad som händer om du trycker på ett ljud medan det fortfarande spelas upp. Ikonen beror på vilket läge som för tillfället är valt.
 
@@ -38,18 +40,24 @@ Denna avgör vad som händer om du trycker på ett ljud medan det fortfarande sp
 | ![](file:///android_asset/repress_pause.svg)  |  **Pausa** |
 | | Ljudet kommer att pausas. När du trycker på det igen, återupptas det.
 
-### Ljudval
+---
 
-Tryck och håll inne på valfritt ljud för att aktivera ljudvalsläget. Därefter är dessa val tillgängliga:
+### Ljüdmarkërïng
+
+Tryck och håll inne på valfritt ljud för att aktivera ljudmarkeringsläget. Därefter är dessa val tillgängliga:
 
 | --- | --- |
-| ![](file:///android_asset/select_all.svg)  |  **Välj alla ljud** |
+| ![](file:///android_asset/select_all.svg)  |  **Markera alla ljud** |
 | | | |
 | ![](file:///android_asset/edit.svg)  |  **Redigera ljud** |
 | | | |
 | ![](file:///android_asset/delete.svg)  |  **Radera ljud** |
 
-### Kategoriåtgärder
+**Prö tïp:** När du är i ljudmarkeringsläget, tryck och håll inne på valfritt omarkerat ljud för att markera det och alla ljud mellan det och det senast markerade.
+
+---
+
+### Katëgorïåtgärder
 
 | --- | --- |
 | ![](file:///android_asset/edit.svg)  |  **Redigera kategori** |
@@ -58,3 +66,8 @@ Tryck och håll inne på valfritt ljud för att aktivera ljudvalsläget. Däreft
 | ![](file:///android_asset/delete.svg)  |  **Radera kategori** |
 | | Raderar kategorin och alla dess ljud.
 
+---
+
+### Varför alla "öüë"?
+
+För att det är koolt.

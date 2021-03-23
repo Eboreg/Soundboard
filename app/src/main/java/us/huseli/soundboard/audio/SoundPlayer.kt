@@ -161,7 +161,6 @@ class SoundPlayer(private var sound: Sound,
 
 
     /********** PRIVATE METHODS **********/
-
     private suspend fun createAndStartTempPlayer(timeoutUs: Long) {
         AudioFile(sound, _volume, bufferSize, TempAudioFileListener()).prepare().let {
             it.play(timeoutUs)
@@ -169,7 +168,8 @@ class SoundPlayer(private var sound: Sound,
         }
     }
 
-    private fun createAudioFile(): AudioFile? {
+    @Suppress("RedundantSuspendModifier")
+    private suspend fun createAudioFile(): AudioFile? {
         return try {
             AudioFile(sound, bufferSize, this).prepareAndPrime().also { _duration = it.duration.toInt() }
         } catch (e: AudioFile.AudioFileException) {
@@ -202,7 +202,6 @@ class SoundPlayer(private var sound: Sound,
 
 
     /********** INNER CLASSES/INTERFACES/ENUMS **********/
-
     inner class TempAudioFileListener : AudioFile.Listener {
         override fun onAudioFileStateChange(state: AudioFile.State, audioFile: AudioFile, message: String?) {
             @Suppress("NON_EXHAUSTIVE_WHEN")

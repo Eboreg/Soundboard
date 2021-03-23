@@ -6,7 +6,6 @@ import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.Context
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.graphics.PorterDuff
 import android.os.Build
 import android.util.Log
@@ -176,8 +175,7 @@ class SoundAdapter(
 
 
     class DiffCallback : DiffUtil.ItemCallback<Sound>() {
-        override fun areItemsTheSame(oldItem: Sound, newItem: Sound) =
-            oldItem.id == newItem.id && oldItem.categoryId == newItem.categoryId
+        override fun areItemsTheSame(oldItem: Sound, newItem: Sound) = oldItem == newItem
 
         override fun areContentsTheSame(oldItem: Sound, newItem: Sound) =
             oldItem.name == newItem.name &&
@@ -231,6 +229,8 @@ class SoundAdapter(
 
         override val lifecycleRegistry = LifecycleRegistry(this)
         override var item: Sound? = null
+        override val sound: Sound?
+            get() = item
 
         init {
             binding.soundContainer.setOnClickListener(this)
@@ -253,7 +253,7 @@ class SoundAdapter(
             setDuration(sound.duration)
             sound.backgroundColor?.let { setBackgroundColor(it) }
 
-            soundViewModel.addSoundSelectionListener(sound, this)
+            soundViewModel.addSoundSelectionListener(this)
 
             playerRepository.players.observe(this) { players ->
                 players[sound]?.also { newPlayer ->
@@ -280,8 +280,11 @@ class SoundAdapter(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 binding.volumeBar.progressTintMode = PorterDuff.Mode.OVERLAY
                 binding.volumeBar.progressTintList =
+                    ColorStateList.valueOf(colorHelper.getColorOnBackgroundColor(color))
+/*
                     if (colorHelper.getLuminance(color) >= 0.6) ColorStateList.valueOf(Color.BLACK)
                     else ColorStateList.valueOf(Color.WHITE)
+*/
             }
         }
 
@@ -327,17 +330,24 @@ class SoundAdapter(
 
         /********* OVERRIDDEN METHODS **********/
         override fun markDestroyed() {
-            soundViewModel.removeOnSelectAllListener(item)
+            soundViewModel.removeOnSelectAllListener(this)
             playerRepository.players.removeObservers(this)
             player?.setStateListener(null)
             super.markDestroyed()
         }
 
         override fun markDetach() {
-            soundViewModel.removeOnSelectAllListener(item)
+            soundViewModel.removeOnSelectAllListener(this)
             playerRepository.players.removeObservers(this)
             super.markDetach()
         }
+
+/*
+        override fun markAttach() {
+            soundViewModel.addSoundSelectionListener(this)
+            super.markAttach()
+        }
+*/
 
         override fun onClick(view: View) {
             when {

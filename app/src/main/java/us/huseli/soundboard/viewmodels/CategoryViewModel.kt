@@ -44,7 +44,7 @@ class CategoryViewModel @Inject constructor(
 
     fun create(name: String) = viewModelScope.launch(Dispatchers.IO) {
         /** Used in MainActivity.onCreate() to create empty default category if there are none */
-        repository.insert(Category(name, colorHelper.randomColor(repository.getUsedColors())))
+        repository.insert(Category(name, colorHelper.getRandomColor(repository.getUsedColors())))
     }
 
     /** Used by DeleteCategoryFragment */

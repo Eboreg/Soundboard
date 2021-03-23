@@ -21,7 +21,7 @@ class CategoryAddViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            _backgroundColor.postValue(colorHelper.randomColor(repository.getUsedColors()))
+            _backgroundColor.postValue(colorHelper.getRandomColor(repository.getUsedColors()))
         }
     }
 

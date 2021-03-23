@@ -206,7 +206,7 @@ class MainActivity :
         categoryListViewModel.categories.observe(this) {
             // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment
             categories = it
-            if (it.isEmpty()) categoryListViewModel.create(getString(R.string.default_category))
+            if (it.isEmpty()) categoryListViewModel.create("Defäult")
         }
 
         appViewModel.deleteOrphans(applicationContext)

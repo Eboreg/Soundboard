@@ -139,7 +139,7 @@ class SoundViewModel
 
 
     /******* SOUND SELECTION *******/
-    private val soundSelectionListeners = mutableMapOf<Sound, SoundSelectionListener>()
+    private val soundSelectionListeners = mutableSetOf<SoundSelectionListener>()
     private val _selectEnabled = MutableLiveData(false)
     private val _selectedSounds = mutableSetOf<Sound>()
 
@@ -153,18 +153,19 @@ class SoundViewModel
     private fun deselect(sound: Sound?) {
         if (sound != null) {
             _selectedSounds.remove(sound)
-            soundSelectionListeners[sound]?.onDeselect()
+            soundSelectionListeners.filter { it.sound == sound }.forEach { it.onDeselect() }
             if (_selectedSounds.size == 0) disableSelect()
         }
     }
 
-    fun addSoundSelectionListener(sound: Sound, listener: SoundSelectionListener) {
-        soundSelectionListeners[sound] = listener
+    fun addSoundSelectionListener(listener: SoundSelectionListener) {
+        soundSelectionListeners.add(listener)
+        // soundSelectionListeners[sound] = listener
     }
 
     fun disableSelect() {
         if (_selectEnabled.value != false) _selectEnabled.value = false
-        _selectedSounds.forEach { soundSelectionListeners[it]?.onDeselect() }
+        soundSelectionListeners.forEach { it.onDeselect() }
         _selectedSounds.clear()
     }
 
@@ -172,12 +173,14 @@ class SoundViewModel
         if (_selectEnabled.value != true) _selectEnabled.value = true
     }
 
-    fun removeOnSelectAllListener(sound: Sound?) = soundSelectionListeners.remove(sound)
+    fun removeOnSelectAllListener(listener: SoundSelectionListener) {
+        soundSelectionListeners.remove(listener)
+    }
 
     fun select(sound: Sound?) {
         if (sound != null && !_selectedSounds.contains(sound)) {
             _selectedSounds.add(sound)
-            soundSelectionListeners[sound]?.onSelect()
+            soundSelectionListeners.filter { it.sound == sound }.forEach { it.onSelect() }
         }
     }
 
@@ -214,6 +217,7 @@ class SoundViewModel
     interface SoundSelectionListener {
         fun onSelect()
         fun onDeselect()
+        val sound: Sound?
     }
 
 

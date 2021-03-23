@@ -31,7 +31,6 @@
     <string name="delete_sound_name">Delete sound %1$s?</string>
     <string name="delete_sounds_count" tools:ignore="PluralsCandidate">Delete %1$d sounds?</string>
     <string name="not_initialized_yet">Not initialized yet!</string>
-    <string name="default_category">Default</string>
     <string name="add_sounds">Add sounds</string>
     <string name="multiple_sounds_selected" tools:ignore="PluralsCandidate">(%1$d sounds selected)</string>
     <string name="collapse_expand_category">Collapse/expand category</string>
@@ -58,7 +57,7 @@
     <string name="undid">Undid!</string>
     <string name="night_day_mode">Night/day mode</string>
     <string name="language">Language</string>
-    <string name="settings">Settings</string>
+    <string name="settings">Sëttings</string>
     <string name="loading">Loading …</string>
     <string name="audio_buffer_size">Audio buffer size</string>
     <string name="buffer_size_summary">Lower this if audio is too unresponsive or the shortest sounds don\'t play at all. If audio is choppy, raise it.</string>

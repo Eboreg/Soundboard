@@ -1,4 +1,4 @@
-### Menu selections
+### Menü selëctiöns
 
 | --- | --- |
 | ![](file:///android_asset/add_sound.svg)  |  **Add sound(s)** |
@@ -21,7 +21,9 @@
 | ![](file:///android_asset/undo.svg)  |  **Undo** |
 | | Undo the latest addition, modification, deletion, or reordering of sounds or categories. You can undo the last 20 actions since the last app restart. |
 
-### Re-press mode
+---
+
+### Rë-prëss möde
 
 This dictates what will happen when you press a sound while it\'s already playing. The icon depends on the mode currently chosen.
 
@@ -38,7 +40,9 @@ This dictates what will happen when you press a sound while it\'s already playin
 | ![](file:///android_asset/repress_pause.svg)  |  **Pause** |
 | | The sound will pause. When you press it again, it will resume.
 
-### Sound selection
+---
+
+### Söund selëctiön
 
 Long press on any sound to activate the sound selection mode. After that, these options are available:
 
@@ -49,7 +53,11 @@ Long press on any sound to activate the sound selection mode. After that, these 
 | | | |
 | ![](file:///android_asset/delete.svg)  |  **Delete sound(s)** |
 
-### Category actions
+**Prö tïp:** While in sound selection mode, long press on any unselected sound to select it as well as all sounds between it and the last selected one.
+
+---
+
+### Categöry actiöns
 
 | --- | --- |
 | ![](file:///android_asset/edit.svg)  |  **Edit category** |
@@ -58,3 +66,8 @@ Long press on any sound to activate the sound selection mode. After that, these 
 | ![](file:///android_asset/delete.svg)  |  **Delete category** |
 | | This will delete the category, along with all sounds in it.
 
+---
+
+### Why all the "öüë" stuff?
+
+Because it's kööl.

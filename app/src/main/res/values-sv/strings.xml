@@ -16,7 +16,6 @@
     <string name="close_filter">Stäng filtrering</string>
     <string name="collapse_expand_category">Fäll ihop/upp kategori</string>
     <string name="data_not_fetched_yet">Data är inte hämtade än, vänligen försök igen</string>
-    <string name="default_category">Standard</string>
     <string name="delete">Radera</string>
     <string name="delete_category">Radera kategori</string>
     <string name="delete_category_with_name">Radera kategori %1$s?</string>
@@ -57,7 +56,7 @@
     <string name="select_background_colour">Välj bakgrundsfärg</string>
     <string name="select_colour">Välj färg</string>
     <string name="selected">Vald</string>
-    <string name="settings">Inställningar</string>
+    <string name="settings">Inställnïngar</string>
     <string name="skip">Hoppa över</string>
     <string name="sort_by">Sortera efter</string>
     <string name="soundplayer_not_initialized">SoundPlayer är inte initierad</string>

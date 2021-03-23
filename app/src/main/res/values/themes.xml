@@ -41,6 +41,7 @@
         <item name="colorAccent">@color/teal_300</item>
         <item name="colorSurface">@color/grey_100</item>
         <item name="android:colorBackground">@color/grey_100</item>
+        <item name="colorDivider">@color/grey_300</item>
     </style>
 
     <style name="Soundboard.Theme.NoActionBar">

@@ -1,3 +1,55 @@
+bind:
+this = {SoundAdapter$SoundViewHolder@12745} "SoundAdapter.ViewHolder 58a1ea6 <adapterPosition=4, sound=Sound e2001 <id=295, name=Bisarra hörnan 2 Edit 1 Export 1, categoryId=1>>"
+sound = {Sound@12880} "Sound 274b102 <id=298, name=Bobbo Viking, categoryId=1>"
+
+markAttach:
+this = {SoundAdapter$SoundViewHolder@12745} "SoundAdapter.ViewHolder 58a1ea6 <adapterPosition=4, sound=Sound 274b102 <id=298, name=Bobbo Viking, categoryId=1>>"
+item = {Sound@12880} "Sound 274b102 <id=298, name=Bobbo Viking, categoryId=1>"
+
+markdetach:
+this = {SoundAdapter$SoundViewHolder@12866} "SoundAdapter.ViewHolder b87100f <adapterPosition=4, sound=Sound 155c16e <id=298, name=Bobbo Viking, categoryId=1>>"
+item = {Sound@12871} "Sound 155c16e <id=298, name=Bobbo Viking, categoryId=1>"
+
+
+
+markAttach:
+item = {Sound@12802} "Sound 7c503a3 <id=296, name=blygdläppar kort, categoryId=1>"
+ added = {Date@12832} "Sun Feb 28 05:47:02 GMT+01:00 2021"
+ backgroundColor = {Integer@12833} -12627531
+ categoryId = {Integer@12834} 1
+ checksum = "f5ca355cdde3470dc7f7c6f1e1dfc33e"
+ duration = 9659
+ id = {Integer@12836} 296
+ name = "blygdläppar kort"
+ order = 3
+ path = "/data/user/0/us.huseli.soundboard.debug/app_sounds/f5ca355cdde3470dc7f7c6f1e1dfc33e"
+ selected = false
+ textColor = {Integer@12839} -1
+ uri = null
+ volume = 51
+ shadow$_klass_ = {Class@11094} "class us.huseli.soundboard.data.Sound"
+ shadow$_monitor_ = -2017131613
+
+removeOnSelct...
+sound = {Sound@12772} "Sound cbbe518 <id=296, name=blygdläppar kort, categoryId=1>"
+ added = {Date@12844} "Sun Feb 28 05:47:02 GMT+01:00 2021"
+ backgroundColor = {Integer@12845} -12627531
+ categoryId = {Integer@12834} 1
+ checksum = "f5ca355cdde3470dc7f7c6f1e1dfc33e"
+ duration = 9659
+ id = {Integer@12847} 296
+ name = "blygdläppar kort"
+ order = 3
+ path = "/data/user/0/us.huseli.soundboard.debug/app_sounds/f5ca355cdde3470dc7f7c6f1e1dfc33e"
+ selected = false
+ textColor = {Integer@12839} -1
+ uri = null
+ volume = 100
+ shadow$_klass_ = {Class@11094} "class us.huseli.soundboard.data.Sound"
+ shadow$_monitor_ = -1933843176
+
+
+
 2021-03-02 03:01:26.464 18049-21277 E/SoundPlayer: Error initializing Bobbo Viking
     java.lang.RuntimeException: Can't create handler inside thread Thread[DefaultDispatcher-worker-8,5,main] that has not called Looper.prepare()
         at android.os.Handler.<init>(Handler.java:207)
