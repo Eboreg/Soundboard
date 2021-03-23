@@ -228,7 +228,6 @@ class CategoryAdapter(
         }
 
         private fun onSelectEnabledChange(value: Boolean) {
-            soundAdapter.onSelectEnabledChange(value)
             if (value) disableClickAndTouch()
             else enableClickAndTouch()
         }

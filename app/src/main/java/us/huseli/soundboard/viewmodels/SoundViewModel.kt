@@ -23,8 +23,6 @@ class SoundViewModel
     private val colorHelper: ColorHelper
 ) : ViewModel() {
     private val _failedSounds = mutableListOf<Sound>()
-    private val _filterEnabled = MutableLiveData(false)
-    private val _filterTerm = MutableLiveData("")
 
     val allSounds = repository.listLiveWithCategory().map { list ->
         list.forEach {
@@ -36,16 +34,6 @@ class SoundViewModel
 
     val failedSounds: List<Sound>
         get() = _failedSounds
-
-    val filterEnabled: LiveData<Boolean>
-        get() = _filterEnabled
-
-    val filteredSounds = _filterEnabled.switchMap {
-        when (it) {
-            true -> _filteredSounds
-            else -> allSounds
-        }
-    }
 
     @Suppress("UNUSED_PARAMETER")
     // TODO: Not used ATM
@@ -104,12 +92,25 @@ class SoundViewModel
 
 
     /******* FILTERING *******/
+    private val _filterEnabled = MutableLiveData(false)
+    private val _filterTerm = MutableLiveData("")
+
     private val _filteredSounds = _filterTerm.switchMap { term ->
         allSounds.map { sounds ->
             sounds.filter { sound ->
                 sound.name.toLowerCase(Locale.getDefault())
                     .contains(term.toLowerCase(Locale.getDefault()))
             }
+        }
+    }
+
+    val filterEnabled: LiveData<Boolean>
+        get() = _filterEnabled
+
+    val filteredSounds = _filterEnabled.switchMap {
+        when (it) {
+            true -> _filteredSounds
+            else -> allSounds
         }
     }
 
@@ -133,29 +134,37 @@ class SoundViewModel
     /******* RESPOND TO ACTIVITY STATE CHANGES *******/
     override fun onCleared() {
         super.onCleared()
-        onSelectAllListeners.clear()
+        soundSelectionListeners.clear()
     }
 
 
     /******* SOUND SELECTION *******/
-    private val onSelectAllListeners = mutableListOf<OnSelectAllListener>()
+    private val soundSelectionListeners = mutableMapOf<Sound, SoundSelectionListener>()
     private val _selectEnabled = MutableLiveData(false)
     private val _selectedSounds = mutableSetOf<Sound>()
 
+    val isSelectEnabled: Boolean
+        get() = _selectEnabled.value == true
     val selectEnabled: LiveData<Boolean>
         get() = _selectEnabled
     val selectedSounds: List<Sound>
         get() = _selectedSounds.toList()
 
-    fun addOnSelectAllListener(listener: OnSelectAllListener) = onSelectAllListeners.add(listener)
+    private fun deselect(sound: Sound?) {
+        if (sound != null) {
+            _selectedSounds.remove(sound)
+            soundSelectionListeners[sound]?.onDeselect()
+            if (_selectedSounds.size == 0) disableSelect()
+        }
+    }
 
-    fun deselect(sound: Sound) {
-        _selectedSounds.remove(sound)
-        if (_selectedSounds.size == 0) disableSelect()
+    fun addSoundSelectionListener(sound: Sound, listener: SoundSelectionListener) {
+        soundSelectionListeners[sound] = listener
     }
 
     fun disableSelect() {
         if (_selectEnabled.value != false) _selectEnabled.value = false
+        _selectedSounds.forEach { soundSelectionListeners[it]?.onDeselect() }
         _selectedSounds.clear()
     }
 
@@ -163,29 +172,48 @@ class SoundViewModel
         if (_selectEnabled.value != true) _selectEnabled.value = true
     }
 
-    fun getLastSelected(category: Category?, except: Sound) = category?.id?.let { categoryId ->
-        try {
-            _selectedSounds.last { it.categoryId == categoryId && it != except }
-        } catch (e: NoSuchElementException) {
-            null
+    fun removeOnSelectAllListener(sound: Sound?) = soundSelectionListeners.remove(sound)
+
+    fun select(sound: Sound?) {
+        if (sound != null && !_selectedSounds.contains(sound)) {
+            _selectedSounds.add(sound)
+            soundSelectionListeners[sound]?.onSelect()
         }
     }
 
-    fun isSelected(sound: Sound) = _selectedSounds.contains(sound)
-
-    fun removeOnSelectAllListener(listener: OnSelectAllListener) {
-        onSelectAllListeners.remove(listener)
-    }
-
-    fun select(sound: Sound) = _selectedSounds.add(sound)
-
     fun selectAll() {
-        onSelectAllListeners.forEach { it.select() }
+        filteredSounds.value?.forEach { select(it) }
+    }
+
+    fun selectAllFromSoundToLastSelected(sound: Sound?) {
+        // If sound is somehow already selected; skip it
+        if (!_selectedSounds.contains(sound) && sound != null) {
+            select(sound)
+            filteredSounds.value?.let { sounds ->
+                _selectedSounds.filterNot { it == sound }.lastOrNull()?.let { lastSelected ->
+                    val pos1 = sounds.indexOf(sound)
+                    val pos2 = sounds.indexOf(lastSelected)
+                    if (pos1 != -1 && pos2 != -1) {
+                        val start = if (pos1 < pos2) pos1 else pos2
+                        val end = if (start == pos1) pos2 else pos1
+                        for (pos in (start + 1) until end) select(sounds[pos])
+                    }
+                }
+            }
+        }
+    }
+
+    fun toggleSelect(sound: Sound?) {
+        if (sound != null) {
+            if (_selectedSounds.contains(sound)) deselect(sound)
+            else select(sound)
+        }
     }
 
 
-    interface OnSelectAllListener {
-        fun select()
+    interface SoundSelectionListener {
+        fun onSelect()
+        fun onDeselect()
     }
 
 

@@ -80,6 +80,8 @@ class AppViewModel @Inject constructor(
     }
 
     /******* SOUND/CATEGORY REORDERING *******/
+    val isReorderEnabled: Boolean
+        get() = _reorderEnabled.value == true
     val reorderEnabled: LiveData<Boolean>
         get() = _reorderEnabled
 

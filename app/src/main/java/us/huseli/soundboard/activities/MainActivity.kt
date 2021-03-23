@@ -40,6 +40,7 @@ import kotlinx.coroutines.launch
 import us.huseli.soundboard.R
 import us.huseli.soundboard.audio.SoundPlayer
 import us.huseli.soundboard.data.Category
+import us.huseli.soundboard.data.Constants
 import us.huseli.soundboard.data.PlayerRepository
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.ActivityMainBinding
@@ -153,17 +154,17 @@ class MainActivity :
         val pInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
 
         val prefs = getPreferences(Context.MODE_PRIVATE)
-        val lastVersion = prefs.getLong(PREF_LAST_VERSION, 0)
+        val lastVersion = prefs.getLong(Constants.PREF_LAST_VERSION, 0)
 
         @Suppress("DEPRECATION")
         val currentVersion =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) pInfo.longVersionCode else pInfo.versionCode.toLong()
         if (lastVersion < currentVersion) onAppVersionUpgraded(lastVersion, currentVersion)
         prefs.edit {
-            putLong(PREF_LAST_VERSION, currentVersion).apply()
+            putLong(Constants.PREF_LAST_VERSION, currentVersion).apply()
         }
 
-        prefs.getString(PREF_REPRESS_MODE, null)?.also { repressModeValue ->
+        prefs.getString(Constants.PREF_REPRESS_MODE, null)?.also { repressModeValue ->
             try {
                 appViewModel.setRepressMode(SoundPlayer.RepressMode.valueOf(repressModeValue))
             } catch (e: IllegalArgumentException) {
@@ -478,8 +479,7 @@ class MainActivity :
     }
 
     private fun onSelectEnabledChange(value: Boolean) {
-        actionMode = if (value)
-            startSupportActionMode(this)
+        actionMode = if (value) startSupportActionMode(this)
         else {
             actionMode?.finish()
             null
@@ -590,8 +590,6 @@ class MainActivity :
         const val EXTRA_SOUND_ID = "soundId"
         const val CATEGORY_ADD_DIALOG_TAG = "categoryAddDialog"
         const val CATEGORY_EDIT_DIALOG_TAG = "categoryEditDialog"
-        const val PREF_LAST_VERSION = "lastRunVersionCode"
-        const val PREF_REPRESS_MODE = "repressMode"
         val DIALOG_TAGS = listOf(CATEGORY_ADD_DIALOG_TAG, CATEGORY_EDIT_DIALOG_TAG)
     }
 }

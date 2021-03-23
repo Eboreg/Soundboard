@@ -33,7 +33,8 @@ data class Sound(
     var checksum: String?,
     @Ignore val uri: Uri?,
     @Ignore var textColor: Int? = null,
-    @Ignore var backgroundColor: Int? = null
+    @Ignore var backgroundColor: Int? = null,
+    @Ignore var selected: Boolean = false
 ) : Parcelable {
 
     constructor(parcel: Parcel) : this(

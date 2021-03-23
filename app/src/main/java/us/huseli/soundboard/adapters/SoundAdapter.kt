@@ -49,7 +49,6 @@ class SoundAdapter(
 ) :
     LifecycleAdapter<Sound, SoundAdapter.SoundViewHolder>(DiffCallback()) {
     var category: Category? = null
-    private var selectEnabled = false
 
     init {
         setHasStableIds(true)
@@ -115,7 +114,6 @@ class SoundAdapter(
 
     internal fun insertOrMoveSound(sound: Sound, toPosition: Int) {
         val fromPosition = currentList.indexOf(sound)
-        // val fromPosition = currentList.indexOf(sound)
         val sounds = currentList.toMutableList()
 
         if (BuildConfig.DEBUG)
@@ -159,10 +157,6 @@ class SoundAdapter(
         ) as SoundViewHolder).binding.dropMarkerBefore.visibility = View.VISIBLE
     }
 
-    internal fun onSelectEnabledChange(value: Boolean) {
-        selectEnabled = value
-    }
-
     internal fun removeMarksForDrop() {
         for (i in 0..recyclerView.childCount) {
             val child = recyclerView.getChildAt(i)
@@ -171,23 +165,6 @@ class SoundAdapter(
                     it.binding.dropMarkerAfter.visibility = View.INVISIBLE
                     it.binding.dropMarkerBefore.visibility = View.INVISIBLE
                 }
-            }
-        }
-    }
-
-
-    /*********** PRIVATE METHODS ***********/
-    private fun selectAllInBetween(sound: Sound) {
-        // Select all sound between `sound` and last selected one (if any).
-        soundViewModel.getLastSelected(category, sound)?.let { lastSelected ->
-            // TODO: Are these always consistent with adapter/layout positions?
-            val pos1 = currentList.indexOf(sound)
-            val pos2 = currentList.indexOf(lastSelected)
-            if (pos1 != -1 && pos2 != -1) {
-                val start = if (pos1 < pos2) pos1 else pos2
-                val end = if (start == pos1) pos2 else pos1
-                for (pos in (start + 1) until end)
-                    (recyclerView.findViewHolderForLayoutPosition(pos) as? SoundViewHolder)?.select()
             }
         }
     }
@@ -215,13 +192,13 @@ class SoundAdapter(
     class SoundViewHolder(
         internal val binding: ItemSoundBinding,
         private val context: Context,
-        private val adapter: SoundAdapter
+        adapter: SoundAdapter
     ) :
         View.OnClickListener,
         View.OnLongClickListener,
         View.OnTouchListener,
         SoundPlayer.StateListener,
-        SoundViewModel.OnSelectAllListener,
+        SoundViewModel.SoundSelectionListener,
         LifecycleViewHolder<Sound>(binding.root) {
 
         @InstallIn(SingletonComponent::class)
@@ -251,7 +228,6 @@ class SoundAdapter(
         private var longClickAnimator: SoundItemLongClickAnimator? = null
         private var player: SoundPlayer? = null
         private var playerTimer: SoundPlayerTimer? = null
-        private var reorderEnabled = false
 
         override val lifecycleRegistry = LifecycleRegistry(this)
         override var item: Sound? = null
@@ -260,7 +236,6 @@ class SoundAdapter(
             binding.soundContainer.setOnClickListener(this)
             binding.soundContainer.setOnLongClickListener(this)
             binding.soundContainer.setOnTouchListener(this)
-            soundViewModel.addOnSelectAllListener(this)
         }
 
 
@@ -278,6 +253,8 @@ class SoundAdapter(
             setDuration(sound.duration)
             sound.backgroundColor?.let { setBackgroundColor(it) }
 
+            soundViewModel.addSoundSelectionListener(sound, this)
+
             playerRepository.players.observe(this) { players ->
                 players[sound]?.also { newPlayer ->
                     newPlayer.setStateListener(this)
@@ -289,20 +266,12 @@ class SoundAdapter(
             }
 
             appViewModel.reorderEnabled.observe(this) { value -> onReorderEnabledChange(value) }
-            soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
         }
 
 
         /********* PRIVATE METHODS **********/
         private fun onReorderEnabledChange(value: Boolean) {
-            reorderEnabled = value
             binding.reorderIcon.visibility = if (value) View.VISIBLE else View.INVISIBLE
-        }
-
-        private fun onSelectEnabledChange(value: Boolean) {
-            if (value && soundViewModel.selectedSounds.contains(item))
-                binding.selectedIcon.visibility = View.VISIBLE
-            else if (!value) binding.selectedIcon.visibility = View.INVISIBLE
         }
 
         private fun setBackgroundColor(color: Int) {
@@ -357,61 +326,56 @@ class SoundAdapter(
 
 
         /********* OVERRIDDEN METHODS **********/
-        private fun deselect() {
-            item?.let { item ->
-                soundViewModel.deselect(item)
-                binding.selectedIcon.visibility = View.INVISIBLE
-            }
-        }
-
         override fun markDestroyed() {
-            soundViewModel.removeOnSelectAllListener(this)
+            soundViewModel.removeOnSelectAllListener(item)
             playerRepository.players.removeObservers(this)
             player?.setStateListener(null)
             super.markDestroyed()
         }
 
         override fun markDetach() {
-            soundViewModel.removeOnSelectAllListener(this)
+            soundViewModel.removeOnSelectAllListener(item)
             playerRepository.players.removeObservers(this)
             super.markDetach()
         }
 
         override fun onClick(view: View) {
-            item?.let { item ->
-                when {
-                    adapter.selectEnabled -> if (!soundViewModel.isSelected(item)) select() else deselect()
-                    player == null -> Snackbar.make(
-                        binding.root,
-                        R.string.soundplayer_not_initialized,
-                        Snackbar.LENGTH_SHORT
-                    ).show()
-                    player?.state == SoundPlayer.State.ERROR -> showError()
-                    else -> player?.togglePlay()
-                }
-                clickAnimator.start()
+            when {
+                soundViewModel.isSelectEnabled -> soundViewModel.toggleSelect(item)
+                player == null -> Snackbar.make(
+                    binding.root,
+                    R.string.soundplayer_not_initialized,
+                    Snackbar.LENGTH_SHORT
+                ).show()
+                player?.state == SoundPlayer.State.ERROR -> showError()
+                else -> player?.togglePlay()
             }
+            clickAnimator.start()
+        }
+
+        override fun onDeselect() {
+            binding.selectedIcon.visibility = View.INVISIBLE
         }
 
         override fun onLongClick(v: View): Boolean {
-            if (!reorderEnabled) {
+            if (!appViewModel.isReorderEnabled) {
                 longClickAnimator?.start()
-                if (!adapter.selectEnabled) {
-                    // Select is not enabled; enable it
+                if (!soundViewModel.isSelectEnabled) {
+                    // Select is not enabled; enable it and select sound
                     soundViewModel.enableSelect()
                     appViewModel.disableReorder()
+                    soundViewModel.select(item)
                 } else {
                     // Select is enabled; if this sound is not selected, select it and all
                     // between it and the last selected one (if any)
-                    item?.let { item ->
-                        if (!soundViewModel.isSelected(item)) {
-                            adapter.selectAllInBetween(item)
-                        }
-                    }
+                    soundViewModel.selectAllFromSoundToLastSelected(item)
                 }
-                select()
             }
             return true
+        }
+
+        override fun onSelect() {
+            binding.selectedIcon.visibility = View.VISIBLE
         }
 
         override fun onSoundPlayerStateChange(player: SoundPlayer,
@@ -456,7 +420,7 @@ class SoundAdapter(
             Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
 
         override fun onTouch(view: View, event: MotionEvent): Boolean {
-            if (reorderEnabled) {
+            if (appViewModel.isReorderEnabled) {
                 if (event.actionMasked == MotionEvent.ACTION_DOWN) {
                     if (BuildConfig.DEBUG) Log.d(LOG_TAG, "onTouch: run startDragAndDrop on $view")
                     startDragAndDrop(view)
@@ -464,13 +428,6 @@ class SoundAdapter(
                 return false
             }
             return view.onTouchEvent(event)
-        }
-
-        override fun select() {
-            item?.let { item ->
-                soundViewModel.select(item)
-                binding.selectedIcon.visibility = View.VISIBLE
-            }
         }
 
         override fun toString(): String {

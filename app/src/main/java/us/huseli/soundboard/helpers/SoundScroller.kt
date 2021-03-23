@@ -35,10 +35,10 @@ class SoundScroller(private val view: View, private val distance: Int, private v
         )
 
         when {
-            scrollUpFastBreakpoint < verticalLimits.top -> start(Direction.UP, true)
-            scrollUpBreakpoint < verticalLimits.top -> start(Direction.UP)
-            scrollDownFastBreakpoint > verticalLimits.bottom -> start(Direction.DOWN, true)
-            scrollDownBreakpoint > verticalLimits.bottom -> start(Direction.DOWN)
+            scrollUpFastBreakpoint < verticalLimits.top -> start(UP, true)
+            scrollUpBreakpoint < verticalLimits.top -> start(UP)
+            scrollDownFastBreakpoint > verticalLimits.bottom -> start(DOWN, true)
+            scrollDownBreakpoint > verticalLimits.bottom -> start(DOWN)
             else -> stop()
         }
     }
@@ -77,18 +77,12 @@ class SoundScroller(private val view: View, private val distance: Int, private v
     }
 
 
-    class Direction {
-        companion object {
-            const val UP = -1
-            const val DOWN = 1
-        }
-    }
-
-
     data class VerticalLimits(val top: Int, val bottom: Int)
 
 
     companion object {
+        const val UP = -1
+        const val DOWN = 1
         const val MSG = 1
         const val LOG_TAG = "SoundScroller"
 
