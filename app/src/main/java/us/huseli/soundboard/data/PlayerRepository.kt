@@ -34,6 +34,17 @@ class PlayerRepository @Inject constructor(@ApplicationContext private val conte
             }
         }
 
+    init {
+        scope.launch {
+            PreferenceManager.getDefaultSharedPreferences(context).apply {
+                registerOnSharedPreferenceChangeListener(preferenceListener)
+                // Check initial value
+                onBufferSizeChange(getInt("bufferSize",
+                    Functions.bufferSizeToSeekbarValue(Constants.DEFAULT_BUFFER_SIZE)))
+            }
+        }
+    }
+
     val players: LiveData<Map<Sound, SoundPlayer>> = soundDao.listLiveWithCategory().map { soundsWithCategory ->
         val sounds = soundsWithCategory.map { it.sound }
         removePlayers(sounds)
@@ -63,17 +74,6 @@ class PlayerRepository @Inject constructor(@ApplicationContext private val conte
         sounds.filterNot { _players.contains(it) }.forEach { sound ->
             if (BuildConfig.DEBUG) Log.d(LOG_TAG, "addPlayers: add $sound")
             _players[sound] = SoundPlayer(sound, bufferSize, this)
-        }
-    }
-
-    init {
-        scope.launch {
-            PreferenceManager.getDefaultSharedPreferences(context).apply {
-                registerOnSharedPreferenceChangeListener(preferenceListener)
-                // Check initial value
-                onBufferSizeChange(getInt("bufferSize",
-                    Functions.bufferSizeToSeekbarValue(Constants.DEFAULT_BUFFER_SIZE)))
-            }
         }
     }
 

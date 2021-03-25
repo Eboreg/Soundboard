@@ -77,9 +77,7 @@ class SoundViewModel
 
     fun sort(categoryId: Int, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) =
         viewModelScope.launch(Dispatchers.IO) {
-            val sounds = repository.listByCategory(categoryId).toMutableList()
-                .sortedWith(Sound.Comparator(sortBy, sortOrder))
-            update(sounds, categoryId)
+            repository.sort(categoryId, sortBy, sortOrder)
         }
 
     private fun update(sounds: List<Sound>, categoryId: Int) = viewModelScope.launch(Dispatchers.IO) {

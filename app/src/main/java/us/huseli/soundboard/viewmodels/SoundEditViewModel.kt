@@ -25,18 +25,6 @@ class SoundEditViewModel @Inject constructor(private val repository: SoundReposi
     }
 
     override fun save(context: Context) = viewModelScope.launch(Dispatchers.IO) {
-/*
-        val categoryId = newCategoryId
-        var order = if (categoryId != null) repository.getMaxOrder(categoryId) else null
-        val newSounds = sounds.map { sound ->
-            val newName = if (!multiple) name else sound.name
-            val newOrder = order?.let { if (sound.categoryId != categoryId) ++order else sound.order }
-            if (categoryId != null && newOrder != null)
-                sound.copy(name = newName, categoryId = categoryId, order = newOrder, volume = volume)
-            else sound.copy(name = newName, volume = volume)
-        }
-        repository.update(newSounds)
-*/
         sounds.forEach { sound ->
             if (!multiple) sound.name = name
             sound.volume = volume

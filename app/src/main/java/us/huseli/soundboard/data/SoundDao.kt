@@ -52,8 +52,8 @@ interface SoundDao {
     @Update
     fun update(sound: Sound)
 
-    @Transaction
-    fun update(sounds: List<Sound>) = sounds.forEach { sound -> update(sound) }
+    @Update
+    fun update(sounds: List<Sound>)
 
     @Query("UPDATE Sound SET duration = :duration WHERE id = :soundId")
     fun updateDuration(soundId: Int, duration: Int)

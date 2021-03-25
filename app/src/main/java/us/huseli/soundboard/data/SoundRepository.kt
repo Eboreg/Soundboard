@@ -7,11 +7,9 @@ import javax.inject.Singleton
 class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
     fun delete(sounds: List<Sound>) = soundDao.delete(sounds.mapNotNull { it.id })
 
-    fun delete(sound: Sound) = delete(listOf(sound))
-
     fun delete(soundIds: List<Int>?) = soundIds?.let { soundDao.delete(it) }
 
-    fun deleteByCategory(categoryId: Int) = delete(listByCategory(categoryId))
+    fun deleteByCategory(categoryId: Int) = delete(soundDao.listByCategory(categoryId))
 
     fun getMaxOrder(categoryId: Int) = soundDao.getMaxOrder(categoryId) ?: 0
 
@@ -21,12 +19,17 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
 
     fun list() = soundDao.list()
 
-    fun listByCategory(categoryId: Int) = soundDao.listByCategory(categoryId)
-
     fun listLiveWithCategory() = soundDao.listLiveWithCategory()
 
     /** Update/add sounds, delete the rest */
     fun reset(sounds: List<Sound>) = soundDao.reset(sounds)
+
+    private fun sort(sounds: List<Sound>, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) =
+        soundDao.update(sounds.toMutableList().sortedWith(Sound.Comparator(sortBy, sortOrder)))
+
+    /** Sorts all sounds within category */
+    fun sort(categoryId: Int, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) =
+        sort(soundDao.listByCategory(categoryId), sortBy, sortOrder)
 
     fun update(sound: Sound) = soundDao.update(sound)
 

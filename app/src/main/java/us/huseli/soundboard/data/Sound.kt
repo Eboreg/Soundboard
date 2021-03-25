@@ -62,8 +62,7 @@ data class Sound(
         added: Date,
         duration: Int,
         checksum: String?
-    )
-            : this(id, categoryId, name, path, order, volume, added, duration, checksum, null)
+    ) : this(id, categoryId, name, path, order, volume, added, duration, checksum, null)
 
     @Ignore
     constructor(
@@ -75,8 +74,7 @@ data class Sound(
         added: Date,
         duration: Int,
         checksum: String?
-    )
-            : this(null, categoryId, name, path, order, volume, added, duration, checksum, null)
+    ) : this(null, categoryId, name, path, order, volume, added, duration, checksum, null)
 
     override fun equals(other: Any?) = other is Sound && other.id == id
 
@@ -176,17 +174,8 @@ data class Sound(
 
 
             return Sound(
-                null,
-                null,
-                name,
-                uri.path ?: "",
-                -1,
-                Constants.DEFAULT_VOLUME,
-                Date(),
-                -1,
-                checksum,
-                uri
-            )
+                null, null, name, uri.path ?: "", -1, Constants.DEFAULT_VOLUME,
+                Date(), -1, checksum, uri)
         }
 
         fun createFromTemporary(tempSound: Sound, context: Context): Sound {
@@ -212,15 +201,8 @@ data class Sound(
             inputStream.close()
 
             return Sound(
-                tempSound.categoryId,
-                tempSound.name,
-                file.path,
-                tempSound.order,
-                tempSound.volume,
-                tempSound.added,
-                tempSound.duration,
-                checksum
-            )
+                tempSound.categoryId, tempSound.name, file.path, tempSound.order, tempSound.volume,
+                tempSound.added, tempSound.duration, checksum)
         }
     }
 }
