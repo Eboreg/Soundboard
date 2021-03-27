@@ -1,6 +1,7 @@
 package us.huseli.soundboard.audio
 
 import android.media.*
+import android.media.audiofx.AudioEffect
 import android.os.Build
 import android.os.Looper
 import android.util.Log
@@ -22,9 +23,14 @@ import kotlin.math.min
  *    as possible
  */
 
-class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, listener: Listener? = null) {
-    constructor(sound: Sound, baseBufferSize: Int, listener: Listener?) :
-            this(sound, sound.volume, baseBufferSize, listener)
+class AudioFile(private val sound: Sound,
+                var volume: Int,
+                baseBufferSize: Int,
+                private var effect: AudioEffect?,
+                private var effectSendLevel: Float,
+                listener: Listener? = null) {
+    constructor(sound: Sound, baseBufferSize: Int, effect: AudioEffect?, effectSendLevel: Float, listener: Listener?) :
+            this(sound, sound.volume, baseBufferSize, effect, effectSendLevel, listener)
 
     // Public val's & var's
     val duration: Long
@@ -237,6 +243,15 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
         return this
     }
 
+    fun setEffect(effect: AudioEffect?, sendLevel: Float?) {
+        state = State.INITIALIZING
+        scope.launch {
+            doSetEffect(effect, sendLevel) {
+                state = State.READY
+            }
+        }
+    }
+
     suspend fun stop(): AudioFile {
         /**
          * Used for user-initiated hard stop, cancels any queued future stop job
@@ -244,7 +259,8 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
          */
         if (state == State.PLAYING || state == State.INIT_PLAY) {
             queuedStopJob?.cancelAndJoin()
-            doStop { state = State.STOPPED }
+            doStop()
+            state = State.STOPPED
         } else onWarning("Stop: Illegal state", "stop: illegal state $state, should be PLAYING or INIT_PLAY")
         return this
     }
@@ -252,14 +268,15 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
     suspend fun stopAndPrepare(): AudioFile {
         if (state == State.PLAYING || state == State.INIT_PLAY) {
             queuedStopJob?.cancelAndJoin()
-            doStop {
-                doPrepare()
-                doPrime()
-                state = State.READY
-            }
+            doStop()
+            doPrepare()
+            doPrime()
+            state = State.READY
         } else onWarning("Stop: Illegal state", "stop: illegal state $state, should be PLAYING or INIT_PLAY")
         return this
     }
+
+    fun unsetEffect() = setEffect(null, null)
 
 
     /********** PRIVATE METHODS **********/
@@ -282,12 +299,29 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
             AudioManager.AUDIO_SESSION_ID_GENERATE
         )
         track.setVolume(volume.toFloat() / 100)
+        // TODO: Remove after testing
+        // effect = PresetReverb(100, track.audioSessionId).also { effect ->
+        effect?.let {
+            track.attachAuxEffect(it.id)
+            track.setAuxEffectSendLevel(effectSendLevel)
+        }
         return track
     }
 
     private fun checkNotOnMainThread(caller: String) {
         if (Looper.getMainLooper().thread == Thread.currentThread())
             Log.e(LOG_TAG, "checkNotOnMainThread: $caller was called from main thread, but it shouldn't be!")
+    }
+
+    private suspend fun doSetEffect(effect: AudioEffect?, sendLevel: Float?, onReadyCallback: (() -> Unit)? = null) {
+        if (BuildConfig.DEBUG) checkNotOnMainThread("doSetEffect")
+
+        this.effect = effect
+        if (sendLevel != null) effectSendLevel = sendLevel
+        doStop()
+        doPrepare()
+        doPrime()
+        onReadyCallback?.invoke()
     }
 
     private fun doPlay(onPlayStartCallback: (() -> Unit)? = null) = doPlay(null, null, onPlayStartCallback)
@@ -298,6 +332,10 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
         var callbackDone = false
         try {
             audioTrack = buildAudioTrack()
+        } catch (e: Exception) {
+            onError("Error building audio track", e)
+        }
+        try {
             if (timeoutUs != null && System.nanoTime() > timeoutUs) onTimeoutCallback?.invoke()
             else {
                 audioTrack?.play()
@@ -311,7 +349,7 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
                 extractJob = scope.launch { extract(if (!callbackDone) onPlayStartCallback else null) }
             }
         } catch (e: IllegalStateException) {
-            onError("Error outputting audio")
+            onError("Error outputting audio", e)
         }
     }
 
@@ -384,6 +422,7 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
         } catch (e: Exception) {
         }
         extractJob?.cancelAndJoin()
+        //effect?.release()
         audioTrack?.release()
         audioTrack = null
         onStoppedCallback?.invoke()
@@ -436,8 +475,12 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
         while (!stop && job?.isActive == true) {
             if (inputResult != ProcessInputResult.END)
                 inputResult = processInputBuffer(codec, inputResult)
+
             val (outputResult, outputBuffer, index) = processOutputBuffer(codec, totalSize)
-            if (outputResult == ProcessOutputResult.SUCCESS && outputBuffer != null) {
+
+            if (outputResult == ProcessOutputResult.OUTPUT_FORMAT_CHANGED)
+                audioTrack = rebuildAudioTrack()
+            else if (outputResult == ProcessOutputResult.SUCCESS && outputBuffer != null) {
                 totalSize += outputBuffer.remaining()
                 writeAudioTrack(outputBuffer)
                 if (index != null) codec.releaseOutputBuffer(index, false)
@@ -447,6 +490,7 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
                 }
                 outputRetries = 0
             }
+
             stop = when (outputResult) {
                 ProcessOutputResult.SUCCESS -> false
                 ProcessOutputResult.EOS -> true
@@ -656,10 +700,7 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
                 }
                 index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
                     val (hasChanged, audioFormat) = getAudioFormat(codec.outputFormat, outputAudioFormat)
-                    if (hasChanged) {
-                        outputAudioFormat = audioFormat
-                        rebuildAudioTrack()
-                    }
+                    if (hasChanged) outputAudioFormat = audioFormat
                     return Triple(ProcessOutputResult.OUTPUT_FORMAT_CHANGED, null, null)
                 }
                 else -> return Triple(ProcessOutputResult.NO_BUFFER, null, null)
@@ -670,12 +711,14 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
         }
     }
 
-    private fun rebuildAudioTrack() {
-        try {
-            audioTrack?.release()
-            audioTrack = buildAudioTrack()
-        } catch (e: AudioFileException) {
-            onError("Error building audio track")
+    private fun rebuildAudioTrack(): AudioTrack? {
+        audioTrack?.release()
+        // effect?.release()
+        return try {
+            buildAudioTrack()
+        } catch (e: Exception) {
+            onError("Error building audio track", e)
+            null
         }
     }
 

@@ -2,6 +2,7 @@ package us.huseli.soundboard.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.media.audiofx.AudioEffect
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
@@ -18,13 +19,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PlayerRepository @Inject constructor(@ApplicationContext private val context: Context,
-                                           private val soundDao: SoundDao) :
-    SoundPlayer.DurationListener {
-    private val _players = mutableMapOf<Sound, SoundPlayer>()
+class PlayerRepository @Inject constructor(
+    @ApplicationContext private val context: Context, private val soundDao: SoundDao) : SoundPlayer.DurationListener {
 
-    private var bufferSize = Constants.DEFAULT_BUFFER_SIZE
-    private val scope = CoroutineScope(Job() + Dispatchers.Default)
+    private val _players = mutableMapOf<Sound, SoundPlayer>()
+    private var effect: AudioEffect? = null
+    private var effectSendLevel = 0f
     private val preferenceListener =
         SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
             if (key == "bufferSize") {
@@ -33,6 +33,9 @@ class PlayerRepository @Inject constructor(@ApplicationContext private val conte
                 }
             }
         }
+    private val scope = CoroutineScope(Job() + Dispatchers.Default)
+
+    private var bufferSize = Constants.DEFAULT_BUFFER_SIZE
 
     init {
         scope.launch {
@@ -51,6 +54,18 @@ class PlayerRepository @Inject constructor(@ApplicationContext private val conte
         addPlayers(sounds)
         updatePlayers(sounds)
         _players
+    }
+
+    fun setEffect(effect: AudioEffect, sendLevel: Float) {
+        this.effect = effect
+        effectSendLevel = sendLevel
+        _players.values.forEach { it.setEffect(effect, sendLevel) }
+    }
+
+    fun unsetEffect() {
+        effect = null
+        effectSendLevel = 0f
+        _players.values.forEach { it.unsetEffect() }
     }
 
     private fun updatePlayers(sounds: List<Sound>) {
@@ -73,7 +88,7 @@ class PlayerRepository @Inject constructor(@ApplicationContext private val conte
     private fun addPlayers(sounds: List<Sound>) {
         sounds.filterNot { _players.contains(it) }.forEach { sound ->
             if (BuildConfig.DEBUG) Log.d(LOG_TAG, "addPlayers: add $sound")
-            _players[sound] = SoundPlayer(sound, bufferSize, this)
+            _players[sound] = SoundPlayer(sound, bufferSize, effect, effectSendLevel, this)
         }
     }
 

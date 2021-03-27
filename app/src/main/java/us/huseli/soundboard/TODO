@@ -1,3 +1,53 @@
+After changing effect, first sound play is without effect
+
+
+With effect, sound volume does not seem to do anything
+
+
+If fx branch is scrapped, implement these changes to AudioFile on master:
+In doPlay:
+        try {
+            audioTrack = buildAudioTrack()
+        } catch (e: Exception) {
+            onError("Error building audio track", e)
+        }
+        ...
+        } catch (e: IllegalStateException) {
+            onError("Error outputting audio", e)
+        }
+In extractEncoded:
+            if (outputResult == ProcessOutputResult.OUTPUT_FORMAT_CHANGED)
+                audioTrack = rebuildAudioTrack()
+            else if (outputResult == ProcessOutputResult.SUCCESS && outputBuffer != null) {
+
+    private fun rebuildAudioTrack(): AudioTrack? {
+        audioTrack?.release()
+        effect?.release()
+        return try {
+            buildAudioTrack()
+        } catch (e: Exception) {
+            onError("Error building audio track", e)
+            null
+        }
+    }
+
+    private fun rebuildAudioTrack(): AudioTrack? {
+        audioTrack?.release()
+        effect?.release()
+        return try {
+            buildAudioTrack()
+        } catch (e: Exception) {
+            onError("Error building audio track", e)
+            null
+        }
+    }
+
+In processOutputBuffer:
+                    if (hasChanged) outputAudioFormat = audioFormat
+(i.e. don't run rebuildAudioTrack here)
+
+
+
 Fix the ugly as fuck animation when expanding a submenu from actionbar or bottombar - but how? D-:
 
 

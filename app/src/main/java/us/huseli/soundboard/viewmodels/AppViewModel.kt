@@ -16,7 +16,6 @@ import kotlin.math.roundToInt
 class AppViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository, private val soundRepository: SoundRepository
 ) : ViewModel() {
-    private val undoStates = mutableListOf<UndoState>()
     private val _orientation = MutableLiveData<Int>()
     private val _reorderEnabled = MutableLiveData(false)
     private val _repressMode = MutableLiveData(SoundPlayer.RepressMode.STOP)
@@ -24,6 +23,7 @@ class AppViewModel @Inject constructor(
     private val _spanCountLandscape = MutableLiveData<Int?>()
     private val _spanCountPortrait = MutableLiveData<Int?>()
     private val _undosAvailable = MutableLiveData(false)
+    private val undoStates = mutableListOf<UndoState>()
 
     val repressMode: LiveData<SoundPlayer.RepressMode>
         get() = _repressMode

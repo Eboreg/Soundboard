@@ -415,7 +415,10 @@ class SoundAdapter(
                 } else binding.pauseIcon.visibility = View.INVISIBLE
 
                 binding.failIcon.visibility =
-                    if (state == SoundPlayer.State.ERROR) View.VISIBLE else View.INVISIBLE
+                    if (state == SoundPlayer.State.ERROR) {
+                        showError()
+                        View.VISIBLE
+                    } else View.INVISIBLE
 
                 binding.soundLoading.visibility =
                     if (listOf(SoundPlayer.State.INITIALIZING,

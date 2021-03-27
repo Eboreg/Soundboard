@@ -1,5 +1,6 @@
 package us.huseli.soundboard.audio
 
+import android.media.audiofx.AudioEffect
 import android.util.Log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
@@ -10,7 +11,10 @@ import us.huseli.soundboard.data.Sound
 
 class SoundPlayer(private var sound: Sound,
                   private var bufferSize: Int,
+                  private var effect: AudioEffect?,
+                  private var effectSendLevel: Float,
                   private var durationListener: DurationListener?) : AudioFile.Listener {
+
     private var _duration: Int = -1
         set(value) {
             if (value != field) {
@@ -85,6 +89,14 @@ class SoundPlayer(private var sound: Sound,
         }
     }
 
+    fun setEffect(effect: AudioEffect, sendLevel: Float) {
+        if (_state != State.ERROR) {
+            this.effect = effect
+            effectSendLevel = sendLevel
+            audioFile?.setEffect(effect, sendLevel)
+        }
+    }
+
     fun setStateListener(listener: StateListener?) {
         stateListener = listener
     }
@@ -119,6 +131,11 @@ class SoundPlayer(private var sound: Sound,
             State.PAUSED -> audioFile?.resumeAndPrepare()
             else -> audioFile?.playAndPrepare()
         }
+    }
+
+    fun unsetEffect() {
+        effect = null
+        audioFile?.unsetEffect()
     }
 
 
@@ -162,7 +179,7 @@ class SoundPlayer(private var sound: Sound,
 
     /********** PRIVATE METHODS **********/
     private suspend fun createAndStartTempPlayer(timeoutUs: Long) {
-        AudioFile(sound, _volume, bufferSize, TempAudioFileListener()).prepare().let {
+        AudioFile(sound, _volume, bufferSize, effect, effectSendLevel, TempAudioFileListener()).prepare().let {
             it.play(timeoutUs)
             tempAudioFileMutex.withLock { tempAudioFiles.add(it) }
         }
@@ -171,7 +188,9 @@ class SoundPlayer(private var sound: Sound,
     @Suppress("RedundantSuspendModifier")
     private suspend fun createAudioFile(): AudioFile? {
         return try {
-            AudioFile(sound, bufferSize, this).prepareAndPrime().also { _duration = it.duration.toInt() }
+            AudioFile(sound, bufferSize, effect, effectSendLevel, this).prepareAndPrime().also {
+                _duration = it.duration.toInt()
+            }
         } catch (e: AudioFile.AudioFileException) {
             _errorMessage = e.message
             _state = State.ERROR

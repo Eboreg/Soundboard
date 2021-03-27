@@ -74,4 +74,15 @@
     <string name="restart">Restart</string>
     <string name="overlap">Overlap</string>
     <string name="pause">Pause</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="set_reverb">Set reverb</string>
+    <string name="set_audio_effect">Set audio effect</string>
+    <string name="reverb_preset">Reverb preset</string>
+    <string name="reverb_plate">Plate</string>
+    <string name="reverb_small_room">Small room</string>
+    <string name="reverb_medium_room">Medium room</string>
+    <string name="reverb_large_room">Large room</string>
+    <string name="reverb_medium_hall">Medium hall</string>
+    <string name="reverb_large_hall">Large hall</string>
 </resources>

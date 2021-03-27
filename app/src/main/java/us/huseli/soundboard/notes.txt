@@ -1,3 +1,44 @@
+9 = {AudioEffect$Descriptor@11855}
+ connectMode = "Insert"
+ implementor = "NXP Software Ltd."
+ name = "Insert Preset Reverb"
+ type = {UUID@11950} "47382d60-ddd8-11db-bf3a-0002a5d5c51b"
+ uuid = {UUID@11951} "172cdf00-a3bc-11df-a72f-0002a5d5c51b"
+ shadow$_klass_ = {Class@4090} "class android.media.audiofx.AudioEffect$Descriptor"
+ shadow$_monitor_ = 0
+10 = {AudioEffect$Descriptor@11856}
+ connectMode = "Auxiliary"
+ implementor = "NXP Software Ltd."
+ name = "Auxiliary Preset Reverb"
+ type = {UUID@11942} "47382d60-ddd8-11db-bf3a-0002a5d5c51b"
+ uuid = {UUID@11943} "f29a1400-a3bb-11df-8ddc-0002a5d5c51b"
+ shadow$_klass_ = {Class@4090} "class android.media.audiofx.AudioEffect$Descriptor"
+ shadow$_monitor_ = 0
+
+
+
+
+
+
+
+val attachResult = track.attachAuxEffect(effect.id)
+ger -2 = ERROR_BAD_VALUE = "Denotes a failure due to the use of an invalid value."
+
+
+
+
+2021-03-25 02:14:27.985 9528-9528 E/AndroidRuntime: FATAL EXCEPTION: main
+    Process: us.huseli.soundboard.debug, PID: 9528
+    java.lang.RuntimeException: Cannot initialize effect engine for type: 47382d60-ddd8-11db-bf3a-0002a5d5c51b Error: -3
+        at android.media.audiofx.AudioEffect.<init>(AudioEffect.java:470)
+        at android.media.audiofx.PresetReverb.<init>(PresetReverb.java:128)
+        at us.huseli.soundboard.audio.AudioFile.buildAudioTrack(AudioFile.kt:287)
+        at us.huseli.soundboard.audio.AudioFile.doPlay(AudioFile.kt:306)
+
+Error -3 = AudioEffect.ERROR_NO_INIT = "Operation failed due to bad object initialization."
+
+
+
 bind:
 this = {SoundAdapter$SoundViewHolder@12745} "SoundAdapter.ViewHolder 58a1ea6 <adapterPosition=4, sound=Sound e2001 <id=295, name=Bisarra hörnan 2 Edit 1 Export 1, categoryId=1>>"
 sound = {Sound@12880} "Sound 274b102 <id=298, name=Bobbo Viking, categoryId=1>"

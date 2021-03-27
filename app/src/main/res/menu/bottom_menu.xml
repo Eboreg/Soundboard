@@ -51,10 +51,18 @@
         app:showAsAction="always" />
 
     <item
+        android:id="@+id/action_effects"
+        android:icon="@drawable/ic_effects"
+        android:orderInCategory="14"
+        android:title="@string/set_audio_effect"
+
+        app:showAsAction="always" />
+
+    <item
         android:id="@+id/action_undo"
         android:icon="@drawable/ic_undo"
         android:title="@string/undo"
-        android:orderInCategory="14"
+        android:orderInCategory="15"
         app:showAsAction="always" />
 
 </menu>

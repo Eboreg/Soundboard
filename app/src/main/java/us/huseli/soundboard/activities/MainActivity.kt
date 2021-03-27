@@ -41,7 +41,6 @@ import us.huseli.soundboard.R
 import us.huseli.soundboard.audio.SoundPlayer
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Constants
-import us.huseli.soundboard.data.PlayerRepository
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.ActivityMainBinding
 import us.huseli.soundboard.fragments.*
@@ -50,7 +49,6 @@ import us.huseli.soundboard.interfaces.EditSoundInterface
 import us.huseli.soundboard.interfaces.SnackbarInterface
 import us.huseli.soundboard.interfaces.ZoomInterface
 import us.huseli.soundboard.viewmodels.*
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity :
@@ -62,11 +60,10 @@ class MainActivity :
     ZoomInterface,
     ActionMode.Callback,
     SharedPreferences.OnSharedPreferenceChangeListener {
-    @Inject
-    lateinit var playerRepository: PlayerRepository
 
     private val actionbarLogoTouchTimes = mutableListOf<Long>()
     private val appViewModel by viewModels<AppViewModel>()
+    private val audioEffectViewModel by viewModels<AudioEffectViewModel>()
     private val categoryListViewModel by viewModels<CategoryViewModel>()
     private val soundAddViewModel by viewModels<SoundAddViewModel>()
     private val soundEditViewModel by viewModels<SoundEditViewModel>()
@@ -233,7 +230,17 @@ class MainActivity :
         soundViewModel.filterEnabled.observe(this) { onFilterEnabledChange(it) }
         appViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
         appViewModel.undosAvailable.observe(this) { onUndosAvailableChange(it) }
+        audioEffectViewModel.effectEnabled.observe(this) { onEffectEnabledChanged(it) }
         return true
+    }
+
+    private fun onEffectEnabledChanged(value: Boolean) {
+        val menuItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_effects)
+            ?: binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_effects)
+        menuItem?.icon?.alpha = when (value) {
+            true -> 255
+            false -> 128
+        }
     }
 
     override fun onDestroyActionMode(mode: ActionMode?) = soundViewModel.disableSelect()
@@ -264,6 +271,7 @@ class MainActivity :
             R.id.action_undo -> undo()
             R.id.action_zoom_in -> zoomIn()
             R.id.action_zoom_out -> zoomOut()
+            R.id.action_effects -> showEffectsDialog()
         }
         return true
     }
@@ -535,6 +543,8 @@ class MainActivity :
 
     private fun setupBottomBar() {
         binding.bottombar.bottombarToolbar?.apply {
+            if (!audioEffectViewModel.effectAvailable)
+                menu.findItem(R.id.action_effects)?.isVisible = false
             setOnMenuItemClickListener { onOptionsItemSelected(it) }
         }
     }
@@ -561,6 +571,8 @@ class MainActivity :
             .show(fragment)
             .commit()
     }
+
+    private fun showEffectsDialog() = showDialogFragment(AudioEffectDialogFragment())
 
     private fun showDialogFragment(fragment: Fragment) = showDialogFragment(fragment, null)
 
