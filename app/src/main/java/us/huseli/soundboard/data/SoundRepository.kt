@@ -24,12 +24,10 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
     /** Update/add sounds, delete the rest */
     fun reset(sounds: List<Sound>) = soundDao.reset(sounds)
 
-    private fun sort(sounds: List<Sound>, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) =
-        soundDao.update(sounds.toMutableList().sortedWith(Sound.Comparator(sortBy, sortOrder)))
-
     /** Sorts all sounds within category */
-    fun sort(categoryId: Int, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) =
-        sort(soundDao.listByCategory(categoryId), sortBy, sortOrder)
+    fun sort(categoryId: Int, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) {
+        soundDao.sort(soundDao.listByCategory(categoryId), sortBy, sortOrder)
+    }
 
     fun update(sound: Sound) = soundDao.update(sound)
 

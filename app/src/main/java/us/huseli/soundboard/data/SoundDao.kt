@@ -29,10 +29,10 @@ interface SoundDao {
     @Transaction
     fun insert(sounds: List<Sound>) = sounds.forEach { insert(it) }
 
-    @Query("SELECT * FROM Sound")
+    @Query("SELECT Sound.* FROM Sound JOIN SoundCategory ON Sound.categoryId = SoundCategory.id ORDER BY SoundCategory.`order`, Sound.`order`")
     fun list(): List<Sound>
 
-    @Query("SELECT * FROM Sound WHERE categoryId = :categoryId")
+    @Query("SELECT * FROM Sound WHERE categoryId = :categoryId ORDER BY `order`")
     fun listByCategory(categoryId: Int): List<Sound>
 
     @Transaction
@@ -47,6 +47,14 @@ interface SoundDao {
             else insert(it)
         }
         deleteExcluding(sounds.mapNotNull { it.id })
+    }
+
+    @Transaction
+    fun sort(sounds: List<Sound>, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) {
+        val sortedSounds = sounds.sortedWith(Sound.Comparator(sortBy, sortOrder)).mapIndexed { index, sound ->
+            sound.copy(order = index)
+        }
+        update(sortedSounds)
     }
 
     @Update
