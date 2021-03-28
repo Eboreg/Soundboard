@@ -298,6 +298,10 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
         var callbackDone = false
         try {
             audioTrack = buildAudioTrack()
+        } catch (e: Exception) {
+            onError("Error building audio track", e)
+        }
+        try {
             if (timeoutUs != null && System.nanoTime() > timeoutUs) onTimeoutCallback?.invoke()
             else {
                 audioTrack?.play()
@@ -311,7 +315,7 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
                 extractJob = scope.launch { extract(if (!callbackDone) onPlayStartCallback else null) }
             }
         } catch (e: IllegalStateException) {
-            onError("Error outputting audio")
+            onError("Error outputting audio", e)
         }
     }
 
@@ -437,7 +441,9 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
             if (inputResult != ProcessInputResult.END)
                 inputResult = processInputBuffer(codec, inputResult)
             val (outputResult, outputBuffer, index) = processOutputBuffer(codec, totalSize)
-            if (outputResult == ProcessOutputResult.SUCCESS && outputBuffer != null) {
+            if (outputResult == ProcessOutputResult.OUTPUT_FORMAT_CHANGED)
+                audioTrack = rebuildAudioTrack()
+            else if (outputResult == ProcessOutputResult.SUCCESS && outputBuffer != null) {
                 totalSize += outputBuffer.remaining()
                 writeAudioTrack(outputBuffer)
                 if (index != null) codec.releaseOutputBuffer(index, false)
@@ -656,10 +662,7 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
                 }
                 index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
                     val (hasChanged, audioFormat) = getAudioFormat(codec.outputFormat, outputAudioFormat)
-                    if (hasChanged) {
-                        outputAudioFormat = audioFormat
-                        rebuildAudioTrack()
-                    }
+                    if (hasChanged) outputAudioFormat = audioFormat
                     return Triple(ProcessOutputResult.OUTPUT_FORMAT_CHANGED, null, null)
                 }
                 else -> return Triple(ProcessOutputResult.NO_BUFFER, null, null)
@@ -670,12 +673,13 @@ class AudioFile(private val sound: Sound, var volume: Int, baseBufferSize: Int, 
         }
     }
 
-    private fun rebuildAudioTrack() {
-        try {
-            audioTrack?.release()
-            audioTrack = buildAudioTrack()
+    private fun rebuildAudioTrack(): AudioTrack? {
+        audioTrack?.release()
+        return try {
+            buildAudioTrack()
         } catch (e: AudioFileException) {
-            onError("Error building audio track")
+            onError("Error building audio track", e)
+            null
         }
     }
 
