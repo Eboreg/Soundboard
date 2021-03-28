@@ -48,14 +48,6 @@ class ColorHelper(private val resources: Resources) {
             getColorStringFromInt(attr.data) else null
     }
 
-    fun getColorStringFromResId(colorResId: Int): String? {
-        return try {
-            getColorStringFromInt(getColor(colorResId))
-        } catch (e: Resources.NotFoundException) {
-            null
-        }
-    }
-
     fun getLuminance(color: Int): Float {
         return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
             Color.luminance(color)

@@ -53,8 +53,8 @@ class CategoryViewModel @Inject constructor(
         repository.delete(id)
     }
 
-    fun saveOrder(categories: List<Category>) = viewModelScope.launch(Dispatchers.IO) {
-        /** Save .order of all categories as set right now */
-        repository.saveOrder(categories)
+    fun sort(categories: List<Category>) = viewModelScope.launch(Dispatchers.IO) {
+        /** Update .order according to current order in list and save */
+        repository.sort(categories)
     }
 }

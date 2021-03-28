@@ -48,16 +48,19 @@ interface CategoryDao {
         deleteExcluding(categories.mapNotNull { it.id })
     }
 
-    @Transaction
-    fun saveOrder(categories: List<Category>) =
-            categories.forEach { category -> category.id?.let { categoryId -> updateOrder(categoryId, category.order) } }
-
     @Query("UPDATE SoundCategory SET collapsed = :value WHERE id = :id")
     fun setCollapsed(id: Int, value: Int)
+
+    @Transaction
+    fun sort(categories: List<Category>) {
+        /** Update .order according to current order in list and save */
+        categories.forEachIndexed { index, category -> category.order = index }
+        update(categories)
+    }
 
     @Update
     fun update(category: Category)
 
-    @Query("UPDATE SoundCategory SET `order` = :order WHERE id = :id")
-    fun updateOrder(id: Int, order: Int)
+    @Update
+    fun update(categories: List<Category>)
 }

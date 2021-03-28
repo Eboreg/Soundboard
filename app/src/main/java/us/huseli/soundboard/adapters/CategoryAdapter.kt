@@ -64,12 +64,15 @@ class CategoryAdapter(
     }
 
     fun onItemsReordered() {
-        val previousOrder = currentList.map { it.order }
-        currentList.forEachIndexed { index, item -> item.order = index }
-        val newOrder = currentList.map { it.order }
-        if (previousOrder != newOrder) {
+//        val previousOrder = currentList.map { it.order }
+//        currentList.forEachIndexed { index, item -> item.order = index }
+//        val newOrder = currentList.map { it.order }
+        val orders = currentList.map { it.order }
+        if (orders != orders.sorted()) {
+            // if (previousOrder != newOrder) {
             appViewModel.pushCategoryUndoState(activity)
-            categoryViewModel.saveOrder(currentList)
+            categoryViewModel.sort(currentList)
+            // categoryViewModel.saveOrder(currentList)
         }
     }
 
