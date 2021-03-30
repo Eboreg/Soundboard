@@ -1,3 +1,27 @@
+Add sound dialog shows wrong number of sounds when skipping duplicates
+
+
+Test: Start with some large category collapsed > start profiling > expand it > see what could be
+done in BG thread on startup instead
+
+
+Sounds often not working on first press??
+(Seems to only happen for longer sounds (>10 s)? But not consistently ...)
+(No, also shorter sounds)
+This shit happens; perhaps there are still too many AudioTracks alive somehow? :-/////
+2021-03-30 01:20:46.809 3359-6485 W/AudioFile: writeAudioTrack: wrote 3140 bytes, buffer=java.nio.DirectByteBuffer[pos=3140 lim=8192 cap=294912], overshoot=5052, state=PLAYING, sampleSize=8192, sound=Sound 8be04db <id=434, name=Knightly Pleasures slut for me, categoryId=3>
+2021-03-30 01:20:46.810 3359-6485 W/AudioFile: writeAudioTrack: wrote 0 bytes, buffer=java.nio.DirectByteBuffer[pos=0 lim=8192 cap=294912], overshoot=8192, state=PLAYING, sampleSize=8192, sound=Sound 8be04db <id=434, name=Knightly Pleasures slut for me, categoryId=3>
+2021-03-30 01:20:46.858 3359-6485 I/chatty: uid=10381(us.huseli.soundboard.debug) DefaultDispatch identical 48 lines
+2021-03-30 01:20:46.858 3359-6485 W/AudioFile: writeAudioTrack: wrote 0 bytes, buffer=java.nio.DirectByteBuffer[pos=0 lim=8192 cap=294912], overshoot=8192, state=PLAYING, sampleSize=8192, sound=Sound 8be04db <id=434, name=Knightly Pleasures slut for me, categoryId=3>
+2021-03-30 01:20:46.860 3359-6485 W/AudioFile: writeAudioTrack: wrote 0 bytes, buffer=java.nio.DirectByteBuffer[pos=0 lim=8192 cap=294912], overshoot=8192, state=PLAYING, sampleSize=8192, sound=Sound 8be04db <id=434, name=Knightly Pleasures slut for me, categoryId=3>
+2021-03-30 01:20:46.860 3359-6485 W/AudioFile: writeAudioTrack: wrote 0 bytes, buffer=java.nio.DirectByteBuffer[pos=0 lim=8192 cap=294912], overshoot=8192, state=PLAYING, sampleSize=8192, sound=Sound 8be04db <id=434, name=Knightly Pleasures slut for me, categoryId=3>
+2021-03-30 01:20:46.862 3359-6485 W/AudioFile: writeAudioTrack: wrote 0 bytes, buffer=java.nio.DirectByteBuffer[pos=0 lim=8192 cap=294912], overshoot=8192, state=PLAYING, sampleSize=8192, sound=Sound 8be04db <id=434, name=Knightly Pleasures slut for me, categoryId=3>
+2021-03-30 01:20:46.897 3359-6485 I/chatty: uid=10381(us.huseli.soundboard.debug) DefaultDispatch identical 30 lines
+2021-03-30 01:20:46.898 3359-6485 W/AudioFile: writeAudioTrack: wrote 0 bytes, buffer=java.nio.DirectByteBuffer[pos=0 lim=8192 cap=294912], overshoot=8192, state=PLAYING, sampleSize=8192, sound=Sound 8be04db <id=434, name=Knightly Pleasures slut for me, categoryId=3>
+2021-03-30 01:20:46.898 3359-6485 W/AudioFile: writeAudioTrack: wrote 0 bytes, buffer=java.nio.DirectByteBuffer[pos=0 lim=3504 cap=294912], overshoot=3504, state=PLAYING, sampleSize=3504, sound=Sound 8be04db <id=434, name=Knightly Pleasures slut for me, categoryId=3>
+
+
+
 Drag and ddrop of categories is acting weirdly (fixed now?)
 
 

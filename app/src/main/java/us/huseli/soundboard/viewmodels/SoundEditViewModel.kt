@@ -24,11 +24,7 @@ class SoundEditViewModel @Inject constructor(private val repository: SoundReposi
         super.setup(sounds.map { it.copy() }, multipleSoundsString)
     }
 
-    override fun save(context: Context) = viewModelScope.launch(Dispatchers.IO) {
-        sounds.forEach { sound ->
-            if (!multiple) sound.name = name
-            sound.volume = volume
-        }
+    override fun doSave(context: Context) = viewModelScope.launch(Dispatchers.IO) {
         // Check if category has changed, and if so, place sounds last in new category
         newCategoryId?.let { categoryId ->
             var order = repository.getMaxOrder(categoryId)

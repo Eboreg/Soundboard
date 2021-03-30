@@ -27,12 +27,23 @@ abstract class BaseSoundEditViewModel : ViewModel() {
     val volume: Int
         get() = _volume
 
+    fun save(context: Context) {
+        sounds.forEach { setSoundAttrsBeforeSave(it) }
+        doSave(context)
+    }
+
     fun setCategoryId(value: Int) {
         newCategoryId = value
     }
 
     fun setName(value: String) {
-        if (!multiple) _name = value
+        _name = value
+    }
+
+    open fun setSoundAttrsBeforeSave(sound: Sound): Sound {
+        if (!multiple) sound.name = name
+        sound.volume = volume
+        return sound
     }
 
     open fun setup(sounds: List<Sound>, multipleSoundsString: String) {
@@ -53,6 +64,5 @@ abstract class BaseSoundEditViewModel : ViewModel() {
 
     protected fun removeSounds(predicate: (Sound) -> Boolean): Boolean = _sounds.removeAll(predicate)
 
-    abstract fun save(context: Context): Any?
-
+    protected abstract fun doSave(context: Context): Any?
 }

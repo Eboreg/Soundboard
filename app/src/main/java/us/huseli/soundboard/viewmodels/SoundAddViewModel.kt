@@ -43,20 +43,18 @@ class SoundAddViewModel @Inject constructor(private val repository: SoundReposit
         onDuplicateStrategyChange()
     }
 
-    override fun save(context: Context) = viewModelScope.launch(Dispatchers.IO) {
-        fun setSoundAttrs(sound: Sound): Sound {
-            if (!multiple) sound.name = name
-            newCategoryId?.let { sound.categoryId = it }
-            sound.volume = volume
-            return sound
+    override fun setSoundAttrsBeforeSave(sound: Sound): Sound {
+        return super.setSoundAttrsBeforeSave(sound).apply {
+            newCategoryId?.let { categoryId = it }
         }
+    }
 
+    override fun doSave(context: Context) = viewModelScope.launch(Dispatchers.IO) {
         sounds.forEach { sound ->
-            setSoundAttrs(sound)
             when (duplicateStrategy) {
                 DuplicateStrategy.UPDATE -> {
                     _duplicates.find { it.checksum == sound.checksum }?.let { duplicate ->
-                        repository.update(setSoundAttrs(duplicate))
+                        repository.update(setSoundAttrsBeforeSave(duplicate))
                         /**
                          * Duplicate is found and we want to update it. We have to do this by
                          * deleting the duplicate and putting the new sound in its place, though,
