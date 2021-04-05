@@ -6,7 +6,6 @@ import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.Context
 import android.content.res.ColorStateList
-import android.graphics.PorterDuff
 import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
@@ -30,7 +29,6 @@ import us.huseli.soundboard.animators.SoundItemLongClickAnimator
 import us.huseli.soundboard.audio.SoundPlayer
 import us.huseli.soundboard.data.*
 import us.huseli.soundboard.databinding.ItemSoundBinding
-import us.huseli.soundboard.helpers.ColorHelper
 import us.huseli.soundboard.helpers.SoundPlayerTimer
 import us.huseli.soundboard.viewmodels.AppViewModel
 import us.huseli.soundboard.viewmodels.CategoryViewModel
@@ -203,7 +201,6 @@ class SoundAdapter(
         @EntryPoint
         interface SoundViewHolderEntryPoint {
             fun playerRepository(): PlayerRepository
-            fun colorHelper(): ColorHelper
         }
 
         private val appViewModel = adapter.appViewModel
@@ -218,8 +215,6 @@ class SoundAdapter(
         }
         private val soundViewModel = adapter.soundViewModel
         private val activity = adapter.activity
-        private val colorHelper = EntryPointAccessors.fromApplication(
-            activity.applicationContext, SoundViewHolderEntryPoint::class.java).colorHelper()
         private val playerRepository = EntryPointAccessors.fromApplication(
             activity.applicationContext, SoundViewHolderEntryPoint::class.java).playerRepository()
 
@@ -251,15 +246,18 @@ class SoundAdapter(
             binding.sound = sound
 
             setDuration(sound.duration)
-            sound.backgroundColor?.let { setBackgroundColor(it) }
+
+            sound.backgroundColor?.also {
+                binding.volumeBar.progressBackgroundTintList = ColorStateList.valueOf(it)
+                longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, it)
+            }
 
             soundViewModel.addSoundSelectionListener(this)
 
             playerRepository.players.observe(this) { players ->
                 players[sound]?.also { newPlayer ->
                     newPlayer.setStateListener(this)
-                    if (newPlayer.state != SoundPlayer.State.READY)
-                        onSoundPlayerStateChange(newPlayer, newPlayer.state)
+                    onSoundPlayerStateChange(newPlayer, newPlayer.state)
                     appViewModel.repressMode.observe(this) { newPlayer.repressMode = it }
                     player = newPlayer
                 }
@@ -272,20 +270,6 @@ class SoundAdapter(
         /********* PRIVATE METHODS **********/
         private fun onReorderEnabledChange(value: Boolean) {
             binding.reorderIcon.visibility = if (value) View.VISIBLE else View.INVISIBLE
-        }
-
-        private fun setBackgroundColor(color: Int) {
-            longClickAnimator = SoundItemLongClickAnimator(binding.soundCard, color)
-            binding.volumeBar.progressDrawable.alpha = 150
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                binding.volumeBar.progressTintMode = PorterDuff.Mode.OVERLAY
-                binding.volumeBar.progressTintList =
-                    ColorStateList.valueOf(colorHelper.getColorOnBackgroundColor(color))
-/*
-                    if (colorHelper.getLuminance(color) >= 0.6) ColorStateList.valueOf(Color.BLACK)
-                    else ColorStateList.valueOf(Color.WHITE)
-*/
-            }
         }
 
         private fun setDuration(value: Int) {
@@ -396,7 +380,7 @@ class SoundAdapter(
              * https://developer.android.com/guide/components/processes-and-threads#WorkerThreads
              */
             binding.root.post {
-                if (BuildConfig.DEBUG) Log.d(LOG_TAG,
+                if (BuildConfig.DEBUG && oldState != null) Log.d(LOG_TAG,
                     "onSoundPlayerStateChange: item=$item, state=$state, oldState=$oldState")
 
                 if (state == SoundPlayer.State.PLAYING) {
@@ -417,12 +401,18 @@ class SoundAdapter(
                 binding.failIcon.visibility =
                     if (state == SoundPlayer.State.ERROR) View.VISIBLE else View.INVISIBLE
 
-                binding.soundLoading.visibility =
-                    if (listOf(SoundPlayer.State.INITIALIZING,
-                            SoundPlayer.State.STOPPED,
-                            SoundPlayer.State.RELEASED).contains(state))
-                        View.VISIBLE
-                    else View.INVISIBLE
+                /**
+                 * Only use the subdued colours when first initializing and when released. The short flashing is
+                 * annoying otherwise.
+                 */
+                if (state == SoundPlayer.State.RELEASED) {
+                    binding.soundName.alpha = 0.5f
+                    binding.duration.alpha = 0.5f
+                }
+                if (state == SoundPlayer.State.READY) {
+                    binding.soundName.alpha = 1.0f
+                    binding.duration.alpha = 1.0f
+                }
             }
         }
 

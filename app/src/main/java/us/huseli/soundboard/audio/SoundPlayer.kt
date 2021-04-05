@@ -21,8 +21,6 @@ class SoundPlayer(private var sound: Sound,
     private var _errorMessage = ""
     private var _state = State.INITIALIZING
         set(value) {
-            if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-                "state change: this=$this, uri=$sound, onStateChangeListener=$stateListener, state=$value, oldState = $field, listener=$stateListener")
             stateListener?.onSoundPlayerStateChange(this, value, field)
             field = value
         }
@@ -38,7 +36,7 @@ class SoundPlayer(private var sound: Sound,
         set(value) {
             if (value != field && field == RepressMode.PAUSE && _state == State.PAUSED) {
                 // Mode was PAUSE and is not anymore, meaning we "unpause" any paused sound
-                audioFile?.prepareAndPrime()
+                audioFile?.also { scope.launch { it.prepareAndPrime() } }
             }
             field = value
         }
@@ -91,28 +89,26 @@ class SoundPlayer(private var sound: Sound,
 
     fun setVolume(value: Int) {
         _volume = value
-        audioFile?.volume = value
+        audioFile?.changeVolume(value)
     }
 
-    fun togglePlay() {
+    fun togglePlay() = scope.launch {
         if (BuildConfig.DEBUG) Log.d(LOG_TAG,
             "togglePlay: state=$_state, repressMode=$repressMode, audioFile=$audioFile")
         when (_state) {
             State.PLAYING -> {
                 val timeoutUs = System.nanoTime() + Constants.SOUND_PLAY_TIMEOUT
-                scope.launch {
-                    when (repressMode) {
-                        RepressMode.STOP -> {
-                            audioFile?.stopAndPrepare()
-                            stopAndClearTempPlayers()
-                        }
-                        RepressMode.RESTART -> audioFile?.restartAndPrepare(timeoutUs)
-                        // TODO: adjust volumes?
-                        RepressMode.OVERLAP -> createAndStartTempPlayer(timeoutUs)
-                        RepressMode.PAUSE -> {
-                            if (audioFile?.isPlaying == true) audioFile?.pause()
-                            stopAndClearTempPlayers()
-                        }
+                when (repressMode) {
+                    RepressMode.STOP -> {
+                        audioFile?.stop()
+                        stopAndClearTempPlayers()
+                    }
+                    RepressMode.RESTART -> audioFile?.restartAndPrepare(timeoutUs)
+                    // TODO: adjust volumes?
+                    RepressMode.OVERLAP -> createAndStartTempPlayer(timeoutUs)
+                    RepressMode.PAUSE -> {
+                        if (audioFile?.isPlaying == true) audioFile?.pause()
+                        stopAndClearTempPlayers()
                     }
                 }
             }

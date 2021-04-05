@@ -17,6 +17,8 @@ class CategoryItemDragHelperCallback : ItemTouchHelper.SimpleCallback(ItemTouchH
                     "toPosition ${target.bindingAdapterPosition}, recyclerView ${recyclerView.hashCode()}"
         )
 
+        recyclerView.layoutManager is ItemTouchHelper.ViewDropHandler
+
         recyclerView.adapter?.let { adapter ->
             if (adapter is CategoryAdapter) {
                 val fromPosition = viewHolder.bindingAdapterPosition
@@ -37,6 +39,7 @@ class CategoryItemDragHelperCallback : ItemTouchHelper.SimpleCallback(ItemTouchH
         }
         return false
     }
+
 
     override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
         super.clearView(recyclerView, viewHolder)

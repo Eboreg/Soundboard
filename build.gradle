@@ -6,7 +6,7 @@ buildscript {
         targetSdkVersion = 30
 
         // App dependencies
-        kotlinVersion = '1.4.31'
+        kotlinVersion = '1.4.32'
         hiltVersion = '2.33-beta'
 
         // Local variables (use def)

@@ -26,7 +26,7 @@ class SoundViewModel
 
     val allSounds = repository.listLiveWithCategory().map { list ->
         list.forEach {
-            it.sound.textColor = colorHelper.getColorOnBackgroundColor(it.category.backgroundColor)
+            it.sound.textColor = colorHelper.getColorOnBackground(it.category.backgroundColor)
             it.sound.backgroundColor = it.category.backgroundColor
         }
         list.map { it.sound }

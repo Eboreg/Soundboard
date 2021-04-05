@@ -1,3 +1,46 @@
+playAndPrepare():
+
+
+
+
+
+doplay().
+audioTrack = {AudioFile$AudioTrackContainer@12989}
+ audioAttributes = {AudioAttributes@13041} "AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_MUSIC flags=0x800 tags= bundle=null"
+ audioTrack = null
+ bufferSize = 88200
+
+efter biuld:
+audioTrack = {AudioFile$AudioTrackContainer@12989}
+ audioAttributes = {AudioAttributes@13041} "AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_MUSIC flags=0x800 tags= bundle=null"
+ audioTrack = {AudioTrack@13101}
+ bufferSize = 88200
+
+play:
+audioTrack = {AudioFile$AudioTrackContainer@12989}
+ audioAttributes = {AudioAttributes@13041} "AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_MUSIC flags=0x800 tags= bundle=null"
+ audioTrack = {AudioTrack@13101}
+ bufferSize = 88200
+
+doplay -> writeSAutioTrack
+
+AudioTrackContainer -> wite;
+audioTrack = {AudioTrack@13101}
+ mAudioFormat = 2
+ mAvSyncBytesRemaining = 0
+ mAvSyncHeader = null
+ mChannelConfiguration = 12
+
+
+AudioTrackContainer.play()
+audioTrack = {AudioTrack@12869}
+ mAudioFormat = 2
+ mAvSyncBytesRemaining = 0
+ mAvSyncHeader = null
+
+
+
+
 1,3,default,4,2
 
 

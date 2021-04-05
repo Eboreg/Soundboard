@@ -5,9 +5,14 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import android.view.*
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleRegistry
 import androidx.recyclerview.widget.*
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.R
 import us.huseli.soundboard.adapters.common.LifecycleAdapter
@@ -17,6 +22,7 @@ import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.ItemCategoryBinding
 import us.huseli.soundboard.helpers.CategoryItemDragHelperCallback
+import us.huseli.soundboard.helpers.ColorHelper
 import us.huseli.soundboard.helpers.SoundDragListener
 import us.huseli.soundboard.helpers.SoundScroller
 import us.huseli.soundboard.interfaces.EditCategoryInterface
@@ -31,8 +37,17 @@ class CategoryAdapter(
     private val categoryViewModel: CategoryViewModel,
     private val activity: FragmentActivity,
     private val soundScroller: SoundScroller
-) :
-    LifecycleAdapter<Category, CategoryAdapter.CategoryViewHolder>(DiffCallback()) {
+) : LifecycleAdapter<Category, CategoryAdapter.CategoryViewHolder>(DiffCallback()) {
+
+    @InstallIn(SingletonComponent::class)
+    @EntryPoint
+    interface CategoryAdapterEntryPoint {
+        fun colorHelper(): ColorHelper
+    }
+
+    internal val colorHelper =
+        EntryPointAccessors.fromApplication(activity.applicationContext, CategoryAdapterEntryPoint::class.java)
+            .colorHelper()
     internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
 
     override val firstVisibleViewHolder: CategoryViewHolder?
@@ -101,10 +116,12 @@ class CategoryAdapter(
         View.OnClickListener,
         View.OnTouchListener,
         LifecycleViewHolder<Category>(binding.root) {
+
         private val activity = adapter.activity
         private val appViewModel = adapter.appViewModel
         private val categoryListViewModel = adapter.categoryViewModel
         private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
+        private val colorHelper = adapter.colorHelper
         private val initialSpanCount = adapter.initialSpanCount
         private val itemTouchHelper = adapter.itemTouchHelper
         private val soundDragListener: SoundDragListener
@@ -288,8 +305,16 @@ class CategoryAdapter(
 
         @SuppressLint("ClickableViewAccessibility")
         override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-            if (event?.action == MotionEvent.ACTION_DOWN && v == binding.categoryMoveButton)
+            if (event?.action == MotionEvent.ACTION_DOWN && v == binding.categoryMoveButton) {
+                val backgroundColor =
+                    colorHelper.getColorFromAttr(R.attr.colorBackgroundFloating, activity.applicationContext.theme)
+                if (backgroundColor != null) {
+                    binding.categoryItem.setBackgroundColor(backgroundColor)
+                    binding.categoryItem.translationZ = 2f
+                }
+                binding.categoryItem
                 itemTouchHelper.startDrag(this)
+            }
             return false
         }
 
@@ -304,10 +329,19 @@ class CategoryAdapter(
         }
 
 
-        inner class SoundLayoutManager(context: Context, spanCount: Int) : GridLayoutManager(context, spanCount) {
+        inner class SoundLayoutManager(context: Context, spanCount: Int) : GridLayoutManager(context, spanCount),
+            ItemTouchHelper.ViewDropHandler {
             override fun isAutoMeasureEnabled() = true
 
-            // TODO: Graphically buggy bastard, maybe try again with something else someday
+            override fun prepareForDrop(view: View, target: View, x: Int, y: Int) {
+                binding.categoryItem.setBackgroundColor(ResourcesCompat.getColor(activity.resources,
+                    android.R.color.transparent,
+                    null))
+                binding.categoryItem.translationZ = 0f
+                super.prepareForDrop(view, target, x, y)
+            }
+
+// TODO: Graphically buggy bastard, maybe try again with something else someday
 /*
             override fun onLayoutChildren(recycler: RecyclerView.Recycler?, state: RecyclerView.State?) {
                 super.onLayoutChildren(recycler, state)

@@ -3,6 +3,8 @@ package us.huseli.soundboard.helpers
 import android.media.AudioFormat
 import android.media.MediaFormat
 import android.os.Build
+import android.os.Looper
+import android.util.Log
 import kotlin.math.log2
 import kotlin.math.pow
 
@@ -30,5 +32,13 @@ object Functions {
         if (channelMask != null && channelMask > 0) audioFormatBuilder.setChannelMask(channelMask)
         if (encoding != null) audioFormatBuilder.setEncoding(encoding)
         return audioFormatBuilder.build()
+    }
+
+    fun audioFormatsEqual(format1: AudioFormat, format2: AudioFormat) =
+        format1.channelMask == format2.channelMask && format1.encoding == format2.encoding
+
+    fun warnIfOnMainThread(caller: String) {
+        if (Looper.getMainLooper().thread == Thread.currentThread())
+            Log.e("warnIfOnMainThread", "$caller was called from main thread, but it shouldn't be!")
     }
 }

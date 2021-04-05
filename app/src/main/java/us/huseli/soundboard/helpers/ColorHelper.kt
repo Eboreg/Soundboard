@@ -37,16 +37,18 @@ class ColorHelper(private val resources: Resources) {
     private fun getColorStringFromInt(color: Int) = String.format("%06X", 0xFFFFFF.and(color))
 
     /********** PUBLIC METHODS **********/
-    fun getColorOnBackgroundColor(backgroundColor: Int) =
+    fun getColorOnBackground(backgroundColor: Int) =
         // Luminance >= 0.6: Black text, otherwise white
         getColor(if (getLuminance(backgroundColor) >= 0.6) R.color.black else R.color.white)
 
-    fun getColorStringFromAttr(attrResId: Int, theme: Resources.Theme): String? {
+    fun getColorFromAttr(attrResId: Int, theme: Resources.Theme): Int? {
         val attr = TypedValue()
         theme.resolveAttribute(attrResId, attr, true)
-        return if (attr.type >= TypedValue.TYPE_FIRST_COLOR_INT && attr.type <= TypedValue.TYPE_LAST_COLOR_INT)
-            getColorStringFromInt(attr.data) else null
+        return if (attr.type >= TypedValue.TYPE_FIRST_COLOR_INT && attr.type <= TypedValue.TYPE_LAST_COLOR_INT) attr.data else null
     }
+
+    fun getColorStringFromAttr(attrResId: Int, theme: Resources.Theme) =
+        getColorFromAttr(attrResId, theme)?.let { getColorStringFromInt(it) }
 
     fun getLuminance(color: Int): Float {
         return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {

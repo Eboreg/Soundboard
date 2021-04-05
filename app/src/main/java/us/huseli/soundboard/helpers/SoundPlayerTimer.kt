@@ -1,7 +1,6 @@
 package us.huseli.soundboard.helpers
 
 import android.os.CountDownTimer
-import android.util.Log
 import android.widget.ProgressBar
 import kotlin.math.roundToInt
 
@@ -25,13 +24,11 @@ class SoundPlayerTimer(private var duration: Long,
 
     fun start() {
         timer.start()
-        Log.d(LOG_TAG, "start: millisLeft=$millisLeft, duration=$duration, timer=$timer")
     }
 
     fun stop() {
         timer.cancel()
         onFinish()
-        Log.d(LOG_TAG, "stop: millisLeft=$millisLeft, duration=$duration, timer=$timer")
     }
 
     fun pause() = timer.cancel()

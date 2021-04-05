@@ -26,7 +26,7 @@ class CategoryViewModel @Inject constructor(
 
     val categories = repository.categories.map { list ->
         list.forEach {
-            it.textColor = colorHelper.getColorOnBackgroundColor(it.backgroundColor)
+            it.textColor = colorHelper.getColorOnBackground(it.backgroundColor)
             it.secondaryTextColor =
                 colorHelper.getSecondaryColorOnBackgroundColor(it.backgroundColor)
         }
