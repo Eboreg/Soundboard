@@ -1,6 +1,5 @@
 package us.huseli.soundboard.adapters
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -21,7 +20,6 @@ import us.huseli.soundboard.animators.CollapseButtonAnimator
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.ItemCategoryBinding
-import us.huseli.soundboard.helpers.CategoryItemDragHelperCallback
 import us.huseli.soundboard.helpers.ColorHelper
 import us.huseli.soundboard.helpers.SoundDragListener
 import us.huseli.soundboard.helpers.SoundScroller
@@ -48,8 +46,6 @@ class CategoryAdapter(
     internal val colorHelper =
         EntryPointAccessors.fromApplication(activity.applicationContext, CategoryAdapterEntryPoint::class.java)
             .colorHelper()
-    internal val itemTouchHelper = ItemTouchHelper(CategoryItemDragHelperCallback())
-
     override val firstVisibleViewHolder: CategoryViewHolder?
         get() = viewHolders.firstOrNull { it.isVisible() && it.soundAdapter.isNotEmpty() }
 
@@ -73,22 +69,14 @@ class CategoryAdapter(
         return holder
     }
 
+    override fun onCurrentListChanged(previousList: MutableList<Category>, currentList: MutableList<Category>) {
+        super.onCurrentListChanged(previousList, currentList)
+        viewHolders.forEach { it.setupMoveButtons() }
+    }
+
     override fun toString(): String {
         val hashCode = Integer.toHexString(System.identityHashCode(this))
         return "CategoryAdapter $hashCode"
-    }
-
-    fun onItemsReordered() {
-//        val previousOrder = currentList.map { it.order }
-//        currentList.forEachIndexed { index, item -> item.order = index }
-//        val newOrder = currentList.map { it.order }
-        val orders = currentList.map { it.order }
-        if (orders != orders.sorted()) {
-            // if (previousOrder != newOrder) {
-            appViewModel.pushCategoryUndoState(activity)
-            categoryViewModel.sort(currentList)
-            // categoryViewModel.saveOrder(currentList)
-        }
     }
 
 
@@ -98,13 +86,12 @@ class CategoryAdapter(
 
 
     class DiffCallback : DiffUtil.ItemCallback<Category>() {
-        override fun areItemsTheSame(oldItem: Category, newItem: Category): Boolean {
-            return oldItem.id == newItem.id
-        }
+        override fun areItemsTheSame(oldItem: Category, newItem: Category) = oldItem == newItem
 
-        override fun areContentsTheSame(oldItem: Category, newItem: Category): Boolean {
-            return oldItem.name == newItem.name && oldItem.backgroundColor == newItem.backgroundColor && oldItem.collapsed == newItem.collapsed
-        }
+        override fun areContentsTheSame(oldItem: Category, newItem: Category) =
+            oldItem.name == newItem.name &&
+                    oldItem.backgroundColor == newItem.backgroundColor &&
+                    oldItem.collapsed == newItem.collapsed
     }
 
 
@@ -114,16 +101,13 @@ class CategoryAdapter(
      */
     class CategoryViewHolder(internal val binding: ItemCategoryBinding, adapter: CategoryAdapter) :
         View.OnClickListener,
-        View.OnTouchListener,
         LifecycleViewHolder<Category>(binding.root) {
 
         private val activity = adapter.activity
         private val appViewModel = adapter.appViewModel
         private val categoryListViewModel = adapter.categoryViewModel
         private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
-        private val colorHelper = adapter.colorHelper
         private val initialSpanCount = adapter.initialSpanCount
-        private val itemTouchHelper = adapter.itemTouchHelper
         private val soundDragListener: SoundDragListener
         private val soundScroller = adapter.soundScroller
         private val soundViewModel = adapter.soundViewModel
@@ -146,6 +130,7 @@ class CategoryAdapter(
             soundDragListener = SoundDragListener(soundAdapter, this, soundScroller)
 
             enableClickAndTouch()
+            setupMoveButtons()
             binding.root.setOnDragListener(soundDragListener)
 
             binding.soundList.apply {
@@ -193,6 +178,15 @@ class CategoryAdapter(
             soundViewModel.selectEnabled.observe(this) { onSelectEnabledChange(it) }
         }
 
+        internal fun setupMoveButtons() {
+            if (bindingAdapterPosition > 0) enableClickAndTouch(binding.categoryMoveUp) else disableClickAndTouch(
+                binding.categoryMoveUp)
+            bindingAdapter?.also {
+                if (bindingAdapterPosition < it.itemCount - 1) enableClickAndTouch(binding.categoryMoveDown) else disableClickAndTouch(
+                    binding.categoryMoveDown)
+            }
+        }
+
         internal fun getYOffset() = binding.soundList.y
 
         internal fun hideDropContainer() {
@@ -205,28 +199,28 @@ class CategoryAdapter(
 
 
         /********* PRIVATE METHODS **********/
-        private fun disableClickAndTouch() {
-            listOf(
-                binding.categoryEditButton,
-                binding.categoryDeleteButton,
-            ).forEach {
-                it.setOnClickListener(null)
-                it.alpha = 0.5f
-                it.isClickable = false
-            }
+        private fun disableClickAndTouch(view: View) {
+            view.setOnClickListener(null)
+            view.alpha = 0.5f
+            view.isClickable = false
         }
 
-        private fun enableClickAndTouch() {
-            listOf(
-                binding.categoryEditButton,
+        private fun disableClickAndTouch() =
+            listOf(binding.categoryEditButton,
                 binding.categoryDeleteButton,
-                binding.categoryCollapse,
-            ).forEach {
-                it.setOnClickListener(this)
-                it.alpha = 1.0f
-                it.isClickable = true
-            }
+                binding.categoryMoveDown,
+                binding.categoryMoveUp).forEach { disableClickAndTouch(it) }
+
+        private fun enableClickAndTouch(view: View) {
+            view.setOnClickListener(this)
+            view.alpha = 1.0f
+            view.isClickable = true
         }
+
+        private fun enableClickAndTouch() =
+            listOf(binding.categoryEditButton,
+                binding.categoryDeleteButton,
+                binding.categoryCollapse).forEach { enableClickAndTouch(it) }
 
         private fun onCollapseChanged(value: Boolean) {
             if (!soundDragListener.isDragging) soundDragListener.wasCollapsed = value
@@ -234,22 +228,17 @@ class CategoryAdapter(
             isCollapsed = value
         }
 
-        @SuppressLint("ClickableViewAccessibility")
         private fun onReorderEnabledChange(value: Boolean?) {
-            if (value == false) {
-                binding.categoryMoveButton.setOnTouchListener(null)
-                binding.categoryMoveButton.alpha = 0.3f
-                binding.categoryMoveButton.isClickable = false
-            } else if (value == true) {
-                binding.categoryMoveButton.setOnTouchListener(this)
-                binding.categoryMoveButton.alpha = 1.0f
-                binding.categoryMoveButton.isClickable = true
-            }
+            if (value == true) binding.categoryMoveButtons.visibility = View.VISIBLE
+            else binding.categoryMoveButtons.visibility = View.GONE
         }
 
         private fun onSelectEnabledChange(value: Boolean) {
             if (value) disableClickAndTouch()
-            else enableClickAndTouch()
+            else {
+                enableClickAndTouch()
+                setupMoveButtons()
+            }
         }
 
         @Suppress("unused")
@@ -272,7 +261,6 @@ class CategoryAdapter(
             item?.let { category ->
                 val collapsed = !category.collapsed
                 collapseButtonAnimator.animate(collapsed)
-                // onCollapseChanged(collapsed)
                 category.id?.let { categoryListViewModel.setCollapsed(it, collapsed) }
             }
         }
@@ -296,6 +284,8 @@ class CategoryAdapter(
                         binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(
                             catId, category.name, soundCount ?: 0)
                         binding.categoryCollapse -> toggleCollapsed()
+                        binding.categoryMoveDown -> moveCategoryDown()
+                        binding.categoryMoveUp -> moveCategoryUp()
                     }
                 }
             } ?: run {
@@ -303,19 +293,20 @@ class CategoryAdapter(
             }
         }
 
-        @SuppressLint("ClickableViewAccessibility")
-        override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-            if (event?.action == MotionEvent.ACTION_DOWN && v == binding.categoryMoveButton) {
-                val backgroundColor =
-                    colorHelper.getColorFromAttr(R.attr.colorBackgroundFloating, activity.applicationContext.theme)
-                if (backgroundColor != null) {
-                    binding.categoryItem.setBackgroundColor(backgroundColor)
-                    binding.categoryItem.translationZ = 2f
-                }
-                binding.categoryItem
-                itemTouchHelper.startDrag(this)
+        private fun moveCategoryUp() {
+            if (bindingAdapterPosition > 0) {
+                appViewModel.pushCategoryUndoState(activity)
+                categoryListViewModel.switch(bindingAdapterPosition, bindingAdapterPosition - 1)
             }
-            return false
+        }
+
+        private fun moveCategoryDown() {
+            bindingAdapter?.also { adapter ->
+                if (bindingAdapterPosition < adapter.itemCount - 1) {
+                    appViewModel.pushCategoryUndoState(activity)
+                    categoryListViewModel.switch(bindingAdapterPosition, bindingAdapterPosition + 1)
+                }
+            }
         }
 
         override fun toString(): String {

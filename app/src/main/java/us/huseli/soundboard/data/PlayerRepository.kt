@@ -3,27 +3,38 @@ package us.huseli.soundboard.data
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.audio.SoundPlayer
 import us.huseli.soundboard.helpers.Functions
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.collections.List
+import kotlin.collections.Map
+import kotlin.collections.MutableMap
+import kotlin.collections.contains
+import kotlin.collections.filterNot
+import kotlin.collections.forEach
+import kotlin.collections.mutableMapOf
+import kotlin.collections.set
 
 @Singleton
 class PlayerRepository @Inject constructor(@ApplicationContext private val context: Context,
                                            private val soundDao: SoundDao) :
     SoundPlayer.DurationListener {
-    private val _players = mutableMapOf<Sound, SoundPlayer>()
 
     private var bufferSize = Constants.DEFAULT_BUFFER_SIZE
+    private var playersRaw = mutableMapOf<Sound, SoundPlayer>()
+    private val playersMutex = Mutex()
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
     private val preferenceListener =
         SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
@@ -45,44 +56,61 @@ class PlayerRepository @Inject constructor(@ApplicationContext private val conte
         }
     }
 
-    val players: LiveData<Map<Sound, SoundPlayer>> = soundDao.listLiveWithCategory().map { soundsWithCategory ->
-        val sounds = soundsWithCategory.map { it.sound }
-        removePlayers(sounds)
-        addPlayers(sounds)
-        updatePlayers(sounds)
-        _players
+    private val playersMutableLiveData = MutableLiveData<Map<Sound, SoundPlayer>>()
+
+    val players = MediatorLiveData<Map<Sound, SoundPlayer>>().apply {
+        addSource(soundDao.listLive()) { sounds ->
+            scope.launch {
+                playersMutex.withLock {
+                    removePlayers(sounds, playersRaw)
+                    updatePlayers(sounds, playersRaw)
+                    addPlayers(sounds, playersRaw)
+                }
+                playersMutableLiveData.postValue(playersRaw)
+            }
+        }
+        addSource(playersMutableLiveData) { value = it }
     }
 
-    private fun updatePlayers(sounds: List<Sound>) {
+    private fun updatePlayers(sounds: List<Sound>, players: Map<Sound, SoundPlayer>) {
         /** Checks for relevant changes and update. Currently only volume. */
+        Functions.warnIfOnMainThread("updatePlayers")
         sounds.forEach { sound ->
-            _players[sound]?.let { player ->
-                if (player.volume != sound.volume) player.setVolume(sound.volume)
+            players[sound]?.let { player ->
+                if (player.volume != sound.volume) {
+                    if (BuildConfig.DEBUG) Log.d(LOG_TAG,
+                        "updatePlayers: change volume (sound=$sound, sound volume=${sound.volume}, player=$player, player volume=${player.volume}")
+                    player.setVolume(sound.volume)
+                }
             }
         }
     }
 
-    private fun removePlayers(sounds: List<Sound>) {
-        _players.filterNot { sounds.contains(it.key) }.forEach {
-            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "removePlayers: remove ${it.key}")
+    private fun removePlayers(sounds: List<Sound>, players: MutableMap<Sound, SoundPlayer>) {
+        Functions.warnIfOnMainThread("removePlayers")
+        players.filterNot { sounds.contains(it.key) }.forEach {
+            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "removePlayers: remove <sound=${it.key}, player=${it.value}>")
             it.value.release()
-            _players.remove(it.key)
+            players.remove(it.key)
         }
     }
 
-    private fun addPlayers(sounds: List<Sound>) {
-        sounds.filterNot { _players.contains(it) }.forEach { sound ->
+    private fun addPlayers(sounds: List<Sound>, players: MutableMap<Sound, SoundPlayer>) {
+        Functions.warnIfOnMainThread("addPlayers")
+        sounds.filterNot { players.contains(it) }.forEach { sound ->
             if (BuildConfig.DEBUG) Log.d(LOG_TAG, "addPlayers: add $sound")
-            _players[sound] = SoundPlayer(sound, bufferSize, this)
+            players[sound] = SoundPlayer(sound, bufferSize, this)
         }
     }
 
-    private fun onBufferSizeChange(seekbarValue: Int) {
+    private suspend fun onBufferSizeChange(seekbarValue: Int) {
         val newValue = Functions.seekbarValueToBufferSize(seekbarValue)
         if (BuildConfig.DEBUG) Log.d(LOG_TAG, "onBufferSizeChange: newValue=$newValue, bufferSize=$bufferSize")
         if (newValue != bufferSize) {
             bufferSize = newValue
-            _players.forEach { it.value.setBufferSize(newValue) }
+            playersMutex.withLock {
+                playersRaw.forEach { it.value.setBufferSize(newValue) }
+            }
         }
     }
 

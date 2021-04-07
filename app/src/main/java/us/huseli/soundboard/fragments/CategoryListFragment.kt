@@ -1,6 +1,5 @@
 package us.huseli.soundboard.fragments
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -75,7 +74,6 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
         return scaleGestureDetector.onTouchEvent(event)
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -89,7 +87,6 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
                 SoundScroller(binding.categoryList, 10, 10)
             ).also { categoryAdapter ->
                 binding.categoryList.apply {
-                    categoryAdapter.itemTouchHelper.attachToRecyclerView(this)
                     adapter = categoryAdapter
                     layoutManager?.isItemPrefetchEnabled = true
                     setHasFixedSize(true)

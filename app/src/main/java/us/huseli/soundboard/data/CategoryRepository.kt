@@ -1,5 +1,6 @@
 package us.huseli.soundboard.data
 
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,4 +27,11 @@ class CategoryRepository @Inject constructor(private val categoryDao: CategoryDa
     fun sort(categories: List<Category>) = categoryDao.sort(categories)
 
     fun update(category: Category) = categoryDao.update(category)
+
+    fun switch(oldPos: Int, newPos: Int) {
+        list().toMutableList().also {
+            Collections.swap(it, oldPos, newPos)
+            sort(it)
+        }
+    }
 }

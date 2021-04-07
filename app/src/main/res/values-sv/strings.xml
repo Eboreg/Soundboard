@@ -33,7 +33,6 @@
     <string name="language">Språk</string>
     <string name="load_failed">Kunde inte ladda</string>
     <string name="loading">Laddar …</string>
-    <string name="move_category">Flytta kategori</string>
     <string name="multiple_sounds_selected">(%1$d ljud valda)</string>
     <string name="name">Namn</string>
     <string name="name_cannot_be_empty">Namn kan inte vara tomt</string>
@@ -73,4 +72,6 @@
     <string name="restart">Starta om</string>
     <string name="overlap">Överlappa</string>
     <string name="pause">Pausa</string>
+    <string name="move_category_up">Flytta kategori uppåt</string>
+    <string name="move_category_down">Flytta kategori nedåt</string>
 </resources>

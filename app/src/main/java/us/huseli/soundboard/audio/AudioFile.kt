@@ -392,9 +392,9 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
                 val job = coroutineContext[Job]
                 while (job?.isActive == true && !audioExtractor.isEosReached()) {
                     val buffer = getBuffer(audioExtractor)
-                    log("start: buffer=$buffer")
+                    // log("start: buffer=$buffer")
                     val writeResult = audioTrack.write(buffer)
-                    log("writeResult=$writeResult")
+                    // log("writeResult=$writeResult")
 
                     @Suppress("NON_EXHAUSTIVE_WHEN")
                     when (writeResult.status) {

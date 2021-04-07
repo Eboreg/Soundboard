@@ -27,7 +27,6 @@
     <string name="delete_category_with_name">Delete category %1$s?</string>
     <string name="cannot_delete_last_category">There has to be at least one category.</string>
     <string name="edit_category">Edit category</string>
-    <string name="move_category">Move category</string>
     <string name="delete_sound_name">Delete sound %1$s?</string>
     <string name="delete_sounds_count" tools:ignore="PluralsCandidate">Delete %1$d sounds?</string>
     <string name="not_initialized_yet">Not initialized yet!</string>
@@ -74,4 +73,6 @@
     <string name="restart">Restart</string>
     <string name="overlap">Overlap</string>
     <string name="pause">Pause</string>
+    <string name="move_category_up">Move category up</string>
+    <string name="move_category_down">Move category down</string>
 </resources>

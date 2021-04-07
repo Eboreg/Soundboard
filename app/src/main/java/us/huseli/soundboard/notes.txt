@@ -1,5 +1,7 @@
-playAndPrepare():
+2021-04-07 06:47:20.879 22328-22328 D/SoundAdapter: onBindViewHolder: item=Sound 1f533a6 <id=293, name=ba dum tss, categoryId=2>, holder=SoundAdapter.ViewHolder cc13232 <adapterPosition=1, sound=null>, position=1, category=1
 
+2021-04-07 06:49:34.700 22328-22328 D/SoundAdapter: onBindViewHolder: item=Sound 30238da <id=339, name=HUUH!! lång, categoryId=1>,
+holder=SoundAdapter.ViewHolder 7e0d10b <adapterPosition=79, sound=null>, position=79, category=Default
 
 
 

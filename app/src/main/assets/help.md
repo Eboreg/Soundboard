@@ -5,7 +5,7 @@
 | | Add one or more sounds to the soundboard. For technical reasons, they will be copied to the app's internal storage. |
 | | | |
 | ![](file:///android_asset/reorder.svg)  |  **Reorder** |
-| | When activated, you can reorder sounds and categories by dragging and dropping them. |
+| | When activated, you can reorder sounds by dragging and dropping them, and categories by pressing 'up' and 'down' icons. |
 | | | |
 | ![](file:///android_asset/filter.svg)  |  **Filter** |
 | | When activated, you can filter the displayed sounds by entering a string. |

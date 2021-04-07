@@ -6,7 +6,7 @@ import androidx.room.*
 @Dao
 interface CategoryDao {
     @Query("SELECT MAX(`order`) FROM SoundCategory")
-    fun privateGetMaxOrder(): Int?
+    fun getMaxOrder(): Int?
 
     @Insert
     fun privateInsert(category: Category)
@@ -26,7 +26,7 @@ interface CategoryDao {
     @Transaction
     fun insert(category: Category) {
         if (category.order == -1) {
-            val maxOrder = privateGetMaxOrder() ?: -1
+            val maxOrder = getMaxOrder() ?: -1
             category.order = maxOrder + 1
         }
         privateInsert(category)

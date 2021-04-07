@@ -164,7 +164,6 @@ class SoundPlayer(private var sound: Sound,
         }
     }
 
-    @Suppress("RedundantSuspendModifier")
     private suspend fun createAudioFile(): AudioFile? {
         return try {
             AudioFile(sound, bufferSize, this).prepareAndPrime().also { _duration = it.duration.toInt() }

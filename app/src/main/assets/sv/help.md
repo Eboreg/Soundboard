@@ -5,7 +5,7 @@
 | | Lägg till ett eller flera ljud i soundboarden. Av tekniska skäl kommer dessa att kopieras till appens interna lagringsutrymme.
 | | | |
 | ![](file:///android_asset/reorder.svg)  |  **Sortera om** |
-| | När denna aktiveras kan du sortera om ljuden och kategorierna genom att dra och släppa dem. |
+| | När denna aktiveras kan du sortera om ljuden genom att dra och släppa dem och kategorierna genom att trycka på 'upp'- och 'ned'-ikoner. |
 | | | |
 | ![](file:///android_asset/filter.svg)  |  **Filtrera** |
 | | När denna aktiveras kan du filtrera vilka ljud som visas genom att skriva in en sträng. |
