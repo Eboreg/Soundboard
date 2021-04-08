@@ -12,6 +12,7 @@ import us.huseli.soundboard.R
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.CategoryRepository
 import us.huseli.soundboard.data.SoundRepository
+import us.huseli.soundboard.data.UndoRepository
 import us.huseli.soundboard.helpers.ColorHelper
 import javax.inject.Inject
 
@@ -20,6 +21,7 @@ class CategoryViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val repository: CategoryRepository,
     private val soundRepository: SoundRepository,
+    private val undoRepository: UndoRepository,
     private val colorHelper: ColorHelper
 ) : ViewModel() {
     private val emptyCategory = Category(context.getString(R.string.unchanged))
@@ -51,9 +53,11 @@ class CategoryViewModel @Inject constructor(
     fun delete(id: Int) = viewModelScope.launch(Dispatchers.IO) {
         soundRepository.deleteByCategory(id)
         repository.delete(id)
+        undoRepository.pushSoundAndCategoryState()
     }
 
     fun switch(oldPos: Int, newPos: Int) = viewModelScope.launch(Dispatchers.IO) {
         repository.switch(oldPos, newPos)
+        undoRepository.pushCategoryState()
     }
 }

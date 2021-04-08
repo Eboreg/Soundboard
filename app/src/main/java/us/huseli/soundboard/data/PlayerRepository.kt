@@ -18,19 +18,11 @@ import us.huseli.soundboard.audio.SoundPlayer
 import us.huseli.soundboard.helpers.Functions
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.collections.List
-import kotlin.collections.Map
-import kotlin.collections.MutableMap
-import kotlin.collections.contains
-import kotlin.collections.filterNot
-import kotlin.collections.forEach
-import kotlin.collections.mutableMapOf
 import kotlin.collections.set
 
 @Singleton
-class PlayerRepository @Inject constructor(@ApplicationContext private val context: Context,
-                                           private val soundDao: SoundDao) :
-    SoundPlayer.DurationListener {
+class PlayerRepository @Inject constructor(
+    @ApplicationContext private val context: Context, private val soundDao: SoundDao) : SoundPlayer.DurationListener {
 
     private var bufferSize = Constants.DEFAULT_BUFFER_SIZE
     private var playersRaw = mutableMapOf<Sound, SoundPlayer>()

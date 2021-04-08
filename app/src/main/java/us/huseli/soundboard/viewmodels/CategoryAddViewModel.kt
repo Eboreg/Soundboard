@@ -9,13 +9,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.CategoryRepository
+import us.huseli.soundboard.data.Sound
+import us.huseli.soundboard.data.UndoRepository
 import us.huseli.soundboard.helpers.ColorHelper
 import javax.inject.Inject
 
 @HiltViewModel
 class CategoryAddViewModel @Inject constructor(
-    private val repository: CategoryRepository, private val colorHelper: ColorHelper
+    private val repository: CategoryRepository,
+    private val undoRepository: UndoRepository,
+    private val colorHelper: ColorHelper
 ) : BaseCategoryEditViewModel() {
+
     private val _backgroundColor = MutableLiveData<Int>()
     private val _name = MutableLiveData("")
 
@@ -38,7 +43,7 @@ class CategoryAddViewModel @Inject constructor(
         _backgroundColor.value = value
     }
 
-    override fun save() = viewModelScope.launch(Dispatchers.IO) {
+    override fun save(soundSorting: Sound.Sorting?) = viewModelScope.launch(Dispatchers.IO) {
         /**
          * Used by AddCategoryDialogFrament & EditCategoryDialogFrament when saving.
          * Background colour was initialized from the beginning, so we know it's set.
@@ -50,6 +55,7 @@ class CategoryAddViewModel @Inject constructor(
         if (name != null && backgroundColor != null) {
             val category = Category(name, backgroundColor)
             repository.insert(category)
+            undoRepository.pushCategoryState()
         } else Log.e(LOG_TAG, "save(): name ($name) or backgroundColor ($backgroundColor) is null")
     }
 

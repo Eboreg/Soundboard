@@ -7,11 +7,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.data.SoundRepository
+import us.huseli.soundboard.data.UndoRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class SoundAddViewModel @Inject constructor(private val repository: SoundRepository) :
-    BaseSoundEditViewModel() {
+class SoundAddViewModel @Inject constructor(
+    private val repository: SoundRepository, private val undoRepository: UndoRepository) : BaseSoundEditViewModel() {
+
     private var _duplicates = emptyList<Sound>()
     val duplicateName: String
         get() = if (_duplicates.size == 1) _duplicates[0].name else ""
@@ -70,6 +72,7 @@ class SoundAddViewModel @Inject constructor(private val repository: SoundReposit
                 DuplicateStrategy.ADD -> repository.insert(Sound.createFromTemporary(sound, context))
             }
         }
+        undoRepository.pushSoundState()
     }
 
 

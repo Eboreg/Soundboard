@@ -13,9 +13,10 @@ import us.huseli.soundboard.data.DraggedSound
  * view = RecyclerView with SoundAdapter
  */
 class SoundDragListener(
-        private val soundAdapter: SoundAdapter,
-        private val categoryViewHolder: CategoryAdapter.CategoryViewHolder,
-        private val soundScroller: SoundScroller) : View.OnDragListener {
+    private val soundAdapter: SoundAdapter,
+    private val categoryViewHolder: CategoryAdapter.CategoryViewHolder,
+    private val soundScroller: SoundScroller) : View.OnDragListener {
+
     private val hashCode = Integer.toHexString(System.identityHashCode(this))
     private var logNumber = 0
 

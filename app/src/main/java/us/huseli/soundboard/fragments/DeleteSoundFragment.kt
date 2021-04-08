@@ -15,8 +15,7 @@ class DeleteSoundFragment : BaseSoundDialogFragment() {
     private var soundName: String? = null
     private val viewModel by viewModels<SoundDeleteViewModel>()
 
-    override fun getTitle() = resources.getQuantityString(R.plurals.delete_sound_title, soundIds?.size
-            ?: 0)
+    override fun getTitle() = resources.getQuantityString(R.plurals.delete_sound_title, soundIds?.size ?: 0)
 
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         soundIds = requireArguments().getIntegerArrayList(ARG_IDS)
@@ -25,7 +24,6 @@ class DeleteSoundFragment : BaseSoundDialogFragment() {
     }
 
     override fun onPositiveButtonClick() {
-        appViewModel.pushSoundUndoState(requireContext())
         viewModel.delete(soundIds)
         super.onPositiveButtonClick()
     }

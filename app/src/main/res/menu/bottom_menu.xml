@@ -57,4 +57,11 @@
         android:orderInCategory="14"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/action_redo"
+        android:icon="@drawable/ic_redo"
+        android:title="@string/redo"
+        android:orderInCategory="15"
+        app:showAsAction="always" />
+
 </menu>

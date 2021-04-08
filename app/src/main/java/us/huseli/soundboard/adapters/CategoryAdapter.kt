@@ -295,7 +295,6 @@ class CategoryAdapter(
 
         private fun moveCategoryUp() {
             if (bindingAdapterPosition > 0) {
-                appViewModel.pushCategoryUndoState(activity)
                 categoryListViewModel.switch(bindingAdapterPosition, bindingAdapterPosition - 1)
             }
         }
@@ -303,7 +302,6 @@ class CategoryAdapter(
         private fun moveCategoryDown() {
             bindingAdapter?.also { adapter ->
                 if (bindingAdapterPosition < adapter.itemCount - 1) {
-                    appViewModel.pushCategoryUndoState(activity)
                     categoryListViewModel.switch(bindingAdapterPosition, bindingAdapterPosition + 1)
                 }
             }

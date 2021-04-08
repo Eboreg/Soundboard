@@ -126,8 +126,6 @@ class SoundAdapter(
                 Collections.swap(sounds, i, i + 1)
             else -> for (i in fromPosition downTo toPosition + 1) Collections.swap(sounds, i, i - 1)
         }
-
-        appViewModel.pushSoundUndoState(activity)
         soundViewModel.update(sounds, category)
     }
 

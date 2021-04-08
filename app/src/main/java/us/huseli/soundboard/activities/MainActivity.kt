@@ -232,7 +232,8 @@ class MainActivity :
         appViewModel.zoomInPossible.observe(this) { onZoomInPossibleChange(it) }
         soundViewModel.filterEnabled.observe(this) { onFilterEnabledChange(it) }
         appViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
-        appViewModel.undosAvailable.observe(this) { onUndosAvailableChange(it) }
+        appViewModel.isUndoPossible.observe(this) { onUndoPossibleChange(it) }
+        appViewModel.isRedoPossible.observe(this) { onRedoPossibleChange(it) }
         return true
     }
 
@@ -262,6 +263,7 @@ class MainActivity :
             R.id.action_toggle_filter -> toggleFilterEnabled()
             R.id.action_toggle_reorder -> appViewModel.toggleReorderEnabled()
             R.id.action_undo -> undo()
+            R.id.action_redo -> redo()
             R.id.action_zoom_in -> zoomIn()
             R.id.action_zoom_out -> zoomOut()
         }
@@ -486,8 +488,22 @@ class MainActivity :
         }
     }
 
-    private fun onUndosAvailableChange(value: Boolean?) {
-        // There are 1 or more undos in the queue
+    private fun onRedoPossibleChange(value: Boolean?) {
+        val redoItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_redo)
+            ?: binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_redo)
+        when (value) {
+            true -> {
+                redoItem?.isEnabled = true
+                redoItem?.icon?.alpha = 255
+            }
+            else -> {
+                redoItem?.isEnabled = false
+                redoItem?.icon?.alpha = 128
+            }
+        }
+    }
+
+    private fun onUndoPossibleChange(value: Boolean?) {
         val undoItem = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_undo)
             ?: binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_undo)
         when (value) {
@@ -577,6 +593,11 @@ class MainActivity :
     private fun toggleFilterEnabled() {
         if (reorderEnabled == true) showSnackbar(R.string.cannot_enable_filter)
         else soundViewModel.toggleFilterEnabled()
+    }
+
+    private fun redo() {
+        appViewModel.redo()
+        showSnackbar(R.string.redid)
     }
 
     private fun undo() {

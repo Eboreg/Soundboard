@@ -75,4 +75,6 @@
     <string name="pause">Pause</string>
     <string name="move_category_up">Move category up</string>
     <string name="move_category_down">Move category down</string>
+    <string name="redo">Redo</string>
+    <string name="redid">Redid!</string>
 </resources>

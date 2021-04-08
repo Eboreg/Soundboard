@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.data.SoundRepository
+import us.huseli.soundboard.data.UndoRepository
 import us.huseli.soundboard.helpers.ColorHelper
 import us.huseli.soundboard.helpers.MD5
 import java.io.File
@@ -20,8 +21,10 @@ import javax.inject.Inject
 class SoundViewModel
 @Inject constructor(
     private val repository: SoundRepository,
+    private val undoRepository: UndoRepository,
     private val colorHelper: ColorHelper
 ) : ViewModel() {
+
     private val _failedSounds = mutableListOf<Sound>()
 
     val allSounds = repository.listLiveWithCategory().map { list ->
@@ -84,6 +87,7 @@ class SoundViewModel
         repository.update(sounds.mapIndexed { index, sound ->
             sound.copy(order = index, categoryId = categoryId)
         })
+        undoRepository.pushSoundState()
     }
 
     fun update(sounds: List<Sound>, category: Category?) = category?.id?.let { update(sounds, it) }

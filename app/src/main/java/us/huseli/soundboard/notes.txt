@@ -1,3 +1,98 @@
+pushSoundAndCategoryState:
+--------------------------
+UndoRepository.init
+    pushSoundAndCategoryState
+
+BaseCategoryDialogFragment.onCreateDialog
+    EditCategoryDialogFragment.save
+        CategoryEditViewModel.save
+            pushSoundAndCategoryState
+
+DeleteCategoryFragment.onCreateDialog
+    CategoryViewModel.delete
+        pushSoundAndCategoryState
+
+
+pushSoundState:
+---------------
+CategoryViewHolder.init
+    SoundDragListener.onDrag
+        SoundDragListener.onDrop
+            SoundAdapter.insertOrMoveSound
+                SoundViewModel.update
+                    pushSoundState
+
+BaseEditSoundDialogFragment.onPositiveButtonClick
+    BaseSoundEditViewModel.save
+        SoundEditViewModel.doSave
+            pushSoundState
+
+DeleteSoundFragment.onPositiveButtonClick
+    SoundDeleteViewModel.delete
+        pushSoundState
+
+BaseEditSoundDialogFragment.onPositiveButtonClick
+    BaseSoundEditViewModel.save
+        SoundAddViewModel.doSave
+            pushSoundState
+
+pushCategoryState:
+------------------
+CategoryAdapter.onClick
+    CategoryAdapter.moveCategoryDown
+        CategoryViewModel.switch
+            pushCategoryState
+
+CategoryAdapter.onClick
+    CategoryAdapter.moveCategoryUp
+        CategoryViewModel.switch
+            pushCategoryState
+
+BaseCategoryDialogFragment.onCreateDialog
+    EditCategoryDialogFragment.save
+        CategoryEditViewModel.save
+            pushCategoryState
+
+BaseCategoryDialogFragment.onCreateDialog
+    AddCategoryDialogFragment.save
+        CategoryAddViewModel.save
+            pushCategoryState
+
+
+
+
+START                                               states = [0], currentPos = 0
+
+EDIT
+push nytt state (efter edit)
+currentPos++                                        states = [0, 1], currentPos = 1
+
+EDIT
+push nytt state (efter edit)
+currentPos++                                        states = [0, 1, 2], currentPos = 2
+
+UNDO (dvs gå tillbaka till föreg. state)
+If currentPos > 0:
+    Apply states[currentPos - 1]
+    currentPos--                                    states = [0, 1, 2], currentPos = 1
+
+EDIT
+Ta bort alla states efter currentPos                states = [0, 1], currentPos = 1
+push nytt state (efter edit)
+currentPos++                                        states = [0, 1, 2], currentPos = 2
+
+
+
+
+
+REDO (dvs gå fram till nästa state)
+If (currentPos + 1) < states.size (2 < 3):
+    Apply states[currentPos + 1]
+    currentPos++                                    states = [0, 1, 2], currentPos = 2
+
+
+
+
 2021-04-07 06:47:20.879 22328-22328 D/SoundAdapter: onBindViewHolder: item=Sound 1f533a6 <id=293, name=ba dum tss, categoryId=2>, holder=SoundAdapter.ViewHolder cc13232 <adapterPosition=1, sound=null>, position=1, category=1
 
 2021-04-07 06:49:34.700 22328-22328 D/SoundAdapter: onBindViewHolder: item=Sound 30238da <id=339, name=HUUH!! lång, categoryId=1>,

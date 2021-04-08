@@ -5,13 +5,19 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.data.CategoryRepository
+import us.huseli.soundboard.data.Sound
+import us.huseli.soundboard.data.SoundRepository
+import us.huseli.soundboard.data.UndoRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class CategoryEditViewModel @Inject constructor(
     private val repository: CategoryRepository,
+    private val undoRepository: UndoRepository,
+    private val soundRepository: SoundRepository,
     private val savedStateHandle: SavedStateHandle
 ) : BaseCategoryEditViewModel() {
+
     private val category = savedStateHandle.getLiveData<Int>("categoryId").switchMap { categoryId ->
         repository.get(categoryId)
     }
@@ -40,10 +46,14 @@ class CategoryEditViewModel @Inject constructor(
         _newBackgroundColor.value = value
     }
 
-    override fun save() = viewModelScope.launch(Dispatchers.IO) {
+    override fun save(soundSorting: Sound.Sorting?) = viewModelScope.launch(Dispatchers.IO) {
         category.value?.let {
             _newBackgroundColor.value?.let { color -> it.backgroundColor = color }
             repository.update(it)
+            if (soundSorting != null) {
+                soundRepository.sort(it.id, soundSorting)
+                undoRepository.pushSoundAndCategoryState()
+            } else undoRepository.pushCategoryState()
         }
     }
 }

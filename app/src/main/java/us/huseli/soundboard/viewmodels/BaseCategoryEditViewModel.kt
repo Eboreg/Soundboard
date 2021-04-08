@@ -2,6 +2,7 @@ package us.huseli.soundboard.viewmodels
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
+import us.huseli.soundboard.data.Sound
 
 abstract class BaseCategoryEditViewModel : ViewModel() {
     abstract val name: LiveData<String?>
@@ -9,5 +10,5 @@ abstract class BaseCategoryEditViewModel : ViewModel() {
 
     abstract fun setName(value: String): Any?
     abstract fun setBackgroundColor(value: Int): Any?
-    abstract fun save(): Any?
+    abstract fun save(soundSorting: Sound.Sorting? = null): Any?
 }

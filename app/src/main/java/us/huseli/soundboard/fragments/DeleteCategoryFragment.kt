@@ -7,12 +7,10 @@ import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.R
-import us.huseli.soundboard.viewmodels.AppViewModel
 import us.huseli.soundboard.viewmodels.CategoryViewModel
 
 @AndroidEntryPoint
 class DeleteCategoryFragment : DialogFragment() {
-    private val appViewModel by activityViewModels<AppViewModel>()
     private val categoryListViewModel by activityViewModels<CategoryViewModel>()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
@@ -31,7 +29,6 @@ class DeleteCategoryFragment : DialogFragment() {
                     else -> setMessage(resources.getQuantityString(R.plurals.delete_category_with_name_and_sounds, soundCount, name, soundCount))
                 }
                 setPositiveButton(R.string.ok) { _, _ ->
-                    appViewModel.pushSoundAndCategoryUndoState(requireContext())
                     categoryListViewModel.delete(id)
                 }
             }

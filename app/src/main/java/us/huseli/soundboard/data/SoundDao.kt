@@ -60,6 +60,15 @@ interface SoundDao {
         update(sortedSounds)
     }
 
+    @Transaction
+    fun sort(sounds: List<Sound>, sorting: Sound.Sorting) {
+        val sortedSounds =
+            sounds.sortedWith(Sound.Comparator(sorting.parameter, sorting.order)).mapIndexed { index, sound ->
+                sound.copy(order = index)
+            }
+        update(sortedSounds)
+    }
+
     @Update
     fun update(sound: Sound)
 

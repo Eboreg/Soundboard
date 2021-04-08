@@ -7,7 +7,7 @@ import javax.inject.Singleton
 class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
     fun delete(sounds: List<Sound>) = soundDao.delete(sounds.mapNotNull { it.id })
 
-    fun delete(soundIds: List<Int>?) = soundIds?.let { soundDao.delete(it) }
+    fun deleteByIds(soundIds: List<Int>) = soundDao.delete(soundIds)
 
     fun deleteByCategory(categoryId: Int) = delete(soundDao.listByCategory(categoryId))
 
@@ -25,8 +25,12 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
     fun reset(sounds: List<Sound>) = soundDao.reset(sounds)
 
     /** Sorts all sounds within category */
-    fun sort(categoryId: Int, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) {
-        soundDao.sort(soundDao.listByCategory(categoryId), sortBy, sortOrder)
+    fun sort(categoryId: Int?, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) {
+        categoryId?.let { soundDao.sort(soundDao.listByCategory(categoryId), sortBy, sortOrder) }
+    }
+
+    fun sort(categoryId: Int?, sorting: Sound.Sorting) {
+        categoryId?.let { soundDao.sort(soundDao.listByCategory(categoryId), sorting) }
     }
 
     fun update(sound: Sound) = soundDao.update(sound)

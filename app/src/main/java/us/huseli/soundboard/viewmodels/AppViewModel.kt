@@ -7,23 +7,25 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.audio.SoundPlayer
-import us.huseli.soundboard.data.*
+import us.huseli.soundboard.data.Constants
+import us.huseli.soundboard.data.SoundRepository
+import us.huseli.soundboard.data.UndoRepository
 import javax.inject.Inject
 import kotlin.math.max
 import kotlin.math.roundToInt
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
-    private val categoryRepository: CategoryRepository, private val soundRepository: SoundRepository
+    private val soundRepository: SoundRepository,
+    private val undoRepository: UndoRepository
 ) : ViewModel() {
-    private val undoStates = mutableListOf<UndoState>()
+
     private val _orientation = MutableLiveData<Int>()
     private val _reorderEnabled = MutableLiveData(false)
     private val _repressMode = MutableLiveData(SoundPlayer.RepressMode.STOP)
     private val _screenRatio = MutableLiveData<Double>()  // (width / height) in portrait mode
     private val _spanCountLandscape = MutableLiveData<Int?>()
     private val _spanCountPortrait = MutableLiveData<Int?>()
-    private val _undosAvailable = MutableLiveData(false)
 
     val repressMode: LiveData<SoundPlayer.RepressMode>
         get() = _repressMode
@@ -38,8 +40,11 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    val undosAvailable: LiveData<Boolean>
-        get() = _undosAvailable
+    val isRedoPossible: LiveData<Boolean>
+        get() = undoRepository.isRedoPossible
+
+    val isUndoPossible: LiveData<Boolean>
+        get() = undoRepository.isUndoPossible
 
     val zoomInPossible = spanCount.map { it != null && it > 1 }
 
@@ -59,25 +64,9 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    fun pushCategoryUndoState(context: Context) = viewModelScope.launch(Dispatchers.IO) {
-        pushUndoState(null, categoryRepository.list(), context)
-    }
+    fun redo() = viewModelScope.launch(Dispatchers.IO) { undoRepository.redo() }
 
-    fun pushSoundUndoState(context: Context) = viewModelScope.launch(Dispatchers.IO) {
-        pushUndoState(soundRepository.list(), null, context)
-    }
-
-    fun pushSoundAndCategoryUndoState(context: Context) = viewModelScope.launch(Dispatchers.IO) {
-        pushUndoState(soundRepository.list(), categoryRepository.list(), context)
-    }
-
-    fun undo() = viewModelScope.launch(Dispatchers.IO) {
-        undoStates.removeLastOrNull()?.also {
-            if (it.categories != null) categoryRepository.reset(it.categories)
-            if (it.sounds != null) soundRepository.reset(it.sounds)
-        }
-        if (undoStates.isEmpty()) _undosAvailable.postValue(false)
-    }
+    fun undo() = viewModelScope.launch(Dispatchers.IO) { undoRepository.undo() }
 
     /******* SOUND/CATEGORY REORDERING *******/
     val isReorderEnabled: Boolean
@@ -115,25 +104,6 @@ class AppViewModel @Inject constructor(
 
     private fun portraitSpanCountToLandscape(spanCount: Int): Int? =
             _screenRatio.value?.let { ratio -> (spanCount / ratio).roundToInt() }
-
-    private fun pushUndoState(sounds: List<Sound>?, categories: List<Category>?, context: Context) {
-        if (sounds != null || categories != null) {
-            undoStates.add(UndoState(sounds, categories))
-            _undosAvailable.postValue(true)
-            if (undoStates.size > Constants.MAX_UNDO_STATES) {
-                /** If max undo states is reached, delete the first one */
-                val removedState = undoStates.removeFirst()
-                val nextState = undoStates.first()
-                if (removedState.sounds != null && nextState.sounds != null)
-                /** If the deleted state involved removing sounds, now is the time to actually delete the files */
-                    removedState.sounds.subtract(nextState.sounds).forEach {
-                        context.getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE)?.listFiles()?.forEach { file ->
-                            if (file.path == it.path) file.delete()
-                        }
-                    }
-            }
-        }
-    }
 
     fun setupLayout(orientation: Int, screenWidthDp: Int, screenHeightDp: Int, landscapeSpanCount: Int): Int {
         /**
@@ -178,7 +148,4 @@ class AppViewModel @Inject constructor(
         }
         return getZoomPercent()
     }
-
-
-    class UndoState(val sounds: List<Sound>?, val categories: List<Category>?)
 }

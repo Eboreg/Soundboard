@@ -41,9 +41,12 @@ interface CategoryDao {
     @Transaction
     fun reset(categories: List<Category>) {
         val dbCategories = list()
-        categories.forEach {
-            if (dbCategories.contains(it)) update(it)
-            else insert(it)
+        categories.forEach { category ->
+            if (dbCategories.contains(category)) {
+                // Dont reset collapsed status
+                dbCategories.findLast { it == category }?.let { category.collapsed = it.collapsed }
+                update(category)
+            } else insert(category)
         }
         deleteExcluding(categories.mapNotNull { it.id })
     }

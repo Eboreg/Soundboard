@@ -59,14 +59,7 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
         return dialog
     }
 
-    protected open fun save() {
-        viewModel.apply {
-            appViewModel.pushCategoryUndoState(requireContext())
-            setName(binding?.categoryName?.text.toString().trim())
-            save()
-            dismiss()
-        }
-    }
+    protected abstract fun save()
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         savedInstanceState?.let { state ->

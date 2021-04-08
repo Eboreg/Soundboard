@@ -74,4 +74,6 @@
     <string name="pause">Pausa</string>
     <string name="move_category_up">Flytta kategori uppåt</string>
     <string name="move_category_down">Flytta kategori nedåt</string>
+    <string name="redo">Gör om</string>
+    <string name="redid">Gjorde om!</string>
 </resources>

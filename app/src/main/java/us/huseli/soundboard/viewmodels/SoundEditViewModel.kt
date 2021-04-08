@@ -7,11 +7,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.data.SoundRepository
+import us.huseli.soundboard.data.UndoRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class SoundEditViewModel @Inject constructor(private val repository: SoundRepository) :
-    BaseSoundEditViewModel() {
+class SoundEditViewModel @Inject constructor(
+    private val repository: SoundRepository, private val undoRepository: UndoRepository) : BaseSoundEditViewModel() {
 
     override fun setup(sounds: List<Sound>, multipleSoundsString: String) {
         /**
@@ -36,5 +37,6 @@ class SoundEditViewModel @Inject constructor(private val repository: SoundReposi
             }
         }
         repository.update(sounds)
+        undoRepository.pushSoundState()
     }
 }

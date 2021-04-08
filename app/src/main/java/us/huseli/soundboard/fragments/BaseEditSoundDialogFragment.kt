@@ -31,11 +31,6 @@ abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSo
         viewModel.setVolume(state.getInt(ARG_VOLUME))
     }
 
-    internal open fun save() {
-        appViewModel.pushSoundUndoState(requireContext())
-        viewModel.save(requireContext())
-    }
-
 
     /** OVERRIDDEN OWN METHODS */
     override fun configureDialog(builder: MaterialAlertDialogBuilder) {
@@ -53,7 +48,7 @@ abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSo
                 viewModel.setName(soundName)
                 (binding.category.selectedItem as Category).id?.let { viewModel.setCategoryId(it) }
                 soundViewModel.disableSelect()
-                save()
+                viewModel.save(requireContext())
                 dismiss()
             }
         } ?: run {
