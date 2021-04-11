@@ -8,10 +8,6 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleRegistry
 import androidx.recyclerview.widget.*
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.android.EntryPointAccessors
-import dagger.hilt.components.SingletonComponent
 import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.R
 import us.huseli.soundboard.adapters.common.LifecycleAdapter
@@ -20,7 +16,6 @@ import us.huseli.soundboard.animators.CollapseButtonAnimator
 import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.ItemCategoryBinding
-import us.huseli.soundboard.helpers.ColorHelper
 import us.huseli.soundboard.helpers.SoundDragListener
 import us.huseli.soundboard.helpers.SoundScroller
 import us.huseli.soundboard.interfaces.EditCategoryInterface
@@ -36,21 +31,6 @@ class CategoryAdapter(
     private val activity: FragmentActivity,
     private val soundScroller: SoundScroller
 ) : LifecycleAdapter<Category, CategoryAdapter.CategoryViewHolder>(DiffCallback()) {
-
-    @InstallIn(SingletonComponent::class)
-    @EntryPoint
-    interface CategoryAdapterEntryPoint {
-        fun colorHelper(): ColorHelper
-    }
-
-    internal val colorHelper =
-        EntryPointAccessors.fromApplication(activity.applicationContext, CategoryAdapterEntryPoint::class.java)
-            .colorHelper()
-    override val firstVisibleViewHolder: CategoryViewHolder?
-        get() = viewHolders.firstOrNull { it.isVisible() && it.soundAdapter.isNotEmpty() }
-
-    override val lastVisibleViewHolder: CategoryViewHolder?
-        get() = viewHolders.lastOrNull { it.isVisible() && it.soundAdapter.isNotEmpty() }
 
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         super.onBindViewHolder(holder, position)

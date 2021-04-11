@@ -17,21 +17,14 @@ class CategoryRepository @Inject constructor(private val categoryDao: CategoryDa
 
     fun insert(category: Category) = categoryDao.insert(category)
 
-    fun list() = categoryDao.list()
-
-    /** Update/add categories, delete the rest */
-    fun reset(categories: List<Category>) = categoryDao.reset(categories)
-
     fun setCollapsed(categoryId: Int, value: Boolean) = categoryDao.setCollapsed(categoryId, if (value) 1 else 0)
-
-    fun sort(categories: List<Category>) = categoryDao.sort(categories)
 
     fun update(category: Category) = categoryDao.update(category)
 
     fun switch(oldPos: Int, newPos: Int) {
-        list().toMutableList().also {
+        categoryDao.list().toMutableList().also {
             Collections.swap(it, oldPos, newPos)
-            sort(it)
+            categoryDao.sort(it)
         }
     }
 }

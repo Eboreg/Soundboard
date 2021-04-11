@@ -117,7 +117,6 @@ class AudioExtractor(
     private fun processOutputBuffer(codec: MediaCodec, priming: Boolean): ProcessOutputResult {
         if (BuildConfig.DEBUG) Functions.warnIfOnMainThread("processOutputBuffer")
 
-        // val timeoutUs = 1000L
         val info = MediaCodec.BufferInfo()
 
         try {

@@ -53,14 +53,6 @@ interface SoundDao {
     }
 
     @Transaction
-    fun sort(sounds: List<Sound>, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) {
-        val sortedSounds = sounds.sortedWith(Sound.Comparator(sortBy, sortOrder)).mapIndexed { index, sound ->
-            sound.copy(order = index)
-        }
-        update(sortedSounds)
-    }
-
-    @Transaction
     fun sort(sounds: List<Sound>, sorting: Sound.Sorting) {
         val sortedSounds =
             sounds.sortedWith(Sound.Comparator(sorting.parameter, sorting.order)).mapIndexed { index, sound ->
@@ -76,5 +68,5 @@ interface SoundDao {
     fun update(sounds: List<Sound>)
 
     @Query("UPDATE Sound SET duration = :duration WHERE id = :soundId")
-    fun updateDuration(soundId: Int, duration: Int)
+    fun updateDuration(soundId: Int, duration: Long)
 }

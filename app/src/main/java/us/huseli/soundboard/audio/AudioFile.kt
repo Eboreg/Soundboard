@@ -8,24 +8,18 @@ import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.helpers.Functions
 import java.nio.ByteBuffer
 
-/**
- * Design decision: `state` is only set in the public methods, including callbacks defined by them.
- * Exception: onError() sets state = State.ERROR.
- *
- * Valid state should also only be checked by the public methods.
- * Exceptions:
- *  - extractEncoded() and extractRaw() check State.INIT_PLAY, to be able to time on-playing-callback as accurately
- *    as possible
- */
-
 class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, listener: Listener? = null) {
     constructor(sound: Sound, baseBufferSize: Int, listener: Listener?) :
             this(sound, sound.volume, baseBufferSize, listener)
 
     // Public val's & var's
     val duration: Long
-    val isPlaying: Boolean
+    val isPaused
+        get() = state == State.PAUSED
+    val isPlaying
         get() = state == State.PLAYING
+    val playbackPositionMs
+        get() = framesToMilliseconds(audioTrack.playbackHeadPosition)
 
     // Private val's to be initialized in init
     private val audioTrack: AudioTrackContainer
@@ -43,35 +37,38 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
     private var outputAudioFormat: AudioFormat
 
     // Private var's initialized here
-    // private var audioTrack: AudioTrack? = null
     private var codec: MediaCodec? = null
     private var extractJob: Job? = null
     private var extractorDone = false
-    private var playAction: PlayAction? = null
+    private var playAction: PlayActionAbstract? = null
     private var primedData: ByteBuffer? = null
     private var queuedStopJob: Job? = null
 
     private var state = State.CREATED
         set(value) {
-            // We will not change from ERROR to anything else, because ERROR is final
-            if (field != value && field != State.ERROR) {
-                if (BuildConfig.DEBUG) Log.d(LOG_TAG, "state changed from $field to $value, this=$this, sound=$sound")
-                field = value
-                stateListener?.onAudioFileStateChange(value, this)
+            // We will not change from RELEASED to anything else, because RELEASED is final
+            if (field != value && field != State.RELEASED) {
+                // Except for on RELEASED, we will not change from ERROR to anything else
+                if (field != State.ERROR) {
+                    if (BuildConfig.DEBUG) Log.d(LOG_TAG,
+                        "state changed from $field to $value, this=$this, sound=$sound")
+                    field = value
+                    stateListener?.onAudioFileStateChange(value)
+                }
             }
         }
 
     init {
         inputMediaFormat = initExtractor() ?: run {
             onError("Could not get media type")
-            throw AudioFileException("Could not get media type", sound)
+            throw Exception("Could not get media type")
         }
 
         // InputFormat duration is in MICROseconds!
         duration = (inputMediaFormat.getLong(MediaFormat.KEY_DURATION) / 1000)
         mime = inputMediaFormat.getString(MediaFormat.KEY_MIME) ?: run {
             onError("Could not get MIME type")
-            throw AudioFileException("Could not get MIME type", sound)
+            throw Exception("Could not get MIME type")
         }
 
         val audioAttributes = AudioAttributes.Builder()
@@ -99,6 +96,11 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
 
     fun changeVolume(value: Int) = audioTrack.setVolume(value)
 
+    fun onStateChanged(callback: (state: State) -> Unit): AudioFile {
+        stateListener = SimpleStateListener(callback)
+        return this
+    }
+
     suspend fun pause(): AudioFile {
         playAction?.also { it.pause() } ?: onWarning("Pause: No active sound")
         playAction = null
@@ -106,37 +108,35 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
     }
 
     suspend fun play(timeoutUs: Long? = null): AudioFile {
-        playAction = Play().start(timeoutUs)
-        return this
-    }
-
-    suspend fun playAndPrepare(): AudioFile {
-        playAction = PlayAndPrepare().start()
+        playAction = PlayAction().start(timeoutUs)
         return this
     }
 
     fun prepare(): AudioFile {
-        if (!listOf(State.CREATED, State.STOPPED, State.RELEASED, State.PAUSED).contains(state))
-            onWarning(
+        when (state) {
+            State.CREATED, State.STOPPED, State.RELEASED, State.PAUSED -> {
+                state = State.INITIALIZING
+                doPrepare()
+                state = State.READY
+            }
+            else -> onWarning(
                 "Prepare: Illegal state",
                 "prepare: illegal state $state, should be CREATED, STOPPED, RELEASED, PAUSED")
-        else {
-            state = State.INITIALIZING
-            doPrepare()
-            state = State.READY
         }
         return this
     }
 
     suspend fun prepareAndPrime(): AudioFile {
-        if (!listOf(State.CREATED, State.STOPPED, State.RELEASED, State.PAUSED).contains(state))
-            onWarning("Prepare: Illegal state",
+        when (state) {
+            State.CREATED, State.STOPPED, State.RELEASED, State.PAUSED -> {
+                state = State.INITIALIZING
+                doPrepare()
+                doPrime()
+                state = State.READY
+            }
+            else -> onWarning(
+                "Prepare: Illegal state",
                 "prepareAndPrime: illegal state $state, should be CREATED, STOPPED, RELEASED, PAUSED")
-        else {
-            state = State.INITIALIZING
-            doPrepare()
-            doPrime()
-            state = State.READY
         }
         return this
     }
@@ -148,7 +148,6 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
             playAction = null
             codec?.release()
             stateListener = null
-            // audioTrack = null
             codec = null
             primedData = null
             scope.cancel()
@@ -156,16 +155,17 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
         return this
     }
 
-    suspend fun restartAndPrepare(timeoutUs: Long): AudioFile {
-        playAction = if (state == State.PLAYING || state == State.INIT_PLAY)
-            RestartAndPrepare().start()
-        else PlayAndPrepare().start(timeoutUs)
+    suspend fun restart(timeoutUs: Long): AudioFile {
+        playAction = when (state) {
+            State.PLAYING, State.INIT_PLAY -> RestartAction().start()
+            else -> PlayAction().start(timeoutUs)
+        }
         return this
     }
 
-    suspend fun resumeAndPrepare(): AudioFile {
+    suspend fun resume(): AudioFile {
         /** When sound is paused and should start playing again */
-        playAction = ResumeAndPrepare().start()
+        playAction = ResumeAction().start()
         return this
     }
 
@@ -178,6 +178,8 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
         return this
     }
 
+
+    /********** PRIVATE METHODS **********/
 
     private fun doPrepare() {
         if (BuildConfig.DEBUG) Functions.warnIfOnMainThread("doPrepare")
@@ -256,27 +258,21 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
 
     /********** INNER CLASSES/INTERFACES/ENUMS **********/
 
-    class AudioFileException(
-        override val message: String,
-        override val cause: Throwable? = null,
-        sound: Sound? = null
-    ) : Exception(message, cause) {
-        constructor(message: String, sound: Sound) : this(message, null, sound)
-
-        init {
-            Log.e(LOG_TAG, "AudioFile threw error: $message, sound=$sound", cause)
-        }
-    }
-
-
     interface Listener {
-        fun onAudioFileStateChange(state: State, audioFile: AudioFile, message: String? = null)
+        fun onAudioFileStateChange(state: State)
         fun onAudioFileError(message: String)
         fun onAudioFileWarning(message: String)
     }
 
 
-    abstract inner class PlayAction {
+    class SimpleStateListener(private val onStateChange: (state: State) -> Unit) : Listener {
+        override fun onAudioFileStateChange(state: State) = onStateChange(state)
+        override fun onAudioFileError(message: String) = Unit
+        override fun onAudioFileWarning(message: String) = Unit
+    }
+
+
+    abstract inner class PlayActionAbstract {
         private var onPlayStartCalled = false
         abstract val validStartStates: List<State>
         open val stopAfterDelay: Long = duration
@@ -294,6 +290,7 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
                         if (ms < stopAfterDelay) delay(stopAfterDelay - ms)
                     }
                 }
+                state = State.STOPPED
                 onStopped()
             }
         }
@@ -354,7 +351,7 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
         }
 
         /********** PUBLIC METHODS **********/
-        suspend fun pause(): PlayAction {
+        suspend fun pause(): PlayActionAbstract {
             log("pause called")
             if (state != State.PLAYING)
                 onWarning("Pause: Illegal state", "pause: illegal state $state, should be PLAYING")
@@ -375,7 +372,7 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
             audioTrack.release()
         }
 
-        suspend fun start(timeoutUs: Long? = null): PlayAction {
+        suspend fun start(timeoutUs: Long? = null): PlayActionAbstract {
             if (!validStartStates.contains(state)) {
                 onWarning(
                     "Play: Illegal state",
@@ -407,33 +404,23 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
             return this
         }
 
-        suspend fun stop(): PlayAction {
+        suspend fun stop(): PlayActionAbstract {
             /** Used for user-initiated hard stop, cancels any queued future stop job */
             log("stop called")
             if (state == State.PLAYING || state == State.INIT_PLAY) {
                 queuedStopJob?.cancel()
+                state = State.STOPPED
                 onStopped()
             } else onWarning("Stop: Illegal state", "stop: illegal state $state, should be PLAYING or INIT_PLAY")
             return this
         }
     }
 
-    inner class Play : PlayAction() {
-        override val validStartStates = listOf(State.READY)
-
-        override suspend fun onStopped() {
-            log("onStopped called")
-            extractJob?.cancelAndJoin()
-            audioTrack.release()
-            state = State.STOPPED
-        }
-    }
-
-    inner class PlayAndPrepare : PlayAction() {
+    inner class PlayAction : PlayActionAbstract() {
         override val validStartStates = listOf(State.READY)
     }
 
-    inner class RestartAndPrepare : PlayAction() {
+    inner class RestartAction : PlayActionAbstract() {
         override val validStartStates = listOf(State.PLAYING, State.INIT_PLAY)
 
         override suspend fun preparePlay() {
@@ -446,7 +433,7 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
         }
     }
 
-    inner class ResumeAndPrepare : PlayAction() {
+    inner class ResumeAction : PlayActionAbstract() {
         /** When sound is paused and should start playing again */
         override val stopAfterDelay = duration - framesToMilliseconds(audioTrack.playbackHeadPosition)
         override val validStartStates = listOf(State.PAUSED)
@@ -458,58 +445,49 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
 
 
     /**
+     * All states may at any time change to RELEASED.
+     * All states, except RELEASED, may at any time change to ERROR.
+     *
      * CREATED
      *    Means: Is newly created, prepare() has not been run but needs to
      *    Begins: On creation
-     *    Ends: When prepare() runs
-     *    May change from: Nothing
-     *    Changes to: INITIALIZING, RELEASED, ERROR
+     *    Ends: When prepare() runs > INITIALIZING
      * INITIALIZING
      *    Means: Sound is initializing
      *    Begins: On prepare()
-     *    Ends: When all is initialized
-     *    May change from: CREATED, STOPPED, RELEASED
-     *    Changes to: READY or ERROR
+     *    Ends: When all is initialized > READY
      * READY
      *    Means: Everything is ready for playback
      *    Begins: When prepare() has finished
-     *    Ends: When playback starts, release() is run or error occurs
-     *    May change from: INITIALIZING
-     *    Changes to: INIT_PLAY, ERROR or RELEASED
+     *    Ends: When playback init starts -> INIT_PLAY
      * INIT_PLAY
      *    Means: User has pressed 'play', playback is initializing
      *    Begins: Directly on playback initialization
-     *    Ends: When sound output has begun
-     *    May change from: READY
-     *    Changes to: PLAYING or ERROR
+     *    Ends: When sound output has begun -> PLAYING
      * PLAYING
      *    Means: Sound is currently playing
      *    Begins: On first sound output
-     *    Ends: On stop
-     *    May change from: INIT_PLAY
-     *    Changes to: STOPPED or ERROR
+     *    Ends:
+     *      On stop -> STOPPED
+     *      On pause -> PAUSED
      * PAUSED
      *    Means: Sound has been playing but has been paused by user input
      *    Begins: When user pressed pause
-     *    Ends: On play(), prepare(), or release()
-     *    May change from: PLAYING
-     *    // TODO: FINISH THIS
-     *    Changes to: PLAYING, ...
+     *    Ends:
+     *      On play -> INIT_PLAY
+     *      On prepare -> INITIALIZING
      * STOPPED
      *    Means: Playback has stopped and is not (yet) in initializing/ready state
      *    Begins: When user pressed stop or sound has played to the end
-     *    Ends: Only when prepare() or release() is run
-     *    May change from: PLAYING, INIT_PLAY
+     *    Ends: On prepare -> INITIALIZING
      * RELEASED
      *    Means: Everything has been (or is being) released
      *    Begins: As soon as release() is run
-     *    Ends: Only when reinit() is run
-     *    May change from: All except ERROR
+     *    Ends: Never -- this is final
      * ERROR
      *    Means: Any non-recoverable error has occurred
-     *    Begins: Well, duh
-     *    Ends: Never -- this is final
-     *    May change from: Any
+     *    Begins: When onError() is run
+     *    Ends: Only when release() is run
      */
     enum class State { CREATED, INITIALIZING, READY, INIT_PLAY, PLAYING, PAUSED, STOPPED, ERROR, RELEASED }
 

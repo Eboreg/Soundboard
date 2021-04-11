@@ -47,6 +47,8 @@ class ColorHelper(private val resources: Resources) {
         // Luminance >= 0.6: Black text, otherwise white
         getColor(if (getLuminance(backgroundColor) >= 0.6) R.color.black else R.color.white)
 
+    @Suppress("unused")
+    // Unused but could come in handy?
     fun getColorStringFromAttr(attrResId: Int, theme: Resources.Theme) =
         getColorFromAttr(attrResId, theme)?.let { getColorStringFromInt(it) }
 

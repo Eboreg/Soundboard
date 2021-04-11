@@ -106,7 +106,7 @@ class PlayerRepository @Inject constructor(
         }
     }
 
-    override fun onSoundPlayerDurationChange(sound: Sound, duration: Int) {
+    override fun onSoundPlayerDurationChange(sound: Sound, duration: Long) {
         sound.id?.let { soundId -> soundDao.updateDuration(soundId, duration) }
     }
 

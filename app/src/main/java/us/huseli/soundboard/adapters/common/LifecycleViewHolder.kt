@@ -12,6 +12,7 @@ abstract class LifecycleViewHolder<T>(view: View) : RecyclerView.ViewHolder(view
 
     private var wasPaused = false
 
+    // TODO: Not used ATM, maybe in the future
     fun isVisible(): Boolean {
         val location = IntArray(2)
         itemView.getLocationOnScreen(location)

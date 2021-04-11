@@ -78,11 +78,6 @@ class SoundViewModel
         repository.update(updatedSounds)
     }
 
-    fun sort(categoryId: Int, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) =
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.sort(categoryId, sortBy, sortOrder)
-        }
-
     private fun update(sounds: List<Sound>, categoryId: Int) = viewModelScope.launch(Dispatchers.IO) {
         repository.update(sounds.mapIndexed { index, sound ->
             sound.copy(order = index, categoryId = categoryId)
@@ -162,7 +157,6 @@ class SoundViewModel
 
     fun addSoundSelectionListener(listener: SoundSelectionListener) {
         soundSelectionListeners.add(listener)
-        // soundSelectionListeners[sound] = listener
     }
 
     fun disableSelect() {

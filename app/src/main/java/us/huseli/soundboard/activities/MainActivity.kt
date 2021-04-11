@@ -62,6 +62,7 @@ class MainActivity :
     ZoomInterface,
     ActionMode.Callback,
     SharedPreferences.OnSharedPreferenceChangeListener {
+
     @Inject
     lateinit var playerRepository: PlayerRepository
 
@@ -255,6 +256,7 @@ class MainActivity :
             }
             R.id.action_help -> {
                 supportFragmentManager.commit {
+                    // replace<HelpFragment>(R.id.content_container)
                     replace<HelpFragment>(R.id.content_container)
                     setReorderingAllowed(true)
                     addToBackStack("help")
@@ -344,10 +346,7 @@ class MainActivity :
     override fun showSoundEditDialog(sound: Sound) = showSoundEditDialog(listOf(sound))
 
     override fun showSoundEditDialog(sounds: List<Sound>) {
-        soundEditViewModel.setup(
-            sounds,
-            getString(R.string.multiple_sounds_selected, sounds.size)
-        )
+        soundEditViewModel.setup(sounds, getString(R.string.multiple_sounds_selected, sounds.size))
         val categoryIndex = getCategoryIndex(sounds)
         showDialogFragment(EditSoundDialogFragment.newInstance(categoryIndex))
     }

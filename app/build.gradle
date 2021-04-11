@@ -103,8 +103,6 @@ dependencies {
     // Hilt
     implementation "com.google.dagger:hilt-android:$rootProject.hiltVersion"
     implementation "androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03"
-    // MarkdownView
-    implementation 'com.github.tiagohm.MarkdownView:library:0.19.0'
 
     implementation fileTree(dir: "libs", include: ["*.jar"])
 

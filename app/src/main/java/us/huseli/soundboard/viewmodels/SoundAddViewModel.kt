@@ -27,22 +27,17 @@ class SoundAddViewModel @Inject constructor(
     var duplicateStrategy = DuplicateStrategy.ADD
         set(value) {
             field = value
-            onDuplicateStrategyChange()
+            if (value == DuplicateStrategy.SKIP) {
+                removeSounds { sound -> sound.checksum in _duplicates.map { it.checksum } }
+                if (sounds.size == 1) setName(sounds.first().name)
+            }
         }
-
-    private fun onDuplicateStrategyChange() {
-        if (duplicateStrategy == DuplicateStrategy.SKIP) {
-            removeSounds { sound -> sound.checksum in _duplicates.map { it.checksum } }
-            if (sounds.size == 1) setName(sounds.first().name)
-        }
-    }
 
     fun setup(newSounds: List<Sound>, allSounds: List<Sound>, multipleSoundsString: String) {
         super.setup(newSounds, multipleSoundsString)
         _duplicates = allSounds.filter { sound ->
             sound.checksum != null && sound.checksum in newSounds.mapNotNull { it.checksum }
         }
-        onDuplicateStrategyChange()
     }
 
     override fun setSoundAttrsBeforeSave(sound: Sound): Sound {
@@ -57,14 +52,6 @@ class SoundAddViewModel @Inject constructor(
                 DuplicateStrategy.UPDATE -> {
                     _duplicates.find { it.checksum == sound.checksum }?.let { duplicate ->
                         repository.update(setSoundAttrsBeforeSave(duplicate))
-                        /**
-                         * Duplicate is found and we want to update it. We have to do this by
-                         * deleting the duplicate and putting the new sound in its place, though,
-                         * because it's the new Uri that has been granted access permissions, and
-                         * Sound.uri is read-only.
-                         */
-                        // sound.order = duplicate.order
-                        // repository.delete(duplicate)
                     } ?: repository.insert(Sound.createFromTemporary(sound, context))
                 }
                 DuplicateStrategy.SKIP -> if (_duplicates.find { it.checksum == sound.checksum } == null)

@@ -21,11 +21,11 @@ class AppViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _orientation = MutableLiveData<Int>()
-    private val _reorderEnabled = MutableLiveData(false)
     private val _repressMode = MutableLiveData(SoundPlayer.RepressMode.STOP)
-    private val _screenRatio = MutableLiveData<Double>()  // (width / height) in portrait mode
     private val _spanCountLandscape = MutableLiveData<Int?>()
     private val _spanCountPortrait = MutableLiveData<Int?>()
+
+    private var screenRatio: Double? = null
 
     val repressMode: LiveData<SoundPlayer.RepressMode>
         get() = _repressMode
@@ -69,8 +69,8 @@ class AppViewModel @Inject constructor(
     fun undo() = viewModelScope.launch(Dispatchers.IO) { undoRepository.undo() }
 
     /******* SOUND/CATEGORY REORDERING *******/
-    val isReorderEnabled: Boolean
-        get() = _reorderEnabled.value == true
+    private val _reorderEnabled = MutableLiveData(false)
+
     val reorderEnabled: LiveData<Boolean>
         get() = _reorderEnabled
 
@@ -100,10 +100,10 @@ class AppViewModel @Inject constructor(
     private fun landscapeSpanCountToPortrait(spanCount: Int, ratio: Double) = max((spanCount * ratio).roundToInt(), 1)
 
     private fun landscapeSpanCountToPortrait(spanCount: Int): Int? =
-            _screenRatio.value?.let { ratio -> landscapeSpanCountToPortrait(spanCount, ratio) }
+        screenRatio?.let { ratio -> landscapeSpanCountToPortrait(spanCount, ratio) }
 
     private fun portraitSpanCountToLandscape(spanCount: Int): Int? =
-            _screenRatio.value?.let { ratio -> (spanCount / ratio).roundToInt() }
+        screenRatio?.let { ratio -> (spanCount / ratio).roundToInt() }
 
     fun setupLayout(orientation: Int, screenWidthDp: Int, screenHeightDp: Int, landscapeSpanCount: Int): Int {
         /**
@@ -117,7 +117,7 @@ class AppViewModel @Inject constructor(
             Configuration.ORIENTATION_LANDSCAPE -> screenHeightDp.toDouble() / screenWidthDp
             else -> screenWidthDp.toDouble() / screenHeightDp
         }
-        _screenRatio.value = ratio
+        screenRatio = ratio
 
         _spanCountLandscape.value = localLandscapeSpanCount
         val localPortraitSpanCount = landscapeSpanCountToPortrait(localLandscapeSpanCount, ratio)

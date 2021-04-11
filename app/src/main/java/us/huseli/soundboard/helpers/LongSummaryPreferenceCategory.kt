@@ -9,7 +9,9 @@ import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceViewHolder
 import us.huseli.soundboard.R
 
-class LongSummaryPreferenceCategory @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : PreferenceCategory(context, attrs) {
+class LongSummaryPreferenceCategory @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
+    PreferenceCategory(context, attrs) {
+
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
         (holder.findViewById(android.R.id.summary) as? TextView)?.apply {
@@ -20,7 +22,6 @@ class LongSummaryPreferenceCategory @JvmOverloads constructor(context: Context, 
             val typedValue = TypedValue()
             context.theme.resolveAttribute(R.attr.colorOnBackground, typedValue, true)
             setTextColor(typedValue.data)
-            // setTextColor(ResourcesCompat.getColor(resources, R.color.design_default_color_on_primary, context.theme))
             textSize = 16.0.toFloat()
             typeface = Typeface.DEFAULT
         }

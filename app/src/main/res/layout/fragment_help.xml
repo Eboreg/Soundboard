@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     tools:context=".fragments.HelpFragment">
 
     <androidx.appcompat.widget.LinearLayoutCompat
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_marginHorizontal="@dimen/margin_large">
 
         <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/margin_large"
+            android:layout_marginVertical="@dimen/margin_large"
+            app:layout_constraintBottom_toTopOf="@+id/divider"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             tools:ignore="UseCompoundDrawables">
 
             <TextView
@@ -35,16 +42,17 @@
         </androidx.appcompat.widget.LinearLayoutCompat>
 
         <View
+            android:id="@+id/divider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="?android:attr/listDivider" />
 
-        <br.tiagohm.markdownview.MarkdownView
-            android:id="@+id/markdown"
+        <ListView
+            android:id="@+id/help_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/margin_normal" />
-    </androidx.appcompat.widget.LinearLayoutCompat>
+            tools:listitem="@layout/item_help_section" />
 
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
 </FrameLayout>

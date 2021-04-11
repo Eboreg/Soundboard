@@ -16,6 +16,9 @@ class SoundEditViewModel @Inject constructor(
 
     override fun setup(sounds: List<Sound>, multipleSoundsString: String) {
         /**
+         * TODO: This decoupling could maybe be made better by making most Sound parameters val's, and only update
+         * them in soundDao?
+         *
          * When editing sounds, we operate on copies of them, since there seems to be no reasonable way to avoid
          * UI diskrepancies otherwise.
          * When we, for example, update sound.volume in save(), and that sound is the same object that SoundAdapter

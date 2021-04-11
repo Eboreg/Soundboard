@@ -21,14 +21,7 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
 
     fun listLiveWithCategory() = soundDao.listLiveWithCategory()
 
-    /** Update/add sounds, delete the rest */
-    fun reset(sounds: List<Sound>) = soundDao.reset(sounds)
-
     /** Sorts all sounds within category */
-    fun sort(categoryId: Int?, sortBy: Sound.SortParameter, sortOrder: Sound.SortOrder) {
-        categoryId?.let { soundDao.sort(soundDao.listByCategory(categoryId), sortBy, sortOrder) }
-    }
-
     fun sort(categoryId: Int?, sorting: Sound.Sorting) {
         categoryId?.let { soundDao.sort(soundDao.listByCategory(categoryId), sorting) }
     }

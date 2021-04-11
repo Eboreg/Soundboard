@@ -45,6 +45,7 @@ class SoundAdapter(
     private val activity: FragmentActivity
 ) :
     LifecycleAdapter<Sound, SoundAdapter.SoundViewHolder>(DiffCallback()) {
+
     var category: Category? = null
 
     init {
@@ -87,8 +88,7 @@ class SoundAdapter(
     /*********** OWN PUBLIC/INTERNAL METHODS ***********/
     internal fun collapseCategory() = categoryViewModel.collapse(category)
 
-    internal fun contains(sound: Sound) =
-        currentList.indexOf(sound) > -1
+    internal fun contains(sound: Sound) = currentList.indexOf(sound) > -1
 
     internal fun expandCategory() = categoryViewModel.expand(category)
 
@@ -130,8 +130,6 @@ class SoundAdapter(
     }
 
     internal fun isEmpty() = currentList.isEmpty()
-
-    internal fun isNotEmpty() = !isEmpty()
 
     internal fun markSoundsForDrop(adapterPosition: Int) {
         /**
@@ -254,10 +252,10 @@ class SoundAdapter(
 
             playerRepository.players.observe(this) { players ->
                 players[sound]?.also { newPlayer ->
-                    newPlayer.setStateListener(this)
-                    onSoundPlayerStateChange(newPlayer, newPlayer.state)
-                    appViewModel.repressMode.observe(this) { newPlayer.repressMode = it }
                     player = newPlayer
+                    newPlayer.setStateListener(this)
+                    onSoundPlayerStateChange(newPlayer.state, newPlayer.playbackPositionMs)
+                    appViewModel.repressMode.observe(this) { newPlayer.repressMode = it }
                 }
             }
 
@@ -270,7 +268,7 @@ class SoundAdapter(
             binding.reorderIcon.visibility = if (value) View.VISIBLE else View.INVISIBLE
         }
 
-        private fun setDuration(value: Int) {
+        private fun setDuration(value: Long) {
             /** We get value as milliseconds but display it as seconds */
             if (value > -1) {
                 val durationString = when {
@@ -324,13 +322,6 @@ class SoundAdapter(
             super.markDetach()
         }
 
-/*
-        override fun markAttach() {
-            soundViewModel.addSoundSelectionListener(this)
-            super.markAttach()
-        }
-*/
-
         override fun onClick(view: View) {
             when {
                 soundViewModel.isSelectEnabled -> soundViewModel.toggleSelect(item)
@@ -350,7 +341,7 @@ class SoundAdapter(
         }
 
         override fun onLongClick(v: View): Boolean {
-            if (!appViewModel.isReorderEnabled) {
+            if (appViewModel.reorderEnabled.value != true) {
                 longClickAnimator?.start()
                 if (!soundViewModel.isSelectEnabled) {
                     // Select is not enabled; enable it and select sound
@@ -370,44 +361,42 @@ class SoundAdapter(
             binding.selectedIcon.visibility = View.VISIBLE
         }
 
-        override fun onSoundPlayerStateChange(player: SoundPlayer,
-                                              state: SoundPlayer.State,
-                                              oldState: SoundPlayer.State?) {
+        override fun onSoundPlayerStateChange(state: SoundPlayer.State, playbackPositionMs: Long) {
             /**
              * This will likely be called from a non-UI thread, hence View.post()
              * https://developer.android.com/guide/components/processes-and-threads#WorkerThreads
              */
             binding.root.post {
-                if (BuildConfig.DEBUG && oldState != null) Log.d(LOG_TAG,
-                    "onSoundPlayerStateChange: item=$item, state=$state, oldState=$oldState")
+                if (BuildConfig.DEBUG) Log.d(LOG_TAG,
+                    "onSoundPlayerStateChange: item=$item, state=$state")
 
-                if (state == SoundPlayer.State.PLAYING) {
-                    if (oldState == SoundPlayer.State.PAUSED) playerTimer?.resume()
-                    else playerTimer?.start()
-                    binding.playIcon.visibility = View.VISIBLE
-                } else binding.playIcon.visibility = View.INVISIBLE
-
-                if (state == SoundPlayer.State.STOPPED || state == SoundPlayer.State.READY) {
-                    playerTimer?.stop()
+                when (state) {
+                    SoundPlayer.State.INITIALIZING -> Unit
+                    SoundPlayer.State.STOPPED -> playerTimer?.stop()
+                    SoundPlayer.State.PLAYING -> {
+                        playerTimer?.start(playbackPositionMs)
+                        binding.playIcon.visibility = View.VISIBLE
+                    }
+                    SoundPlayer.State.PAUSED -> {
+                        playerTimer?.pause(playbackPositionMs)
+                        binding.pauseIcon.visibility = View.VISIBLE
+                    }
+                    SoundPlayer.State.ERROR -> binding.failIcon.visibility = View.VISIBLE
+                    SoundPlayer.State.RELEASED -> Unit
+                    SoundPlayer.State.READY -> Unit
                 }
 
-                if (state == SoundPlayer.State.PAUSED) {
-                    binding.pauseIcon.visibility = View.VISIBLE
-                    playerTimer?.pause()
-                } else binding.pauseIcon.visibility = View.INVISIBLE
-
-                binding.failIcon.visibility =
-                    if (state == SoundPlayer.State.ERROR) View.VISIBLE else View.INVISIBLE
+                if (state != SoundPlayer.State.PLAYING) binding.playIcon.visibility = View.INVISIBLE
+                if (state != SoundPlayer.State.PAUSED) binding.pauseIcon.visibility = View.INVISIBLE
 
                 /**
-                 * Only use the subdued colours when first initializing and when released. The short flashing is
-                 * annoying otherwise.
+                 * Subdued colours are set by default on init; after that, only set them again on RELEASED or ERROR.
+                 * The short flashing is annoying otherwise.
                  */
-                if (state == SoundPlayer.State.RELEASED) {
+                if (state == SoundPlayer.State.RELEASED || state == SoundPlayer.State.ERROR) {
                     binding.soundName.alpha = 0.5f
                     binding.duration.alpha = 0.5f
-                }
-                if (state == SoundPlayer.State.READY) {
+                } else {
                     binding.soundName.alpha = 1.0f
                     binding.duration.alpha = 1.0f
                 }
@@ -418,7 +407,7 @@ class SoundAdapter(
             Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
 
         override fun onTouch(view: View, event: MotionEvent): Boolean {
-            if (appViewModel.isReorderEnabled) {
+            if (appViewModel.reorderEnabled.value == true) {
                 if (event.actionMasked == MotionEvent.ACTION_DOWN) {
                     if (BuildConfig.DEBUG) Log.d(LOG_TAG, "onTouch: run startDragAndDrop on $view")
                     startDragAndDrop(view)

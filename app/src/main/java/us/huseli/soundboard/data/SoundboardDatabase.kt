@@ -160,10 +160,10 @@ abstract class SoundboardDatabase : RoomDatabase() {
                 val cursor = database.query("SELECT * FROM Sound")
                 while (cursor.moveToNext()) {
                     val sound = Sound(
-                            cursor.getInt(0), cursor.getInt(1), cursor.getString(2),
-                            Uri.parse(cursor.getString(3)).path!!, cursor.getInt(4),
-                            cursor.getInt(5), Date(cursor.getLong(6)), cursor.getInt(7),
-                            cursor.getString(8))
+                        cursor.getInt(0), cursor.getInt(1), cursor.getString(2),
+                        Uri.parse(cursor.getString(3)).path!!, cursor.getInt(4),
+                        cursor.getInt(5), Date(cursor.getLong(6)), cursor.getLong(7),
+                        cursor.getString(8))
                     val query = """
                         INSERT INTO Sound_new (id, categoryId, name, path, 'order', volume, checksum, added, duration)
                         VALUES (${sound.id}, ${sound.categoryId}, '${

@@ -25,7 +25,7 @@ class SettingsActivity : BaseActivity(), SharedPreferences.OnSharedPreferenceCha
             supportFragmentManager
                 .beginTransaction()
                 .replace(R.id.settings, SettingsFragment())
-                    .commit()
+                .commit()
         }
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }

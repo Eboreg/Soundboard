@@ -29,7 +29,7 @@ data class Sound(
     var order: Int,
     var volume: Int,
     val added: Date,
-    val duration: Int,
+    val duration: Long,
     var checksum: String?,
     @Ignore val uri: Uri?,
     @Ignore var textColor: Int? = null,
@@ -45,7 +45,7 @@ data class Sound(
         parcel.readInt(),  // order
         parcel.readInt(),  // volume
         parcel.readSerializable() as Date,  // added
-        parcel.readInt(),  // duration
+        parcel.readLong(),  // duration
         parcel.readString(),  // checksum
         null
     ) {
@@ -60,7 +60,7 @@ data class Sound(
         order: Int,
         volume: Int,
         added: Date,
-        duration: Int,
+        duration: Long,
         checksum: String?
     ) : this(id, categoryId, name, path, order, volume, added, duration, checksum, null)
 
@@ -72,7 +72,7 @@ data class Sound(
         order: Int,
         volume: Int,
         added: Date,
-        duration: Int,
+        duration: Long,
         checksum: String?
     ) : this(null, categoryId, name, path, order, volume, added, duration, checksum, null)
 
@@ -91,7 +91,7 @@ data class Sound(
         parcel.writeInt(order)
         parcel.writeInt(volume)
         parcel.writeSerializable(added)
-        parcel.writeInt(duration)
+        parcel.writeLong(duration)
         parcel.writeString(checksum)
     }
 
@@ -182,7 +182,6 @@ data class Sound(
 
         fun createFromTemporary(tempSound: Sound, context: Context): Sound {
             /** Copy data to local storage and return new Sound object to be saved to DB */
-            // val application = GlobalApplication.application
             val inputStream = context.contentResolver.openInputStream(tempSound.uri!!)
                 ?: throw Exception("File provider returned null")
 
@@ -190,10 +189,8 @@ data class Sound(
             val checksum = tempSound.checksum
                 ?: MD5.calculate(inputStream)
                 ?: throw Exception("MD5.calculate returned null")
-            //val file = File(context.soundDir, filename)
             val file = File(context.getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE), checksum)
             val outputStream = FileOutputStream(file)
-            //val outputStream = application.applicationContext.openFileOutput(filename, Context.MODE_PRIVATE)
             val buf = ByteArray(1024)
             var len: Int
             while (inputStream.read(buf).also { len = it } > 0) {
