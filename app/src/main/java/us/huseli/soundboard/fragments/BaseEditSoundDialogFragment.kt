@@ -26,9 +26,9 @@ abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSo
     open fun getCategories() = categoryListViewModel.categories
 
     internal open fun recreateFromSavedInstanceState(state: Bundle) {
-        state.getString(ARG_NAME)?.let { viewModel.setName(it) }
+        state.getString(ARG_NAME)?.let { viewModel.name = it }
         viewModel.categoryIndex = state.getInt(ARG_CATEGORY_INDEX)
-        viewModel.setVolume(state.getInt(ARG_VOLUME))
+        viewModel.volume = state.getInt(ARG_VOLUME)
     }
 
 
@@ -44,9 +44,9 @@ abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSo
             if (soundName.isEmpty() && !multiple) {
                 Snackbar.make(binding.root, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show()
             } else {
-                viewModel.setVolume(binding.volume.progress)
-                viewModel.setName(soundName)
-                (binding.category.selectedItem as Category).id?.let { viewModel.setCategoryId(it) }
+                viewModel.volume = binding.volume.progress
+                viewModel.name = soundName
+                (binding.category.selectedItem as Category).id?.let { viewModel.categoryId = it }
                 soundViewModel.disableSelect()
                 viewModel.save(requireContext())
                 dismiss()

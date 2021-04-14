@@ -12,7 +12,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
-import android.provider.DocumentsContract
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
@@ -80,7 +79,6 @@ class MainActivity :
     private var categories = emptyList<Category>()
     private var filterEnabled: Boolean = false
     private var filterWasEnabled: Boolean = false
-    private var reinitSoundsLauncher: ActivityResultLauncher<Intent>? = null
     private var reorderEnabled: Boolean? = null
     private var repressMode: SoundPlayer.RepressMode? = null
 
@@ -137,19 +135,14 @@ class MainActivity :
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
                 onAddSoundResult(it.data, it.resultCode)
             }
-        reinitSoundsLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-                onReInitSoundResult(it.data, it.resultCode)
-            }
 
         when (intent?.action) {
             Intent.ACTION_SEND -> (intent?.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)?.let {
                 addSoundsFromUris(listOf(it))
             }
-            Intent.ACTION_SEND_MULTIPLE -> intent?.getParcelableArrayListExtra<Parcelable>(Intent.EXTRA_STREAM)
-                ?.let {
-                    addSoundsFromUris(it.filterIsInstance<Uri>())
-                }
+            Intent.ACTION_SEND_MULTIPLE -> intent?.getParcelableArrayListExtra<Parcelable>(Intent.EXTRA_STREAM)?.let {
+                addSoundsFromUris(it.filterIsInstance<Uri>())
+            }
         }
 
         val pInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
@@ -244,7 +237,6 @@ class MainActivity :
         when (item.itemId) {
             R.id.action_add_category -> showCategoryAddDialog()
             R.id.action_add_sound -> startAddSoundActivity()
-            // R.id.action_reinit_failed_sounds -> reinitFailedSounds()
             R.id.action_set_repress_mode_stop -> appViewModel.setRepressMode(SoundPlayer.RepressMode.STOP)
             R.id.action_set_repress_mode_restart -> appViewModel.setRepressMode(SoundPlayer.RepressMode.RESTART)
             R.id.action_set_repress_mode_overlap -> appViewModel.setRepressMode(SoundPlayer.RepressMode.OVERLAP)
@@ -436,19 +428,6 @@ class MainActivity :
         }
     }
 
-    private fun onReInitSoundResult(data: Intent?, resultCode: Int) {
-        // We have returned from failed sound reinit dialog
-        if (resultCode == Activity.RESULT_OK && data != null) {
-            data.data?.let { uri ->
-                (data.extras?.get(EXTRA_SOUND_ID) as? Int)?.let { soundId ->
-                    // soundId = id of sound to replace
-                    val sound = Sound.createTemporary(uri, applicationContext)
-                    soundViewModel.replaceSound(soundId, sound, this)
-                }
-            }
-        }
-    }
-
     private fun onReorderEnabledChange(value: Boolean) {
         val item = binding.actionbar.actionbarToolbar.menu?.findItem(R.id.action_toggle_reorder)
         if (value) {
@@ -523,28 +502,6 @@ class MainActivity :
         zoomInItem?.apply {
             isEnabled = value
             icon?.alpha = if (value) 255 else 128
-        }
-    }
-
-    @Suppress("unused")
-    private fun reinitFailedSounds() {
-        // TODO: Generalize this shit somehow (with ordinary open file stuff), take up work on this stuff
-        soundViewModel.failedSounds.forEach { sound ->
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, sound.uri)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                intent.addFlags(
-                    Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or
-                            Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                            Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
-            else
-                intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            intent.type = "audio/*"
-            intent.addCategory(Intent.CATEGORY_OPENABLE)
-            intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
-            intent.putExtra(EXTRA_SOUND_ID, sound.id)
-            if (intent.resolveActivity(packageManager) != null) reinitSoundsLauncher?.launch(intent)
         }
     }
 

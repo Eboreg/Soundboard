@@ -3,8 +3,7 @@
 
     <style name="Splashscreen" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:windowBackground">@drawable/splashscreen</item>
-        <item name="android:statusBarColor" tools:targetApi="lollipop">
-            @color/splashscreen_background_start
+        <item name="android:statusBarColor" tools:targetApi="lollipop">@android:color/transparent
         </item>
         <item name="android:navigationBarColor" tools:targetApi="lollipop">
             @color/splashscreen_background_end
@@ -18,12 +17,16 @@
         <item name="actionBarSize">@dimen/actionbar_height</item>
         <item name="actionBarStyle">@style/Soundboard.Style.Toolbar</item>
         <item name="actionModeStyle">@style/Soundboard.Style.ActionMode</item>
-        <item name="popupMenuBackground">@android:color/transparent</item>
         <item name="alertDialogTheme">@style/Soundboard.Theme.MaterialAlertDialog</item>
         <item name="materialAlertDialogTheme">@style/Soundboard.Theme.MaterialAlertDialog</item>
+
         <item name="spinnerStyle">@style/Soundboard.Style.Spinner</item>
         <item name="android:spinnerStyle">@style/Soundboard.Style.Spinner</item>
         <item name="android:spinnerItemStyle">@style/Soundboard.Style.Spinner.Item</item>
+
+        <!-- These finally enabled me to disable popupmenu enter/exit transitions: -->
+        <item name="actionOverflowMenuStyle">@style/Soundboard.Style.PopupMenu</item>
+        <item name="android:actionOverflowMenuStyle">@style/Soundboard.Style.PopupMenu</item>
 
         <item name="windowActionModeOverlay">true</item>
     </style>
@@ -46,6 +49,7 @@
     </style>
 
     <style name="Soundboard.Theme.NoActionBar">
+        <!-- We actually do have an actionbar, but we create and style it ourselves -->
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
@@ -63,4 +67,5 @@
     <style name="Soundboard.Theme.MaterialAlertDialog.EqualButtons">
         <item name="buttonBarNegativeButtonStyle">@style/Soundboard.Style.Button.TextButton</item>
     </style>
+
 </resources>

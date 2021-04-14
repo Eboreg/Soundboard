@@ -55,7 +55,7 @@ class CategoryAddViewModel @Inject constructor(
         if (name != null && backgroundColor != null) {
             val category = Category(name, backgroundColor)
             repository.insert(category)
-            undoRepository.pushCategoryState()
+            undoRepository.pushState()
         } else Log.e(LOG_TAG, "save(): name ($name) or backgroundColor ($backgroundColor) is null")
     }
 

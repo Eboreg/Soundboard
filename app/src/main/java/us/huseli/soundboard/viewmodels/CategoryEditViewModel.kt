@@ -50,10 +50,8 @@ class CategoryEditViewModel @Inject constructor(
         category.value?.let {
             _newBackgroundColor.value?.let { color -> it.backgroundColor = color }
             repository.update(it)
-            if (soundSorting != null) {
-                soundRepository.sort(it.id, soundSorting)
-                undoRepository.pushSoundAndCategoryState()
-            } else undoRepository.pushCategoryState()
+            if (soundSorting != null) soundRepository.sort(it.id, soundSorting)
+            undoRepository.pushState()
         }
     }
 }

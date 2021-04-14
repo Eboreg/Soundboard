@@ -11,8 +11,6 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
 
     fun deleteByCategory(categoryId: Int) = delete(soundDao.listByCategory(categoryId))
 
-    fun getMaxOrder(categoryId: Int) = soundDao.getMaxOrder(categoryId) ?: 0
-
     fun insert(sound: Sound) = soundDao.insert(sound)
 
     fun insert(sounds: List<Sound>) = soundDao.insert(sounds)
@@ -29,4 +27,21 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
     fun update(sound: Sound) = soundDao.update(sound)
 
     fun update(sounds: List<Sound>) = soundDao.update(sounds)
+
+    fun updateChecksum(sound: Sound, checksum: String?) {
+        sound.id?.also { soundDao.updateChecksum(it, checksum) }
+    }
+
+    fun update(sounds: List<Sound>, categoryId: Int?) {
+        if (categoryId != null) soundDao.update(sounds, categoryId)
+        else soundDao.update(sounds)
+    }
+
+    fun update(sounds: List<Sound>, name: String?, volume: Int, categoryId: Int?) {
+        soundDao.update(sounds, name, volume, categoryId)
+    }
+
+    fun update(sound: Sound, name: String?, volume: Int, categoryId: Int?) {
+        soundDao.update(sound, name, volume, categoryId)
+    }
 }

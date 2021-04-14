@@ -19,19 +19,17 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
 
     private fun onAddDuplicates() {
         viewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.ADD
-        (requireActivity() as EditSoundInterface).apply {
-            if (viewModel.sounds.size > 1) viewModel.setName(getString(R.string.multiple_sounds_selected,
-                viewModel.sounds.size))
-            showSoundAddDialog()
-        }
+        if (viewModel.multiple)
+            viewModel.name = getString(R.string.multiple_sounds_selected, viewModel.soundCount)
+        (requireActivity() as EditSoundInterface).showSoundAddDialog()
     }
 
     private fun onSkipDuplicates() {
         viewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.SKIP
-        if (viewModel.sounds.isEmpty()) (requireActivity() as SnackbarInterface).showSnackbar(R.string.no_sounds_to_add)
+        if (viewModel.soundCount == 0) (requireActivity() as SnackbarInterface).showSnackbar(R.string.no_sounds_to_add)
         else {
-            if (viewModel.sounds.size > 1) viewModel.setName(getString(R.string.multiple_sounds_selected,
-                viewModel.sounds.size))
+            if (viewModel.multiple)
+                viewModel.name = getString(R.string.multiple_sounds_selected, viewModel.soundCount)
             (requireActivity() as EditSoundInterface).showSoundAddDialog()
         }
     }
@@ -39,14 +37,13 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
     private fun onUpdateExisting() {
         viewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.UPDATE
         (requireActivity() as EditSoundInterface).apply {
-            when (viewModel.sounds.size) {
-                // TODO: Will not work with copying of data
-                // Have to use old sound from duplicates, and not new one from sounds:
-                1 -> showSoundEditDialog(viewModel.duplicates[0])
-                else -> {
-                    viewModel.setName(getString(R.string.multiple_sounds_selected, viewModel.sounds.size))
+            when {
+                viewModel.multiple -> {
+                    viewModel.name = getString(R.string.multiple_sounds_selected, viewModel.soundCount)
                     showSoundAddDialog()
                 }
+                viewModel.hasDuplicates -> showSoundEditDialog(viewModel.duplicates.first())
+                else -> showSoundAddDialog()
             }
         }
     }
@@ -57,13 +54,11 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
         return MaterialAlertDialogBuilder(requireContext(),
             R.style.Soundboard_Theme_MaterialAlertDialog_EqualButtons).run {
             setView(binding.root)
-            setTitle(resources.getQuantityString(R.plurals.duplicate_sound_added, viewModel.duplicateCount))
-            setPositiveButton(resources.getQuantityString(R.plurals.add_duplicate, viewModel.duplicateCount)) { _, _ ->
-                onAddDuplicates()
-            }
+            setTitle(resources.getQuantityString(R.plurals.duplicate_sound_selected, viewModel.duplicateCount))
+            setPositiveButton(resources.getQuantityString(R.plurals.add_duplicate,
+                viewModel.duplicateCount)) { _, _ -> onAddDuplicates() }
             setNeutralButton(R.string.update_existing) { _, _ -> onUpdateExisting() }
-            if (viewModel.sounds.size > 1)
-                setNegativeButton(R.string.skip) { _, _ -> onSkipDuplicates() }
+            if (viewModel.multiple) setNegativeButton(R.string.skip) { _, _ -> onSkipDuplicates() }
             create()
         }
     }

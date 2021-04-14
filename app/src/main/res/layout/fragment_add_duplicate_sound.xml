@@ -20,7 +20,7 @@
             android:id="@+id/addDuplicateText1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{@plurals/sound_already_exists(viewModel.duplicateCount, viewModel.duplicateName)}"
+            android:text="@{@plurals/sound_already_exists(viewModel.duplicateCount, viewModel.duplicateCount, viewModel.duplicateName)}"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 

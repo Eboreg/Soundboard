@@ -1,3 +1,6 @@
+Looks like I finally fixed the ugly annoyind popup menu animations
+
+
 When ALL categories are collapsed, SoundPlayers/AudioFiles are not initializing (maybe not a huge
 problem)
 
@@ -6,9 +9,6 @@ Test: Start with some large category collapsed > start profiling > expand it > s
 done in BG thread on startup instead
 - Looks like it's mainly SoundAdapter.onCreateViewHolder > inflate taking time. So only UI stuff.
 
-
-
-Fix the ugly as fuck animation when expanding a submenu from actionbar or bottombar - but how? D-:
 
 
 Look at backup_descriptor.xml stuff

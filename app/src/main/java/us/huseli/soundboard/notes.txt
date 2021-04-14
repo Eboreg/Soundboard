@@ -1,3 +1,25 @@
+Widget.MaterialComponents.PopupMenu.Overflow ärver från:
+    Base.Widget.MaterialComponents.PopupMenu.Overflow
+        <item name="android:dropDownVerticalOffset">1px</item>
+    Widget.AppCompat.PopupMenu.Overflow
+    Base.Widget.AppCompat.PopupMenu.Overflow
+        <item name="overlapAnchor">true</item>
+        <item name="android:dropDownHorizontalOffset">-4dip</item>
+    Widget.MaterialComponents.PopupMenu
+    Base.Widget.MaterialComponents.PopupMenu
+        <item name="overlapAnchor">false</item>
+        <item name="android:dropDownVerticalOffset">1px</item>
+    Widget.AppCompat.PopupMenu
+    Base.Widget.AppCompat.PopupMenu
+    Widget.AppCompat.ListPopupWindow
+    Base.Widget.AppCompat.ListPopupWindow
+        <item name="android:dropDownSelector">?attr/listChoiceBackgroundIndicator</item>
+        <item name="android:popupBackground">@drawable/abc_popup_background_mtrl_mult</item>
+        <item name="android:dropDownVerticalOffset">0dip</item>
+        <item name="android:dropDownHorizontalOffset">0dip</item>
+        <item name="android:dropDownWidth">wrap_content</item>
+
+
 pushSoundAndCategoryState:
 --------------------------
 UndoRepository.init

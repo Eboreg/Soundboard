@@ -2,10 +2,10 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Soundboard.Style.Toolbar"
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
     android:padding="2dp"
-    android:theme="@style/Soundboard.Style.Toolbar"
     tools:ignore="Overdraw">
 
     <ImageView
@@ -31,5 +31,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/actionbar_logo"
         app:layout_constraintTop_toTopOf="parent"
+        android:animateLayoutChanges="false"
         tools:menu="@menu/appbar_menu" />
 </androidx.constraintlayout.widget.ConstraintLayout>

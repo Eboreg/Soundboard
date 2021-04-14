@@ -22,15 +22,15 @@ import java.util.*
     indices = [Index("categoryId")]
 )
 data class Sound(
-    @PrimaryKey(autoGenerate = true) var id: Int? = null,
-    var categoryId: Int?,
-    var name: String,
+    @PrimaryKey(autoGenerate = true) val id: Int? = null,
+    val categoryId: Int?,
+    val name: String,
     val path: String,
     var order: Int,
-    var volume: Int,
+    val volume: Int,
     val added: Date,
     val duration: Long,
-    var checksum: String?,
+    val checksum: String?,
     @Ignore val uri: Uri?,
     @Ignore var textColor: Int? = null,
     @Ignore var backgroundColor: Int? = null,
@@ -102,6 +102,7 @@ data class Sound(
 
     class Comparator(private val sortBy: SortParameter, private val sortOrder: SortOrder) :
         java.util.Comparator<Sound> {
+
         override fun compare(o1: Sound, o2: Sound): Int {
             val s1 = if (sortOrder == SortOrder.ASCENDING) o1 else o2
             val s2 = if (sortOrder == SortOrder.ASCENDING) o2 else o1
@@ -180,7 +181,11 @@ data class Sound(
                 Date(), -1, checksum, uri)
         }
 
-        fun createFromTemporary(tempSound: Sound, context: Context): Sound {
+        private fun createFromTemporary(tempSound: Sound,
+                                        name: String?,
+                                        volume: Int?,
+                                        categoryId: Int?,
+                                        context: Context): Sound {
             /** Copy data to local storage and return new Sound object to be saved to DB */
             val inputStream = context.contentResolver.openInputStream(tempSound.uri!!)
                 ?: throw Exception("File provider returned null")
@@ -200,8 +205,18 @@ data class Sound(
             inputStream.close()
 
             return Sound(
-                tempSound.categoryId, tempSound.name, file.path, tempSound.order, tempSound.volume,
-                tempSound.added, tempSound.duration, checksum)
+                categoryId ?: tempSound.categoryId, name ?: tempSound.name, file.path,
+                tempSound.order, volume ?: tempSound.volume, tempSound.added, tempSound.duration, checksum)
         }
+
+        fun createFromTemporary(tempSound: Sound, context: Context) =
+            createFromTemporary(tempSound, null, null, null, context)
+
+        fun createFromTemporary(tempSounds: List<Sound>,
+                                name: String?,
+                                volume: Int?,
+                                categoryId: Int?,
+                                context: Context): List<Sound> =
+            tempSounds.map { createFromTemporary(it, name, volume, categoryId, context) }
     }
 }

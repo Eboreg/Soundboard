@@ -64,6 +64,9 @@ android {
 }
 
 dependencies {
+    // Material design
+    api "com.google.android.material:material:$rootProject.materialVersion"
+
     kapt "androidx.room:room-compiler:$rootProject.roomVersion"
     kapt "com.google.dagger:hilt-android-compiler:$rootProject.hiltVersion"
     kapt "androidx.hilt:hilt-compiler:1.0.0-beta01"
@@ -92,7 +95,7 @@ dependencies {
     // Sentry
     implementation "io.sentry:sentry-android-core:$rootProject.sentryVersion"
     // Material design
-    implementation "com.google.android.material:material:$rootProject.materialVersion"
+    // implementation "com.google.android.material:material:$rootProject.materialVersion"
     // Coroutines
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$rootProject.coroutinesVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.coroutinesVersion"

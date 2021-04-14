@@ -1,7 +1,6 @@
 package us.huseli.soundboard.adapters
 
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import android.view.*
 import androidx.core.content.res.ResourcesCompat
@@ -14,7 +13,6 @@ import us.huseli.soundboard.adapters.common.LifecycleAdapter
 import us.huseli.soundboard.adapters.common.LifecycleViewHolder
 import us.huseli.soundboard.animators.CollapseButtonAnimator
 import us.huseli.soundboard.data.Category
-import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.ItemCategoryBinding
 import us.huseli.soundboard.helpers.SoundDragListener
 import us.huseli.soundboard.helpers.SoundScroller
@@ -145,10 +143,6 @@ class CategoryAdapter(
             binding.categoryHeader.setBackgroundColor(category.backgroundColor)
             soundViewModel.filteredSounds.observe(this) { allSounds ->
                 val sounds = allSounds.filter { it.categoryId == category.id }
-                // Log.d(LOG_TAG, "ViewHolder sound list observer: viewHolder=$this, category=$category, sounds=$sounds")
-                // TODO: Remove test call + method when not needed
-                // submitListWithInvalidSound(sounds)
-
                 soundCount = sounds.size.also {
                     if (it > 20) binding.soundList.setItemViewCacheSize(it)
                 }
@@ -219,22 +213,6 @@ class CategoryAdapter(
                 enableClickAndTouch()
                 setupMoveButtons()
             }
-        }
-
-        @Suppress("unused")
-        private fun submitListWithInvalidSound(sounds: List<Sound>) {
-            val uri = Uri.fromParts(
-                "content",
-                "//com.android.externalstorage.documents/document/0000-0000:Music/Soundboard/Uh! Sorry!.flac",
-                null
-            )
-            val invalidSound =
-                Sound(666, item?.id, "fail", uri.path!!, 10, 100, Date(), -1, null)
-            // val invalidSoundWithCategory = SoundWithCategory(invalidSound, item!!)
-            val mutableSounds = sounds.toMutableList()
-            mutableSounds.add(invalidSound)
-            soundCount = mutableSounds.count()
-            soundAdapter.submitList(mutableSounds)
         }
 
         private fun toggleCollapsed() {

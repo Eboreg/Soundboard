@@ -30,18 +30,20 @@ class UndoRepository @Inject constructor(
 
     init {
         /** First push the initial state to position 0 */
-        scope.launch { pushSoundAndCategoryState() }
+        scope.launch { pushState() }
     }
 
-    fun pushCategoryState() = states.push(State(null, categoryDao.list()))
+    fun pushState() {
+        states.push(State(soundDao.list(), categoryDao.list()))
+    }
 
-    fun pushSoundState() = states.push(State(soundDao.list(), null))
+    fun redo() {
+        apply(states.getRedoState())
+    }
 
-    fun pushSoundAndCategoryState() = states.push(State(soundDao.list(), categoryDao.list()))
-
-    fun redo() = apply(states.getRedoState())
-
-    fun undo() = apply(states.getUndoState())
+    fun undo() {
+        apply(states.getUndoState())
+    }
 
     private fun apply(state: State?) {
         state?.categories?.also { categoryDao.reset(it) }

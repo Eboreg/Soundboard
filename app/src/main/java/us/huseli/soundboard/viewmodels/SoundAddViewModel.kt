@@ -15,6 +15,9 @@ class SoundAddViewModel @Inject constructor(
     private val repository: SoundRepository, private val undoRepository: UndoRepository) : BaseSoundEditViewModel() {
 
     private var _duplicates = emptyList<Sound>()
+    private val newSounds: List<Sound>
+        get() = sounds.filter { sound -> sound.checksum != null && sound.checksum !in duplicates.mapNotNull { it.checksum } }
+
     val duplicateName: String
         get() = if (_duplicates.size == 1) _duplicates[0].name else ""
     val duplicates: List<Sound>
@@ -24,14 +27,10 @@ class SoundAddViewModel @Inject constructor(
     val hasDuplicates: Boolean
         get() = _duplicates.isNotEmpty()
 
+    override val soundCount: Int
+        get() = if (duplicateStrategy == DuplicateStrategy.SKIP) newSounds.size else super.soundCount
+
     var duplicateStrategy = DuplicateStrategy.ADD
-        set(value) {
-            field = value
-            if (value == DuplicateStrategy.SKIP) {
-                removeSounds { sound -> sound.checksum in _duplicates.map { it.checksum } }
-                if (sounds.size == 1) setName(sounds.first().name)
-            }
-        }
 
     fun setup(newSounds: List<Sound>, allSounds: List<Sound>, multipleSoundsString: String) {
         super.setup(newSounds, multipleSoundsString)
@@ -40,26 +39,27 @@ class SoundAddViewModel @Inject constructor(
         }
     }
 
-    override fun setSoundAttrsBeforeSave(sound: Sound): Sound {
-        return super.setSoundAttrsBeforeSave(sound).apply {
-            newCategoryId?.let { categoryId = it }
-        }
-    }
+    override fun save(context: Context) = viewModelScope.launch(Dispatchers.IO) {
+        val toUpdate = mutableListOf<Sound>()
+        val toInsert = mutableListOf<Sound>()
 
-    override fun doSave(context: Context) = viewModelScope.launch(Dispatchers.IO) {
-        sounds.forEach { sound ->
-            when (duplicateStrategy) {
-                DuplicateStrategy.UPDATE -> {
-                    _duplicates.find { it.checksum == sound.checksum }?.let { duplicate ->
-                        repository.update(setSoundAttrsBeforeSave(duplicate))
-                    } ?: repository.insert(Sound.createFromTemporary(sound, context))
-                }
-                DuplicateStrategy.SKIP -> if (_duplicates.find { it.checksum == sound.checksum } == null)
-                    repository.insert(Sound.createFromTemporary(sound, context))
-                DuplicateStrategy.ADD -> repository.insert(Sound.createFromTemporary(sound, context))
+        when (duplicateStrategy) {
+            DuplicateStrategy.ADD -> toInsert.addAll(sounds)
+            DuplicateStrategy.SKIP -> toInsert.addAll(newSounds)
+            DuplicateStrategy.UPDATE -> {
+                toInsert.addAll(newSounds)
+                toUpdate.addAll(duplicates)
             }
         }
-        undoRepository.pushSoundState()
+
+        repository.update(toUpdate, if (!multiple) name else null, volume, categoryId)
+        repository.insert(Sound.createFromTemporary(toInsert,
+            if (!multiple) name else null,
+            volume,
+            categoryId,
+            context))
+
+        undoRepository.pushState()
     }
 
 

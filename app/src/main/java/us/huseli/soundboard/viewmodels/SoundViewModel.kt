@@ -38,18 +38,6 @@ class SoundViewModel
     val failedSounds: List<Sound>
         get() = _failedSounds
 
-    @Suppress("UNUSED_PARAMETER")
-    // TODO: Not used ATM
-    fun replaceSound(soundId: Int, sound: Sound, context: Context) {
-        _failedSounds.find { it.id == soundId }?.let { oldSound ->
-            sound.id = soundId
-            viewModelScope.launch(Dispatchers.IO) {
-                _failedSounds.remove(oldSound)
-                repository.update(sound)
-            }
-        }
-    }
-
     fun moveFilesToLocalStorage(context: Context) = viewModelScope.launch(Dispatchers.IO) {
         /** One-time thing at app version upgrade */
         val newSounds = mutableListOf<Sound>()
@@ -63,26 +51,21 @@ class SoundViewModel
 
     fun saveChecksums() = viewModelScope.launch(Dispatchers.IO) {
         /** One-time thing at app version upgrade */
-        val updatedSounds = mutableListOf<Sound>()
         repository.list().forEach { sound ->
             try {
                 val file = File(sound.path)
-                if (sound.checksum == null) {
-                    sound.checksum = MD5.calculate(file)
-                    updatedSounds.add(sound)
-                }
+                if (sound.checksum == null) repository.updateChecksum(sound, MD5.calculate(file))
             } catch (e: Exception) {
                 Log.e(LOG_TAG, "Error when saving checksum for $sound: $e")
             }
         }
-        repository.update(updatedSounds)
     }
 
     private fun update(sounds: List<Sound>, categoryId: Int) = viewModelScope.launch(Dispatchers.IO) {
         repository.update(sounds.mapIndexed { index, sound ->
             sound.copy(order = index, categoryId = categoryId)
         })
-        undoRepository.pushSoundState()
+        undoRepository.pushState()
     }
 
     fun update(sounds: List<Sound>, category: Category?) = category?.id?.let { update(sounds, it) }

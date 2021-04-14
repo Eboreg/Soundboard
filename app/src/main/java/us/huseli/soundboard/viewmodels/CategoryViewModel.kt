@@ -53,11 +53,11 @@ class CategoryViewModel @Inject constructor(
     fun delete(id: Int) = viewModelScope.launch(Dispatchers.IO) {
         soundRepository.deleteByCategory(id)
         repository.delete(id)
-        undoRepository.pushSoundAndCategoryState()
+        undoRepository.pushState()
     }
 
     fun switch(oldPos: Int, newPos: Int) = viewModelScope.launch(Dispatchers.IO) {
         repository.switch(oldPos, newPos)
-        undoRepository.pushCategoryState()
+        undoRepository.pushState()
     }
 }

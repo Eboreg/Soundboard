@@ -1,5 +1,4 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-
     <style name="Soundboard.Style.ActionMode" parent="Widget.AppCompat.ActionMode">
         <item name="background">?attr/colorPrimary</item>
     </style>
@@ -22,13 +21,20 @@
         <item name="android:textSize">@dimen/title_text</item>
     </style>
 
-    <style name="Soundboard.Style.Spinner" parent="Widget.AppCompat.Spinner">
+    <style name="Soundboard.Style.Spinner" parent="Widget.AppCompat.Spinner.DropDown">
         <item name="android:popupBackground">?attr/colorBackgroundFloating</item>
         <item name="android:popupElevation">@dimen/margin_small</item>
+        <item name="android:popupEnterTransition" tools:targetApi="n">@null</item>
+        <item name="android:popupExitTransition" tools:targetApi="n">@null</item>
     </style>
 
     <style name="Soundboard.Style.Spinner.Item" parent="Widget.AppCompat.TextView.SpinnerItem">
         <item name="android:padding">@dimen/margin_normal</item>
+    </style>
+
+    <style name="Soundboard.Style.PopupMenu" parent="Widget.MaterialComponents.PopupMenu">
+        <item name="android:popupEnterTransition" tools:targetApi="n">@null</item>
+        <item name="android:popupExitTransition" tools:targetApi="n">@null</item>
     </style>
 
 </resources>
