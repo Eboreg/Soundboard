@@ -15,6 +15,8 @@ class CategoryRepository @Inject constructor(private val categoryDao: CategoryDa
 
     fun getUsedColors() = categoryDao.getUsedColors()
 
+    fun getUsedColorsLive() = categoryDao.getUsedColorsLive()
+
     fun insert(category: Category) = categoryDao.insert(category)
 
     fun setCollapsed(categoryId: Int, value: Boolean) = categoryDao.setCollapsed(categoryId, if (value) 1 else 0)
@@ -26,5 +28,9 @@ class CategoryRepository @Inject constructor(private val categoryDao: CategoryDa
             Collections.swap(it, oldPos, newPos)
             categoryDao.sort(it)
         }
+    }
+
+    fun update(category: Category?, name: String?, backgroundColor: Int?) {
+        if (category?.id != null) categoryDao.update(category.id, name, backgroundColor)
     }
 }

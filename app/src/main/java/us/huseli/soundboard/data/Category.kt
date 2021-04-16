@@ -7,14 +7,18 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "SoundCategory")
 data class Category(
-        @PrimaryKey(autoGenerate = true) var id: Int? = null,
-        var name: String,
-        var backgroundColor: Int,
-        var order: Int,
-        var collapsed: Boolean = false,
-        @Ignore var textColor: Int? = null,
-        @Ignore var secondaryTextColor: Int? = null
+    @PrimaryKey(autoGenerate = true) val id: Int? = null,
+    var name: String,
+    var backgroundColor: Int,
+    var order: Int,
+    var collapsed: Boolean = false,
+    @Ignore var textColor: Int?,
+    @Ignore var secondaryTextColor: Int?
 ) {
+    constructor(id: Int?, name: String, backgroundColor: Int, order: Int, collapsed: Boolean) :
+            this(id, name, backgroundColor, order, collapsed, null, null)
+
+    @Ignore
     constructor(name: String, backgroundColor: Int, order: Int) : this(null, name, backgroundColor, order, false)
 
     @Ignore

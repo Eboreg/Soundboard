@@ -61,14 +61,12 @@ class SoundViewModel
         }
     }
 
-    private fun update(sounds: List<Sound>, categoryId: Int) = viewModelScope.launch(Dispatchers.IO) {
-        repository.update(sounds.mapIndexed { index, sound ->
-            sound.copy(order = index, categoryId = categoryId)
-        })
-        undoRepository.pushState()
+    fun update(sounds: List<Sound>, category: Category?) = category?.id?.let { categoryId ->
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.updateCategoryAndOrder(sounds, categoryId)
+            undoRepository.pushState()
+        }
     }
-
-    fun update(sounds: List<Sound>, category: Category?) = category?.id?.let { update(sounds, it) }
 
 
     /******* FILTERING *******/

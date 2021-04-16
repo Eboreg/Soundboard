@@ -1,4 +1,24 @@
-Looks like I finally fixed the ugly annoyind popup menu animations
+In landscape mode, sound/category dialog fragments won't fit on screen and don't seem to be scrollable
+
+
+On config change, when sounds selected, they lose their selection marker :((((((
+
+
+Check out Flow:
+https://stackoverflow.com/questions/58890105/kotlin-flow-vs-livedata
+https://kotlinlang.org/docs/flow.html
+https://developer.android.com/training/data-storage/room/async-queries#kotlin
+https://medium.com/androiddevelopers/room-flow-273acffe5b57
+https://developer.android.com/reference/kotlin/androidx/room/Query
+
+
+Slim down various DB queries (only fetch needed data). Also goes for the SoundWithCategory stuff
+
+
+Make more Sound/Category properties val's
+
+
+Decouple AudioFile etc from Sound
 
 
 When ALL categories are collapsed, SoundPlayers/AudioFiles are not initializing (maybe not a huge

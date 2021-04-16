@@ -67,6 +67,7 @@ class MainActivity :
 
     private val actionbarLogoTouchTimes = mutableListOf<Long>()
     private val appViewModel by viewModels<AppViewModel>()
+    private val categoryEditViewModel by viewModels<CategoryEditViewModel>()
     private val categoryListViewModel by viewModels<CategoryViewModel>()
     private val soundAddViewModel by viewModels<SoundAddViewModel>()
     private val soundEditViewModel by viewModels<SoundEditViewModel>()
@@ -302,18 +303,22 @@ class MainActivity :
 
 
     /********* OVERRIDDEN OWN METHODS **********/
-    override fun showCategoryAddDialog() =
+    override fun showCategoryAddDialog() {
         showDialogFragment(
             AddCategoryDialogFragment.newInstance(
                 DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG)), CATEGORY_ADD_DIALOG_TAG)
+    }
 
     override fun showCategoryDeleteDialog(id: Int, name: String, soundCount: Int) =
         showDialogFragment(DeleteCategoryFragment.newInstance(id, name, soundCount, categories.size))
 
-    override fun showCategoryEditDialog(id: Int) =
+    override fun showCategoryEditDialog(category: Category) {
+        categoryEditViewModel.setup(category)
+        // showDialogFragment(EditCategoryDialogFragment())
         showDialogFragment(
-            EditCategoryDialogFragment.newInstance(id, DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)),
+            EditCategoryDialogFragment.newInstance(DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)),
             CATEGORY_EDIT_DIALOG_TAG)
+    }
 
     override fun showSnackbar(text: CharSequence) =
         Snackbar.make(binding.appCoordinator, text, Snackbar.LENGTH_SHORT).show()

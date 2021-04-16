@@ -1,14 +1,31 @@
 package us.huseli.soundboard.viewmodels
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import us.huseli.soundboard.data.Sound
 
+@Suppress("PropertyName")
 abstract class BaseCategoryEditViewModel : ViewModel() {
-    abstract val name: LiveData<String?>
-    abstract val backgroundColor: LiveData<Int>
+    protected val _backgroundColor = MutableLiveData<Int>()
+    protected val _name = MutableLiveData("")
 
-    abstract fun setName(value: String): Any?
-    abstract fun setBackgroundColor(value: Int): Any?
-    abstract fun save(soundSorting: Sound.Sorting? = null): Any?
+    abstract val backgroundColor: LiveData<Int>
+    val name: LiveData<String>
+        get() = _name
+
+    // var name: String = ""
+
+    /*
+        abstract fun getBackgroundColor(): Int?
+        abstract fun setBackgroundColor(color: Int): Any?
+    */
+    abstract fun save(): Any?
+
+    fun setBackgroundColor(color: Int) {
+        _backgroundColor.value = color
+    }
+
+    fun setName(value: String) {
+        _name.value = value
+    }
 }

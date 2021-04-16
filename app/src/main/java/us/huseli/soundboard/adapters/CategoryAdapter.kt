@@ -238,7 +238,7 @@ class CategoryAdapter(
             item?.also { category ->
                 category.id?.also { catId ->
                     when (v) {
-                        binding.categoryEditButton -> activity.showCategoryEditDialog(catId)
+                        binding.categoryEditButton -> activity.showCategoryEditDialog(category)
                         binding.categoryDeleteButton -> activity.showCategoryDeleteDialog(
                             catId, category.name, soundCount ?: 0)
                         binding.categoryCollapse -> toggleCollapsed()

@@ -9,14 +9,6 @@ class AddCategoryDialogFragment : BaseCategoryDialogFragment() {
     override val viewModel by viewModels<CategoryAddViewModel>()
     override val title = R.string.add_category
 
-    override fun save() {
-        viewModel.apply {
-            setName(binding?.categoryName?.text.toString().trim())
-            save()
-            dismiss()
-        }
-    }
-
     companion object {
         @JvmStatic
         fun newInstance(dialogId: Int): AddCategoryDialogFragment {

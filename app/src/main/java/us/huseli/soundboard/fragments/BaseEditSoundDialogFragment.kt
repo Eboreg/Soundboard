@@ -25,7 +25,7 @@ abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSo
     /** OPEN METHODS */
     open fun getCategories() = categoryListViewModel.categories
 
-    internal open fun recreateFromSavedInstanceState(state: Bundle) {
+    protected open fun recreateFromSavedInstanceState(state: Bundle) {
         state.getString(ARG_NAME)?.let { viewModel.name = it }
         viewModel.categoryIndex = state.getInt(ARG_CATEGORY_INDEX)
         viewModel.volume = state.getInt(ARG_VOLUME)

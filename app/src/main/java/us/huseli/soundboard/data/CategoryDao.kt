@@ -23,6 +23,9 @@ interface CategoryDao {
     @Query("SELECT backgroundColor FROM SoundCategory")
     fun getUsedColors(): List<Int>
 
+    @Query("SELECT backgroundColor FROM SoundCategory")
+    fun getUsedColorsLive(): LiveData<List<Int>>
+
     @Transaction
     fun insert(category: Category) {
         if (category.order == -1) {
@@ -66,4 +69,16 @@ interface CategoryDao {
 
     @Update
     fun update(categories: List<Category>)
+
+    @Transaction
+    fun update(categoryId: Int, name: String?, backgroundColor: Int?) {
+        if (name != null) updateName(categoryId, name)
+        if (backgroundColor != null) updateBackgroundColor(categoryId, backgroundColor)
+    }
+
+    @Query("UPDATE SoundCategory SET backgroundColor=:backgroundColor WHERE id=:categoryId")
+    fun updateBackgroundColor(categoryId: Int, backgroundColor: Int)
+
+    @Query("UPDATE SoundCategory SET name=:name WHERE id=:categoryId")
+    fun updateName(categoryId: Int, name: String)
 }

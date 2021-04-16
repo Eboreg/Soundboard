@@ -30,38 +30,47 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
     lateinit var colorHelper: ColorHelper
 
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
-        val inflater = LayoutInflater.from(requireContext())
-        if (binding == null) binding = FragmentEditCategoryBinding.inflate(inflater)
-        binding?.viewModel = viewModel
-        binding?.selectColorButton?.setOnClickListener { onSelectColourClick() }
+        val binding = this.binding ?: FragmentEditCategoryBinding.inflate(layoutInflater).also { this.binding = it }
+
+        binding.viewModel = viewModel
+        binding.selectColorButton.setOnClickListener { onSelectColourClick() }
 
         val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(title)
-            .setView(binding?.root)
+            .setView(binding.root)
             .setPositiveButton(R.string.save, null)
             .setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
             .create()
 
         // Custom listener to avoid automatic dismissal!
         dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val catName = binding?.categoryName?.text.toString().trim()
-                if (catName.isEmpty())
-                    binding?.root?.let {
-                        Snackbar.make(it, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show()
-                    }
-                else save()
-            }
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { onPositiveButtonClick() }
         }
         return dialog
     }
 
-    protected abstract fun save()
+    protected open fun onPositiveButtonClick() {
+        val catName = binding?.categoryName?.text.toString().trim()
+        if (catName.isEmpty())
+            binding?.root?.let {
+                Snackbar.make(it, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show()
+            }
+        else {
+            viewModel.setName(catName)
+            save()
+        }
+    }
 
+    protected open fun save() {
+        viewModel.save()
+        dismiss()
+    }
+
+/*
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         savedInstanceState?.let { state ->
             viewModel.let { viewModel ->
-                state.getString(ARG_NAME)?.let { viewModel.setName(it) }
+                state.getString(ARG_NAME)?.let { viewModel.name = it }
                 viewModel.setBackgroundColor(state.getInt(ARG_BACKGROUND_COLOR))
             }
         }
@@ -70,17 +79,24 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
 
     override fun onSaveInstanceState(outState: Bundle) {
         binding?.let { outState.putString(ARG_NAME, it.categoryName.text.toString()) }
-        viewModel.backgroundColor.value?.let { outState.putInt(ARG_BACKGROUND_COLOR, it) }
+        viewModel.getBackgroundColor()?.let { backgroundColor -> outState.putInt(ARG_BACKGROUND_COLOR, backgroundColor) }
         super.onSaveInstanceState(outState)
     }
+*/
 
+    /**
+     * I don't quite get why these following overrides are necessary, but the view binding of backgroundColor
+     * won't work without them D-:
+     */
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) =
         binding?.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        /**
+         * This has to be done here, otherwise: "Can't access the Fragment View's LifecycleOwner
+         * when getView() is null i.e., before onCreateView() or after onDestroyView()"
+         */
         super.onViewCreated(view, savedInstanceState)
-        // This has to be done here, otherwise: "Can't access the Fragment View's LifecycleOwner
-        // when getView() is null i.e., before onCreateView() or after onDestroyView()"
         binding?.apply {
             lifecycleOwner = viewLifecycleOwner
         } ?: run {
@@ -88,10 +104,13 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
+    }
+
     override fun onColorSelected(dialogId: Int, color: Int) {
-        viewModel.apply {
-            setBackgroundColor(color)
-        }
+        viewModel.setBackgroundColor(color)
     }
 
     override fun onDialogDismissed(dialogId: Int) = Unit
@@ -106,18 +125,12 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        binding = null
-    }
-
     companion object {
-        const val ARG_ID = "id"
         const val ARG_DIALOG_ID = "dialogId"  // for ColorPickerDialog
 
         // For restoring instance state on recreate
-        const val ARG_NAME = "name"
-        const val ARG_BACKGROUND_COLOR = "backgroundColor"
+        // const val ARG_NAME = "name"
+        // const val ARG_BACKGROUND_COLOR = "backgroundColor"
 
         const val LOG_TAG = "BCategoryDialogFragment"
     }

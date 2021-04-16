@@ -31,7 +31,7 @@ abstract class BaseSoundDialogFragment : DialogFragment() {
 
 
     /** OWN METHODS */
-    internal open fun configureDialog(builder: MaterialAlertDialogBuilder) {
+    protected open fun configureDialog(builder: MaterialAlertDialogBuilder) {
         builder.apply {
             getTitle()?.let { setTitle(it) }
             getMessage()?.let { setMessage(it) }
@@ -40,11 +40,11 @@ abstract class BaseSoundDialogFragment : DialogFragment() {
         }
     }
 
-    internal open fun getMessage(): CharSequence? = null
+    protected open fun getMessage(): CharSequence? = null
 
-    internal open fun getTitle(): CharSequence? = title?.let { getText(it) }
+    protected open fun getTitle(): CharSequence? = title?.let { getText(it) }
 
-    internal open fun onPositiveButtonClick() {
+    protected open fun onPositiveButtonClick() {
         soundViewModel.disableSelect()
         dismiss()
     }

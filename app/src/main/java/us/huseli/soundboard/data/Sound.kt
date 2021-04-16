@@ -26,7 +26,7 @@ data class Sound(
     val categoryId: Int?,
     val name: String,
     val path: String,
-    var order: Int,
+    val order: Int,
     val volume: Int,
     val added: Date,
     val duration: Long,
