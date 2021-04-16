@@ -249,6 +249,7 @@ class SoundAdapter(
             }
 
             soundViewModel.addSoundSelectionListener(this)
+            if (soundViewModel.isSelectEnabled && soundViewModel.isSoundSelected(sound)) onSelect()
 
             playerRepository.players.observe(this) { players ->
                 players[sound]?.also { newPlayer ->

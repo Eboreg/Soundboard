@@ -154,6 +154,8 @@ class SoundViewModel
         soundSelectionListeners.remove(listener)
     }
 
+    fun isSoundSelected(sound: Sound) = _selectedSounds.contains(sound)
+
     fun select(sound: Sound?) {
         if (sound != null && !_selectedSounds.contains(sound)) {
             _selectedSounds.add(sound)

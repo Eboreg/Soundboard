@@ -1,9 +1,6 @@
 In landscape mode, sound/category dialog fragments won't fit on screen and don't seem to be scrollable
 
 
-On config change, when sounds selected, they lose their selection marker :((((((
-
-
 Check out Flow:
 https://stackoverflow.com/questions/58890105/kotlin-flow-vs-livedata
 https://kotlinlang.org/docs/flow.html
