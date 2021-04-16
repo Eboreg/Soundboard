@@ -19,7 +19,7 @@ class CategoryRepository @Inject constructor(private val categoryDao: CategoryDa
 
     fun insert(category: Category) = categoryDao.insert(category)
 
-    fun setCollapsed(categoryId: Int, value: Boolean) = categoryDao.setCollapsed(categoryId, if (value) 1 else 0)
+    fun setCollapsed(categoryId: Int, value: Boolean) = categoryDao.updateCollapsed(categoryId, if (value) 1 else 0)
 
     fun update(category: Category) = categoryDao.update(category)
 

@@ -8,10 +8,10 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "SoundCategory")
 data class Category(
     @PrimaryKey(autoGenerate = true) val id: Int? = null,
-    var name: String,
-    var backgroundColor: Int,
-    var order: Int,
-    var collapsed: Boolean = false,
+    val name: String,
+    val backgroundColor: Int,
+    val order: Int,
+    val collapsed: Boolean = false,
     @Ignore var textColor: Int?,
     @Ignore var secondaryTextColor: Int?
 ) {

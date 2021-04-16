@@ -26,13 +26,16 @@ interface CategoryDao {
     @Query("SELECT backgroundColor FROM SoundCategory")
     fun getUsedColorsLive(): LiveData<List<Int>>
 
+    @Query("INSERT INTO SoundCategory (id, name, backgroundColor, `order`, collapsed) VALUES(:categoryId, :name, :backgroundColor, :order, :collapsed)")
+    fun insert(categoryId: Int, name: String, backgroundColor: Int, order: Int, collapsed: Boolean)
+
+    @Query("INSERT INTO SoundCategory (name, backgroundColor, `order`, collapsed) VALUES(:name, :backgroundColor, :order, :collapsed)")
+    fun insert(name: String, backgroundColor: Int, order: Int, collapsed: Boolean)
+
     @Transaction
     fun insert(category: Category) {
-        if (category.order == -1) {
-            val maxOrder = getMaxOrder() ?: -1
-            category.order = maxOrder + 1
-        }
-        privateInsert(category)
+        val order = if (category.order > -1) category.order else (getMaxOrder() ?: -1) + 1
+        insert(category.name, category.backgroundColor, order, category.collapsed)
     }
 
     @Query("SELECT * FROM SoundCategory ORDER BY `order`, id")
@@ -46,29 +49,33 @@ interface CategoryDao {
         val dbCategories = list()
         categories.forEach { category ->
             if (dbCategories.contains(category)) {
-                // Dont reset collapsed status
-                dbCategories.findLast { it == category }?.let { category.collapsed = it.collapsed }
                 update(category)
+                // Dont reset collapsed status
+                dbCategories.findLast { it == category }?.let {
+                    if (it.collapsed != category.collapsed && category.id != null) updateCollapsed(category.id,
+                        if (it.collapsed) 1 else 0)
+                }
             } else insert(category)
         }
         deleteExcluding(categories.mapNotNull { it.id })
     }
 
     @Query("UPDATE SoundCategory SET collapsed = :value WHERE id = :id")
-    fun setCollapsed(id: Int, value: Int)
+    fun updateCollapsed(id: Int, value: Int)
 
     @Transaction
     fun sort(categories: List<Category>) {
         /** Update .order according to current order in list and save */
-        categories.forEachIndexed { index, category -> category.order = index }
-        update(categories)
+        categories.mapNotNull { it.id }.forEachIndexed { index, categoryId ->
+            updateOrder(categoryId, index)
+        }
     }
+
+    @Query("UPDATE SoundCategory SET `order` = :order WHERE id = :categoryId")
+    fun updateOrder(categoryId: Int, order: Int)
 
     @Update
     fun update(category: Category)
-
-    @Update
-    fun update(categories: List<Category>)
 
     @Transaction
     fun update(categoryId: Int, name: String?, backgroundColor: Int?) {
