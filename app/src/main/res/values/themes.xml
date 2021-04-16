@@ -62,6 +62,8 @@
             @style/Soundboard.Style.Button.TextButton.Negative
         </item>
         <item name="materialAlertDialogTitleTextStyle">@style/Soundboard.Style.Title.Text</item>
+        <item name="android:windowMinWidthMajor">@dimen/dialog_min_width</item>
+        <item name="android:windowMinWidthMinor">@dimen/dialog_min_width</item>
     </style>
 
     <style name="Soundboard.Theme.MaterialAlertDialog.EqualButtons">

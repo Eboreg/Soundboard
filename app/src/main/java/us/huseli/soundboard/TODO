@@ -1,7 +1,3 @@
-In landscape mode, sound/category dialog fragments won't fit on screen and don't seem to be scrollable
-https://stackoverflow.com/questions/12478520/how-to-set-dialogfragments-width-and-height
-
-
 Check out Flow:
 https://stackoverflow.com/questions/58890105/kotlin-flow-vs-livedata
 https://kotlinlang.org/docs/flow.html
@@ -11,9 +7,6 @@ https://developer.android.com/reference/kotlin/androidx/room/Query
 
 
 Slim down various DB queries (only fetch needed data). Also goes for the SoundWithCategory stuff
-
-
-Make more Sound/Category properties val's
 
 
 Decouple AudioFile etc from Sound

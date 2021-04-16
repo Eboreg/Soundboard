@@ -12,4 +12,5 @@
     <dimen name="small_text">10sp</dimen>
     <dimen name="title_text">18sp</dimen>
     <dimen name="icon_width">24dp</dimen>
+    <dimen name="dialog_min_width">95%</dimen>
 </resources>
