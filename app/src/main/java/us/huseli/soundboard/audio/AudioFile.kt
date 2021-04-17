@@ -4,13 +4,10 @@ import android.media.*
 import android.util.Log
 import kotlinx.coroutines.*
 import us.huseli.soundboard.BuildConfig
-import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.helpers.Functions
 import java.nio.ByteBuffer
 
-class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, listener: Listener? = null) {
-    constructor(sound: Sound, baseBufferSize: Int, listener: Listener?) :
-            this(sound, sound.volume, baseBufferSize, listener)
+class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, listener: Listener? = null) {
 
     // Public val's & var's
     val duration: Long
@@ -51,7 +48,7 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
                 // Except for on RELEASED, we will not change from ERROR to anything else
                 if (field != State.ERROR) {
                     if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-                        "state changed from $field to $value, this=$this, sound=$sound")
+                        "state changed from $field to $value, this=$this, path=$path")
                     field = value
                     stateListener?.onAudioFileStateChange(value)
                 }
@@ -220,7 +217,7 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
             try {
                 codec?.flush()
             } catch (e: IllegalStateException) {
-                Log.e(LOG_TAG, "flush codec error, sound=$sound", e)
+                Log.e(LOG_TAG, "flush codec error, path=$path", e)
             }
         }
     }
@@ -228,7 +225,7 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
     private fun initExtractor(): MediaFormat? {
         try {
             extractorDone = false
-            extractor.setDataSource(sound.path)
+            extractor.setDataSource(path)
             for (trackNumber in 0 until extractor.trackCount) {
                 val format = extractor.getTrackFormat(trackNumber)
                 val mime = format.getString(MediaFormat.KEY_MIME)
@@ -245,13 +242,13 @@ class AudioFile(private val sound: Sound, volume: Int, baseBufferSize: Int, list
 
     private fun onError(message: String, exception: Throwable? = null) {
         state = State.ERROR
-        Log.e(LOG_TAG, "message=$message, sound=$sound", exception)
+        Log.e(LOG_TAG, "message=$message, path=$path", exception)
         stateListener?.onAudioFileError(message)
     }
 
     private fun onWarning(message: String, verboseMessage: String? = null, exception: Exception? = null) {
         Log.w(LOG_TAG,
-            "message=${verboseMessage ?: message}, exception=$exception, sound=$sound", exception)
+            "message=${verboseMessage ?: message}, exception=$exception, path=$path", exception)
         stateListener?.onAudioFileWarning(message)
     }
 

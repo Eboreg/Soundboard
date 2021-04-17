@@ -110,7 +110,8 @@ class SoundPlayer(private val sound: Sound,
                     RepressMode.OVERLAP -> {
                         // TODO: adjust volumes?
                         audioFile?.also { makeTemporary(it) }
-                        audioFile = AudioFile(sound, bufferSize, this@SoundPlayer).prepare().play(timeoutUs)
+                        audioFile =
+                            AudioFile(sound.path, sound.volume, bufferSize, this@SoundPlayer).prepare().play(timeoutUs)
                     }
                     RepressMode.PAUSE -> {
                         if (audioFile?.isPlaying == true) audioFile?.pause()
@@ -165,7 +166,7 @@ class SoundPlayer(private val sound: Sound,
     /********** PRIVATE METHODS **********/
     private suspend fun createAudioFile(): AudioFile? {
         return try {
-            AudioFile(sound, bufferSize, this).prepareAndPrime().also { _duration = it.duration }
+            AudioFile(sound.path, sound.volume, bufferSize, this).prepareAndPrime().also { _duration = it.duration }
         } catch (e: Exception) {
             _errorMessage = "Error initializing ${sound.name}" + e.message?.let { ": $it" }
             _state = State.ERROR

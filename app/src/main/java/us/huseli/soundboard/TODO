@@ -9,9 +9,6 @@ https://developer.android.com/reference/kotlin/androidx/room/Query
 Slim down various DB queries (only fetch needed data). Also goes for the SoundWithCategory stuff
 
 
-Decouple AudioFile etc from Sound
-
-
 When ALL categories are collapsed, SoundPlayers/AudioFiles are not initializing (maybe not a huge
 problem)
 
