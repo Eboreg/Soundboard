@@ -6,7 +6,8 @@ https://medium.com/androiddevelopers/room-flow-273acffe5b57
 https://developer.android.com/reference/kotlin/androidx/room/Query
 
 
-Slim down various DB queries (only fetch needed data). Also goes for the SoundWithCategory stuff
+Slim down various DB queries (only fetch needed data). Also goes for the SoundWithCategory stuff.
+(How?)
 
 
 When ALL categories are collapsed, SoundPlayers/AudioFiles are not initializing (maybe not a huge
@@ -18,7 +19,6 @@ done in BG thread on startup instead
 - Looks like it's mainly SoundAdapter.onCreateViewHolder > inflate taking time. So only UI stuff.
 
 
-
 Look at backup_descriptor.xml stuff
 
 
@@ -28,18 +28,11 @@ method without middlemen
 * Play on touch event in SoundViewHolder, instead of click event
 
 
-Layout takes lots of time (well, mostly while debugging, not so much on regular runs).
-Mostly RecyclerView.onMeasure() and ConstraintLayout.onMeasure() (for
-individual sounds). How to optimize? Something with autoMeasure perhaps?
-https://developer.android.com/reference/kotlin/androidx/recyclerview/widget/RecyclerView.LayoutManager#isautomeasureenabled
-
-
-When collapsing last category, its header disappears from view until you scroll, then reappears
+When collapsing last category, its header disappears from view until you scroll, then reappears.
 CategoryAdapter.onViewDetachedFromWindow() is run for that holder and it's hidden. Why?
 
 
 On ordering enabled: scroll with 2 fingers?
-
 
 
 Check for usages of adapterPosition/layoutPosition and correct according to

@@ -276,8 +276,9 @@ class CategoryAdapter(
         }
 
 
-        inner class SoundLayoutManager(context: Context, spanCount: Int) : GridLayoutManager(context, spanCount),
-            ItemTouchHelper.ViewDropHandler {
+        inner class SoundLayoutManager(context: Context, spanCount: Int) :
+            GridLayoutManager(context, spanCount), ItemTouchHelper.ViewDropHandler {
+
             override fun isAutoMeasureEnabled() = true
 
             override fun prepareForDrop(view: View, target: View, x: Int, y: Int) {
