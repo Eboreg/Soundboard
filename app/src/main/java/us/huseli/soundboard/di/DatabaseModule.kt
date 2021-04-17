@@ -14,7 +14,7 @@ import javax.inject.Singleton
 object DatabaseModule {
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext appContext: Context) = SoundboardDatabase.buildDatabase(appContext)
+    fun provideDatabase(@ApplicationContext context: Context) = SoundboardDatabase.buildDatabase(context)
 
     @Provides
     @Singleton

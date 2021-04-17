@@ -10,14 +10,13 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import java.util.*
 
-@Database(entities = [Sound::class, Category::class], version = 14, exportSchema = false)
+@Database(entities = [Sound::class, Category::class], version = 14, exportSchema = true)
 @TypeConverters(Converters::class)
 abstract class SoundboardDatabase : RoomDatabase() {
     abstract fun soundDao(): SoundDao
     abstract fun categoryDao(): CategoryDao
 
     companion object {
-
         private val MIGRATION_4_5 = object: Migration(4, 5) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE Sound ADD COLUMN volume REAL NOT NULL DEFAULT 1.0")
@@ -183,18 +182,26 @@ abstract class SoundboardDatabase : RoomDatabase() {
             }
         }
 
-        fun buildDatabase(appContext: Context): SoundboardDatabase {
-            return Room.databaseBuilder(appContext, SoundboardDatabase::class.java, "sound_database")
-                    .addMigrations(MIGRATION_4_5)
-                    .addMigrations(MIGRATION_5_6)
-                    .addMigrations(MIGRATION_6_7)
-                    .addMigrations(MIGRATION_7_8)
-                    .addMigrations(MIGRATION_8_9)
-                    .addMigrations(MIGRATION_9_10)
-                    .addMigrations(MIGRATION_10_11)
-                    .addMigrations(MIGRATION_11_12)
-                    .addMigrations(MIGRATION_12_13)
-                    .addMigrations(MIGRATION_13_14)
+/*
+        fun test(context: Context) {
+            val db = buildDatabase(context)
+            Room.databaseBuilder(context, SoundboardDatabase::class.java, "sound_database")
+                .createFromFile()
+        }
+*/
+
+        fun buildDatabase(context: Context): SoundboardDatabase {
+            return Room.databaseBuilder(context, SoundboardDatabase::class.java, "sound_database")
+                .addMigrations(MIGRATION_4_5)
+                .addMigrations(MIGRATION_5_6)
+                .addMigrations(MIGRATION_6_7)
+                .addMigrations(MIGRATION_7_8)
+                .addMigrations(MIGRATION_8_9)
+                .addMigrations(MIGRATION_9_10)
+                .addMigrations(MIGRATION_10_11)
+                .addMigrations(MIGRATION_11_12)
+                .addMigrations(MIGRATION_12_13)
+                .addMigrations(MIGRATION_13_14)
                     .fallbackToDestructiveMigration()
                     .build()
         }
