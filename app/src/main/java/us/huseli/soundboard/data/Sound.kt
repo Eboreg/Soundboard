@@ -1,5 +1,6 @@
 package us.huseli.soundboard.data
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.os.Parcel
@@ -21,21 +22,27 @@ import java.util.*
     )],
     indices = [Index("categoryId")]
 )
-data class Sound(
-    @PrimaryKey(autoGenerate = true) val id: Int? = null,
-    val categoryId: Int?,
-    val name: String,
-    val path: String,
-    val order: Int,
-    val volume: Int,
-    val added: Date,
-    val duration: Long,
-    val checksum: String?,
-    @Ignore val uri: Uri?,
-    @Ignore var textColor: Int? = null,
-    @Ignore var backgroundColor: Int? = null,
-    @Ignore var selected: Boolean = false
-) : Parcelable {
+open class Sound(@PrimaryKey(autoGenerate = true) open val id: Int?,
+                 open val categoryId: Int?,
+                 open val name: String,
+                 open val path: String,
+                 open val order: Int,
+                 open val volume: Int,
+                 open val added: Date,
+                 open val duration: Long,
+                 open val checksum: String,
+                 @Ignore val uri: Uri?) : Parcelable {
+
+    constructor(id: Int?,
+                categoryId: Int?,
+                name: String,
+                path: String,
+                order: Int,
+                volume: Int,
+                added: Date,
+                duration: Long,
+                checksum: String) :
+            this(id, categoryId, name, path, order, volume, added, duration, checksum, null)
 
     constructor(parcel: Parcel) : this(
         parcel.readValue(Int::class.java.classLoader) as? Int,  // id
@@ -46,35 +53,12 @@ data class Sound(
         parcel.readInt(),  // volume
         parcel.readSerializable() as Date,  // added
         parcel.readLong(),  // duration
-        parcel.readString(),  // checksum
+        parcel.readString() ?: "", // checksum
         null
     ) {
+        @Suppress("LeakingThis")
         if (BuildConfig.DEBUG) Log.d("SOUND", "Create Sound though Parcelable constructor: $this")
     }
-
-    constructor(
-        id: Int,
-        categoryId: Int?,
-        name: String,
-        path: String,
-        order: Int,
-        volume: Int,
-        added: Date,
-        duration: Long,
-        checksum: String?
-    ) : this(id, categoryId, name, path, order, volume, added, duration, checksum, null)
-
-    @Ignore
-    constructor(
-        categoryId: Int?,
-        name: String,
-        path: String,
-        order: Int,
-        volume: Int,
-        added: Date,
-        duration: Long,
-        checksum: String?
-    ) : this(null, categoryId, name, path, order, volume, added, duration, checksum, null)
 
     override fun equals(other: Any?) = other is Sound && other.id == id
 
@@ -95,51 +79,48 @@ data class Sound(
         parcel.writeString(checksum)
     }
 
-    override fun describeContents(): Int = 0
+    override fun describeContents() = 0
 
-    override fun hashCode(): Int = id ?: 0
+    override fun hashCode() = id ?: 0
+
+    fun calculateChecksum() = MD5.calculate(File(path))
 
 
-    class Comparator(private val sortBy: SortParameter, private val sortOrder: SortOrder) :
+    class Comparator(private val sorting: SoundSorting) :
         java.util.Comparator<Sound> {
 
         override fun compare(o1: Sound, o2: Sound): Int {
-            val s1 = if (sortOrder == SortOrder.ASCENDING) o1 else o2
-            val s2 = if (sortOrder == SortOrder.ASCENDING) o2 else o1
-            return when (sortBy) {
-                SortParameter.NAME -> {
+            val s1 = if (sorting.order == SoundSorting.Order.ASCENDING) o1 else o2
+            val s2 = if (sorting.order == SoundSorting.Order.ASCENDING) o2 else o1
+            return when (sorting.parameter) {
+                SoundSorting.Parameter.NAME -> {
                     when {
                         s1.name.toLowerCase(Locale.ROOT) > s2.name.toLowerCase(Locale.ROOT) -> 1
                         s1.name.equals(s2.name, ignoreCase = true) -> 0
                         else -> -1
                     }
                 }
-                SortParameter.DURATION -> {
+                SoundSorting.Parameter.DURATION -> {
                     when {
                         s1.duration > s2.duration -> 1
                         s1.duration == s2.duration -> 0
                         else -> -1
                     }
                 }
-                SortParameter.TIME_ADDED -> {
+                SoundSorting.Parameter.TIME_ADDED -> {
                     when {
                         s1.added > s2.added -> 1
                         s1.added == s2.added -> 0
                         else -> -1
                     }
                 }
-                SortParameter.UNDEFINED -> 0
+                SoundSorting.Parameter.UNDEFINED -> 0
             }
         }
     }
 
 
-    enum class SortOrder { ASCENDING, DESCENDING }
-
-    enum class SortParameter { UNDEFINED, NAME, DURATION, TIME_ADDED }
-
-    data class Sorting(val parameter: SortParameter, val order: SortOrder)
-
+    @SuppressLint("ParcelCreator")
     companion object CREATOR : Parcelable.Creator<Sound> {
         override fun createFromParcel(parcel: Parcel) = Sound(parcel)
 
@@ -153,70 +134,90 @@ data class Sound(
                 ?: throw Exception("MD5.calculate returned null")
             inputStream.close()
 
-            val name: String
+            val cursor = context.contentResolver.query(
+                uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
 
-            when (val cursor = context.contentResolver.query(
-                uri,
-                arrayOf(OpenableColumns.DISPLAY_NAME),
-                null,
-                null,
-                null
-            )) {
-                null -> name = ""
+            val name = when (cursor) {
+                null -> ""
                 else -> {
                     cursor.moveToFirst()
-                    name =
-                        cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)).let {
-                            if (it.contains(".")) it.substring(0, it.lastIndexOf("."))
-                            else it
-                        }
-                    cursor.close()
+                    cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)).let {
+                        if (it.contains(".")) it.substring(0, it.lastIndexOf("."))
+                        else it
+                    }
                 }
             }
-
-
+            cursor?.close()
 
             return Sound(
                 null, null, name, uri.path ?: "", -1, Constants.DEFAULT_VOLUME,
                 Date(), -1, checksum, uri)
         }
 
-        private fun createFromTemporary(tempSound: Sound,
-                                        name: String?,
-                                        volume: Int?,
-                                        categoryId: Int?,
-                                        context: Context): Sound {
+        fun createFromTemporary(tempSound: Sound,
+                                name: String?,
+                                volume: Int?,
+                                categoryId: Int?,
+                                context: Context): Sound {
             /** Copy data to local storage and return new Sound object to be saved to DB */
-            val inputStream = context.contentResolver.openInputStream(tempSound.uri!!)
-                ?: throw Exception("File provider returned null")
+            val uri = tempSound.uri ?: throw Exception("Sound ${tempSound.name} has no URI")
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val outputFile = File(context.getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE), tempSound.checksum)
 
-            /** Some paranoid extra measures */
-            val checksum = tempSound.checksum
-                ?: MD5.calculate(inputStream)
-                ?: throw Exception("MD5.calculate returned null")
-            val file = File(context.getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE), checksum)
-            val outputStream = FileOutputStream(file)
-            val buf = ByteArray(1024)
-            var len: Int
-            while (inputStream.read(buf).also { len = it } > 0) {
-                outputStream.write(buf, 0, len)
-            }
-            outputStream.close()
-            inputStream.close()
+                FileOutputStream(outputFile).use { outputStream ->
+                    val buf = ByteArray(1024)
+                    var len: Int
 
-            return Sound(
-                categoryId ?: tempSound.categoryId, name ?: tempSound.name, file.path,
-                tempSound.order, volume ?: tempSound.volume, tempSound.added, tempSound.duration, checksum)
+                    while (inputStream.read(buf).also { len = it } > 0) {
+                        outputStream.write(buf, 0, len)
+                    }
+
+                    return Sound(
+                        null,
+                        categoryId ?: tempSound.categoryId,
+                        name ?: tempSound.name,
+                        outputFile.path,
+                        tempSound.order,
+                        volume ?: tempSound.volume,
+                        tempSound.added,
+                        tempSound.duration,
+                        tempSound.checksum)
+                }
+            } ?: throw Exception("File provider returned null")
         }
 
         fun createFromTemporary(tempSound: Sound, context: Context) =
             createFromTemporary(tempSound, null, null, null, context)
-
-        fun createFromTemporary(tempSounds: List<Sound>,
-                                name: String?,
-                                volume: Int?,
-                                categoryId: Int?,
-                                context: Context): List<Sound> =
-            tempSounds.map { createFromTemporary(it, name, volume, categoryId, context) }
     }
+}
+
+data class SoundExtended(override val id: Int?,
+                         override val categoryId: Int?,
+                         override val name: String,
+                         override val path: String,
+                         override val order: Int,
+                         override val volume: Int,
+                         override val added: Date,
+                         override val duration: Long,
+                         override val checksum: String,
+                         val backgroundColor: Int?) :
+    Sound(id, categoryId, name, path, order, volume, added, duration, checksum) {
+
+    @Ignore
+    var textColor: Int? = null
+
+    override fun equals(other: Any?) = other is Sound && other.id == id
+
+    override fun hashCode(): Int = id ?: 0
+
+    override fun toString(): String {
+        val hashCode = Integer.toHexString(System.identityHashCode(this))
+        return "SoundExtended $hashCode <id=$id, name=$name, backgroundColor=$backgroundColor, categoryId=$categoryId>"
+    }
+}
+
+
+class SoundSorting(val parameter: Parameter, val order: Order) {
+    enum class Order { ASCENDING, DESCENDING }
+    enum class Parameter { UNDEFINED, NAME, DURATION, TIME_ADDED }
 }

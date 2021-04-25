@@ -44,9 +44,9 @@ class SoundAdapter(
     private val categoryViewModel: CategoryViewModel,
     private val activity: FragmentActivity
 ) :
-    LifecycleAdapter<Sound, SoundAdapter.SoundViewHolder>(DiffCallback()) {
+    LifecycleAdapter<SoundExtended, SoundAdapter.SoundViewHolder>(DiffCallback()) {
 
-    var category: Category? = null
+    lateinit var category: Category
 
     init {
         setHasStableIds(true)
@@ -67,8 +67,7 @@ class SoundAdapter(
         val item = getItem(position)
         if (BuildConfig.DEBUG) Log.d(LOG_TAG,
             "onBindViewHolder: item=$item, holder=$holder, position=$position, category=$category")
-        category?.let { holder.bind(item) }
-            ?: run { Log.e(LOG_TAG, "onBindViewHolder: category is null") }
+        holder.bind(item)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SoundViewHolder {
@@ -90,6 +89,8 @@ class SoundAdapter(
 
     internal fun contains(sound: Sound) = currentList.indexOf(sound) > -1
 
+    internal fun contains(soundId: Int) = currentList.map { it.id }.contains(soundId)
+
     internal fun expandCategory() = categoryViewModel.expand(category)
 
     internal fun getAdapterPositionUnder(x: Float, y: Float): Int {
@@ -109,24 +110,24 @@ class SoundAdapter(
 
     internal fun getSoundAt(position: Int) = getItem(position)
 
-    internal fun insertOrMoveSound(sound: Sound, toPosition: Int) {
-        val fromPosition = currentList.indexOf(sound)
-        val sounds = currentList.toMutableList()
+    internal fun insertOrMoveSound(soundId: Int, toPosition: Int) {
+        val fromPosition = currentList.map { it.id }.indexOf(soundId)
+        val soundIds = currentList.mapNotNull { it.id }.toMutableList()
 
         if (BuildConfig.DEBUG)
             Log.i(LOG_TAG,
-                "insertOrMoveSound: fromPosition=$fromPosition, toPosition=$toPosition, sound=$sound, this=$this, sounds=$sounds")
+                "insertOrMoveSound: fromPosition=$fromPosition, toPosition=$toPosition, soundId=$soundId, this=$this, soundIds=$soundIds")
 
         // "The construct when can have branches that overlap, in case of multiple matches the
         // first branch is chosen." -- https://superkotlin.com/kotlin-when-statement/
         when {
-            toPosition == -1 -> sounds.add(sound)
-            fromPosition == -1 -> sounds.add(toPosition, sound)
+            toPosition == -1 -> soundIds.add(soundId)
+            fromPosition == -1 -> soundIds.add(toPosition, soundId)
             fromPosition < toPosition -> for (i in fromPosition until toPosition - 1)
-                Collections.swap(sounds, i, i + 1)
-            else -> for (i in fromPosition downTo toPosition + 1) Collections.swap(sounds, i, i - 1)
+                Collections.swap(soundIds, i, i + 1)
+            else -> for (i in fromPosition downTo toPosition + 1) Collections.swap(soundIds, i, i - 1)
         }
-        soundViewModel.update(sounds, category)
+        soundViewModel.updateCategoryAndOrder(soundIds, category)
     }
 
     internal fun isEmpty() = currentList.isEmpty()
@@ -168,12 +169,12 @@ class SoundAdapter(
     }
 
 
-    class DiffCallback : DiffUtil.ItemCallback<Sound>() {
-        override fun areItemsTheSame(oldItem: Sound, newItem: Sound) = oldItem == newItem
+    class DiffCallback : DiffUtil.ItemCallback<SoundExtended>() {
+        override fun areItemsTheSame(oldItem: SoundExtended, newItem: SoundExtended) = oldItem == newItem
 
-        override fun areContentsTheSame(oldItem: Sound, newItem: Sound) =
+        override fun areContentsTheSame(oldItem: SoundExtended, newItem: SoundExtended) =
             oldItem.name == newItem.name &&
-                    oldItem.order == newItem.order &&
+                    // oldItem.order == newItem.order &&
                     oldItem.volume == newItem.volume &&
                     oldItem.backgroundColor == newItem.backgroundColor &&
                     oldItem.duration == newItem.duration
@@ -191,7 +192,7 @@ class SoundAdapter(
         View.OnTouchListener,
         SoundPlayer.StateListener,
         SoundViewModel.SoundSelectionListener,
-        LifecycleViewHolder<Sound>(binding.root) {
+        LifecycleViewHolder<SoundExtended>(binding.root) {
 
         @InstallIn(SingletonComponent::class)
         @EntryPoint
@@ -219,7 +220,7 @@ class SoundAdapter(
         private var playerTimer: SoundPlayerTimer? = null
 
         override val lifecycleRegistry = LifecycleRegistry(this)
-        override var item: Sound? = null
+        override var item: SoundExtended? = null
         override val sound: Sound?
             get() = item
 
@@ -231,7 +232,7 @@ class SoundAdapter(
 
 
         /********* PUBLIC/INTERNAL METHODS **********/
-        internal fun bind(sound: Sound) {
+        internal fun bind(sound: SoundExtended) {
             item = sound
             val soundId = sound.id
             if (soundId == null) {
@@ -251,16 +252,16 @@ class SoundAdapter(
             soundViewModel.addSoundSelectionListener(this)
             if (soundViewModel.isSelectEnabled && soundViewModel.isSoundSelected(sound)) onSelect()
 
+            appViewModel.reorderEnabled.observe(this) { value -> onReorderEnabledChange(value) }
+
             playerRepository.players.observe(this) { players ->
-                players[sound]?.also { newPlayer ->
+                players[sound.id]?.also { newPlayer ->
                     player = newPlayer
                     newPlayer.setStateListener(this)
                     onSoundPlayerStateChange(newPlayer.state, newPlayer.playbackPositionMs)
                     appViewModel.repressMode.observe(this) { newPlayer.repressMode = it }
                 }
             }
-
-            appViewModel.reorderEnabled.observe(this) { value -> onReorderEnabledChange(value) }
         }
 
 
@@ -293,10 +294,10 @@ class SoundAdapter(
             }
 
         private fun startDragAndDrop(view: View) {
-            item?.let { item ->
+            item?.id?.let { soundId ->
                 val data = ClipData.newPlainText("", "")
                 val shadowBuilder = View.DragShadowBuilder(view)
-                val draggedSound = DraggedSound(item, bindingAdapterPosition, view.height)
+                val draggedSound = DraggedSound(soundId, bindingAdapterPosition, view.height)
 
                 if (BuildConfig.DEBUG) Log.d(LOG_TAG, "startDragAndDrop: draggedSound=$draggedSound, this=$this")
 
@@ -313,6 +314,8 @@ class SoundAdapter(
         override fun markDestroyed() {
             soundViewModel.removeOnSelectAllListener(this)
             playerRepository.players.removeObservers(this)
+            appViewModel.reorderEnabled.removeObservers(this)
+            appViewModel.repressMode.removeObservers(this)
             player?.setStateListener(null)
             super.markDestroyed()
         }
@@ -320,6 +323,8 @@ class SoundAdapter(
         override fun markDetach() {
             soundViewModel.removeOnSelectAllListener(this)
             playerRepository.players.removeObservers(this)
+            appViewModel.repressMode.removeObservers(this)
+            appViewModel.reorderEnabled.removeObservers(this)
             super.markDetach()
         }
 

@@ -12,17 +12,13 @@ data class Category(
     val backgroundColor: Int,
     val order: Int,
     val collapsed: Boolean = false,
-    @Ignore var textColor: Int?,
-    @Ignore var secondaryTextColor: Int?
+    @Ignore var textColor: Int?
 ) {
     constructor(id: Int?, name: String, backgroundColor: Int, order: Int, collapsed: Boolean) :
-            this(id, name, backgroundColor, order, collapsed, null, null)
+            this(id, name, backgroundColor, order, collapsed, null)
 
     @Ignore
-    constructor(name: String, backgroundColor: Int, order: Int) : this(null, name, backgroundColor, order, false)
-
-    @Ignore
-    constructor(name: String, backgroundColor: Int) : this(name, backgroundColor, -1)
+    constructor(name: String, backgroundColor: Int) : this(null, name, backgroundColor, -1, false)
 
     @Ignore
     constructor(name: String) : this(name, Color.DKGRAY)

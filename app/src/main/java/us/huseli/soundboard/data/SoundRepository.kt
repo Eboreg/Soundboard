@@ -1,27 +1,33 @@
 package us.huseli.soundboard.data
 
+import androidx.lifecycle.map
+import us.huseli.soundboard.helpers.ColorHelper
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
-    fun delete(sounds: List<Sound>) = soundDao.delete(sounds.mapNotNull { it.id })
-
-    fun deleteByIds(soundIds: List<Int>) = soundDao.delete(soundIds)
-
-    fun deleteByCategory(categoryId: Int) = delete(soundDao.listByCategory(categoryId))
-
+class SoundRepository @Inject constructor(private val soundDao: SoundDao, private val colorHelper: ColorHelper) {
+    /********* INSERT ************************************************************************************************/
     fun insert(sounds: List<Sound>) = soundDao.insert(sounds)
 
+    fun insert(sound: Sound) = soundDao.insert(sound)
+
+
+    /********* LIST **************************************************************************************************/
     fun list() = soundDao.list()
 
-    fun listLiveWithCategory() = soundDao.listLiveWithCategory()
+    fun listPaths() = soundDao.listPaths()
 
-    /** Sorts all sounds within category */
-    fun sort(category: Category?, sorting: Sound.Sorting) {
-        category?.id?.let { soundDao.sort(soundDao.listByCategory(it), sorting) }
+    fun listLiveExtended() = soundDao.listLiveExtended().map { list ->
+        list.onEach { sound ->
+            sound.backgroundColor?.also {
+                sound.textColor = colorHelper.getColorOnBackground(it)
+            }
+        }
     }
 
+
+    /********* UPDATE ************************************************************************************************/
     fun updateChecksum(sound: Sound, checksum: String?) {
         sound.id?.also { soundDao.updateChecksum(it, checksum) }
     }
@@ -30,12 +36,26 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao) {
         soundDao.update(sounds, name, volume, categoryId)
     }
 
-    fun updateCategoryAndOrder(sounds: List<Sound>, categoryId: Int) {
+    fun updateCategoryAndOrder(soundIds: List<Int>, categoryId: Int) {
         /**
          * Updates category, then saves Sound.order according to position in list.
          * List is assumed to contain _all_ sounds now in this category, in their intended order.
          */
-        soundDao.updateCategoryAndOrder(sounds, categoryId)
+        soundDao.updateCategoryAndOrder(soundIds, categoryId)
     }
 
+
+    /********* DELETE ************************************************************************************************/
+    fun delete(sounds: List<Sound>) = soundDao.delete(sounds.mapNotNull { it.id })
+
+    fun deleteByIds(soundIds: List<Int>) = soundDao.delete(soundIds)
+
+    fun deleteByCategory(categoryId: Int) = soundDao.deleteByCategory(categoryId)
+
+
+    /********* VARIOUS ***********************************************************************************************/
+    fun sort(category: Category?, sorting: SoundSorting) {
+        /** Sorts all sounds within category */
+        category?.id?.let { soundDao.sortWithinCategory(it, sorting) }
+    }
 }

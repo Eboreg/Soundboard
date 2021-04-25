@@ -10,17 +10,17 @@ import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.R
-import us.huseli.soundboard.data.Sound
+import us.huseli.soundboard.data.SoundSorting
 import us.huseli.soundboard.viewmodels.CategoryEditViewModel
 
 @AndroidEntryPoint
 class EditCategoryDialogFragment : BaseCategoryDialogFragment(), RadioGroup.OnCheckedChangeListener,
     AdapterView.OnItemSelectedListener {
     private val sortParameterItems = listOf(
-        SortParameterItem(Sound.SortParameter.UNDEFINED, R.string.unchanged),
-        SortParameterItem(Sound.SortParameter.NAME, R.string.name),
-        SortParameterItem(Sound.SortParameter.DURATION, R.string.duration),
-        SortParameterItem(Sound.SortParameter.TIME_ADDED, R.string.add_date),
+        SortParameterItem(SoundSorting.Parameter.UNDEFINED, R.string.unchanged),
+        SortParameterItem(SoundSorting.Parameter.NAME, R.string.name),
+        SortParameterItem(SoundSorting.Parameter.DURATION, R.string.duration),
+        SortParameterItem(SoundSorting.Parameter.TIME_ADDED, R.string.add_date),
     )
 
     override val viewModel by activityViewModels<CategoryEditViewModel>()
@@ -29,16 +29,15 @@ class EditCategoryDialogFragment : BaseCategoryDialogFragment(), RadioGroup.OnCh
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         return try {
             val dialog = super.onCreateDialog(savedInstanceState)
-            binding?.also {
-                it.sortContainer.visibility = View.VISIBLE
-                it.sortOrder.check(it.sortOrderAscending.id)
-                it.sortOrder.setOnCheckedChangeListener(this)
-                it.sortBy.adapter = ArrayAdapter(
-                    requireContext(), android.R.layout.simple_spinner_item, sortParameterItems)
-                it.sortBy.onItemSelectedListener = this
-            }
+            binding.sortContainer.visibility = View.VISIBLE
+            binding.sortOrder.check(binding.sortOrderAscending.id)
+            binding.sortOrder.setOnCheckedChangeListener(this)
+            binding.sortBy.adapter = ArrayAdapter(
+                requireContext(), android.R.layout.simple_spinner_item, sortParameterItems)
+            binding.sortBy.onItemSelectedListener = this
             dialog
         } catch (e: NullPointerException) {
+            // TODO: When would this happen?
             MaterialAlertDialogBuilder(requireContext()).run {
                 setMessage(R.string.data_not_fetched_yet)
                 create()
@@ -47,27 +46,25 @@ class EditCategoryDialogFragment : BaseCategoryDialogFragment(), RadioGroup.OnCh
     }
 
     override fun onCheckedChanged(group: RadioGroup?, checkedId: Int) {
-        binding?.also {
-            if (group != null && group == it.sortOrder) {
-                viewModel.sortOrder = when (checkedId) {
-                    it.sortOrderDescending.id -> Sound.SortOrder.DESCENDING
-                    else -> Sound.SortOrder.ASCENDING
-                }
+        if (group != null && group == binding.sortOrder) {
+            viewModel.sortOrder = when (checkedId) {
+                binding.sortOrderDescending.id -> SoundSorting.Order.DESCENDING
+                else -> SoundSorting.Order.ASCENDING
             }
         }
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        if (parent != null && parent == binding?.sortBy)
+        if (parent != null && parent == binding.sortBy)
             (parent.getItemAtPosition(position) as? SortParameterItem)?.let { viewModel.sortParameter = it.value }
     }
 
     override fun onNothingSelected(parent: AdapterView<*>?) {
-        if (parent != null && parent == binding?.sortBy) viewModel.sortParameter = null
+        if (parent != null && parent == binding.sortBy) viewModel.sortParameter = null
     }
 
 
-    inner class SortParameterItem(val value: Sound.SortParameter, val stringRes: Int) {
+    inner class SortParameterItem(val value: SoundSorting.Parameter, val stringRes: Int) {
         override fun toString() = getString(stringRes)
     }
 

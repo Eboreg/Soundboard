@@ -11,9 +11,9 @@ import us.huseli.soundboard.viewmodels.SoundViewModel
 
 @AndroidEntryPoint
 abstract class BaseSoundDialogFragment : DialogFragment() {
-    internal val soundViewModel by activityViewModels<SoundViewModel>()
-    internal open val positiveButtonText = R.string.save
-    internal open val title: Int? = null
+    protected val soundViewModel by activityViewModels<SoundViewModel>()
+    protected open val positiveButtonText = R.string.save
+    protected open val title: Int? = null
 
 
     /** OVERRIDDEN STANDARD METHODS */

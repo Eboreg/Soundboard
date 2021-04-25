@@ -140,7 +140,6 @@ class CategoryAdapter(
 
             if (category.collapsed) binding.loadingBar.visibility = View.GONE
 
-            binding.categoryHeader.setBackgroundColor(category.backgroundColor)
             soundViewModel.filteredSounds.observe(this) { allSounds ->
                 val sounds = allSounds.filter { it.categoryId == category.id }
                 soundCount = sounds.size.also {

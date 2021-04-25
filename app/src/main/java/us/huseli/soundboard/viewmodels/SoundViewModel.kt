@@ -11,9 +11,6 @@ import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.data.SoundRepository
 import us.huseli.soundboard.data.UndoRepository
-import us.huseli.soundboard.helpers.ColorHelper
-import us.huseli.soundboard.helpers.MD5
-import java.io.File
 import java.util.*
 import javax.inject.Inject
 
@@ -21,19 +18,12 @@ import javax.inject.Inject
 class SoundViewModel
 @Inject constructor(
     private val repository: SoundRepository,
-    private val undoRepository: UndoRepository,
-    private val colorHelper: ColorHelper
+    private val undoRepository: UndoRepository
 ) : ViewModel() {
 
     private val _failedSounds = mutableListOf<Sound>()
 
-    val allSounds = repository.listLiveWithCategory().map { list ->
-        list.forEach {
-            it.sound.textColor = colorHelper.getColorOnBackground(it.category.backgroundColor)
-            it.sound.backgroundColor = it.category.backgroundColor
-        }
-        list.map { it.sound }
-    }
+    val allSounds = repository.listLiveExtended()
 
     val failedSounds: List<Sound>
         get() = _failedSounds
@@ -53,17 +43,16 @@ class SoundViewModel
         /** One-time thing at app version upgrade */
         repository.list().forEach { sound ->
             try {
-                val file = File(sound.path)
-                if (sound.checksum == null) repository.updateChecksum(sound, MD5.calculate(file))
+                if (sound.checksum == null) repository.updateChecksum(sound, sound.calculateChecksum())
             } catch (e: Exception) {
                 Log.e(LOG_TAG, "Error when saving checksum for $sound: $e")
             }
         }
     }
 
-    fun update(sounds: List<Sound>, category: Category?) = category?.id?.let { categoryId ->
+    fun updateCategoryAndOrder(soundIds: List<Int>, category: Category) = category.id?.let { categoryId ->
         viewModelScope.launch(Dispatchers.IO) {
-            repository.updateCategoryAndOrder(sounds, categoryId)
+            repository.updateCategoryAndOrder(soundIds, categoryId)
             undoRepository.pushState()
         }
     }

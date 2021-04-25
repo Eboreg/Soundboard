@@ -1,12 +1,12 @@
 package us.huseli.soundboard.helpers
 
-import android.content.res.Resources
+import android.content.Context
 import android.graphics.Color
 import android.util.TypedValue
 import androidx.core.content.res.ResourcesCompat
 import us.huseli.soundboard.R
 
-class ColorHelper(private val resources: Resources) {
+class ColorHelper(private val context: Context) {
     private val colorResources = arrayListOf(
         R.color.amber_500,
         R.color.black,
@@ -32,11 +32,11 @@ class ColorHelper(private val resources: Resources) {
     val colors = colorResources.map { getColor(it) }.sorted()
 
     /********** PRIVATE METHODS **********/
-    private fun getColor(colorResId: Int) = ResourcesCompat.getColor(resources, colorResId, null)
+    private fun getColor(colorResId: Int) = ResourcesCompat.getColor(context.resources, colorResId, context.theme)
 
-    private fun getColorFromAttr(attrResId: Int, theme: Resources.Theme): Int? {
+    private fun getColorFromAttr(attrResId: Int): Int? {
         val attr = TypedValue()
-        theme.resolveAttribute(attrResId, attr, true)
+        context.theme.resolveAttribute(attrResId, attr, true)
         return if (attr.type >= TypedValue.TYPE_FIRST_COLOR_INT && attr.type <= TypedValue.TYPE_LAST_COLOR_INT) attr.data else null
     }
 
@@ -44,13 +44,12 @@ class ColorHelper(private val resources: Resources) {
 
     /********** PUBLIC METHODS **********/
     fun getColorOnBackground(backgroundColor: Int) =
-        // Luminance >= 0.6: Black text, otherwise white
         getColor(if (getLuminance(backgroundColor) >= 0.6) R.color.black else R.color.white)
 
     @Suppress("unused")
     // Unused but could come in handy?
-    fun getColorStringFromAttr(attrResId: Int, theme: Resources.Theme) =
-        getColorFromAttr(attrResId, theme)?.let { getColorStringFromInt(it) }
+    fun getColorStringFromAttr(attrResId: Int) =
+        getColorFromAttr(attrResId)?.let { getColorStringFromInt(it) }
 
     fun getLuminance(color: Int): Float {
         return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
@@ -68,6 +67,6 @@ class ColorHelper(private val resources: Resources) {
         return if (included.isNotEmpty()) included.random() else colors.random()
     }
 
-    fun getSecondaryColorOnBackgroundColor(backgroundColor: Int) =
-        getColor(if (getLuminance(backgroundColor) >= 0.6) R.color.light_bg_dark_secondary_text else R.color.dark_bg_light_secondary_text)
+    fun getRandomColor() = getRandomColor(emptyList())
+
 }

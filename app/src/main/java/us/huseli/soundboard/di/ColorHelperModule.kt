@@ -14,5 +14,5 @@ import javax.inject.Singleton
 object ColorHelperModule {
     @Provides
     @Singleton
-    fun provideColorHelper(@ApplicationContext appContext: Context) = ColorHelper(appContext.resources)
+    fun provideColorHelper(@ApplicationContext context: Context) = ColorHelper(context)
 }

@@ -1,7 +1,6 @@
 package us.huseli.soundboard.helpers
 
 import android.os.CountDownTimer
-import android.util.Log
 import android.widget.ProgressBar
 import kotlin.math.roundToInt
 
@@ -29,7 +28,6 @@ class SoundPlayerTimer(private var duration: Long,
             millisLeft = duration - millisDone
             timer = CountDownTimerImpl(millisLeft)
         }
-        Log.d(LOG_TAG, "start(millisDone=$millisDone), millisLeft=$millisLeft, duration=$duration")
         timer.start()
     }
 
@@ -45,7 +43,6 @@ class SoundPlayerTimer(private var duration: Long,
             timer = CountDownTimerImpl(millisLeft)
         }
         progressBar.progress = percentage
-        Log.d(LOG_TAG, "pause(millisDone=$millisDone), millisLeft=$millisLeft, duration=$duration")
     }
 
     fun resume() {

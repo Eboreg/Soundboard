@@ -3,7 +3,6 @@ package us.huseli.soundboard.fragments
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
@@ -26,16 +25,17 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
     private val preferences: SharedPreferences by lazy { requireActivity().getPreferences(Context.MODE_PRIVATE) }
     private val scaleGestureDetector by lazy { ScaleGestureDetector(requireContext(), ScaleListener()) }
 
+    private lateinit var binding: FragmentCategoryListBinding
+
     private var categoryAdapter: CategoryAdapter? = null
-    private var binding: FragmentCategoryListBinding? = null
     private var initialSpanCount: Int? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val config = resources.configuration
-
         val landscapeSpanCount = preferences.getInt("landscapeSpanCount", 0)
         initialSpanCount = appViewModel.setupLayout(
             config.orientation, config.screenWidthDp, config.screenHeightDp, landscapeSpanCount)
+
         appViewModel.spanCountLandscape.observe(viewLifecycleOwner) {
             if (it != null) {
                 preferences.edit {
@@ -46,15 +46,13 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
         }
 
         binding = FragmentCategoryListBinding.inflate(inflater, container, false)
-        return binding?.let { binding ->
-            binding.lifecycleOwner = viewLifecycleOwner
-            binding.root
-        }
+        binding.lifecycleOwner = viewLifecycleOwner
+        return binding.root
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        binding = null
+        // binding = null
         categoryAdapter?.setLifecycleDestroyed()
         categoryAdapter = null
     }
@@ -77,30 +75,26 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding?.also { binding ->
-            categoryAdapter = CategoryAdapter(
-                appViewModel,
-                initialSpanCount ?: Constants.DEFAULT_SPANCOUNT_PORTRAIT,
-                soundViewModel,
-                categoryListViewModel,
-                requireActivity(),
-                SoundScroller(binding.categoryList, 10, 10)
-            ).also { categoryAdapter ->
-                binding.categoryList.apply {
-                    adapter = categoryAdapter
-                    layoutManager?.isItemPrefetchEnabled = true
-                    setHasFixedSize(true)
-                    setOnTouchListener(this@CategoryListFragment)
-                }
-
-                categoryListViewModel.categories.observe(viewLifecycleOwner) {
-                    // Cache 'em all - this shit needs to be fast
-                    binding.categoryList.setItemViewCacheSize(it.size)
-                    categoryAdapter.submitList(it)
-                }
+        categoryAdapter = CategoryAdapter(
+            appViewModel,
+            initialSpanCount ?: Constants.DEFAULT_SPANCOUNT_PORTRAIT,
+            soundViewModel,
+            categoryListViewModel,
+            requireActivity(),
+            SoundScroller(binding.categoryList, 10, 10)
+        ).also { categoryAdapter ->
+            binding.categoryList.apply {
+                adapter = categoryAdapter
+                layoutManager?.isItemPrefetchEnabled = true
+                setHasFixedSize(true)
+                setOnTouchListener(this@CategoryListFragment)
             }
-        } ?: run {
-            Log.e(LOG_TAG, "onViewCreated: binding is null")
+
+            categoryListViewModel.categories.observe(viewLifecycleOwner) {
+                // Cache 'em all - this shit needs to be fast
+                binding.categoryList.setItemViewCacheSize(it.size)
+                categoryAdapter.submitList(it)
+            }
         }
     }
 

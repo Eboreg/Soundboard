@@ -1,7 +1,6 @@
 package us.huseli.soundboard.fragments
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,13 +16,12 @@ import us.huseli.soundboard.viewmodels.BaseSoundEditViewModel
 import us.huseli.soundboard.viewmodels.CategoryViewModel
 
 abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSoundDialogFragment() {
-    internal val categoryListViewModel by activityViewModels<CategoryViewModel>()
-    internal open var binding: FragmentEditSoundBinding? = null
-    internal open var multiple = false
-    internal abstract val viewModel: VM
+    private lateinit var binding: FragmentEditSoundBinding
+    protected val categoryListViewModel by activityViewModels<CategoryViewModel>()
+    protected abstract val viewModel: VM
 
-    /** OPEN METHODS */
-    open fun getCategories() = categoryListViewModel.categories
+    /** OPEN/ABSTRACT METHODS */
+    protected open fun getCategories() = categoryListViewModel.categories
 
     protected open fun recreateFromSavedInstanceState(state: Bundle) {
         state.getString(ARG_NAME)?.let { viewModel.name = it }
@@ -31,28 +29,25 @@ abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSo
         viewModel.volume = state.getInt(ARG_VOLUME)
     }
 
+    abstract fun save(): Any?
+
 
     /** OVERRIDDEN OWN METHODS */
     override fun configureDialog(builder: MaterialAlertDialogBuilder) {
         super.configureDialog(builder)
-        binding?.let { builder.setView(it.root) }
+        builder.setView(binding.root)
     }
 
     override fun onPositiveButtonClick() {
-        binding?.let { binding ->
-            val soundName = binding.soundName.text.toString().trim()
-            if (soundName.isEmpty() && !multiple) {
-                Snackbar.make(binding.root, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show()
-            } else {
-                viewModel.volume = binding.volume.progress
-                viewModel.name = soundName
-                (binding.category.selectedItem as Category).id?.let { viewModel.categoryId = it }
-                soundViewModel.disableSelect()
-                viewModel.save(requireContext())
-                dismiss()
-            }
-        } ?: run {
-            Log.e(LOG_TAG, "onPositiveButtonClick(): binding is null")
+        val soundName = binding.soundName.text.toString().trim()
+        if (soundName.isEmpty() && !viewModel.multiple) {
+            Snackbar.make(binding.root, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show()
+        } else {
+            viewModel.volume = binding.volume.progress
+            viewModel.name = soundName
+            (binding.category.selectedItem as Category).id?.let { viewModel.categoryId = it }
+            soundViewModel.disableSelect()
+            save()
             dismiss()
         }
     }
@@ -61,18 +56,13 @@ abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSo
     /** OVERRIDDEN STANDARD METHODS */
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
         val inflater = LayoutInflater.from(requireContext())
-        binding = FragmentEditSoundBinding.inflate(inflater).also {
-            it.viewModel = viewModel
-        }
+        binding = FragmentEditSoundBinding.inflate(inflater)
+        binding.viewModel = viewModel
         return super.onCreateDialog(savedInstanceState)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) = binding?.root
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        binding = null
-    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) =
+        binding.root
 
     override fun onResume() {
         /**
@@ -82,30 +72,25 @@ abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSo
          */
         super.onResume()
         viewModel.categoryIndex?.let {
-            binding?.category?.setSelection(it)
+            binding.category.setSelection(it)
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        binding?.let { binding ->
-            outState.putString(ARG_NAME, binding.soundName.text.toString())
-            outState.putInt(ARG_VOLUME, binding.volume.progress)
-            outState.putInt(ARG_CATEGORY_INDEX, binding.category.selectedItemPosition)
-        }
+        outState.putString(ARG_NAME, binding.soundName.text.toString())
+        outState.putInt(ARG_VOLUME, binding.volume.progress)
+        outState.putInt(ARG_CATEGORY_INDEX, binding.category.selectedItemPosition)
         super.onSaveInstanceState(outState)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        multiple = viewModel.multiple
-        binding?.soundName?.isEnabled = !multiple
+        binding.soundName.isEnabled = !viewModel.multiple
         // This has to be done here, otherwise: "Can't access the Fragment View's LifecycleOwner
         // when getView() is null i.e., before onCreateView() or after onDestroyView()"
-        binding?.let { binding ->
-            binding.lifecycleOwner = viewLifecycleOwner
-            getCategories().observe(viewLifecycleOwner) { binding.category.adapter = CategorySpinnerAdapter(requireContext(), it) }
-        } ?: run {
-            Log.e(LOG_TAG, "onViewCreated: binding is null")
+        binding.lifecycleOwner = viewLifecycleOwner
+        getCategories().observe(viewLifecycleOwner) {
+            binding.category.adapter = CategorySpinnerAdapter(requireContext(), it)
         }
     }
 

@@ -8,22 +8,23 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import java.io.File
 import java.util.*
 
-@Database(entities = [Sound::class, Category::class], version = 14, exportSchema = true)
+@Database(entities = [Sound::class, Category::class], version = 15, exportSchema = true)
 @TypeConverters(Converters::class)
 abstract class SoundboardDatabase : RoomDatabase() {
     abstract fun soundDao(): SoundDao
     abstract fun categoryDao(): CategoryDao
 
     companion object {
-        private val MIGRATION_4_5 = object: Migration(4, 5) {
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE Sound ADD COLUMN volume REAL NOT NULL DEFAULT 1.0")
             }
         }
 
-        private val MIGRATION_5_6 = object: Migration(5, 6) {
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("""
                     CREATE TABLE Sound_new (
@@ -42,7 +43,7 @@ abstract class SoundboardDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_6_7 = object: Migration(6, 7) {
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("""
                     CREATE TABLE SoundCategory (
@@ -72,7 +73,7 @@ abstract class SoundboardDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_7_8 = object: Migration(7, 8) {
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("""
                     CREATE TABLE SoundCategory_new (
@@ -93,7 +94,7 @@ abstract class SoundboardDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_8_9 = object: Migration(8, 9) {
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
             // Sets ON UPDATE and ON DELETE on Sound
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("""
@@ -182,16 +183,14 @@ abstract class SoundboardDatabase : RoomDatabase() {
             }
         }
 
-/*
-        fun test(context: Context) {
-            val db = buildDatabase(context)
-            Room.databaseBuilder(context, SoundboardDatabase::class.java, "sound_database")
-                .createFromFile()
+        fun buildFromFile(context: Context, file: File, dbName: String): SoundboardDatabase {
+            return Room.databaseBuilder(context, SoundboardDatabase::class.java, dbName)
+                .createFromFile(file)
+                .build()
         }
-*/
 
-        fun buildDatabase(context: Context): SoundboardDatabase {
-            return Room.databaseBuilder(context, SoundboardDatabase::class.java, "sound_database")
+        fun build(context: Context): SoundboardDatabase {
+            return Room.databaseBuilder(context, SoundboardDatabase::class.java, Constants.DATABASE_NAME)
                 .addMigrations(MIGRATION_4_5)
                 .addMigrations(MIGRATION_5_6)
                 .addMigrations(MIGRATION_6_7)
@@ -202,8 +201,8 @@ abstract class SoundboardDatabase : RoomDatabase() {
                 .addMigrations(MIGRATION_11_12)
                 .addMigrations(MIGRATION_12_13)
                 .addMigrations(MIGRATION_13_14)
-                    .fallbackToDestructiveMigration()
-                    .build()
+                .fallbackToDestructiveMigration()
+                .build()
         }
     }
 }

@@ -1,6 +1,5 @@
 package us.huseli.soundboard.viewmodels
 
-import android.content.Context
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +12,7 @@ import javax.inject.Inject
 class SoundEditViewModel @Inject constructor(
     private val repository: SoundRepository, private val undoRepository: UndoRepository) : BaseSoundEditViewModel() {
 
-    override fun save(context: Context) = viewModelScope.launch(Dispatchers.IO) {
+    fun save() = viewModelScope.launch(Dispatchers.IO) {
         repository.update(sounds, if (!multiple) name else null, volume, categoryId)
         undoRepository.pushState()
     }

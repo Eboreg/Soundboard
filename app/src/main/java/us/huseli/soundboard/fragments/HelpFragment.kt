@@ -5,24 +5,31 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.ArrayAdapter
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.R
 import us.huseli.soundboard.databinding.FragmentHelpBinding
-import us.huseli.soundboard.helpers.ColorHelper
-import javax.inject.Inject
 
 @AndroidEntryPoint
-class HelpFragment : Fragment(), View.OnClickListener {
-    @Inject
-    lateinit var colorHelper: ColorHelper
-    private var binding: FragmentHelpBinding? = null
+class HelpFragment : Fragment() {
+    private lateinit var binding: FragmentHelpBinding
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
-        val sections = listOf(
+        val sections = getHelpSections()
+        binding = FragmentHelpBinding.inflate(inflater, container, false)
+        binding.cancel.setOnClickListener { parentFragmentManager.popBackStackImmediate() }
+        binding.helpContent.adapter = HelpSectionAdapter(requireContext(), sections)
+        return binding.root
+    }
+
+    private fun getHelpSections(): List<HelpSection> {
+        return listOf(
             HelpSection(R.string.help_section_menu_selections, listOf(
                 HelpItem(R.drawable.ic_add_sound, R.string.help_add_sounds_title, R.string.help_add_sounds_text),
                 HelpItem(R.drawable.ic_reorder, R.string.help_reorder_title, R.string.help_reorder_text),
@@ -59,20 +66,6 @@ class HelpFragment : Fragment(), View.OnClickListener {
             )),
             HelpSection(R.string.help_section_why_oue, R.string.help_why_oue_pretext)
         )
-
-        return FragmentHelpBinding.inflate(inflater, container, false).run {
-            binding = this
-            cancel.setOnClickListener(this@HelpFragment)
-
-            helpContent.adapter = HelpSectionAdapter(requireContext(), sections)
-            root
-        }
-    }
-
-    override fun onClick(view: View?) {
-        if (view == binding?.cancel) {
-            parentFragmentManager.popBackStackImmediate()
-        }
     }
 
 

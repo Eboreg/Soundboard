@@ -1,13 +1,16 @@
+Ripple animation not visible on grey background
+
+
+Slim down various DB queries (only fetch needed data). Also goes for the SoundWithCategory stuff.
+https://developer.android.com/training/data-storage/room/accessing-data#return-subset
+
+
 Check out Flow:
 https://stackoverflow.com/questions/58890105/kotlin-flow-vs-livedata
 https://kotlinlang.org/docs/flow.html
 https://developer.android.com/training/data-storage/room/async-queries#kotlin
 https://medium.com/androiddevelopers/room-flow-273acffe5b57
 https://developer.android.com/reference/kotlin/androidx/room/Query
-
-
-Slim down various DB queries (only fetch needed data). Also goes for the SoundWithCategory stuff.
-(How?)
 
 
 When ALL categories are collapsed, SoundPlayers/AudioFiles are not initializing (maybe not a huge
@@ -17,9 +20,6 @@ problem)
 Test: Start with some large category collapsed > start profiling > expand it > see what could be
 done in BG thread on startup instead
 - Looks like it's mainly SoundAdapter.onCreateViewHolder > inflate taking time. So only UI stuff.
-
-
-Look at backup_descriptor.xml stuff
 
 
 Steps to speed up time from click to sound starting playing:

@@ -1,6 +1,5 @@
 package us.huseli.soundboard.viewmodels
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import us.huseli.soundboard.data.Constants
 import us.huseli.soundboard.data.Sound
@@ -31,6 +30,4 @@ abstract class BaseSoundEditViewModel : ViewModel() {
             volume = if (sounds.groupBy { it.volume }.size == 1) sounds.first().volume else Constants.DEFAULT_VOLUME
         }
     }
-
-    abstract fun save(context: Context): Any?
 }

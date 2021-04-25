@@ -111,6 +111,11 @@ dependencies {
     // Hilt
     implementation "com.google.dagger:hilt-android:$rootProject.hiltVersion"
     implementation "androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03"
+    // Gson
+    implementation 'com.google.code.gson:gson:2.8.6'
+    // Paris
+    // implementation 'com.airbnb.android:paris:1.7.3'
+    // kapt 'com.airbnb.android:paris-processor:1.7.3'
 
     implementation fileTree(dir: "libs", include: ["*.jar"])
 

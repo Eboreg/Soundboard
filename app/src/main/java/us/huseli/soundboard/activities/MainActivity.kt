@@ -24,7 +24,6 @@ import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.core.content.edit
 import androidx.core.widget.addTextChangedListener
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.add
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
@@ -38,10 +37,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.R
 import us.huseli.soundboard.audio.SoundPlayer
-import us.huseli.soundboard.data.Category
-import us.huseli.soundboard.data.Constants
-import us.huseli.soundboard.data.PlayerRepository
-import us.huseli.soundboard.data.Sound
+import us.huseli.soundboard.data.*
 import us.huseli.soundboard.databinding.ActivityMainBinding
 import us.huseli.soundboard.fragments.*
 import us.huseli.soundboard.interfaces.EditCategoryInterface
@@ -304,18 +300,18 @@ class MainActivity :
 
     /********* OVERRIDDEN OWN METHODS **********/
     override fun showCategoryAddDialog() {
-        showDialogFragment(
+        showFragment(
             AddCategoryDialogFragment.newInstance(
                 DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG)), CATEGORY_ADD_DIALOG_TAG)
     }
 
     override fun showCategoryDeleteDialog(id: Int, name: String, soundCount: Int) =
-        showDialogFragment(DeleteCategoryFragment.newInstance(id, name, soundCount, categories.size))
+        showFragment(DeleteCategoryFragment.newInstance(id, name, soundCount, categories.size))
 
     override fun showCategoryEditDialog(category: Category) {
         categoryEditViewModel.setup(category)
         // showDialogFragment(EditCategoryDialogFragment())
-        showDialogFragment(
+        showFragment(
             EditCategoryDialogFragment.newInstance(DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)),
             CATEGORY_EDIT_DIALOG_TAG)
     }
@@ -325,7 +321,7 @@ class MainActivity :
 
     override fun showSnackbar(textResource: Int) = showSnackbar(getText(textResource))
 
-    override fun showSoundAddDialog() = showDialogFragment(AddSoundDialogFragment())
+    override fun showSoundAddDialog() = showFragment(AddSoundDialogFragment())
 
     override fun showSoundDeleteDialog(sounds: List<Sound>) {
         val validSounds = sounds.filter { it.id != null }
@@ -333,10 +329,10 @@ class MainActivity :
             validSounds.size == 1 -> {
                 val sound = validSounds.first()
                 sound.id?.let { soundId ->
-                    showDialogFragment(DeleteSoundFragment.newInstance(soundId, sound.name))
+                    showFragment(DeleteSoundFragment.newInstance(soundId, sound.name))
                 }
             }
-            validSounds.size > 1 -> showDialogFragment(DeleteSoundFragment.newInstance(sounds.map { it.id }))
+            validSounds.size > 1 -> showFragment(DeleteSoundFragment.newInstance(sounds.map { it.id }))
         }
     }
 
@@ -345,7 +341,7 @@ class MainActivity :
     override fun showSoundEditDialog(sounds: List<Sound>) {
         soundEditViewModel.setup(sounds, getString(R.string.multiple_sounds_selected, sounds.size))
         val categoryIndex = getCategoryIndex(sounds)
-        showDialogFragment(EditSoundDialogFragment.newInstance(categoryIndex))
+        showFragment(EditSoundDialogFragment.newInstance(categoryIndex))
     }
 
     override fun zoomIn() =
@@ -376,9 +372,9 @@ class MainActivity :
         soundAddViewModel.setup(sounds, this.allSounds, getString(R.string.multiple_sounds_selected, sounds.size))
 
         when {
-            soundAddViewModel.hasDuplicates -> showDialogFragment(AddDuplicateSoundDialogFragment())
+            soundAddViewModel.hasDuplicates -> showFragment(AddDuplicateSoundDialogFragment())
             sounds.isEmpty() -> showSnackbar(R.string.no_sounds_to_add)
-            else -> showDialogFragment(AddSoundDialogFragment())
+            else -> showFragment(AddSoundDialogFragment())
         }
     }
 
@@ -412,7 +408,15 @@ class MainActivity :
     private fun onAppVersionUpgraded(from: Long, to: Long) {
         if (from in 1..5 && to >= 6) {
             /** From 6, sounds are stored in app local storage */
-            soundViewModel.moveFilesToLocalStorage(applicationContext)
+            try {
+                soundViewModel.moveFilesToLocalStorage(applicationContext)
+            } catch (e: Exception) {
+                val fragment = StatusDialogFragment()
+                    .setTitle(getString(R.string.an_error_occurred))
+                    .addMessage(StatusDialogFragment.Status.ERROR, getString(R.string.fail_move_sounds_local))
+                    .addException(e)
+                showFragment(fragment)
+            }
         }
         if (from in 1..6 && to >= 7) {
             /** From 7, checksums for sounds are stored */
@@ -523,23 +527,13 @@ class MainActivity :
             if (event.actionMasked == MotionEvent.ACTION_DOWN) actionbarLogoTouchTimes.add(event.eventTime)
             if (actionbarLogoTouchTimes.size == 3) {
                 if (actionbarLogoTouchTimes.first() + 1000 >= event.eventTime)
-                    showDialogFragment(EasterEggFragment())
+                    showFragment(EasterEggFragment())
                 actionbarLogoTouchTimes.clear()
             } else if (actionbarLogoTouchTimes.size > 3)
                 actionbarLogoTouchTimes.clear()
             true
         }
     }
-
-    private fun showDialogFragment(fragment: Fragment, tag: String?) {
-        supportFragmentManager
-            .beginTransaction()
-            .add(fragment, tag)
-            .show(fragment)
-            .commit()
-    }
-
-    private fun showDialogFragment(fragment: Fragment) = showDialogFragment(fragment, null)
 
     private fun startAddSoundActivity() {
         val intent = Intent(Intent.ACTION_GET_CONTENT)

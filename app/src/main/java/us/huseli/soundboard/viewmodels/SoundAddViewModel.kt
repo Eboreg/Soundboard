@@ -39,26 +39,22 @@ class SoundAddViewModel @Inject constructor(
         }
     }
 
-    override fun save(context: Context) = viewModelScope.launch(Dispatchers.IO) {
-        val toUpdate = mutableListOf<Sound>()
-        val toInsert = mutableListOf<Sound>()
+    fun soundsToInsert() =
+        (if (duplicateStrategy == DuplicateStrategy.ADD) sounds else newSounds).iterator()
 
-        when (duplicateStrategy) {
-            DuplicateStrategy.ADD -> toInsert.addAll(sounds)
-            DuplicateStrategy.SKIP -> toInsert.addAll(newSounds)
-            DuplicateStrategy.UPDATE -> {
-                toInsert.addAll(newSounds)
-                toUpdate.addAll(duplicates)
-            }
+    fun insertSound(tempSound: Sound, context: Context) {
+        val sound = Sound.createFromTemporary(tempSound, if (!multiple) name else null, volume, categoryId, context)
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.insert(sound)
         }
+    }
 
-        repository.update(toUpdate, if (!multiple) name else null, volume, categoryId)
-        repository.insert(Sound.createFromTemporary(toInsert,
-            if (!multiple) name else null,
-            volume,
-            categoryId,
-            context))
+    fun updateExisting() = viewModelScope.launch(Dispatchers.IO) {
+        if (duplicateStrategy == DuplicateStrategy.UPDATE)
+            repository.update(duplicates, if (!multiple) name else null, volume, categoryId)
+    }
 
+    fun pushUndoState() = viewModelScope.launch(Dispatchers.IO) {
         undoRepository.pushState()
     }
 

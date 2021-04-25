@@ -4,10 +4,12 @@
     </style>
 
     <style name="Soundboard.Style.Button.TextButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="rippleColor">?attr/colorAccent</item>
         <item name="android:textColor">@color/alert_dialog_button</item>
     </style>
 
     <style name="Soundboard.Style.Button.TextButton.Negative" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="rippleColor">?attr/colorAccent</item>
         <item name="android:textColor">@color/color_on_surface_subdued</item>
     </style>
 
@@ -35,6 +37,14 @@
     <style name="Soundboard.Style.PopupMenu" parent="Widget.MaterialComponents.PopupMenu">
         <item name="android:popupEnterTransition" tools:targetApi="n">@null</item>
         <item name="android:popupExitTransition" tools:targetApi="n">@null</item>
+    </style>
+
+    <style name="Soundboard.Style.ProgressBar" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:indeterminateTint">?attr/colorOnBackground</item>
+    </style>
+
+    <style name="Soundboard.Style.ProgressBar.Horizontal" parent="Widget.AppCompat.ProgressBar.Horizontal">
+
     </style>
 
 </resources>

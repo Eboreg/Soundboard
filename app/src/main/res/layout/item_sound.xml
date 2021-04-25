@@ -7,7 +7,7 @@
 
         <variable
             name="sound"
-            type="us.huseli.soundboard.data.Sound" />
+            type="us.huseli.soundboard.data.SoundExtended" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

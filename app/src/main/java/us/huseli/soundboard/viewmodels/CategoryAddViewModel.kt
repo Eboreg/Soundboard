@@ -20,7 +20,7 @@ class CategoryAddViewModel @Inject constructor(
     private val colorHelper: ColorHelper
 ) : BaseCategoryEditViewModel() {
 
-    private val randomColor = repository.getUsedColorsLive().map { colorHelper.getRandomColor(it) }
+    private val randomColor = repository.getUsedColors().map { colorHelper.getRandomColor(it) }
 
     override val backgroundColor = MediatorLiveData<Int>().apply {
         addSource(randomColor) { value = it }

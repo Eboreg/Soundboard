@@ -14,13 +14,15 @@ class EditSoundDialogFragment : BaseEditSoundDialogFragment<SoundEditViewModel>(
         get() = if (viewModel.multiple) R.string.edit_sounds else R.string.edit_sound
 
     override fun getCategories() =
-        if (multiple) categoryListViewModel.categoriesWithEmpty
+        if (viewModel.multiple) categoryListViewModel.categoriesWithEmpty
         else super.getCategories()
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
         viewModel.categoryIndex = requireArguments().getInt(ARG_CATEGORY_INDEX)
     }
+
+    override fun save() = viewModel.save()
 
 
     companion object {
@@ -31,4 +33,5 @@ class EditSoundDialogFragment : BaseEditSoundDialogFragment<SoundEditViewModel>(
             }
         }
     }
+
 }

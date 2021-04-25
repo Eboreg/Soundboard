@@ -100,6 +100,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <include layout="@layout/progress_overlay" />
 
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

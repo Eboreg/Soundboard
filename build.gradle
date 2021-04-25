@@ -11,7 +11,7 @@ buildscript {
 
         // Local variables (use def)
         activityVersion = '1.3.0-alpha06'
-        androidxCoreVersion = '1.6.0-alpha01'
+        androidxCoreVersion = '1.6.0-alpha02'
         constraintLayoutVersion = '2.1.0-beta01'
         coroutinesVersion = '1.4.3-native-mt'
         fragmentVersion = '1.3.2'

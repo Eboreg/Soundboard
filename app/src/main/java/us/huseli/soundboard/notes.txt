@@ -1,3 +1,56 @@
+bind:
+ this = {SoundAdapter$SoundViewHolder@13428} "SoundAdapter.ViewHolder 3485cf6 <adapterPosition=0, sound=SoundExtended 7202591 <id=975, name=Cool Britannia, backgroundColor=-16728876, categoryId=5>>"
+ sound = {SoundExtended@13429} "SoundExtended 7202591 <id=975, name=Cool Britannia, backgroundColor=-16728876, categoryId=5>"
+
+this = {SoundAdapter$SoundViewHolder@13458} "SoundAdapter.ViewHolder a9af2ad <adapterPosition=1, sound=SoundExtended 8c3ed93 <id=974, name=Boing Boom Tschak, backgroundColor=-16728876, categoryId=5>>"
+sound = {SoundExtended@13459} "SoundExtended 8c3ed93 <id=974, name=Boing Boom Tschak, backgroundColor=-16728876, categoryId=5>"
+
+
+bind, efter byt plats:
+item = {SoundExtended@13542} "SoundExtended a95678d <id=975, name=Cool Britannia, backgroundColor=-16728876, categoryId=5>"
+this = {SoundAdapter$SoundViewHolder@13523} "SoundAdapter.ViewHolder 3485cf6 <adapterPosition=1, sound=SoundExtended a95678d <id=975, name=Cool Britannia, backgroundColor=-16728876, categoryId=5>>"
+
+markcreated:
+item = {SoundExtended@13564} "SoundExtended 8c3ed93 <id=974, name=Boing Boom Tschak, backgroundColor=-16728876, categoryId=5>"
+this = {SoundAdapter$SoundViewHolder@13563} "SoundAdapter.ViewHolder a9af2ad <adapterPosition=0, sound=SoundExtended 8c3ed93 <id=974, name=Boing Boom Tschak, backgroundColor=-16728876, categoryId=5>>"
+
+bind, efter byt plats:
+item = {SoundExtended@13582} "SoundExtended a5cf024 <id=974, name=Boing Boom Tschak, backgroundColor=-16728876, categoryId=5>"
+this = {SoundAdapter$SoundViewHolder@13563} "SoundAdapter.ViewHolder a9af2ad <adapterPosition=0, sound=SoundExtended a5cf024 <id=974, name=Boing Boom Tschak, backgroundColor=-16728876, categoryId=5>>"
+
+
+
+
+
+
+Använder backgroundColor:
+layout
+    item_sound.xml
+us.huseli.soundboard.adapters
+    SoundAdapter.kt
+        SoundAdapter
+            DiffCallback
+                oldItem.backgroundColor == newItem.backgroundColor &&
+    SoundViewHolder
+        sound.backgroundColor?.also {
+us.huseli.soundboard.data
+    SoundRepository.kt
+        SoundRepository
+            listLiveExtended
+                sound.backgroundColor?.also { sound.textColor = colorHelper.getColorOnBackground(it) }
+
+item_sound: kommer från (baklänges)
+SoundViewHolder.bind()
+    SoundAdapter.onBindViewHolder()
+        SoundAdapter.getItem() -> SoundAdapter.submitList()
+            CategoryViewHolder.bind() -> soundViewModel.filteredSounds.observe()
+                SoundViewModel.allSounds -> SoundRepository.listLiveExtended()
+
+
+Använder textColor: bara item_sound, sätts av SoundRepository.listLiveExtended()
+
+
+
 Widget.MaterialComponents.PopupMenu.Overflow ärver från:
     Base.Widget.MaterialComponents.PopupMenu.Overflow
         <item name="android:dropDownVerticalOffset">1px</item>

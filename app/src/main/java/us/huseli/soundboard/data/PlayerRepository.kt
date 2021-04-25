@@ -25,7 +25,7 @@ class PlayerRepository @Inject constructor(
     @ApplicationContext private val context: Context, private val soundDao: SoundDao) : SoundPlayer.DurationListener {
 
     private var bufferSize = Constants.DEFAULT_BUFFER_SIZE
-    private var playersRaw = mutableMapOf<Sound, SoundPlayer>()
+    private var playersRaw = mutableMapOf<Int, SoundPlayer>()
     private val playersMutex = Mutex()
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
     private val preferenceListener =
@@ -48,9 +48,9 @@ class PlayerRepository @Inject constructor(
         }
     }
 
-    private val playersMutableLiveData = MutableLiveData<Map<Sound, SoundPlayer>>()
+    private val playersMutableLiveData = MutableLiveData<Map<Int, SoundPlayer>>()
 
-    val players = MediatorLiveData<Map<Sound, SoundPlayer>>().apply {
+    val players = MediatorLiveData<Map<Int, SoundPlayer>>().apply {
         addSource(soundDao.listLive()) { sounds ->
             scope.launch {
                 playersMutex.withLock {
@@ -64,34 +64,35 @@ class PlayerRepository @Inject constructor(
         addSource(playersMutableLiveData) { value = it }
     }
 
-    private fun updatePlayers(sounds: List<Sound>, players: Map<Sound, SoundPlayer>) {
+    private fun updatePlayers(sounds: List<Sound>, players: Map<Int, SoundPlayer>) {
         /** Checks for relevant changes and update. Currently only volume. */
         Functions.warnIfOnMainThread("updatePlayers")
         sounds.forEach { sound ->
-            players[sound]?.let { player ->
-                if (player.volume != sound.volume) {
-                    if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-                        "updatePlayers: change volume (sound=$sound, sound volume=${sound.volume}, player=$player, player volume=${player.volume}")
-                    player.setVolume(sound.volume)
+            sound.id?.let { soundId ->
+                players[soundId]?.let { player ->
+                    if (player.volume != sound.volume) {
+                        if (BuildConfig.DEBUG) Log.d(LOG_TAG,
+                            "updatePlayers: change volume (sound=$sound, sound volume=${sound.volume}, player=$player, player volume=${player.volume}")
+                        player.setVolume(sound.volume)
+                    }
                 }
             }
         }
     }
 
-    private fun removePlayers(sounds: List<Sound>, players: MutableMap<Sound, SoundPlayer>) {
+    private fun removePlayers(sounds: List<Sound>, players: MutableMap<Int, SoundPlayer>) {
         Functions.warnIfOnMainThread("removePlayers")
-        players.filterNot { sounds.contains(it.key) }.forEach {
+        players.filterNot { player -> sounds.map { it.id }.contains(player.key) }.forEach {
             if (BuildConfig.DEBUG) Log.d(LOG_TAG, "removePlayers: remove <sound=${it.key}, player=${it.value}>")
             it.value.release()
             players.remove(it.key)
         }
     }
 
-    private fun addPlayers(sounds: List<Sound>, players: MutableMap<Sound, SoundPlayer>) {
+    private fun addPlayers(sounds: List<Sound>, players: MutableMap<Int, SoundPlayer>) {
         Functions.warnIfOnMainThread("addPlayers")
-        sounds.filterNot { players.contains(it) }.forEach { sound ->
-            if (BuildConfig.DEBUG) Log.d(LOG_TAG, "addPlayers: add $sound")
-            players[sound] = SoundPlayer(sound, bufferSize, this)
+        sounds.filterNot { players.contains(it.id) }.forEach { sound ->
+            sound.id?.let { soundId -> players[soundId] = SoundPlayer(sound, bufferSize, this) }
         }
     }
 

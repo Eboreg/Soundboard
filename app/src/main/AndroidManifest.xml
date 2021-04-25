@@ -32,7 +32,16 @@
         <activity
             android:name=".activities.SettingsActivity"
             android:label="@string/soundboard_settings"
-            android:parentActivityName=".activities.MainActivity" />
+            android:parentActivityName=".activities.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.PICK" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.OPENABLE" />
+
+                <data android:mimeType="application/zip" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".activities.SplashActivity"
@@ -46,6 +55,16 @@
         <meta-data
             android:name="io.sentry.dsn"
             android:value="https://4f67be61f466443fb90839fe1b41ded4@o453550.ingest.sentry.io/5442443" />
+
+        <provider
+            android:authorities="us.huseli.soundboard.fileprovider"
+            android:name="androidx.core.content.FileProvider"
+            android:grantUriPermissions="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
     </application>
 
     <queries>

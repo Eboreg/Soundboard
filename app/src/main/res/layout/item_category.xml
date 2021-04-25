@@ -25,6 +25,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_normal"
             android:orientation="horizontal"
+            android:background="@{category.backgroundColor}"
             tools:background="@color/purple_500">
 
             <androidx.constraintlayout.widget.ConstraintLayout

@@ -92,19 +92,9 @@ class SoundDragListener(
 
     private fun onDragStarted(event: DragEvent, view: View, draggedSound: DraggedSound): Boolean {
         isDragging = true
-        if (soundAdapter.contains(draggedSound.sound)) {
-            dumpLog(
-                "ACTION_DRAG_STARTED",
-                event,
-                "Adapter is source adapter",
-                mapOf("view" to view)
-            )
-        } else dumpLog(
-            "ACTION_DRAG_STARTED",
-            event,
-            "Adapter is NOT source adapter",
-            mapOf("view" to view)
-        )
+        if (soundAdapter.contains(draggedSound.soundId)) {
+            dumpLog("ACTION_DRAG_STARTED", event, "Adapter is source adapter", mapOf("view" to view))
+        } else dumpLog("ACTION_DRAG_STARTED", event, "Adapter is NOT source adapter", mapOf("view" to view))
         return true
     }
 
@@ -154,7 +144,7 @@ class SoundDragListener(
         categoryViewHolder.hideDropContainer()
         soundAdapter.removeMarksForDrop()
         soundAdapter.insertOrMoveSound(
-            draggedSound.sound,
+            draggedSound.soundId,
             draggedSound.currentAdapterPosition
         )
         return true

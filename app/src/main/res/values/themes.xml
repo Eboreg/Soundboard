@@ -24,11 +24,20 @@
         <item name="android:spinnerStyle">@style/Soundboard.Style.Spinner</item>
         <item name="android:spinnerItemStyle">@style/Soundboard.Style.Spinner.Item</item>
 
+        <item name="progressBarStyle">@style/Soundboard.Style.ProgressBar</item>
+        <item name="android:progressBarStyle">@style/Soundboard.Style.ProgressBar</item>
+        <item name="android:progressBarStyleHorizontal">
+            @style/Soundboard.Style.ProgressBar.Horizontal
+        </item>
+
         <!-- These finally enabled me to disable popupmenu enter/exit transitions: -->
         <item name="actionOverflowMenuStyle">@style/Soundboard.Style.PopupMenu</item>
         <item name="android:actionOverflowMenuStyle">@style/Soundboard.Style.PopupMenu</item>
 
         <item name="windowActionModeOverlay">true</item>
+
+        <item name="colorControlHighlight">@color/grey_500</item>
+        <item name="rippleColor">@color/grey_500</item>
     </style>
 
     <style name="Soundboard.Theme" parent="Base.Soundboard.Theme">
@@ -41,7 +50,7 @@
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorOnSurface">@color/light_bg_dark_primary_text</item>
         <item name="colorOnBackground">@color/light_bg_dark_primary_text</item>
-        <item name="colorAccent">@color/teal_300</item>
+        <item name="colorAccent">@color/blue_grey_500</item>
         <item name="colorSurface">@color/grey_100</item>
         <item name="android:colorBackground">@color/grey_100</item>
         <item name="colorDivider">@color/grey_300</item>

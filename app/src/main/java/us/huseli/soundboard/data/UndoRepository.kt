@@ -33,9 +33,7 @@ class UndoRepository @Inject constructor(
         scope.launch { pushState() }
     }
 
-    fun pushState() {
-        states.push(State(soundDao.list(), categoryDao.list()))
-    }
+    fun pushState() = states.push(State(soundDao.list(), categoryDao.list()))
 
     fun redo() {
         apply(states.getRedoState())
@@ -46,8 +44,8 @@ class UndoRepository @Inject constructor(
     }
 
     private fun apply(state: State?) {
-        state?.categories?.also { categoryDao.reset(it) }
-        state?.sounds?.also { soundDao.reset(it) }
+        state?.categories?.also { categoryDao.applyState(it) }
+        state?.sounds?.also { soundDao.applyState(it) }
     }
 
 

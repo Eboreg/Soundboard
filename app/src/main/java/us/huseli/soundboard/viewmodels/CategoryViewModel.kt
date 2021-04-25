@@ -29,8 +29,6 @@ class CategoryViewModel @Inject constructor(
     val categories = repository.categories.map { list ->
         list.forEach {
             it.textColor = colorHelper.getColorOnBackground(it.backgroundColor)
-            it.secondaryTextColor =
-                colorHelper.getSecondaryColorOnBackgroundColor(it.backgroundColor)
         }
         list
     }
@@ -40,13 +38,13 @@ class CategoryViewModel @Inject constructor(
         repository.setCollapsed(categoryId, value)
     }
 
-    fun expand(category: Category?) = category?.id?.let { setCollapsed(it, false) }
+    fun expand(category: Category) = category.id?.let { setCollapsed(it, false) }
 
-    fun collapse(category: Category?) = category?.id?.let { setCollapsed(it, true) }
+    fun collapse(category: Category) = category.id?.let { setCollapsed(it, true) }
 
     fun create(name: String) = viewModelScope.launch(Dispatchers.IO) {
         /** Used in MainActivity.onCreate() to create empty default category if there are none */
-        repository.insert(Category(name, colorHelper.getRandomColor(repository.getUsedColors())))
+        repository.insert(Category(name, colorHelper.getRandomColor()))
     }
 
     /** Used by DeleteCategoryFragment */

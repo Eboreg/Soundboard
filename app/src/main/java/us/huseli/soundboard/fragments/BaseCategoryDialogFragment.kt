@@ -1,7 +1,6 @@
 package us.huseli.soundboard.fragments
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,16 +20,20 @@ import javax.inject.Inject
 @AndroidEntryPoint
 abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogListener {
     private val dialogId by lazy { requireArguments().getInt(ARG_DIALOG_ID) }
-    protected var binding: FragmentEditCategoryBinding? = null
 
-    internal abstract val viewModel: BaseCategoryEditViewModel
-    internal abstract val title: Int
+    protected lateinit var binding: FragmentEditCategoryBinding
+
+    protected abstract val viewModel: BaseCategoryEditViewModel
+    protected abstract val title: Int
 
     @Inject
     lateinit var colorHelper: ColorHelper
 
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
-        val binding = this.binding ?: FragmentEditCategoryBinding.inflate(layoutInflater).also { this.binding = it }
+        /**
+         * "This method will be called after onCreate() and immediately before onCreateView()"
+         */
+        binding = FragmentEditCategoryBinding.inflate(layoutInflater)
 
         binding.viewModel = viewModel
         binding.selectColorButton.setOnClickListener { onSelectColourClick() }
@@ -50,11 +53,9 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
     }
 
     protected open fun onPositiveButtonClick() {
-        val catName = binding?.categoryName?.text.toString().trim()
+        val catName = binding.categoryName.text.toString().trim()
         if (catName.isEmpty())
-            binding?.root?.let {
-                Snackbar.make(it, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show()
-            }
+            Snackbar.make(binding.root, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show()
         else {
             viewModel.setName(catName)
             save()
@@ -89,7 +90,7 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
      * won't work without them D-:
      */
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) =
-        binding?.root
+        binding.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         /**
@@ -97,16 +98,7 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
          * when getView() is null i.e., before onCreateView() or after onDestroyView()"
          */
         super.onViewCreated(view, savedInstanceState)
-        binding?.apply {
-            lifecycleOwner = viewLifecycleOwner
-        } ?: run {
-            Log.e(LOG_TAG, "onViewCreated: binding is null")
-        }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        binding = null
+        binding.lifecycleOwner = viewLifecycleOwner
     }
 
     override fun onColorSelected(dialogId: Int, color: Int) {
