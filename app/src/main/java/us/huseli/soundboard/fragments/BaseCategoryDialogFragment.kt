@@ -52,7 +52,7 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
         return dialog
     }
 
-    protected open fun onPositiveButtonClick() {
+    private fun onPositiveButtonClick() {
         val catName = binding.categoryName.text.toString().trim()
         if (catName.isEmpty())
             Snackbar.make(binding.root, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show()
@@ -62,7 +62,7 @@ abstract class BaseCategoryDialogFragment : DialogFragment(), ColorPickerDialogL
         }
     }
 
-    protected open fun save() {
+    private fun save() {
         viewModel.save()
         dismiss()
     }

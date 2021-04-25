@@ -18,6 +18,8 @@ interface CategoryDao {
         insert(category.name, category.backgroundColor, order, category.collapsed)
     }
 
+    @Insert
+    fun reInsert(category: Category)
 
     /********* LIST **************************************************************************************************/
     @Query("SELECT * FROM SoundCategory ORDER BY `order`, id")
@@ -77,12 +79,12 @@ interface CategoryDao {
         categories.forEach { category ->
             if (dbCategories.contains(category)) {
                 update(category)
-                // Don't reset collapsed status
+                // Don't reset collapsed status (why?)
                 dbCategories.findLast { it == category }?.let {
                     if (it.collapsed != category.collapsed && category.id != null)
                         updateCollapsed(category.id, if (it.collapsed) 1 else 0)
                 }
-            } else insert(category)
+            } else reInsert(category)
         }
         deleteExcluding(categories.mapNotNull { it.id })
     }

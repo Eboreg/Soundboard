@@ -34,7 +34,7 @@ class CategoryAddViewModel @Inject constructor(
          * And we check for name in BaseCategoryDialogFragment (and set it at init).
          * But still, we want to make sure.
          */
-        val backgroundColor = _backgroundColor.value
+        val backgroundColor = backgroundColor.value
         val name = _name.value ?: ""
         if (name.isNotBlank() && backgroundColor != null) {
             val category = Category(name, backgroundColor)

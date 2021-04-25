@@ -389,7 +389,7 @@ class SoundAdapter(
                     }
                     SoundPlayer.State.ERROR -> binding.failIcon.visibility = View.VISIBLE
                     SoundPlayer.State.RELEASED -> Unit
-                    SoundPlayer.State.READY -> Unit
+                    SoundPlayer.State.READY -> playerTimer?.stop()
                 }
 
                 if (state != SoundPlayer.State.PLAYING) binding.playIcon.visibility = View.INVISIBLE
