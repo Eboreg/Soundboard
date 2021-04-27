@@ -37,22 +37,22 @@ interface CategoryDao {
     fun update(category: Category)
 
     @Transaction
-    fun update(categoryId: Int, name: String?, backgroundColor: Int?) {
-        if (name != null) updateName(categoryId, name)
-        if (backgroundColor != null) updateBackgroundColor(categoryId, backgroundColor)
+    fun update(id: Int, name: String?, backgroundColor: Int?) {
+        if (name != null) updateName(id, name)
+        if (backgroundColor != null) updateBackgroundColor(id, backgroundColor)
     }
 
-    @Query("UPDATE SoundCategory SET backgroundColor=:backgroundColor WHERE id=:categoryId")
-    fun updateBackgroundColor(categoryId: Int, backgroundColor: Int)
+    @Query("UPDATE SoundCategory SET backgroundColor=:backgroundColor WHERE id=:id")
+    fun updateBackgroundColor(id: Int, backgroundColor: Int)
 
     @Query("UPDATE SoundCategory SET collapsed = :value WHERE id = :id")
     fun updateCollapsed(id: Int, value: Int)
 
-    @Query("UPDATE SoundCategory SET name=:name WHERE id=:categoryId")
-    fun updateName(categoryId: Int, name: String)
+    @Query("UPDATE SoundCategory SET name=:name WHERE id=:id")
+    fun updateName(id: Int, name: String)
 
-    @Query("UPDATE SoundCategory SET `order` = :order WHERE id = :categoryId")
-    fun updateOrder(categoryId: Int, order: Int)
+    @Query("UPDATE SoundCategory SET `order` = :order WHERE id = :id")
+    fun updateOrder(id: Int, order: Int)
 
 
     /********* DELETE ************************************************************************************************/
@@ -90,9 +90,9 @@ interface CategoryDao {
     }
 
     @Transaction
-    fun sort(categoryIds: List<Int>) {
+    fun sort(ids: List<Int>) {
         /** Update .order according to current order in list and save */
-        categoryIds.forEachIndexed { index, categoryId -> updateOrder(categoryId, index) }
+        ids.forEachIndexed { index, id -> updateOrder(id, index) }
     }
 
     @Transaction

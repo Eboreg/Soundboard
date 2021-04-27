@@ -54,8 +54,8 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao, privat
 
 
     /********* VARIOUS ***********************************************************************************************/
-    fun sort(category: Category?, sorting: SoundSorting) {
+    fun sort(categoryId: Int?, sorting: SoundSorting) {
         /** Sorts all sounds within category */
-        category?.id?.let { soundDao.sortWithinCategory(it, sorting) }
+        categoryId?.let { soundDao.sortWithinCategory(it, sorting) }
     }
 }

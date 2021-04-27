@@ -15,7 +15,7 @@ class CategoryRepository @Inject constructor(private val categoryDao: CategoryDa
 
     fun insert(category: Category) = categoryDao.insert(category)
 
-    fun setCollapsed(categoryId: Int, value: Boolean) = categoryDao.updateCollapsed(categoryId, if (value) 1 else 0)
+    fun setCollapsed(id: Int, value: Boolean) = categoryDao.updateCollapsed(id, if (value) 1 else 0)
 
     fun switch(oldPos: Int, newPos: Int) {
         /** Switches places between two categories, updates .order, saves */
@@ -24,7 +24,7 @@ class CategoryRepository @Inject constructor(private val categoryDao: CategoryDa
         categoryDao.sort(categoryIds)
     }
 
-    fun update(category: Category?, name: String?, backgroundColor: Int?) {
-        if (category?.id != null) categoryDao.update(category.id, name, backgroundColor)
+    fun update(id: Int?, name: String?, backgroundColor: Int?) {
+        if (id != null) categoryDao.update(id, name, backgroundColor)
     }
 }

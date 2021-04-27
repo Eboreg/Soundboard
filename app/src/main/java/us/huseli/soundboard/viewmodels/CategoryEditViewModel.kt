@@ -15,7 +15,7 @@ class CategoryEditViewModel @Inject constructor(
     private val soundRepository: SoundRepository
 ) : BaseCategoryEditViewModel() {
 
-    private var category: Category? = null
+    private var categoryId: Int? = null
 
     override val backgroundColor: LiveData<Int>
         get() = _backgroundColor
@@ -24,15 +24,15 @@ class CategoryEditViewModel @Inject constructor(
     var sortParameter: SoundSorting.Parameter? = null
 
     override fun save() = viewModelScope.launch(Dispatchers.IO) {
-        repository.update(category, name.value, backgroundColor.value)
+        repository.update(categoryId, name.value, backgroundColor.value)
         sortParameter?.also {
-            if (it != SoundSorting.Parameter.UNDEFINED) soundRepository.sort(category, SoundSorting(it, sortOrder))
+            if (it != SoundSorting.Parameter.UNDEFINED) soundRepository.sort(categoryId, SoundSorting(it, sortOrder))
         }
         undoRepository.pushState()
     }
 
     fun setup(category: Category) {
-        this.category = category
+        categoryId = category.id
         setName(category.name)
         setBackgroundColor(category.backgroundColor)
     }
