@@ -7,7 +7,6 @@ import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import us.huseli.soundboard.data.Category
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.data.SoundRepository
 import us.huseli.soundboard.data.UndoRepository
@@ -21,12 +20,7 @@ class SoundViewModel
     private val undoRepository: UndoRepository
 ) : ViewModel() {
 
-    private val _failedSounds = mutableListOf<Sound>()
-
     val allSounds = repository.listLiveExtended()
-
-    val failedSounds: List<Sound>
-        get() = _failedSounds
 
     fun moveFilesToLocalStorage(context: Context) = viewModelScope.launch(Dispatchers.IO) {
         /** One-time thing at app version upgrade */
@@ -35,7 +29,7 @@ class SoundViewModel
         oldSounds.forEach { oldSound ->
             newSounds.add(Sound.createFromTemporary(oldSound, context))
         }
-        repository.delete(oldSounds)
+        repository.delete(oldSounds.mapNotNull { it.id })
         repository.insert(newSounds)
     }
 
@@ -43,18 +37,19 @@ class SoundViewModel
         /** One-time thing at app version upgrade */
         repository.list().forEach { sound ->
             try {
-                if (sound.checksum == null) repository.updateChecksum(sound, sound.calculateChecksum())
+                if (sound.checksum == "") repository.updateChecksum(sound.id, sound.calculateChecksum())
             } catch (e: Exception) {
                 Log.e(LOG_TAG, "Error when saving checksum for $sound: $e")
             }
         }
     }
 
-    fun updateCategoryAndOrder(soundIds: List<Int>, category: Category) = category.id?.let { categoryId ->
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.updateCategoryAndOrder(soundIds, categoryId)
-            undoRepository.pushState()
-        }
+    fun updateCategoryAndOrder(soundIds: List<Int>, categoryId: Int?) {
+        if (categoryId != null)
+            viewModelScope.launch(Dispatchers.IO) {
+                repository.updateCategoryAndOrder(soundIds, categoryId)
+                undoRepository.pushState()
+            }
     }
 
 

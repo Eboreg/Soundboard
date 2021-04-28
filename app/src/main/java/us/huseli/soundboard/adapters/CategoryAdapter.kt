@@ -41,7 +41,15 @@ class CategoryAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
         val binding =
             ItemCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        val holder = CategoryViewHolder(binding, this)
+        val holder = CategoryViewHolder(
+            binding,
+            activity,
+            appViewModel,
+            categoryViewModel,
+            initialSpanCount,
+            soundViewModel,
+            soundScroller,
+        )
         binding.lifecycleOwner = holder
 
         return holder
@@ -77,28 +85,28 @@ class CategoryAdapter(
      * Represents one individual category with its sound list.
      * Layout: item_category.xml, see this file for binding
      */
-    class CategoryViewHolder(internal val binding: ItemCategoryBinding, adapter: CategoryAdapter) :
+    class CategoryViewHolder(
+        internal val binding: ItemCategoryBinding,
+        private val activity: FragmentActivity,
+        private val appViewModel: AppViewModel,
+        private val categoryViewModel: CategoryViewModel,
+        private val initialSpanCount: Int,
+        private val soundViewModel: SoundViewModel,
+        soundScroller: SoundScroller,
+    ) :
         View.OnClickListener,
         LifecycleViewHolder<Category>(binding.root) {
 
-        private val activity = adapter.activity
-        private val appViewModel = adapter.appViewModel
-        private val categoryListViewModel = adapter.categoryViewModel
         private val collapseButtonAnimator = CollapseButtonAnimator(binding.categoryCollapseButton)
-        private val initialSpanCount = adapter.initialSpanCount
         private val soundDragListener: SoundDragListener
-        private val soundScroller = adapter.soundScroller
-        private val soundViewModel = adapter.soundViewModel
 
         private var isCollapsed: Boolean? = null
         private var soundCount: Int? = null
 
-        internal val soundAdapter: SoundAdapter = SoundAdapter(
-            binding.soundList,
+        private val soundAdapter = SoundAdapter(
             soundViewModel,
             appViewModel,
-            categoryListViewModel,
-            activity
+            categoryViewModel
         )
 
         override var item: Category? = null
@@ -134,7 +142,7 @@ class CategoryAdapter(
             }
 
             binding.category = category
-            soundAdapter.category = category
+            soundAdapter.categoryId = categoryId
 
             onCollapseChanged(category.collapsed)
 
@@ -218,7 +226,7 @@ class CategoryAdapter(
             item?.let { category ->
                 val collapsed = !category.collapsed
                 collapseButtonAnimator.animate(collapsed)
-                category.id?.let { categoryListViewModel.setCollapsed(it, collapsed) }
+                category.id?.let { categoryViewModel.setCollapsed(it, collapsed) }
             }
         }
 
@@ -252,14 +260,14 @@ class CategoryAdapter(
 
         private fun moveCategoryUp() {
             if (bindingAdapterPosition > 0) {
-                categoryListViewModel.switch(bindingAdapterPosition, bindingAdapterPosition - 1)
+                categoryViewModel.switch(bindingAdapterPosition, bindingAdapterPosition - 1)
             }
         }
 
         private fun moveCategoryDown() {
             bindingAdapter?.also { adapter ->
                 if (bindingAdapterPosition < adapter.itemCount - 1) {
-                    categoryListViewModel.switch(bindingAdapterPosition, bindingAdapterPosition + 1)
+                    categoryViewModel.switch(bindingAdapterPosition, bindingAdapterPosition + 1)
                 }
             }
         }

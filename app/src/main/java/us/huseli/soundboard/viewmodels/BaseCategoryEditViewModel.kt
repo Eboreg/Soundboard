@@ -13,12 +13,6 @@ abstract class BaseCategoryEditViewModel : ViewModel() {
     val name: LiveData<String>
         get() = _name
 
-    // var name: String = ""
-
-    /*
-        abstract fun getBackgroundColor(): Int?
-        abstract fun setBackgroundColor(color: Int): Any?
-    */
     abstract fun save(): Any?
 
     fun setBackgroundColor(color: Int) {

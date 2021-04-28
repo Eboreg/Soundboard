@@ -38,9 +38,13 @@ class CategoryViewModel @Inject constructor(
         repository.setCollapsed(categoryId, value)
     }
 
-    fun expand(category: Category) = category.id?.let { setCollapsed(it, false) }
+    fun expand(categoryId: Int?) {
+        if (categoryId != null) setCollapsed(categoryId, false)
+    }
 
-    fun collapse(category: Category) = category.id?.let { setCollapsed(it, true) }
+    fun collapse(categoryId: Int?) {
+        if (categoryId != null) setCollapsed(categoryId, true)
+    }
 
     fun create(name: String) = viewModelScope.launch(Dispatchers.IO) {
         /** Used in MainActivity.onCreate() to create empty default category if there are none */

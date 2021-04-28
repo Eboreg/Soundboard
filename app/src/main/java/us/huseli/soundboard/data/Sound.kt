@@ -83,7 +83,7 @@ open class Sound(@PrimaryKey(autoGenerate = true) open val id: Int?,
 
     override fun hashCode() = id ?: 0
 
-    fun calculateChecksum() = MD5.calculate(File(path))
+    fun calculateChecksum() = MD5.calculate(File(path)) ?: throw Exception("MD5.calculate returned null")
 
 
     class Comparator(private val sorting: SoundSorting) :

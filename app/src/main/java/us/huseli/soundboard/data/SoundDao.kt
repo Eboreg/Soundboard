@@ -48,7 +48,7 @@ interface SoundDao {
         soundIds.forEachIndexed { index, soundId -> updateCategoryAndOrder(soundId, categoryId, index) }
 
     @Query("UPDATE Sound SET checksum = :checksum WHERE id = :id")
-    fun updateChecksum(id: Int, checksum: String?)
+    fun updateChecksum(id: Int, checksum: String)
 
     @Query("UPDATE Sound SET duration = :duration WHERE id = :id")
     fun updateDuration(id: Int, duration: Long)

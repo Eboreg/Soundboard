@@ -200,7 +200,7 @@ class MainActivity :
             if (it.isEmpty()) categoryListViewModel.create("Defäult")
         }
 
-        appViewModel.deleteOrphans(applicationContext)
+        appViewModel.deleteOrphans(getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE))
     }
 
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {

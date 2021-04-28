@@ -16,7 +16,7 @@ class SoundAddViewModel @Inject constructor(
 
     private var _duplicates = emptyList<Sound>()
     private val newSounds: List<Sound>
-        get() = sounds.filter { sound -> sound.checksum != null && sound.checksum !in duplicates.mapNotNull { it.checksum } }
+        get() = sounds.filter { sound -> sound.checksum !in duplicates.map { it.checksum } }
 
     val duplicateName: String
         get() = if (_duplicates.size == 1) _duplicates[0].name else ""
@@ -34,11 +34,13 @@ class SoundAddViewModel @Inject constructor(
 
     fun setup(newSounds: List<Sound>, allSounds: List<Sound>, multipleSoundsString: String) {
         super.setup(newSounds, multipleSoundsString)
-        _duplicates = allSounds.filter { sound ->
-            sound.checksum != null && sound.checksum in newSounds.mapNotNull { it.checksum }
-        }
+        _duplicates = allSounds.filter { sound -> sound.checksum in newSounds.map { it.checksum } }
     }
 
+    /**
+     * We could create and insert all the sounds in one batch, but we want to be able to display error messages for
+     * individual sounds where Sound.createFromTemporary() throws an exception.
+     */
     fun soundsToInsert() =
         (if (duplicateStrategy == DuplicateStrategy.ADD) sounds else newSounds).iterator()
 

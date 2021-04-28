@@ -1,6 +1,5 @@
 package us.huseli.soundboard.viewmodels
 
-import android.content.Context
 import android.content.res.Configuration
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,6 +9,7 @@ import us.huseli.soundboard.audio.SoundPlayer
 import us.huseli.soundboard.data.Constants
 import us.huseli.soundboard.data.SoundRepository
 import us.huseli.soundboard.data.UndoRepository
+import java.io.File
 import javax.inject.Inject
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -56,11 +56,9 @@ class AppViewModel @Inject constructor(
         _repressMode.postValue(value)
     }
 
-    fun deleteOrphans(context: Context) = viewModelScope.launch(Dispatchers.IO) {
+    fun deleteOrphans(soundDir: File?) = viewModelScope.launch(Dispatchers.IO) {
         val paths = soundRepository.listPaths()
-        context.getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE)?.listFiles()?.forEach { file ->
-            if (!paths.contains(file.path)) file.delete()
-        }
+        soundDir?.listFiles()?.forEach { file -> if (!paths.contains(file.path)) file.delete() }
     }
 
     fun redo() = viewModelScope.launch(Dispatchers.IO) { undoRepository.redo() }

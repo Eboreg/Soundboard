@@ -4,7 +4,6 @@ import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
 import android.annotation.SuppressLint
 import android.content.ClipData
-import android.content.Context
 import android.content.res.ColorStateList
 import android.os.Build
 import android.util.Log
@@ -12,7 +11,6 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleRegistry
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -38,15 +36,15 @@ import java.util.*
 import kotlin.math.roundToInt
 
 class SoundAdapter(
-    private val recyclerView: RecyclerView,
     private val soundViewModel: SoundViewModel,
     private val appViewModel: AppViewModel,
-    private val categoryViewModel: CategoryViewModel,
-    private val activity: FragmentActivity
+    private val categoryViewModel: CategoryViewModel
 ) :
     LifecycleAdapter<SoundExtended, SoundAdapter.SoundViewHolder>(DiffCallback()) {
 
-    lateinit var category: Category
+    var categoryId: Int? = null
+
+    private var recyclerView: RecyclerView? = null
 
     init {
         setHasStableIds(true)
@@ -62,17 +60,25 @@ class SoundAdapter(
         }
     }
 
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        this.recyclerView = recyclerView
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        this.recyclerView = null
+    }
+
     override fun onBindViewHolder(holder: SoundViewHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         val item = getItem(position)
         if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-            "onBindViewHolder: item=$item, holder=$holder, position=$position, category=$category")
+            "onBindViewHolder: item=$item, holder=$holder, position=$position, categoryId=$categoryId")
         holder.bind(item)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SoundViewHolder {
         val binding = ItemSoundBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        val holder = SoundViewHolder(binding, parent.context, this)
+        val holder = SoundViewHolder(binding, appViewModel, soundViewModel)
         binding.lifecycleOwner = holder
 
         return holder
@@ -85,17 +91,17 @@ class SoundAdapter(
 
 
     /*********** OWN PUBLIC/INTERNAL METHODS ***********/
-    internal fun collapseCategory() = categoryViewModel.collapse(category)
+    internal fun collapseCategory() = categoryViewModel.collapse(categoryId)
 
     internal fun contains(sound: Sound) = currentList.indexOf(sound) > -1
 
     internal fun contains(soundId: Int) = currentList.map { it.id }.contains(soundId)
 
-    internal fun expandCategory() = categoryViewModel.expand(category)
+    internal fun expandCategory() = categoryViewModel.expand(categoryId)
 
     internal fun getAdapterPositionUnder(x: Float, y: Float): Int {
-        recyclerView.findChildViewUnder(x, y)?.let { view ->
-            (recyclerView.findContainingViewHolder(view) as? SoundViewHolder)?.let { viewHolder ->
+        recyclerView?.findChildViewUnder(x, y)?.let { view ->
+            (recyclerView?.findContainingViewHolder(view) as? SoundViewHolder)?.let { viewHolder ->
                 /**
                  * view spans horizontally from view.x to (view.x + view.width)
                  * If we are over view's first half, return view position
@@ -127,7 +133,7 @@ class SoundAdapter(
                 Collections.swap(soundIds, i, i + 1)
             else -> for (i in fromPosition downTo toPosition + 1) Collections.swap(soundIds, i, i - 1)
         }
-        soundViewModel.updateCategoryAndOrder(soundIds, category)
+        soundViewModel.updateCategoryAndOrder(soundIds, categoryId)
     }
 
     internal fun isEmpty() = currentList.isEmpty()
@@ -144,20 +150,25 @@ class SoundAdapter(
          * If adapterPosition > 0, do the "after" bit
          * If adapterPosition < list size, do the "before" bit
          */
-        if (adapterPosition > 0) (recyclerView.findViewHolderForAdapterPosition(adapterPosition - 1) as SoundViewHolder).binding.dropMarkerAfter.visibility =
-            View.VISIBLE
-        if (adapterPosition < currentList.size) (recyclerView.findViewHolderForAdapterPosition(
-            adapterPosition
-        ) as SoundViewHolder).binding.dropMarkerBefore.visibility = View.VISIBLE
+        recyclerView?.also { rv ->
+            if (adapterPosition > 0)
+                (rv.findViewHolderForAdapterPosition(adapterPosition - 1) as SoundViewHolder)
+                    .binding.dropMarkerAfter.visibility = View.VISIBLE
+            if (adapterPosition < currentList.size)
+                (rv.findViewHolderForAdapterPosition(adapterPosition) as SoundViewHolder)
+                    .binding.dropMarkerBefore.visibility = View.VISIBLE
+        }
     }
 
     internal fun removeMarksForDrop() {
-        for (i in 0..recyclerView.childCount) {
-            val child = recyclerView.getChildAt(i)
-            if (child != null) {
-                (recyclerView.getChildViewHolder(child) as? SoundViewHolder)?.let {
-                    it.binding.dropMarkerAfter.visibility = View.INVISIBLE
-                    it.binding.dropMarkerBefore.visibility = View.INVISIBLE
+        recyclerView?.also { rv ->
+            for (i in 0..rv.childCount) {
+                val child = rv.getChildAt(i)
+                if (child != null) {
+                    (rv.getChildViewHolder(child) as? SoundViewHolder)?.let {
+                        it.binding.dropMarkerAfter.visibility = View.INVISIBLE
+                        it.binding.dropMarkerBefore.visibility = View.INVISIBLE
+                    }
                 }
             }
         }
@@ -184,8 +195,8 @@ class SoundAdapter(
     @SuppressLint("ClickableViewAccessibility")
     class SoundViewHolder(
         internal val binding: ItemSoundBinding,
-        private val context: Context,
-        adapter: SoundAdapter
+        private val appViewModel: AppViewModel,
+        private val soundViewModel: SoundViewModel
     ) :
         View.OnClickListener,
         View.OnLongClickListener,
@@ -200,9 +211,9 @@ class SoundAdapter(
             fun playerRepository(): PlayerRepository
         }
 
-        private val appViewModel = adapter.appViewModel
+        // private val appViewModel = adapter.appViewModel
         private val clickAnimator = (AnimatorInflater.loadAnimator(
-            context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
+            binding.root.context, R.animator.sound_item_click_animator) as AnimatorSet).apply {
             setTarget(binding.soundCard)
         }
         private val decimalFormat = DecimalFormat(".#").also {
@@ -210,10 +221,10 @@ class SoundAdapter(
             symbols.decimalSeparator = '.'
             it.decimalFormatSymbols = symbols
         }
-        private val soundViewModel = adapter.soundViewModel
-        private val activity = adapter.activity
+
+        // private val soundViewModel = adapter.soundViewModel
         private val playerRepository = EntryPointAccessors.fromApplication(
-            activity.applicationContext, SoundViewHolderEntryPoint::class.java).playerRepository()
+            binding.root.context.applicationContext, SoundViewHolderEntryPoint::class.java).playerRepository()
 
         private var longClickAnimator: SoundItemLongClickAnimator? = null
         private var player: SoundPlayer? = null
@@ -277,7 +288,7 @@ class SoundAdapter(
                     value < 950 -> decimalFormat.format(value.toDouble() / 1000)
                     else -> (value.toDouble() / 1000).roundToInt().toString()
                 }
-                binding.duration.text = context.getString(R.string.duration_seconds, durationString)
+                binding.duration.text = binding.root.context.getString(R.string.duration_seconds, durationString)
                 binding.durationCard.visibility = View.VISIBLE
                 playerTimer?.also { timer ->
                     timer.setDuration(value)

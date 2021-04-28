@@ -16,7 +16,7 @@ class SoundDeleteViewModel @Inject constructor(
     fun delete(soundIds: List<Int>?) {
         soundIds?.also {
             viewModelScope.launch(Dispatchers.IO) {
-                repository.deleteByIds(soundIds)
+                repository.delete(soundIds)
                 undoRepository.pushState()
             }
         }

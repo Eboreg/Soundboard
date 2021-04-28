@@ -28,27 +28,23 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao, privat
 
 
     /********* UPDATE ************************************************************************************************/
-    fun updateChecksum(sound: Sound, checksum: String?) {
-        sound.id?.also { soundDao.updateChecksum(it, checksum) }
+    fun updateChecksum(soundId: Int?, checksum: String) {
+        if (soundId != null) soundDao.updateChecksum(soundId, checksum)
     }
 
-    fun update(sounds: List<Sound>, name: String?, volume: Int, categoryId: Int?) {
+    fun update(sounds: List<Sound>, name: String?, volume: Int, categoryId: Int?) =
         soundDao.update(sounds, name, volume, categoryId)
-    }
 
-    fun updateCategoryAndOrder(soundIds: List<Int>, categoryId: Int) {
+    fun updateCategoryAndOrder(soundIds: List<Int>, categoryId: Int) =
         /**
          * Updates category, then saves Sound.order according to position in list.
          * List is assumed to contain _all_ sounds now in this category, in their intended order.
          */
         soundDao.updateCategoryAndOrder(soundIds, categoryId)
-    }
 
 
     /********* DELETE ************************************************************************************************/
-    fun delete(sounds: List<Sound>) = soundDao.delete(sounds.mapNotNull { it.id })
-
-    fun deleteByIds(soundIds: List<Int>) = soundDao.delete(soundIds)
+    fun delete(soundIds: List<Int>) = soundDao.delete(soundIds)
 
     fun deleteByCategory(categoryId: Int) = soundDao.deleteByCategory(categoryId)
 
