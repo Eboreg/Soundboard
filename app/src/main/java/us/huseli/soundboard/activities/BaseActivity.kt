@@ -2,7 +2,6 @@ package us.huseli.soundboard.activities
 
 import android.annotation.TargetApi
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.os.Build
 import android.view.View
@@ -12,35 +11,39 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
-import androidx.preference.PreferenceManager
 import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.Application
 import us.huseli.soundboard.R
+import us.huseli.soundboard.helpers.SettingsManager
 import java.util.*
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
-abstract class BaseActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
+abstract class BaseActivity : AppCompatActivity() {
     override fun attachBaseContext(newBase: Context?) {
         newBase?.let { super.attachBaseContext(updateBaseContext(newBase)) }
     }
 
     private fun updateBaseContext(context: Context): Context {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        /**
+         * Seems like we can't inject SettingsManager, because it will not yet have been created at this point?
+         */
+        val settingsManager = SettingsManager.createForContext(context)
         var newContext = context
 
-        prefs.getString("language", "en")?.let { language ->
-            val realLanguage =
-                if (language == "default") (context.applicationContext as Application).deviceDefaultLanguage else language
-            if (realLanguage != null) {
-                val locale = Locale.forLanguageTag(realLanguage)
-                Locale.setDefault(locale)
-                newContext = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) updateResourcesLocale(context, locale)
-                else updateResourcesLocaleLegacy(context, locale)
-            }
+        val realLanguage =
+            if (settingsManager.getLanguage() == "default") (context.applicationContext as Application).deviceDefaultLanguage
+            else settingsManager.getLanguage()
+        if (realLanguage != null) {
+            val locale = Locale.forLanguageTag(realLanguage)
+            Locale.setDefault(locale)
+            newContext = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) updateResourcesLocale(context, locale)
+            else updateResourcesLocaleLegacy(context, locale)
         }
 
-        setNightMode(prefs.getString("nightMode", "default"))
+        setNightMode(settingsManager.getNightMode())
+
+        settingsManager.destroy()
 
         return newContext
     }
@@ -59,7 +62,7 @@ abstract class BaseActivity : AppCompatActivity(), SharedPreferences.OnSharedPre
         return context
     }
 
-    fun setNightMode(value: String?) {
+    fun setNightMode(value: String?) = runOnUiThread {
         when (value) {
             "default" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
             "night" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
@@ -67,7 +70,7 @@ abstract class BaseActivity : AppCompatActivity(), SharedPreferences.OnSharedPre
         }
     }
 
-    fun setLanguage(language: String?) {
+    fun setLanguage(language: String?) = runOnUiThread {
         val realLanguage =
             if (language == "default") (applicationContext as Application).deviceDefaultLanguage else language
         if (realLanguage != null) {

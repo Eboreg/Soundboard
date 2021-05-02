@@ -54,4 +54,6 @@ class SoundRepository @Inject constructor(private val soundDao: SoundDao, privat
         /** Sorts all sounds within category */
         categoryId?.let { soundDao.sortWithinCategory(it, sorting) }
     }
+
+    fun getMaxOrder(categoryId: Int) = soundDao.getMaxOrder(categoryId)
 }

@@ -4,9 +4,11 @@ import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.util.Log
+import kotlinx.coroutines.Job
 import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.helpers.Functions
 import java.nio.ByteBuffer
+import kotlin.coroutines.coroutineContext
 
 class AudioExtractor(
     private val audioTrack: AudioTrackContainer,
@@ -22,7 +24,7 @@ class AudioExtractor(
     private var outputRetries = 0
     private var totalSize = 0
 
-    fun extractBuffer(): ByteBuffer? {
+    suspend fun extractBuffer(): ByteBuffer? {
         return when (mime) {
             MediaFormat.MIMETYPE_AUDIO_RAW -> extractBufferRaw()
             else -> codec?.let { extractBufferEncoded(it, false)?.buffer }
@@ -31,7 +33,7 @@ class AudioExtractor(
 
     fun isEosReached() = eosReached
 
-    fun prime(): ByteBuffer? {
+    suspend fun prime(): ByteBuffer? {
         val buffer = ByteBuffer.allocateDirect(bufferSize)
         if (mime == MediaFormat.MIMETYPE_AUDIO_RAW) {
             do {
@@ -68,10 +70,12 @@ class AudioExtractor(
         } else null
     }
 
-    private fun extractBufferEncoded(codec: MediaCodec, priming: Boolean): ProcessOutputResult? {
-        if (lastOutputStatus == null || lastOutputStatus == ProcessOutputStatus.SUCCESS || outputRetries++ < 5) {
+    private suspend fun extractBufferEncoded(codec: MediaCodec, priming: Boolean): ProcessOutputResult? {
+        val job = coroutineContext[Job]
+        if (job?.isActive == true && (lastOutputStatus == null || lastOutputStatus == ProcessOutputStatus.SUCCESS || outputRetries++ < 5)) {
             if (lastInputStatus != ProcessInputStatus.END)
                 lastInputStatus = processInputBuffer(codec)
+            if (!job.isActive) return null
             val outputResult = processOutputBuffer(codec, priming)
             lastOutputStatus = outputResult.status
             if ((outputResult.status == ProcessOutputStatus.SUCCESS || outputResult.status == ProcessOutputStatus.EOS) && outputResult.buffer != null) {

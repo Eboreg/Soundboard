@@ -292,7 +292,7 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
             }
         }
 
-        private fun getBuffer(audioExtractor: AudioExtractor): ByteBuffer? {
+        private suspend fun getBuffer(audioExtractor: AudioExtractor): ByteBuffer? {
             return primedData?.also { primedData = null } ?: audioExtractor.extractBuffer()
         }
 
@@ -343,8 +343,12 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
 
         protected open suspend fun preparePlay() {
             state = State.INIT_PLAY
-            audioTrack.build()
-            audioTrack.play()
+            try {
+                audioTrack.build()
+                audioTrack.play()
+            } catch (e: Exception) {
+                onWarning("Could not play file", null, e)
+            }
         }
 
         /********** PUBLIC METHODS **********/
@@ -386,15 +390,15 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
                 val job = coroutineContext[Job]
                 while (job?.isActive == true && !audioExtractor.isEosReached()) {
                     val buffer = getBuffer(audioExtractor)
-                    // log("start: buffer=$buffer")
+                    if (!job.isActive) return@launch
                     val writeResult = audioTrack.write(buffer)
-                    // log("writeResult=$writeResult")
-
                     @Suppress("NON_EXHAUSTIVE_WHEN")
                     when (writeResult.status) {
                         AudioTrackContainer.WriteStatus.FAIL -> onPlayFail()
                         AudioTrackContainer.WriteStatus.OK -> doOnPlayStart()
-                        AudioTrackContainer.WriteStatus.ERROR -> onError(writeResult.message)
+                        AudioTrackContainer.WriteStatus.ERROR -> onWarning(
+                            "Error playing file",
+                            "start: error, message=${writeResult.message}, status=${writeResult.status}, sampleSize=${writeResult.sampleSize}, writtenBytes=${writeResult.writtenBytes}")
                     }
                 }
             }
@@ -426,6 +430,7 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
             queuedStopJob?.cancel()
             audioTrack.flush()
             doPrepare()
+            audioTrack.awaitPausedState()
             super.preparePlay()
         }
     }

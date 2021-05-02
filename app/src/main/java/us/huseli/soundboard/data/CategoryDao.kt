@@ -14,7 +14,7 @@ interface CategoryDao {
 
     @Transaction
     fun insert(category: Category) {
-        val order = if (category.order > -1) category.order else (getMaxOrder() ?: -1) + 1
+        val order = if (category.order > -1) category.order else getMaxOrder() + 1
         insert(category.name, category.backgroundColor, order, category.collapsed)
     }
 
@@ -67,8 +67,8 @@ interface CategoryDao {
 
 
     /********* VARIOUS ***********************************************************************************************/
-    @Query("SELECT MAX(`order`) FROM SoundCategory")
-    fun getMaxOrder(): Int?
+    @Query("SELECT IFNULL(MAX(`order`), -1) FROM SoundCategory")
+    fun getMaxOrder(): Int
 
     @Query("SELECT backgroundColor FROM SoundCategory")
     fun getUsedColors(): LiveData<List<Int>>

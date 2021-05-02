@@ -1,12 +1,8 @@
 package us.huseli.soundboard.data
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.preference.PreferenceManager
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -16,36 +12,25 @@ import kotlinx.coroutines.sync.withLock
 import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.audio.SoundPlayer
 import us.huseli.soundboard.helpers.Functions
+import us.huseli.soundboard.helpers.SettingsManager
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.collections.set
 
 @Singleton
 class PlayerRepository @Inject constructor(
-    @ApplicationContext private val context: Context, private val soundDao: SoundDao) : SoundPlayer.DurationListener {
+    private val soundDao: SoundDao, private val settingsManager: SettingsManager) : SoundPlayer.DurationListener,
+    SettingsManager.Listener {
 
     private var bufferSize = Constants.DEFAULT_BUFFER_SIZE
     private var playersRaw = mutableMapOf<Int, SoundPlayer>()
     private val playersMutex = Mutex()
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
-    private val preferenceListener =
-        SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
-            if (key == "bufferSize") {
-                prefs?.getInt(key, Functions.bufferSizeToSeekbarValue(Constants.DEFAULT_BUFFER_SIZE))?.let {
-                    scope.launch { onBufferSizeChange(it) }
-                }
-            }
-        }
 
     init {
-        scope.launch {
-            PreferenceManager.getDefaultSharedPreferences(context).apply {
-                registerOnSharedPreferenceChangeListener(preferenceListener)
-                // Check initial value
-                onBufferSizeChange(getInt("bufferSize",
-                    Functions.bufferSizeToSeekbarValue(Constants.DEFAULT_BUFFER_SIZE)))
-            }
-        }
+        settingsManager.registerListener(this)
+        // Check initial value
+        scope.launch { onBufferSizeChange(settingsManager.getBufferSize()) }
     }
 
     private val playersMutableLiveData = MutableLiveData<Map<Int, SoundPlayer>>()
@@ -105,6 +90,10 @@ class PlayerRepository @Inject constructor(
                 playersRaw.forEach { it.value.setBufferSize(newValue) }
             }
         }
+    }
+
+    override fun onSettingChanged(key: String, value: Any) {
+        if (key == Constants.PREF_BUFFER_SIZE) scope.launch { onBufferSizeChange(value as Int) }
     }
 
     override fun onSoundPlayerDurationChange(sound: Sound, duration: Long) {

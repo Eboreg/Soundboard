@@ -9,9 +9,7 @@ import android.os.Bundle
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.edit
 import androidx.fragment.app.DialogFragment
-import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -21,8 +19,8 @@ import kotlinx.coroutines.launch
 import us.huseli.soundboard.R
 import us.huseli.soundboard.activities.BaseActivity
 import us.huseli.soundboard.data.Constants
-import us.huseli.soundboard.data.Settings
 import us.huseli.soundboard.data.SoundboardDatabase
+import us.huseli.soundboard.helpers.SettingsManager
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -40,11 +38,11 @@ class RestoreDialogFragment : DialogFragment() {
     @Inject
     lateinit var existingDb: SoundboardDatabase
 
+    @Inject
+    lateinit var settingsManager: SettingsManager
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         getRestoreFileLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            PreferenceManager
-                .getDefaultSharedPreferences(requireContext())
-                .registerOnSharedPreferenceChangeListener(requireActivity() as BaseActivity)
             doRestore(it.data, it.resultCode)
         }
 
@@ -144,13 +142,7 @@ class RestoreDialogFragment : DialogFragment() {
                         val length = zipIn.read(data)
                         if (length > 0) json += String(data, 0, length)
                     }
-                    val settings = Settings.fromJson(json)
-                    PreferenceManager.getDefaultSharedPreferences(requireContext()).edit {
-                        putInt("bufferSize", settings.bufferSize)
-                        putString("language", settings.language)
-                        putString("nightMode", settings.nightMode)
-                        apply()
-                    }
+                    settingsManager.loadJson(json)
                     return currentFileIdx?.let { it + 1 }
                 }
             } while (entry != null)
@@ -229,22 +221,18 @@ class RestoreDialogFragment : DialogFragment() {
 
     private fun zipUriToFile(uri: Uri): File? {
         return try {
-            uri.path?.let { path ->
-                val outputFile =
-                    File(requireActivity().getDir(Constants.BACKUP_TEMP_DIRNAME, Context.MODE_PRIVATE),
-                        path.substringAfterLast('/'))
-                val buffer = ByteArray(Constants.ZIP_BUFFER_SIZE)
-                requireActivity().contentResolver.openInputStream(uri)?.use { inputStream ->
-                    FileOutputStream(outputFile).use { outputStream ->
-                        var len: Int
-                        while (inputStream.read(buffer).also { len = it } > 0) {
-                            outputStream.write(buffer, 0, len)
-                        }
+            val outputFile =
+                File(requireActivity().getDir(Constants.BACKUP_TEMP_DIRNAME, Context.MODE_PRIVATE), "backup.zip")
+            val buffer = ByteArray(Constants.ZIP_BUFFER_SIZE)
+            requireActivity().contentResolver.openInputStream(uri)?.use { inputStream ->
+                FileOutputStream(outputFile).use { outputStream ->
+                    var len: Int
+                    while (inputStream.read(buffer).also { len = it } > 0) {
+                        outputStream.write(buffer, 0, len)
                     }
                 }
-                return outputFile
             }
-            null
+            outputFile
         } catch (e: Exception) {
             return null
         }

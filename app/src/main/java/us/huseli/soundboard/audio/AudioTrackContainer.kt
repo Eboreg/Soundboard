@@ -6,6 +6,7 @@ import android.media.AudioManager
 import android.media.AudioTrack
 import android.os.Build
 import android.util.Log
+import kotlinx.coroutines.delay
 import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.helpers.Functions
 import java.nio.ByteBuffer
@@ -25,6 +26,10 @@ class AudioTrackContainer(
 
     val playbackHeadPosition: Int
         get() = audioTrack?.playbackHeadPosition ?: 0
+
+    suspend fun awaitPausedState() {
+        while (audioTrack != null && audioTrack?.playState != AudioTrack.PLAYSTATE_PAUSED) delay(10)
+    }
 
     fun build(): AudioTrackContainer {
         startAtPosition = 0

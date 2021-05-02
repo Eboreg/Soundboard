@@ -1,15 +1,11 @@
 package us.huseli.soundboard.fragments
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.*
-import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.adapters.CategoryAdapter
-import us.huseli.soundboard.data.Constants
 import us.huseli.soundboard.databinding.FragmentCategoryListBinding
 import us.huseli.soundboard.helpers.SoundScroller
 import us.huseli.soundboard.interfaces.ZoomInterface
@@ -22,29 +18,13 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
     private val categoryListViewModel by activityViewModels<CategoryViewModel>()
     private val appViewModel by activityViewModels<AppViewModel>()
     private val soundViewModel by activityViewModels<SoundViewModel>()
-    private val preferences: SharedPreferences by lazy { requireActivity().getPreferences(Context.MODE_PRIVATE) }
     private val scaleGestureDetector by lazy { ScaleGestureDetector(requireContext(), ScaleListener()) }
 
     private lateinit var binding: FragmentCategoryListBinding
 
     private var categoryAdapter: CategoryAdapter? = null
-    private var initialSpanCount: Int? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        val config = resources.configuration
-        val landscapeSpanCount = preferences.getInt("landscapeSpanCount", 0)
-        initialSpanCount = appViewModel.setupLayout(
-            config.orientation, config.screenWidthDp, config.screenHeightDp, landscapeSpanCount)
-
-        appViewModel.spanCountLandscape.observe(viewLifecycleOwner) {
-            if (it != null) {
-                preferences.edit {
-                    putInt("landscapeSpanCount", it)
-                    apply()
-                }
-            }
-        }
-
         binding = FragmentCategoryListBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
         return binding.root
@@ -77,7 +57,6 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
 
         categoryAdapter = CategoryAdapter(
             appViewModel,
-            initialSpanCount ?: Constants.DEFAULT_SPANCOUNT_PORTRAIT,
             soundViewModel,
             categoryListViewModel,
             requireActivity(),

@@ -1,3 +1,59 @@
+Too many fast pressings on sound with repress mode restart makes init fail and sound crappy
+Sometimes it also crashes:
+E/AndroidRuntime: FATAL EXCEPTION: DefaultDispatcher-worker-5
+    Process: us.huseli.soundboard.debug, PID: 22523
+    java.lang.UnsupportedOperationException: Cannot create AudioTrack
+        at android.media.AudioTrack$Builder.build(AudioTrack.java:1033)
+        at us.huseli.soundboard.audio.AudioTrackContainer.build(AudioTrackContainer.kt:39)
+        at us.huseli.soundboard.audio.AudioFile$PlayActionAbstract.preparePlay$suspendImpl(AudioFile.kt:346)
+        at us.huseli.soundboard.audio.AudioFile$PlayActionAbstract.preparePlay(Unknown Source:0)
+        at us.huseli.soundboard.audio.AudioFile$RestartAction.preparePlay(AudioFile.kt:429)
+        at us.huseli.soundboard.audio.AudioFile$RestartAction$preparePlay$1.invokeSuspend(Unknown Source:11)
+        at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+        at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:106)
+        at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:571)
+        at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:750)
+        at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:678)
+        at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:665)
+
+What happens on repress?
+SoundPlayer.togglePlay() runs audioFile.restart() in coroutine
+    PlayActionAbstract.start()
+        AudioExtractor()
+        RestartAction.preparePlay()
+            extractJob?.cancelAndJoin()
+            queuedStopJob?.cancel()
+            AudioTrackContainer.flush()
+                AudioTrackContainer.stop()
+                    audioTrack.pause()
+                audioTrack.flush()
+            AudioFile.doPrepare()
+                extractor.seekTo(0)
+                initCodec()
+            AudioTrackContainer.awaitPausedState()
+            AudioTrackContainer.build()
+                AudioTrack.Builder.build()
+            AudioTrackContainer.play()
+                audioTrack.play()
+        extractJob = couroutine:
+            loop:
+                AudioExtractor.extractBufferEncoded()
+                    processInputBuffer()
+                        codec.dequeueInputBuffer()
+                        codec.getInputBuffer()
+                        MediaExtractor.readSampleData()
+                        codec.queueInputBuffer()
+                        extractor.advance()
+                    processOutputBuffer()
+                        codec.dequeueOutputBuffer()
+                        codec.getOutputBuffer()
+                        codec.releaseOutputBuffer()
+                AudioTrackContainer.write(buffer)
+                    audioTrack.write()
+
+
+
+
 Ripple animation not visible on grey background
 
 

@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.LevelListDrawable
@@ -22,24 +21,19 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
-import androidx.core.content.edit
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.add
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
-import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import us.huseli.soundboard.R
 import us.huseli.soundboard.audio.SoundPlayer
 import us.huseli.soundboard.data.*
 import us.huseli.soundboard.databinding.ActivityMainBinding
 import us.huseli.soundboard.fragments.*
+import us.huseli.soundboard.helpers.SettingsManager
 import us.huseli.soundboard.interfaces.EditCategoryInterface
 import us.huseli.soundboard.interfaces.EditSoundInterface
 import us.huseli.soundboard.interfaces.SnackbarInterface
@@ -56,10 +50,13 @@ class MainActivity :
     SnackbarInterface,
     ZoomInterface,
     ActionMode.Callback,
-    SharedPreferences.OnSharedPreferenceChangeListener {
+    SettingsManager.Listener {
 
     @Inject
     lateinit var playerRepository: PlayerRepository
+
+    @Inject
+    lateinit var settingsManager: SettingsManager
 
     private val actionbarLogoTouchTimes = mutableListOf<Long>()
     private val appViewModel by viewModels<AppViewModel>()
@@ -68,7 +65,6 @@ class MainActivity :
     private val soundAddViewModel by viewModels<SoundAddViewModel>()
     private val soundEditViewModel by viewModels<SoundEditViewModel>()
     private val soundViewModel by viewModels<SoundViewModel>()
-    private val scope = CoroutineScope(Job() + Dispatchers.IO)
 
     private var actionMode: ActionMode? = null
     private var addSoundLauncher: ActivityResultLauncher<Intent>? = null
@@ -144,23 +140,14 @@ class MainActivity :
 
         val pInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
 
-        val prefs = getPreferences(Context.MODE_PRIVATE)
-        val lastVersion = prefs.getLong(Constants.PREF_LAST_VERSION, 0)
-
         @Suppress("DEPRECATION")
         val currentVersion =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) pInfo.longVersionCode else pInfo.versionCode.toLong()
-        if (lastVersion < currentVersion) onAppVersionUpgraded(lastVersion, currentVersion)
-        prefs.edit {
-            putLong(Constants.PREF_LAST_VERSION, currentVersion).apply()
-        }
+        if (settingsManager.getLastVersion() < currentVersion) onAppVersionUpgraded(settingsManager.getLastVersion(),
+            currentVersion)
+        settingsManager.setLastVersion(currentVersion)
 
-        prefs.getString(Constants.PREF_REPRESS_MODE, null)?.also { repressModeValue ->
-            try {
-                appViewModel.setRepressMode(SoundPlayer.RepressMode.valueOf(repressModeValue))
-            } catch (e: IllegalArgumentException) {
-            }
-        }
+        appViewModel.setOrientation(resources.configuration.orientation)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         binding.soundViewModel = soundViewModel
@@ -245,7 +232,6 @@ class MainActivity :
             }
             R.id.action_help -> {
                 supportFragmentManager.commit {
-                    // replace<HelpFragment>(R.id.content_container)
                     replace<HelpFragment>(R.id.content_container)
                     setReorderingAllowed(true)
                     addToBackStack("help")
@@ -263,26 +249,14 @@ class MainActivity :
 
     override fun onPause() {
         super.onPause()
-        PreferenceManager.getDefaultSharedPreferences(this)
-            .unregisterOnSharedPreferenceChangeListener(this)
+        settingsManager.unregisterListener(this)
     }
 
     override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?) = false
 
     override fun onResume() {
         super.onResume()
-        scope.launch {
-            PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
-                .registerOnSharedPreferenceChangeListener(this@MainActivity)
-        }
-    }
-
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-        sharedPreferences?.also {
-            when (key) {
-                "language" -> setLanguage(sharedPreferences.getString(key, "en"))
-            }
-        }
+        settingsManager.registerListener(this)
     }
 
 
@@ -299,6 +273,12 @@ class MainActivity :
 
 
     /********* OVERRIDDEN OWN METHODS **********/
+    override fun onSettingChanged(key: String, value: Any) {
+        when (key) {
+            Constants.PREF_LANGUAGE -> setLanguage(value as String)
+        }
+    }
+
     override fun showCategoryAddDialog() {
         showFragment(
             AddCategoryDialogFragment.newInstance(
@@ -310,7 +290,6 @@ class MainActivity :
 
     override fun showCategoryEditDialog(category: Category) {
         categoryEditViewModel.setup(category)
-        // showDialogFragment(EditCategoryDialogFragment())
         showFragment(
             EditCategoryDialogFragment.newInstance(DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)),
             CATEGORY_EDIT_DIALOG_TAG)
@@ -463,8 +442,9 @@ class MainActivity :
             ?: binding.bottombar.bottombarToolbar?.menu?.findItem(R.id.action_open_repress_mode_menu)
         val icon = (menuItem?.icon as? LayerDrawable)?.getDrawable(0) as? LevelListDrawable
         icon?.level = level
-        if (this.repressMode != null) showSnackbar(getString(R.string.on_repress, mode))
-        this.repressMode = mode
+        if (repressMode != null) showSnackbar(getString(R.string.on_repress, mode))
+        repressMode = mode
+        settingsManager.setRepressMode(mode)
     }
 
     private fun onSelectEnabledChange(value: Boolean) {
@@ -562,7 +542,6 @@ class MainActivity :
 
 
     companion object {
-        // const val REQUEST_SOUND_REINIT = 2
         const val EXTRA_SOUND_ID = "soundId"
         const val CATEGORY_ADD_DIALOG_TAG = "categoryAddDialog"
         const val CATEGORY_EDIT_DIALOG_TAG = "categoryEditDialog"

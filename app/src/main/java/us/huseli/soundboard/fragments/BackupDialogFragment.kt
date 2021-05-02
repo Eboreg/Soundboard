@@ -8,8 +8,8 @@ import android.text.format.DateFormat
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.fragment.app.DialogFragment
-import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 import us.huseli.soundboard.R
 import us.huseli.soundboard.activities.BaseActivity
 import us.huseli.soundboard.data.Constants
-import us.huseli.soundboard.data.Settings
+import us.huseli.soundboard.helpers.SettingsManager
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
@@ -25,10 +25,15 @@ import java.io.FileOutputStream
 import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class BackupDialogFragment : DialogFragment() {
     private val scope = CoroutineScope(Job() + Dispatchers.IO)
     private lateinit var dialog: AlertDialog
+
+    @Inject
+    lateinit var settingsManager: SettingsManager
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         dialog = MaterialAlertDialogBuilder(requireContext())
@@ -63,7 +68,7 @@ class BackupDialogFragment : DialogFragment() {
     }
 
     private fun tryBackup() {
-        val json = Settings.fromPrefs(PreferenceManager.getDefaultSharedPreferences(requireContext())).toJson()
+        val json = settingsManager.dumpJson()
         val jsonFile = File(
             requireActivity().getDir(Constants.BACKUP_TEMP_DIRNAME, Context.MODE_PRIVATE),
             Constants.ZIP_PREFS_FILENAME)

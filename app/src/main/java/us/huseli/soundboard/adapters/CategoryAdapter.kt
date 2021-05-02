@@ -2,28 +2,33 @@ package us.huseli.soundboard.adapters
 
 import android.content.Context
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleRegistry
-import androidx.recyclerview.widget.*
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.ItemTouchHelper
 import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.R
 import us.huseli.soundboard.adapters.common.LifecycleAdapter
 import us.huseli.soundboard.adapters.common.LifecycleViewHolder
 import us.huseli.soundboard.animators.CollapseButtonAnimator
 import us.huseli.soundboard.data.Category
+import us.huseli.soundboard.data.Constants
 import us.huseli.soundboard.databinding.ItemCategoryBinding
 import us.huseli.soundboard.helpers.SoundDragListener
 import us.huseli.soundboard.helpers.SoundScroller
 import us.huseli.soundboard.interfaces.EditCategoryInterface
 import us.huseli.soundboard.interfaces.SnackbarInterface
-import us.huseli.soundboard.viewmodels.*
-import java.util.*
+import us.huseli.soundboard.viewmodels.AppViewModel
+import us.huseli.soundboard.viewmodels.CategoryViewModel
+import us.huseli.soundboard.viewmodels.SoundViewModel
 
 class CategoryAdapter(
     private val appViewModel: AppViewModel,
-    private val initialSpanCount: Int,
     private val soundViewModel: SoundViewModel,
     private val categoryViewModel: CategoryViewModel,
     private val activity: FragmentActivity,
@@ -39,15 +44,13 @@ class CategoryAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
-        val binding =
-            ItemCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemCategoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val holder = CategoryViewHolder(
             binding,
             activity,
-            appViewModel,
             categoryViewModel,
-            initialSpanCount,
             soundViewModel,
+            appViewModel,
             soundScroller,
         )
         binding.lifecycleOwner = holder
@@ -88,10 +91,9 @@ class CategoryAdapter(
     class CategoryViewHolder(
         internal val binding: ItemCategoryBinding,
         private val activity: FragmentActivity,
-        private val appViewModel: AppViewModel,
         private val categoryViewModel: CategoryViewModel,
-        private val initialSpanCount: Int,
         private val soundViewModel: SoundViewModel,
+        appViewModel: AppViewModel,
         soundScroller: SoundScroller,
     ) :
         View.OnClickListener,
@@ -113,21 +115,19 @@ class CategoryAdapter(
         override val lifecycleRegistry = LifecycleRegistry(this)
 
         init {
+            val soundLayoutManager = SoundLayoutManager(binding.root.context, appViewModel.spanCount.value)
             soundDragListener = SoundDragListener(soundAdapter, this, soundScroller)
 
             enableClickAndTouch()
             setupMoveButtons()
             binding.root.setOnDragListener(soundDragListener)
 
-            binding.soundList.apply {
-                this.adapter = soundAdapter
-                layoutManager = SoundLayoutManager(context, initialSpanCount).also { lm ->
-                    appViewModel.spanCount.observe(this@CategoryViewHolder) {
-                        if (it != null) lm.spanCount = it
-                    }
-                }
-                isNestedScrollingEnabled = false
+            appViewModel.spanCount.observe(this) {
+                if (it != null) soundLayoutManager.spanCount = it
             }
+
+            binding.soundList.adapter = soundAdapter
+            binding.soundList.layoutManager = soundLayoutManager
 
             appViewModel.reorderEnabled.observe(this) { onReorderEnabledChange(it) }
         }
@@ -283,8 +283,9 @@ class CategoryAdapter(
         }
 
 
-        inner class SoundLayoutManager(context: Context, spanCount: Int) :
-            GridLayoutManager(context, spanCount), ItemTouchHelper.ViewDropHandler {
+        inner class SoundLayoutManager(context: Context, spanCount: Int?) :
+            GridLayoutManager(context, spanCount ?: Constants.DEFAULT_SPANCOUNT_LANDSCAPE),
+            ItemTouchHelper.ViewDropHandler {
 
             override fun isAutoMeasureEnabled() = true
 

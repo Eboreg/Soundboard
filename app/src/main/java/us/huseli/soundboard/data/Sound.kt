@@ -158,6 +158,7 @@ open class Sound(@PrimaryKey(autoGenerate = true) open val id: Int?,
                                 name: String?,
                                 volume: Int?,
                                 categoryId: Int?,
+                                order: Int?,
                                 context: Context): Sound {
             /** Copy data to local storage and return new Sound object to be saved to DB */
             val uri = tempSound.uri ?: throw Exception("Sound ${tempSound.name} has no URI")
@@ -177,7 +178,7 @@ open class Sound(@PrimaryKey(autoGenerate = true) open val id: Int?,
                         categoryId ?: tempSound.categoryId,
                         name ?: tempSound.name,
                         outputFile.path,
-                        tempSound.order,
+                        order ?: tempSound.order,
                         volume ?: tempSound.volume,
                         tempSound.added,
                         tempSound.duration,
@@ -187,7 +188,7 @@ open class Sound(@PrimaryKey(autoGenerate = true) open val id: Int?,
         }
 
         fun createFromTemporary(tempSound: Sound, context: Context) =
-            createFromTemporary(tempSound, null, null, null, context)
+            createFromTemporary(tempSound, null, null, null, null, context)
     }
 }
 

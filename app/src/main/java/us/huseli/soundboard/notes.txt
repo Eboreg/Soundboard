@@ -1,3 +1,14 @@
+0.5389221556886228
+
+
+App start (just once):
+    Read sharedprefs.landscapeSpanCount, feed to appviewmodel
+main or baseactivity:
+    observe appviewmodel.landscapespancount, update prefs with it
+categorylistfragment:
+    Observe appviewmodel.span count livedata
+
+
 bind:
  this = {SoundAdapter$SoundViewHolder@13428} "SoundAdapter.ViewHolder 3485cf6 <adapterPosition=0, sound=SoundExtended 7202591 <id=975, name=Cool Britannia, backgroundColor=-16728876, categoryId=5>>"
  sound = {SoundExtended@13429} "SoundExtended 7202591 <id=975, name=Cool Britannia, backgroundColor=-16728876, categoryId=5>"

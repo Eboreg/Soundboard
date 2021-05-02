@@ -70,7 +70,7 @@ interface SoundDao {
          */
         val batch = sounds.filter { categoryId != null || it.categoryId == categoryId }
         if (categoryId != null) {
-            var order = getMaxOrder(categoryId) ?: -1
+            var order = getMaxOrder(categoryId)
             sounds.minus(batch).mapNotNull { it.id }.forEach { soundId ->
                 if (name != null) update(soundId, name, volume, categoryId, ++order)
                 else update(soundId, volume, categoryId, ++order)
@@ -96,8 +96,8 @@ interface SoundDao {
 
 
     /********* VARIOUS ***********************************************************************************************/
-    @Query("SELECT MAX(`order`) FROM Sound WHERE categoryId = :categoryId")
-    fun getMaxOrder(categoryId: Int): Int?
+    @Query("SELECT IFNULL(MAX(`order`), -1) FROM Sound WHERE categoryId = :categoryId")
+    fun getMaxOrder(categoryId: Int): Int
 
     @Transaction
     fun applyState(sounds: List<Sound>) {

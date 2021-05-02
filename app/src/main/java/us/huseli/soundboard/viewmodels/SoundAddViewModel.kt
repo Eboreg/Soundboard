@@ -17,6 +17,7 @@ class SoundAddViewModel @Inject constructor(
     private var _duplicates = emptyList<Sound>()
     private val newSounds: List<Sound>
         get() = sounds.filter { sound -> sound.checksum !in duplicates.map { it.checksum } }
+    private var order = -1
 
     val duplicateName: String
         get() = if (_duplicates.size == 1) _duplicates[0].name else ""
@@ -34,6 +35,7 @@ class SoundAddViewModel @Inject constructor(
 
     fun setup(newSounds: List<Sound>, allSounds: List<Sound>, multipleSoundsString: String) {
         super.setup(newSounds, multipleSoundsString)
+        order = -1
         _duplicates = allSounds.filter { sound -> sound.checksum in newSounds.map { it.checksum } }
     }
 
@@ -45,8 +47,13 @@ class SoundAddViewModel @Inject constructor(
         (if (duplicateStrategy == DuplicateStrategy.ADD) sounds else newSounds).iterator()
 
     fun insertSound(tempSound: Sound, context: Context) {
-        val sound = Sound.createFromTemporary(tempSound, if (!multiple) name else null, volume, categoryId, context)
         viewModelScope.launch(Dispatchers.IO) {
+            categoryId?.let {
+                if (order == -1) order = repository.getMaxOrder(it).plus(1)
+                else order++
+            }
+            val sound =
+                Sound.createFromTemporary(tempSound, if (!multiple) name else null, volume, categoryId, order, context)
             repository.insert(sound)
         }
     }
