@@ -152,6 +152,11 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
         return this
     }
 
+    fun releaseAfterStop() {
+        /** Really only makes sense when called while a sound is playing. */
+        playAction?.releaseAfterStop = true
+    }
+
     suspend fun restart(timeoutUs: Long): AudioFile {
         playAction = when (state) {
             State.PLAYING, State.INIT_PLAY -> RestartAction().start()
@@ -273,6 +278,7 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
         private var onPlayStartCalled = false
         abstract val validStartStates: List<State>
         open val stopAfterDelay: Long = duration
+        var releaseAfterStop = false
 
         /********** PRIVATE METHODS **********/
         private fun enqueueStop() {
@@ -298,20 +304,7 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
 
         private fun isTimeoutReached(timeoutUs: Long?) = timeoutUs?.let { System.nanoTime() > it } == true
 
-        private fun doOnPlayStart() {
-            if (!onPlayStartCalled) {
-                onPlayStartCalled = true
-                onPlayStart()
-                enqueueStop()
-            }
-        }
-
-        /********** PROTECTED METHODS **********/
-        protected fun log(string: String) {
-            if (BuildConfig.DEBUG) Log.d(this.javaClass.simpleName, string)
-        }
-
-        protected open suspend fun onPlayFail() {
+        private suspend fun onPlayFail() {
             log("onPlayFail called")
             extractJob?.cancelAndJoin()
             queuedStopJob?.cancel()
@@ -319,26 +312,39 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
             start()
         }
 
-        protected open fun onPlayStart() {
-            log("onPlayStart called")
-            state = State.PLAYING
+        private fun onPlayStart() {
+            if (!onPlayStartCalled) {
+                log("onPlayStart called")
+                onPlayStartCalled = true
+                state = State.PLAYING
+                enqueueStop()
+            }
         }
 
-        protected open suspend fun onStopped() {
+        private suspend fun onStopped() {
             log("onStopped called")
-            state = State.INITIALIZING
-            extractJob?.cancelAndJoin()
-            audioTrack.release()
-            doPrepare()
-            doPrime()
-            state = State.READY
+            if (releaseAfterStop)
+                this@AudioFile.release()
+            else {
+                state = State.INITIALIZING
+                extractJob?.cancelAndJoin()
+                audioTrack.release()
+                doPrepare()
+                doPrime()
+                state = State.READY
+            }
         }
 
-        protected open suspend fun onTimeout() {
+        private suspend fun onTimeout() {
             log("onTimeout called")
             queuedStopJob?.cancel()
             onWarning("Timeout")
             onStopped()
+        }
+
+        /********** PROTECTED METHODS **********/
+        protected fun log(string: String) {
+            if (BuildConfig.DEBUG) Log.d(this.javaClass.simpleName, string)
         }
 
         protected open suspend fun preparePlay() {
@@ -395,7 +401,7 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
                     @Suppress("NON_EXHAUSTIVE_WHEN")
                     when (writeResult.status) {
                         AudioTrackContainer.WriteStatus.FAIL -> onPlayFail()
-                        AudioTrackContainer.WriteStatus.OK -> doOnPlayStart()
+                        AudioTrackContainer.WriteStatus.OK -> onPlayStart()
                         AudioTrackContainer.WriteStatus.ERROR -> onWarning(
                             "Error playing file",
                             "start: error, message=${writeResult.message}, status=${writeResult.status}, sampleSize=${writeResult.sampleSize}, writtenBytes=${writeResult.writtenBytes}")

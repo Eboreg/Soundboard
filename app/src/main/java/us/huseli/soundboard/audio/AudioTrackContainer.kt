@@ -126,16 +126,15 @@ class AudioTrackContainer(
          */
         if (buffer == null) return WriteResult.create(WriteStatus.NO_BUFFER)
 
-        val sampleSize = buffer.remaining()
         var retries = 0
 
-        var result = internalWrite(buffer, sampleSize)
+        var result = internalWrite(buffer)
         while (result.status == WriteStatus.OVERSHOOT && playbackHeadPosition == startAtPosition && retries++ < 5) {
             if (BuildConfig.DEBUG) Log.w(LOG_TAG,
                 "write: overshoot happened and playbackHeadPosition is still $playbackHeadPosition, retries=$retries; trying again")
             // Rewind buffer to byte after last successfully written (maybe not really needed?)
             buffer.position(result.writtenBytes)
-            result = internalWrite(buffer, sampleSize)
+            result = internalWrite(buffer)
         }
         // If we tried 5 times but are still at the start position
         if (result.status == WriteStatus.OVERSHOOT && playbackHeadPosition == startAtPosition) {
@@ -146,7 +145,8 @@ class AudioTrackContainer(
         return result
     }
 
-    private fun internalWrite(buffer: ByteBuffer, sampleSize: Int): WriteResult {
+    private fun internalWrite(buffer: ByteBuffer): WriteResult {
+        val sampleSize = buffer.remaining()
         return audioTrack?.write(buffer, sampleSize, AudioTrack.WRITE_BLOCKING)?.let { result ->
             WriteResult.create(result, sampleSize)
         } ?: WriteResult.create(null, sampleSize)

@@ -177,9 +177,9 @@ class SoundPlayer(private val sound: Sound,
 
     private suspend fun makeTemporary(audioFile: AudioFile) {
         if (audioFile.isPlaying) {
+            audioFile.releaseAfterStop()
             audioFile.onStateChanged { state ->
                 if (state == AudioFile.State.STOPPED) scope.launch {
-                    audioFile.release()
                     tempAudioFileMutex.withLock {
                         if (BuildConfig.DEBUG)
                             Log.d(LOG_TAG, "Removing audioFile=$audioFile from tempAudioFiles=$tempAudioFiles")
