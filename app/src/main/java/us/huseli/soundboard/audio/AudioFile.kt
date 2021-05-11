@@ -34,7 +34,7 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
     private var outputAudioFormat: AudioFormat
 
     // Private var's initialized here
-    private var codec: MediaCodec? = null
+    // private var codec: MediaCodec? = null
     private var extractJob: Job? = null
     private var extractorDone = false
     private var playAction: PlayActionAbstract? = null
@@ -61,6 +61,8 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
             throw Exception("Could not get media type")
         }
 
+        scope.launch { CodecPool.initialize(inputMediaFormat) }
+
         // InputFormat duration is in MICROseconds!
         duration = (inputMediaFormat.getLong(MediaFormat.KEY_DURATION) / 1000)
         mime = inputMediaFormat.getString(MediaFormat.KEY_MIME) ?: run {
@@ -79,7 +81,7 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
         audioTrack = AudioTrackContainer(audioAttributes, outputAudioFormat, bufferSize, volume)
     }
 
-    /********** PUBLIC METHODS **********/
+    /********** PUBLIC METHODS ***************************************************************************************/
 
     fun changeBufferSize(baseBufferSize: Int): AudioFile {
         if (baseBufferSize * channelCount != bufferSize) {
@@ -143,9 +145,9 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
             state = State.RELEASED
             playAction?.release()
             playAction = null
-            codec?.release()
+            // codec?.release()
             stateListener = null
-            codec = null
+            // codec = null
             primedData = null
             scope.cancel()
         }
@@ -181,20 +183,21 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
     }
 
 
-    /********** PRIVATE METHODS **********/
-
+    /********** PRIVATE METHODS **************************************************************************************/
     private fun doPrepare() {
         if (BuildConfig.DEBUG) Functions.warnIfOnMainThread("doPrepare")
 
         extractorDone = false
         extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
-        if (mime != MediaFormat.MIMETYPE_AUDIO_RAW) initCodec()
+        // if (mime != MediaFormat.MIMETYPE_AUDIO_RAW) initCodec()
     }
 
     private suspend fun doPrime() {
         if (BuildConfig.DEBUG) Functions.warnIfOnMainThread("doPrime")
         extractJob?.cancelAndJoin()
+        val codec = CodecPool.acquire(inputMediaFormat)
         primedData = AudioExtractor(audioTrack, extractor, mime, bufferSize, codec).prime()
+        codec?.flush()
     }
 
     private fun framesToMilliseconds(frames: Int): Long {
@@ -205,6 +208,7 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
         return ((1000 * frames) / outputAudioFormat.sampleRate).toLong()
     }
 
+/*
     private fun initCodec() {
         if (codec == null) {
             val codecName = MediaCodecList(MediaCodecList.REGULAR_CODECS).findDecoderForFormat(inputMediaFormat)
@@ -226,6 +230,7 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
             }
         }
     }
+*/
 
     private fun initExtractor(): MediaFormat? {
         try {
@@ -258,8 +263,14 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
     }
 
 
-    /********** INNER CLASSES/INTERFACES/ENUMS **********/
+    /********** OVERRIDDEN METHODS ***********************************************************************************/
+    override fun toString(): String {
+        val hashCode = Integer.toHexString(System.identityHashCode(this))
+        return "AudioFile $hashCode"
+    }
 
+
+    /********** INNER CLASSES/INTERFACES/ENUMS ***********************************************************************/
     interface Listener {
         fun onAudioFileStateChange(state: State)
         fun onAudioFileError(message: String)
@@ -280,7 +291,7 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
         open val stopAfterDelay: Long = duration
         var releaseAfterStop = false
 
-        /********** PRIVATE METHODS **********/
+        /********** PRIVATE METHODS **********************************************************************************/
         private fun enqueueStop() {
             log("enqueueStop called, stopAfterDelay=$stopAfterDelay")
             queuedStopJob?.cancel()
@@ -303,6 +314,10 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
         }
 
         private fun isTimeoutReached(timeoutUs: Long?) = timeoutUs?.let { System.nanoTime() > it } == true
+
+        private fun log(string: String) {
+            if (BuildConfig.DEBUG) Log.d(this.javaClass.simpleName, string)
+        }
 
         private suspend fun onPlayFail() {
             log("onPlayFail called")
@@ -342,11 +357,7 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
             onStopped()
         }
 
-        /********** PROTECTED METHODS **********/
-        protected fun log(string: String) {
-            if (BuildConfig.DEBUG) Log.d(this.javaClass.simpleName, string)
-        }
-
+        /********** PROTECTED METHODS ********************************************************************************/
         protected open suspend fun preparePlay() {
             state = State.INIT_PLAY
             try {
@@ -357,7 +368,7 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
             }
         }
 
-        /********** PUBLIC METHODS **********/
+        /********** PUBLIC METHODS ***********************************************************************************/
         suspend fun pause(): PlayActionAbstract {
             log("pause called")
             if (state != State.PLAYING)
@@ -383,29 +394,37 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
             if (!validStartStates.contains(state)) {
                 onWarning(
                     "Play: Illegal state",
-                    "${this.javaClass.simpleName}: illegal state $state, should be one of: ${validStartStates.joinToString()}")
+                    "${this.javaClass.simpleName}.start: illegal state $state, should be one of: ${validStartStates.joinToString()}")
                 return this
             }
-            val audioExtractor = AudioExtractor(audioTrack, extractor, mime, bufferSize, codec)
+
             preparePlay()
-            if (isTimeoutReached(timeoutUs)) {
-                onTimeout()
-                return this
-            }
+
             extractJob = scope.launch {
                 val job = coroutineContext[Job]
-                while (job?.isActive == true && !audioExtractor.isEosReached()) {
-                    val buffer = getBuffer(audioExtractor)
-                    if (!job.isActive) return@launch
-                    val writeResult = audioTrack.write(buffer)
-                    @Suppress("NON_EXHAUSTIVE_WHEN")
-                    when (writeResult.status) {
-                        AudioTrackContainer.WriteStatus.FAIL -> onPlayFail()
-                        AudioTrackContainer.WriteStatus.OK -> onPlayStart()
-                        AudioTrackContainer.WriteStatus.ERROR -> onWarning(
-                            "Error playing file",
-                            "start: error, message=${writeResult.message}, status=${writeResult.status}, sampleSize=${writeResult.sampleSize}, writtenBytes=${writeResult.writtenBytes}")
+                val codec = CodecPool.acquire(inputMediaFormat)
+                try {
+                    val audioExtractor = AudioExtractor(audioTrack, extractor, mime, bufferSize, codec)
+                    if (isTimeoutReached(timeoutUs)) {
+                        codec?.flush()
+                        onTimeout()
+                        return@launch
                     }
+                    while (job?.isActive == true && !audioExtractor.isEosReached()) {
+                        val buffer = getBuffer(audioExtractor)
+                        if (!job.isActive) return@launch
+                        val writeResult = audioTrack.write(buffer)
+                        @Suppress("NON_EXHAUSTIVE_WHEN")
+                        when (writeResult.status) {
+                            AudioTrackContainer.WriteStatus.FAIL -> onPlayFail()
+                            AudioTrackContainer.WriteStatus.OK -> onPlayStart()
+                            AudioTrackContainer.WriteStatus.ERROR -> onWarning(
+                                "Error playing file",
+                                "start: error, message=${writeResult.message}, status=${writeResult.status}, sampleSize=${writeResult.sampleSize}, writtenBytes=${writeResult.writtenBytes}")
+                        }
+                    }
+                } finally {
+                    codec?.flush()
                 }
             }
             return this

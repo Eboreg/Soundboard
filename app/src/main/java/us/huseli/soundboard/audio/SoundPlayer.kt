@@ -5,7 +5,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import us.huseli.soundboard.BuildConfig
-import us.huseli.soundboard.data.Constants
 import us.huseli.soundboard.data.Sound
 
 class SoundPlayer(private val sound: Sound,
@@ -27,6 +26,7 @@ class SoundPlayer(private val sound: Sound,
     private var _volume = sound.volume
     private var audioFile: AudioFile? = null
     private var job: Job? = null
+
     private var stateListener: StateListener? = null
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
     private val tempAudioFiles = mutableListOf<AudioFile>()
@@ -95,31 +95,35 @@ class SoundPlayer(private val sound: Sound,
         audioFile?.changeVolume(value)
     }
 
-    fun togglePlay() = scope.launch {
-        if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-            "togglePlay: state=$_state, repressMode=$repressMode, audioFile=$audioFile")
-        when (_state) {
-            State.PLAYING -> {
-                val timeoutUs = System.nanoTime() + Constants.SOUND_PLAY_TIMEOUT
+    fun togglePlay(timeoutUs: Long) = scope.launch {
+        when {
+            repressMode == RepressMode.OVERLAP && (_state == State.PLAYING || tempAudioFiles.size > 0) -> {
+                /**
+                 * Not totally failsafe, but a decent compromise: If tempAudioFiles is empty and audioFile is not
+                 * playing, we assume audioFile is the one to use. Otherwise, always create a new one and play it (we
+                 * cannot rely on the current AudioFile's state, since it could be in a number of different states for
+                 * timing reasons).
+                 */
+                // TODO: adjust volumes?
+                audioFile?.onStateChanged {}?.also { makeTemporary(it) }
+                audioFile =
+                    AudioFile(sound.path, sound.volume, bufferSize, this@SoundPlayer).prepare().play(timeoutUs)
+            }
+            _state == State.PLAYING -> {
+                @Suppress("NON_EXHAUSTIVE_WHEN")
                 when (repressMode) {
                     RepressMode.STOP -> {
                         audioFile?.stop()
                         stopTempPlayers()
                     }
                     RepressMode.RESTART -> audioFile?.restart(timeoutUs)
-                    RepressMode.OVERLAP -> {
-                        // TODO: adjust volumes?
-                        audioFile?.also { makeTemporary(it) }
-                        audioFile =
-                            AudioFile(sound.path, sound.volume, bufferSize, this@SoundPlayer).prepare().play(timeoutUs)
-                    }
                     RepressMode.PAUSE -> {
-                        if (audioFile?.isPlaying == true) audioFile?.pause()
+                        audioFile?.pause()
                         stopTempPlayers()
                     }
                 }
             }
-            State.PAUSED -> audioFile?.resume()
+            _state == State.PAUSED -> audioFile?.resume()
             else -> audioFile?.play()
         }
     }
@@ -177,7 +181,6 @@ class SoundPlayer(private val sound: Sound,
 
     private suspend fun makeTemporary(audioFile: AudioFile) {
         if (audioFile.isPlaying) {
-            audioFile.releaseAfterStop()
             audioFile.onStateChanged { state ->
                 if (state == AudioFile.State.STOPPED) scope.launch {
                     tempAudioFileMutex.withLock {
@@ -192,6 +195,7 @@ class SoundPlayer(private val sound: Sound,
                     Log.d(LOG_TAG, "Adding audioFile=$audioFile to tempAudioFiles=$tempAudioFiles")
                 tempAudioFiles.add(audioFile)
             }
+            audioFile.releaseAfterStop()
         }
     }
 

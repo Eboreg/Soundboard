@@ -15,7 +15,7 @@ class AudioExtractor(
     private val extractor: MediaExtractor,
     private val mime: String,
     private val bufferSize: Int,
-    private val codec: MediaCodec? = null) {
+    private val codec: CodecPool.Codec? = null) {
 
     private var eosReached = false
     private var extractorDone = false
@@ -62,15 +62,20 @@ class AudioExtractor(
 
     private fun extractBufferRaw(): ByteBuffer? {
         return if (!extractorDone) {
-            val buffer = ByteBuffer.allocate(bufferSize)
-            extractor.readSampleData(buffer, 0)
-            extractorDone = !extractor.advance()
-            eosReached = extractorDone
-            buffer
+            try {
+                val buffer = ByteBuffer.allocate(bufferSize)
+                extractor.readSampleData(buffer, 0)
+                extractorDone = !extractor.advance()
+                eosReached = extractorDone
+                buffer
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "extractBufferRaw", e)
+                null
+            }
         } else null
     }
 
-    private suspend fun extractBufferEncoded(codec: MediaCodec, priming: Boolean): ProcessOutputResult? {
+    private suspend fun extractBufferEncoded(codec: CodecPool.Codec, priming: Boolean): ProcessOutputResult? {
         val job = coroutineContext[Job]
         if (job?.isActive == true && (lastOutputStatus == null || lastOutputStatus == ProcessOutputStatus.SUCCESS || outputRetries++ < 5)) {
             if (lastInputStatus != ProcessInputStatus.END)
@@ -88,12 +93,12 @@ class AudioExtractor(
         return null
     }
 
-    private fun processInputBuffer(codec: MediaCodec): ProcessInputStatus {
+    private fun processInputBuffer(codec: CodecPool.Codec): ProcessInputStatus {
         if (BuildConfig.DEBUG) Functions.warnIfOnMainThread("processInputBuffer")
 
         try {
             val index = codec.dequeueInputBuffer(1000L)
-            if (index >= 0) {
+            if (index != null && index >= 0) {
                 val buffer = codec.getInputBuffer(index)
                 if (buffer != null) {
                     if (lastInputStatus == ProcessInputStatus.END_NEXT) {
@@ -118,7 +123,7 @@ class AudioExtractor(
         }
     }
 
-    private fun processOutputBuffer(codec: MediaCodec, priming: Boolean): ProcessOutputResult {
+    private fun processOutputBuffer(codec: CodecPool.Codec, priming: Boolean): ProcessOutputResult {
         if (BuildConfig.DEBUG) Functions.warnIfOnMainThread("processOutputBuffer")
 
         val info = MediaCodec.BufferInfo()
@@ -126,7 +131,7 @@ class AudioExtractor(
         try {
             val index = codec.dequeueOutputBuffer(info, if (priming) TIMEOUT_PRIMING else TIMEOUT_REGULAR)
             when {
-                index >= 0 -> {
+                index != null && index >= 0 -> {
                     val buffer = codec.getOutputBuffer(index)
                     return when {
                         (info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0 -> {
@@ -147,7 +152,7 @@ class AudioExtractor(
                 }
                 index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
                     /** If format changed, apply changes and do this method once again */
-                    audioTrack.rebuild(Functions.mediaFormatToAudioFormat(codec.outputFormat))
+                    codec.outputFormat?.let { audioTrack.rebuild(Functions.mediaFormatToAudioFormat(it)) }
                     return processOutputBuffer(codec, priming)
                 }
                 index == MediaCodec.INFO_TRY_AGAIN_LATER -> return ProcessOutputResult(ProcessOutputStatus.TIMEOUT,

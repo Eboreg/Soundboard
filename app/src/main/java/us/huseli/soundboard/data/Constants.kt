@@ -20,7 +20,7 @@ object Constants {
     const val PREF_REPRESS_MODE = "repressMode"
 
     const val SOUND_DIRNAME = "sounds"
-    const val SOUND_PLAY_TIMEOUT = 500_000_000L  // nanoseconds
+    const val SOUND_PLAY_TIMEOUT = 500_000_000L  // nanoseconds = 0.5 seconds
     const val ZIP_BUFFER_SIZE = 2048
     const val ZIP_DB_DIR = "database"
     const val ZIP_PREFS_FILENAME = "preferences.json"

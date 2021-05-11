@@ -1,3 +1,253 @@
+2021-05-11 04:10:32.784 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile 363e523, state=READY, timeoutUs=845280579260252
+2021-05-11 04:10:32.784 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile 363e523, state=READY, timeoutUs=null
+2021-05-11 04:10:32.789 4810-18253 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile 363e523, state=READY, timeoutUs=null
+2021-05-11 04:10:32.814 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile 363e523, state=INIT_PLAY, timeoutUs=null
+
+2021-05-11 04:10:33.309 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile 363e523, state=PLAYING, timeoutUs=845281105616444
+2021-05-11 04:10:33.311 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile 363e523 temporary, timeoutUs=845281105616444
+2021-05-11 04:10:33.338 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile 1ff2262, state=CREATED
+2021-05-11 04:10:33.342 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile 1ff2262, state=READY
+2021-05-11 04:10:33.342 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile 1ff2262, state=READY, timeoutUs=845281105616444
+2021-05-11 04:10:33.343 4810-18253 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile 1ff2262, state=READY, timeoutUs=845281105616444
+2021-05-11 04:10:33.353 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile 1ff2262, state=INIT_PLAY, timeoutUs=845281105616444
+2021-05-11 04:10:33.354 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile 1ff2262, timeoutUs=845281105616444
+
+2021-05-11 04:10:33.539 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile 1ff2262, state=PLAYING, timeoutUs=845281336217906
+2021-05-11 04:10:33.539 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile 1ff2262 temporary, timeoutUs=845281336217906
+2021-05-11 04:10:33.557 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile fe7aff3, state=CREATED
+2021-05-11 04:10:33.559 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile fe7aff3, state=READY
+2021-05-11 04:10:33.560 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile fe7aff3, state=READY, timeoutUs=845281336217906
+2021-05-11 04:10:33.560 4810-18253 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile fe7aff3, state=READY, timeoutUs=845281336217906
+2021-05-11 04:10:33.568 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile fe7aff3, state=INIT_PLAY, timeoutUs=845281336217906
+2021-05-11 04:10:33.568 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile fe7aff3, timeoutUs=845281336217906
+
+2021-05-11 04:10:33.758 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile fe7aff3, state=PLAYING, timeoutUs=845281554407713
+2021-05-11 04:10:33.759 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile fe7aff3 temporary, timeoutUs=845281554407713
+2021-05-11 04:10:33.783 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile 63424b0, state=CREATED
+2021-05-11 04:10:33.786 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile 63424b0, state=READY
+2021-05-11 04:10:33.786 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile 63424b0, state=READY, timeoutUs=845281554407713
+2021-05-11 04:10:33.787 4810-18253 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile 63424b0, state=READY, timeoutUs=845281554407713
+2021-05-11 04:10:33.795 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile 63424b0, state=INIT_PLAY, timeoutUs=845281554407713
+2021-05-11 04:10:33.795 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile 63424b0, timeoutUs=845281554407713
+
+2021-05-11 04:10:33.966 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile 63424b0, state=PLAYING, timeoutUs=845281762526405
+2021-05-11 04:10:33.968 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile 63424b0 temporary, timeoutUs=845281762526405
+2021-05-11 04:10:33.987 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile 7816f29, state=CREATED
+2021-05-11 04:10:33.991 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile 7816f29, state=READY
+2021-05-11 04:10:33.991 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile 7816f29, state=READY, timeoutUs=845281762526405
+2021-05-11 04:10:33.991 4810-18253 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile 7816f29, state=READY, timeoutUs=845281762526405
+2021-05-11 04:10:34.000 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile 7816f29, state=INIT_PLAY, timeoutUs=845281762526405
+2021-05-11 04:10:34.001 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile 7816f29, timeoutUs=845281762526405
+
+2021-05-11 04:10:34.173 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile 7816f29, state=PLAYING, timeoutUs=845281969412405
+2021-05-11 04:10:34.174 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile 7816f29 temporary, timeoutUs=845281969412405
+2021-05-11 04:10:34.196 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile 4b102ae, state=CREATED
+2021-05-11 04:10:34.202 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile 4b102ae, state=READY
+2021-05-11 04:10:34.203 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile 4b102ae, state=READY, timeoutUs=845281969412405
+2021-05-11 04:10:34.203 4810-18253 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile 4b102ae, state=READY, timeoutUs=845281969412405
+2021-05-11 04:10:34.215 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile 4b102ae, state=INIT_PLAY, timeoutUs=845281969412405
+2021-05-11 04:10:34.215 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile 4b102ae, timeoutUs=845281969412405
+
+2021-05-11 04:10:34.347 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile 4b102ae, state=PLAYING, timeoutUs=845282143632328
+2021-05-11 04:10:34.348 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile 4b102ae temporary, timeoutUs=845282143632328
+2021-05-11 04:10:34.367 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile ec3584f, state=CREATED
+2021-05-11 04:10:34.370 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile ec3584f, state=READY
+2021-05-11 04:10:34.371 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile ec3584f, state=READY, timeoutUs=845282143632328
+2021-05-11 04:10:34.371 4810-18253 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile ec3584f, state=READY, timeoutUs=845282143632328
+2021-05-11 04:10:34.381 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile ec3584f, state=INIT_PLAY, timeoutUs=845282143632328
+2021-05-11 04:10:34.381 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile ec3584f, timeoutUs=845282143632328
+
+2021-05-11 04:10:34.485 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile ec3584f, state=PLAYING, timeoutUs=845282282726328
+2021-05-11 04:10:34.486 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile ec3584f temporary, timeoutUs=845282282726328
+2021-05-11 04:10:34.505 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile a2edbdc, state=CREATED
+2021-05-11 04:10:34.508 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile a2edbdc, state=READY
+2021-05-11 04:10:34.508 4810-18253 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile a2edbdc, state=READY, timeoutUs=845282282726328
+2021-05-11 04:10:34.508 4810-18253 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile a2edbdc, state=READY, timeoutUs=845282282726328
+2021-05-11 04:10:34.517 4810-18253 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile a2edbdc, state=INIT_PLAY, timeoutUs=845282282726328
+2021-05-11 04:10:34.517 4810-18253 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile a2edbdc, timeoutUs=845282282726328
+
+2021-05-11 04:10:35.389 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile a2edbdc, state=PLAYING, timeoutUs=845282486291174
+2021-05-11 04:10:35.390 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile a2edbdc temporary, timeoutUs=845282486291174
+2021-05-11 04:10:35.404 4810-18369 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile 518d4e5, state=CREATED
+2021-05-11 04:10:35.407 4810-18369 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile 518d4e5, state=READY
+2021-05-11 04:10:35.407 4810-18369 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile 518d4e5, state=READY, timeoutUs=845282486291174
+2021-05-11 04:10:35.408 4810-18369 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile 518d4e5, state=READY, timeoutUs=845282486291174
+2021-05-11 04:10:35.416 4810-18369 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile 518d4e5, state=INIT_PLAY, timeoutUs=845282486291174
+2021-05-11 04:10:35.416 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile 518d4e5, timeoutUs=845282486291174
+2021-05-11 04:10:35.417 4810-18369 D/AudioFile: REPRESSTEST AudioFile: timeout reached, audioFile=AudioFile 518d4e5, state=INIT_PLAY, timeoutUs=845282486291174
+
+2021-05-11 04:10:35.445 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile 518d4e5, state=INITIALIZING, timeoutUs=845282644283789
+2021-05-11 04:10:35.445 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile 518d4e5 temporary, timeoutUs=845282644283789
+2021-05-11 04:10:35.457 4810-18369 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile 206da61, state=CREATED
+2021-05-11 04:10:35.459 4810-18369 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile 206da61, state=READY
+2021-05-11 04:10:35.459 4810-18369 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile 206da61, state=READY, timeoutUs=845282644283789
+2021-05-11 04:10:35.459 4810-18369 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile 206da61, state=READY, timeoutUs=845282644283789
+2021-05-11 04:10:35.468 4810-18369 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile 206da61, state=INIT_PLAY, timeoutUs=845282644283789
+2021-05-11 04:10:35.469 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile 206da61, timeoutUs=845282644283789
+2021-05-11 04:10:35.470 4810-18369 D/AudioFile: REPRESSTEST AudioFile: timeout reached, audioFile=AudioFile 206da61, state=INIT_PLAY, timeoutUs=845282644283789
+
+2021-05-11 04:10:35.496 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile 206da61, state=INITIALIZING, timeoutUs=845282802759558
+2021-05-11 04:10:35.496 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile 206da61 temporary, timeoutUs=845282802759558
+2021-05-11 04:10:35.507 4810-18369 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile d5c7be3, state=CREATED
+2021-05-11 04:10:35.510 4810-18369 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile d5c7be3, state=READY
+2021-05-11 04:10:35.510 4810-18369 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile d5c7be3, state=READY, timeoutUs=845282802759558
+2021-05-11 04:10:35.510 4810-18369 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile d5c7be3, state=READY, timeoutUs=845282802759558
+2021-05-11 04:10:35.518 4810-18369 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile d5c7be3, state=INIT_PLAY, timeoutUs=845282802759558
+2021-05-11 04:10:35.518 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile d5c7be3, timeoutUs=845282802759558
+2021-05-11 04:10:35.519 4810-18369 D/AudioFile: REPRESSTEST AudioFile: timeout reached, audioFile=AudioFile d5c7be3, state=INIT_PLAY, timeoutUs=845282802759558
+
+2021-05-11 04:10:35.544 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile d5c7be3, state=INITIALIZING, timeoutUs=845282952899443
+2021-05-11 04:10:35.544 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile d5c7be3 temporary, timeoutUs=845282952899443
+2021-05-11 04:10:35.556 4810-18369 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile cf77499, state=CREATED
+2021-05-11 04:10:35.558 4810-18369 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile cf77499, state=READY
+2021-05-11 04:10:35.558 4810-18369 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile cf77499, state=READY, timeoutUs=845282952899443
+2021-05-11 04:10:35.559 4810-18369 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile cf77499, state=READY, timeoutUs=845282952899443
+2021-05-11 04:10:35.567 4810-18369 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile cf77499, state=INIT_PLAY, timeoutUs=845282952899443
+2021-05-11 04:10:35.567 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile cf77499, timeoutUs=845282952899443
+
+2021-05-11 04:10:35.568 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile cf77499, state=READY, timeoutUs=845283101764866
+2021-05-11 04:10:35.568 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile cf77499 temporary, timeoutUs=845283101764866
+2021-05-11 04:10:35.581 4810-18369 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile 239735e, state=CREATED
+2021-05-11 04:10:35.583 4810-18369 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile 239735e, state=READY
+2021-05-11 04:10:35.583 4810-18369 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile 239735e, state=READY, timeoutUs=845283101764866
+2021-05-11 04:10:35.583 4810-18369 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile 239735e, state=READY, timeoutUs=845283101764866
+2021-05-11 04:10:35.592 4810-18369 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile 239735e, state=INIT_PLAY, timeoutUs=845283101764866
+2021-05-11 04:10:35.593 4810-18369 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile 239735e, timeoutUs=845283101764866
+
+2021-05-11 04:10:35.997 4810-18368 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile 239735e, state=PLAYING, timeoutUs=845283276912750
+2021-05-11 04:10:35.999 4810-18368 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile 239735e temporary, timeoutUs=845283276912750
+2021-05-11 04:10:36.017 4810-18368 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile fd44f8, state=CREATED
+2021-05-11 04:10:36.020 4810-18368 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile fd44f8, state=READY
+2021-05-11 04:10:36.020 4810-18368 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile fd44f8, state=READY, timeoutUs=845283276912750
+2021-05-11 04:10:36.021 4810-18368 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile fd44f8, state=READY, timeoutUs=845283276912750
+2021-05-11 04:10:36.031 4810-18368 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile fd44f8, state=INIT_PLAY, timeoutUs=845283276912750
+2021-05-11 04:10:36.031 4810-18368 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile fd44f8, timeoutUs=845283276912750
+2021-05-11 04:10:36.032 4810-18368 D/AudioFile: REPRESSTEST AudioFile: timeout reached, audioFile=AudioFile fd44f8, state=INIT_PLAY, timeoutUs=845283276912750
+
+2021-05-11 04:10:36.056 4810-18368 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile fd44f8, state=INITIALIZING, timeoutUs=845283369452596
+2021-05-11 04:10:36.057 4810-18368 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile fd44f8 temporary, timeoutUs=845283369452596
+2021-05-11 04:10:36.068 4810-18368 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile c2a9036, state=CREATED
+2021-05-11 04:10:36.070 4810-18368 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile c2a9036, state=READY
+2021-05-11 04:10:36.070 4810-18368 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile c2a9036, state=READY, timeoutUs=845283369452596
+2021-05-11 04:10:36.071 4810-18368 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile c2a9036, state=READY, timeoutUs=845283369452596
+2021-05-11 04:10:36.078 4810-18368 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile c2a9036, state=INIT_PLAY, timeoutUs=845283369452596
+2021-05-11 04:10:36.079 4810-18368 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile c2a9036, timeoutUs=845283369452596
+2021-05-11 04:10:36.080 4810-18368 D/AudioFile: REPRESSTEST AudioFile: timeout reached, audioFile=AudioFile c2a9036, state=INIT_PLAY, timeoutUs=845283369452596
+
+2021-05-11 04:10:36.101 4810-18368 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile c2a9036, state=INITIALIZING, timeoutUs=845283477457173
+2021-05-11 04:10:36.102 4810-18368 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile c2a9036 temporary, timeoutUs=845283477457173
+2021-05-11 04:10:36.114 4810-18368 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile a3db8a4, state=CREATED
+2021-05-11 04:10:36.115 4810-18368 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile a3db8a4, state=READY
+2021-05-11 04:10:36.116 4810-18368 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile a3db8a4, state=READY, timeoutUs=845283477457173
+2021-05-11 04:10:36.116 4810-18368 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile a3db8a4, state=READY, timeoutUs=845283477457173
+2021-05-11 04:10:36.125 4810-18368 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile a3db8a4, state=INIT_PLAY, timeoutUs=845283477457173
+2021-05-11 04:10:36.125 4810-18368 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile a3db8a4, timeoutUs=845283477457173
+
+2021-05-11 04:10:36.213 4810-18372 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile a3db8a4, state=PLAYING, timeoutUs=845283605780750
+2021-05-11 04:10:36.214 4810-18372 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile a3db8a4 temporary, timeoutUs=845283605780750
+2021-05-11 04:10:36.230 4810-18372 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile ad7700e, state=CREATED
+2021-05-11 04:10:36.233 4810-18372 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile ad7700e, state=READY
+2021-05-11 04:10:36.234 4810-18372 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile ad7700e, state=READY, timeoutUs=845283605780750
+2021-05-11 04:10:36.234 4810-18372 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile ad7700e, state=READY, timeoutUs=845283605780750
+2021-05-11 04:10:36.245 4810-18372 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile ad7700e, state=INIT_PLAY, timeoutUs=845283605780750
+2021-05-11 04:10:36.245 4810-18372 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile ad7700e, timeoutUs=845283605780750
+
+2021-05-11 04:10:36.435 4810-18373 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile ad7700e, state=PLAYING, timeoutUs=845283737686712
+2021-05-11 04:10:36.436 4810-18373 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile ad7700e temporary, timeoutUs=845283737686712
+2021-05-11 04:10:36.455 4810-18373 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile ab32a2f, state=CREATED
+2021-05-11 04:10:36.458 4810-18373 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile ab32a2f, state=READY
+2021-05-11 04:10:36.459 4810-18373 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile ab32a2f, state=READY, timeoutUs=845283737686712
+2021-05-11 04:10:36.459 4810-18373 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile ab32a2f, state=READY, timeoutUs=845283737686712
+2021-05-11 04:10:36.467 4810-18373 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile ab32a2f, state=INIT_PLAY, timeoutUs=845283737686712
+2021-05-11 04:10:36.467 4810-18373 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile ab32a2f, timeoutUs=845283737686712
+2021-05-11 04:10:36.468 4810-18373 D/AudioFile: REPRESSTEST AudioFile: timeout reached, audioFile=AudioFile ab32a2f, state=INIT_PLAY, timeoutUs=845283737686712
+
+2021-05-11 04:10:36.492 4810-18373 D/SoundPlayer: REPRESSTEST SoundPlayer: running togglePlay, audioFile=AudioFile ab32a2f, state=INITIALIZING, timeoutUs=845283825631558
+2021-05-11 04:10:36.492 4810-18373 D/SoundPlayer: REPRESSTEST SoundPlayer: made AudioFile ab32a2f temporary, timeoutUs=845283825631558
+2021-05-11 04:10:36.503 4810-18373 D/AudioFile: REPRESSTEST AudioFile: starting prepare(), audioFile=AudioFile 47d783c, state=CREATED
+2021-05-11 04:10:36.505 4810-18373 D/AudioFile: REPRESSTEST AudioFile: finishing prepare(), audioFile=AudioFile 47d783c, state=READY
+2021-05-11 04:10:36.505 4810-18373 D/AudioFile: REPRESSTEST AudioFile: starting play(), audioFile=AudioFile 47d783c, state=READY, timeoutUs=845283825631558
+2021-05-11 04:10:36.506 4810-18373 D/AudioFile: REPRESSTEST AudioFile: running class us.huseli.soundboard.audio.AudioFile$PlayAction.start(), audioFile=AudioFile 47d783c, state=READY, timeoutUs=845283825631558
+2021-05-11 04:10:36.514 4810-18373 D/AudioFile: REPRESSTEST AudioFile: finishing play(), audioFile=AudioFile 47d783c, state=INIT_PLAY, timeoutUs=845283825631558
+2021-05-11 04:10:36.515 4810-18373 D/SoundPlayer: REPRESSTEST SoundPlayer: created new audioFile=AudioFile 47d783c, timeoutUs=845283825631558
+2021-05-11 04:10:36.648 4810-18371 D/AudioFile: REPRESSTEST AudioFile: timeout reached, audioFile=AudioFile cf77499, state=INIT_PLAY, timeoutUs=845282952899443
+
+
+
+Ljud löper ut:
+SoundPlayer.togglePlay()
+    audioFile?.play()
+        PlayActionAbstract.start()
+            preparePlay()
+                state = State.INIT_PLAY
+                audioTrack.build()
+                audioTrack.play()
+            extractJob = scope.launch {
+                onPlayStart()
+                state = State.PLAYING
+                enqueueStop()
+                    queuedStopJob = scope.launch {
+                        state = State.STOPPED
+                        onStopped()
+                            state = State.INITIALIZING
+                            extractJob?.cancelAndJoin()
+                            audioTrack.release()
+                            doPrepare()
+                            doPrime()
+                            state = State.READY
+                codec?.flush()
+
+Ljud timeoutar:
+SoundPlayer.togglePlay()
+    AudioFile.play(timeout)
+        PlayActionAbstract.start()
+            preparePlay()
+                state = State.INIT_PLAY
+                audioTrack.build()
+                audioTrack.play()
+            extractJob = scope.launch {
+                codec?.flush()
+                onTimeout()
+                    queuedStopJob?.cancel()
+                    onStopped()
+                        if (releaseAfterStop)
+                            this@AudioFile.release()
+                        else
+                            state = State.INITIALIZING
+                            extractJob?.cancelAndJoin()
+                            audioTrack.release()
+                            doPrepare()
+                            doPrime()
+                            state = State.READY
+
+
+
+audioFile?.restart(timeoutUs)
+    RestartAction().start()
+        codec = CodecPool.acquire(inputMediaFormat)
+        audioExtractor = AudioExtractor(audioTrack, extractor, mime, bufferSize, codec)
+        preparePlay()
+            audioTrack.build()
+            audioTrack.play()
+        extractJob = scope.launch
+            buffer = getBuffer(audioExtractor)
+                audioExtractor.extractBuffer()
+                    extractBufferEncoded(it, false)?.buffer
+                        processInputBuffer(codec)
+                            codec.dequeueInputBuffer(1000L)
+                            codec.getInputBuffer(index)
+                            extractor.readSampleData(buffer, 0)
+                            codec.queueInputBuffer(index, 0, sampleSize, extractor.sampleTime, extractor.sampleFlags)
+                        processOutputBuffer(codec, priming)
+                            index = codec.dequeueOutputBuffer(info, if (priming) TIMEOUT_PRIMING else TIMEOUT_REGULAR)
+                            buffer = codec.getOutputBuffer(index)
+                            codec.releaseOutputBuffer(index, false)
+            audioTrack.write(buffer)
+                result = audioTrack?.write(buffer, sampleSize, AudioTrack.WRITE_BLOCKING)
+            codec?.flush()
+
+
+
 0.5389221556886228
 
 

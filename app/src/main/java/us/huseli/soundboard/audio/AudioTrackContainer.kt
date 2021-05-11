@@ -25,7 +25,12 @@ class AudioTrackContainer(
     private var startAtPosition = 0
 
     val playbackHeadPosition: Int
-        get() = audioTrack?.playbackHeadPosition ?: 0
+        get() = try {
+            audioTrack?.playbackHeadPosition ?: 0
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, "playbackHeadPosition", e)
+            0
+        }
 
     suspend fun awaitPausedState() {
         while (audioTrack != null && audioTrack?.playState != AudioTrack.PLAYSTATE_PAUSED) delay(10)
@@ -147,9 +152,12 @@ class AudioTrackContainer(
 
     private fun internalWrite(buffer: ByteBuffer): WriteResult {
         val sampleSize = buffer.remaining()
-        return audioTrack?.write(buffer, sampleSize, AudioTrack.WRITE_BLOCKING)?.let { result ->
+        return try {
+            val result = audioTrack?.write(buffer, sampleSize, AudioTrack.WRITE_BLOCKING)
             WriteResult.create(result, sampleSize)
-        } ?: WriteResult.create(null, sampleSize)
+        } catch (e: Exception) {
+            WriteResult.create(WriteStatus.ERROR)
+        }
     }
 
     class WriteResult(

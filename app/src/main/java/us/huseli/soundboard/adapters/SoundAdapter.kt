@@ -348,7 +348,7 @@ class SoundAdapter(
                     Snackbar.LENGTH_SHORT
                 ).show()
                 player?.state == SoundPlayer.State.ERROR -> showError()
-                else -> player?.togglePlay()
+                else -> player?.togglePlay(System.nanoTime() + Constants.SOUND_PLAY_TIMEOUT)
             }
             clickAnimator.start()
         }
