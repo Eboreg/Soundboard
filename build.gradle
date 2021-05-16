@@ -20,7 +20,7 @@ buildscript {
         preferenceVersion = '1.1.1'
         recyclerviewVersion = '1.2.0'
         roomVersion = '2.4.0-alpha02'
-        sentryVersion = '5.0.0-beta.2'
+        sentryVersion = '5.0.0-beta.3'
     }
     repositories {
         google()
