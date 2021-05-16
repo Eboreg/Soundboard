@@ -68,7 +68,7 @@ interface SoundDao {
          * First change category for those sounds that didn't have this category before, placing them last.
          * Then set any other desired properties for those as well as the others.
          */
-        val batch = sounds.filter { categoryId != null || it.categoryId == categoryId }
+        val batch = sounds.filter { categoryId == null || it.categoryId == categoryId }
         if (categoryId != null) {
             var order = getMaxOrder(categoryId)
             sounds.minus(batch).mapNotNull { it.id }.forEach { soundId ->
