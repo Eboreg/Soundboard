@@ -105,9 +105,28 @@ class SoundPlayer(private val sound: Sound,
                  * timing reasons).
                  */
                 // TODO: adjust volumes?
-                audioFile?.onStateChanged {}?.also { makeTemporary(it) }
-                audioFile =
-                    AudioFile(sound.path, sound.volume, bufferSize, this@SoundPlayer).prepare().play(timeoutUs)
+                Log.d(LOG_TAG,
+                    "REPRESSTEST: toggleplay() before, state=$_state, tempAudioFiles.size=${tempAudioFiles.size}, timeoutUs=$timeoutUs, audioFile=$audioFile")
+                try {
+                    audioFile = audioFile?.let {
+                        it.onStateChanged {}
+                        makeTemporary(it)
+                        it.copy(this@SoundPlayer).also { afCopy ->
+                            Log.d(LOG_TAG,
+                                "REPRESSTEST: toggleplay(), created COPY=$afCopy, state=$_state, tempAudioFiles.size=${tempAudioFiles.size}, timeoutUs=$timeoutUs")
+                        }
+                    } ?: AudioFile.create(sound.path, sound.volume, bufferSize, this@SoundPlayer).also {
+                        Log.d(LOG_TAG,
+                            "REPRESSTEST: toggleplay(), created NEW=$it, state=$_state, tempAudioFiles.size=${tempAudioFiles.size}, timeoutUs=$timeoutUs")
+                    }
+                    audioFile?.prepare()?.play(timeoutUs)
+                } catch (e: Exception) {
+                    _errorMessage = "Error playing ${sound.name}" + e.message?.let { ": $it" }
+                    _state = State.ERROR
+                    if (BuildConfig.DEBUG) Log.e(LOG_TAG, "Error initializing ${sound.name}: ${e.message}", e)
+                }
+                Log.d(LOG_TAG,
+                    "REPRESSTEST: toggleplay() after, state=$_state, tempAudioFiles.size=${tempAudioFiles.size}, timeoutUs=$timeoutUs, audioFile=$audioFile")
             }
             _state == State.PLAYING -> {
                 @Suppress("NON_EXHAUSTIVE_WHEN")
@@ -170,7 +189,8 @@ class SoundPlayer(private val sound: Sound,
     /********** PRIVATE METHODS **********/
     private suspend fun createAudioFile(): AudioFile? {
         return try {
-            AudioFile(sound.path, sound.volume, bufferSize, this).prepareAndPrime().also { _duration = it.duration }
+            AudioFile.create(sound.path, sound.volume, bufferSize, this).prepareAndPrime()
+                .also { _duration = it.duration }
         } catch (e: Exception) {
             _errorMessage = "Error initializing ${sound.name}" + e.message?.let { ": $it" }
             _state = State.ERROR

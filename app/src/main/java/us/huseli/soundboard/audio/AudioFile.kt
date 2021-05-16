@@ -7,10 +7,18 @@ import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.helpers.Functions
 import java.nio.ByteBuffer
 
-class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, listener: Listener? = null) {
+class AudioFile(
+    private val path: String,
+    private val volume: Int,
+    private val baseBufferSize: Int,
+    private val inputFormat: MediaFormat,
+    private val extractor: MediaExtractor,
+    private val mime: String,
+    listener: Listener? = null,
+) {
 
     // Public val's & var's
-    val duration: Long
+    val duration = (inputFormat.getLong(MediaFormat.KEY_DURATION) / 1000)
     val isPaused
         get() = state == State.PAUSED
     val isPlaying
@@ -18,28 +26,25 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
     val playbackPositionMs
         get() = framesToMilliseconds(audioTrack.playbackHeadPosition)
 
-    // Private val's to be initialized in init
-    private val audioTrack: AudioTrackContainer
-    private val inputMediaFormat: MediaFormat
-    private val mime: String
-
     // Private val's initialized here
-    private val extractor = MediaExtractor()
+    private val audioAttributes = AudioAttributes.Builder()
+        .setUsage(AudioAttributes.USAGE_MEDIA)
+        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+        .build()
     private val scope = CoroutineScope(Job() + Dispatchers.Default)
     private var stateListener = listener
 
-    // Private var's to be initialized later on
-    private var bufferSize: Int
-    private var channelCount: Int
-    private var outputAudioFormat: AudioFormat
-
     // Private var's initialized here
-    // private var codec: MediaCodec? = null
     private var extractJob: Job? = null
-    private var extractorDone = false
     private var playAction: PlayActionAbstract? = null
     private var primedData: ByteBuffer? = null
     private var queuedStopJob: Job? = null
+
+    // Dependent var's & val's
+    private var channelCount = inputFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+    private var bufferSize = baseBufferSize * channelCount
+    private var outputFormat = Functions.mediaFormatToAudioFormat(inputFormat)
+    private val audioTrack = AudioTrackContainer(outputFormat, bufferSize, volume, audioAttributes)
 
     private var state = State.CREATED
         set(value) {
@@ -47,8 +52,8 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
             if (field != value && field != State.RELEASED) {
                 // Except for on RELEASED, we will not change from ERROR to anything else
                 if (field != State.ERROR) {
-                    if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-                        "state changed from $field to $value, this=$this, path=$path")
+                    if (BuildConfig.DEBUG)
+                        Log.d(LOG_TAG, "state changed from $field to $value, this=$this, path=$path")
                     field = value
                     stateListener?.onAudioFileStateChange(value)
                 }
@@ -56,29 +61,7 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
         }
 
     init {
-        inputMediaFormat = initExtractor() ?: run {
-            onError("Could not get media type")
-            throw Exception("Could not get media type")
-        }
-
-        scope.launch { CodecPool.initialize(inputMediaFormat) }
-
-        // InputFormat duration is in MICROseconds!
-        duration = (inputMediaFormat.getLong(MediaFormat.KEY_DURATION) / 1000)
-        mime = inputMediaFormat.getString(MediaFormat.KEY_MIME) ?: run {
-            onError("Could not get MIME type")
-            throw Exception("Could not get MIME type")
-        }
-
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_MEDIA)
-            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-            .build()
-
-        channelCount = inputMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-        bufferSize = baseBufferSize * channelCount
-        outputAudioFormat = Functions.mediaFormatToAudioFormat(inputMediaFormat)
-        audioTrack = AudioTrackContainer(audioAttributes, outputAudioFormat, bufferSize, volume)
+        scope.launch { CodecPool.initialize(inputFormat) }
     }
 
     /********** PUBLIC METHODS ***************************************************************************************/
@@ -95,6 +78,17 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
 
     fun changeVolume(value: Int) = audioTrack.setVolume(value)
 
+    fun copy(listener: Listener): AudioFile {
+        val extractor = MediaExtractor()
+        val inputFormat = initExtractor(extractor, path) ?: run {
+            throw Exception("Could not get media type")
+        }
+        return AudioFile(path, volume, baseBufferSize, inputFormat, extractor, mime, listener).also {
+            Log.d(LOG_TAG,
+                "REPRESSTEST: returning AudioFile(volume=$volume, baseBufferSize=$baseBufferSize, inputFormat=$inputFormat, outputFormat=$outputFormat, audioAttributes=$audioAttributes, audioFile=$it")
+        }
+    }
+
     fun onStateChanged(callback: (state: State) -> Unit): AudioFile {
         stateListener = SimpleStateListener(callback)
         return this
@@ -107,11 +101,13 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
     }
 
     suspend fun play(timeoutUs: Long? = null): AudioFile {
+        Log.d(LOG_TAG, "REPRESSTEST: play(), this=$this, state=$state, timeoutUs=$timeoutUs")
         playAction = PlayAction().start(timeoutUs)
         return this
     }
 
     fun prepare(): AudioFile {
+        Log.d(LOG_TAG, "REPRESSTEST: prepare(), this=$this, state=$state")
         when (state) {
             State.CREATED, State.STOPPED, State.RELEASED, State.PAUSED -> {
                 state = State.INITIALIZING
@@ -187,7 +183,6 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
     private fun doPrepare() {
         if (BuildConfig.DEBUG) Functions.warnIfOnMainThread("doPrepare")
 
-        extractorDone = false
         extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
         // if (mime != MediaFormat.MIMETYPE_AUDIO_RAW) initCodec()
     }
@@ -195,9 +190,11 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
     private suspend fun doPrime() {
         if (BuildConfig.DEBUG) Functions.warnIfOnMainThread("doPrime")
         extractJob?.cancelAndJoin()
-        val codec = CodecPool.acquire(inputMediaFormat)
-        primedData = AudioExtractor(audioTrack, extractor, mime, bufferSize, codec).prime()
-        codec?.flush()
+        CodecPool.acquire(inputFormat).use { codec ->
+            primedData = AudioExtractor(audioTrack, extractor, mime, bufferSize, codec).prime()
+            if (BuildConfig.DEBUG) Log.d(LOG_TAG,
+                "PRIMETEST: doPrime() done, this=$this, state=$state, primedData=$primedData, codec=$codec")
+        }
     }
 
     private fun framesToMilliseconds(frames: Int): Long {
@@ -205,55 +202,7 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
         // 1 frame in 16 bit mono = 2 bytes, stereo = 4 bytes
         // Let's assume we always output 16 bit (== 2 bytes per sample) PCM for simplicity
         // TODO: Do we need to factor in stereo here or is that already accounted for?
-        return ((1000 * frames) / outputAudioFormat.sampleRate).toLong()
-    }
-
-/*
-    private fun initCodec() {
-        if (codec == null) {
-            val codecName = MediaCodecList(MediaCodecList.REGULAR_CODECS).findDecoderForFormat(inputMediaFormat)
-            if (codecName != null) {
-                try {
-                    codec = MediaCodec.createByCodecName(codecName).also {
-                        it.configure(inputMediaFormat, null, null, 0)
-                        it.start()
-                    }
-                } catch (e: Exception) {
-                    onError("Codec error")
-                }
-            } else onError("Could not find a suitable codec")
-        } else {
-            try {
-                codec?.flush()
-            } catch (e: IllegalStateException) {
-                Log.e(LOG_TAG, "flush codec error, path=$path", e)
-            }
-        }
-    }
-*/
-
-    private fun initExtractor(): MediaFormat? {
-        try {
-            extractorDone = false
-            extractor.setDataSource(path)
-            for (trackNumber in 0 until extractor.trackCount) {
-                val format = extractor.getTrackFormat(trackNumber)
-                val mime = format.getString(MediaFormat.KEY_MIME)
-                if (mime?.startsWith("audio/") == true) {
-                    extractor.selectTrack(trackNumber)
-                    return format
-                }
-            }
-        } catch (e: Exception) {
-            onError("Error initializing sound", e)
-        }
-        return null
-    }
-
-    private fun onError(message: String, exception: Throwable? = null) {
-        state = State.ERROR
-        Log.e(LOG_TAG, "message=$message, path=$path", exception)
-        stateListener?.onAudioFileError(message)
+        return ((1000 * frames) / outputFormat.sampleRate).toLong()
     }
 
     private fun onWarning(message: String, verboseMessage: String? = null, exception: Exception? = null) {
@@ -402,29 +351,24 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
 
             extractJob = scope.launch {
                 val job = coroutineContext[Job]
-                val codec = CodecPool.acquire(inputMediaFormat)
-                try {
+                CodecPool.acquire(inputFormat).use { codec ->
                     val audioExtractor = AudioExtractor(audioTrack, extractor, mime, bufferSize, codec)
-                    if (isTimeoutReached(timeoutUs)) {
-                        codec?.flush()
-                        onTimeout()
-                        return@launch
-                    }
-                    while (job?.isActive == true && !audioExtractor.isEosReached()) {
-                        val buffer = getBuffer(audioExtractor)
-                        if (!job.isActive) return@launch
-                        val writeResult = audioTrack.write(buffer)
-                        @Suppress("NON_EXHAUSTIVE_WHEN")
-                        when (writeResult.status) {
-                            AudioTrackContainer.WriteStatus.FAIL -> onPlayFail()
-                            AudioTrackContainer.WriteStatus.OK -> onPlayStart()
-                            AudioTrackContainer.WriteStatus.ERROR -> onWarning(
-                                "Error playing file",
-                                "start: error, message=${writeResult.message}, status=${writeResult.status}, sampleSize=${writeResult.sampleSize}, writtenBytes=${writeResult.writtenBytes}")
+                    if (isTimeoutReached(timeoutUs)) onTimeout()
+                    else {
+                        while (job?.isActive == true && !audioExtractor.isEosReached()) {
+                            val buffer = getBuffer(audioExtractor)
+                            if (!job.isActive) return@launch
+                            val writeResult = audioTrack.write(buffer)
+                            @Suppress("NON_EXHAUSTIVE_WHEN")
+                            when (writeResult.status) {
+                                AudioTrackContainer.WriteStatus.FAIL -> onPlayFail()
+                                AudioTrackContainer.WriteStatus.OK -> onPlayStart()
+                                AudioTrackContainer.WriteStatus.ERROR -> onWarning(
+                                    "Error playing file",
+                                    "start: error, message=${writeResult.message}, status=${writeResult.status}, sampleSize=${writeResult.sampleSize}, writtenBytes=${writeResult.writtenBytes}")
+                            }
                         }
                     }
-                } finally {
-                    codec?.flush()
                 }
             }
             return this
@@ -520,5 +464,36 @@ class AudioFile(private val path: String, volume: Int, baseBufferSize: Int, list
 
     companion object {
         const val LOG_TAG = "AudioFile"
+
+        private fun initExtractor(extractor: MediaExtractor, path: String): MediaFormat? {
+            try {
+                extractor.setDataSource(path)
+                for (trackNumber in 0 until extractor.trackCount) {
+                    val format = extractor.getTrackFormat(trackNumber)
+                    val mime = format.getString(MediaFormat.KEY_MIME)
+                    if (mime?.startsWith("audio/") == true) {
+                        extractor.selectTrack(trackNumber)
+                        return format
+                    }
+                }
+            } catch (e: Exception) {
+                throw Exception("Error initializing sound", e)
+            }
+            return null
+        }
+
+        fun create(path: String, volume: Int, baseBufferSize: Int, listener: Listener?): AudioFile {
+            val extractor = MediaExtractor()
+            val inputFormat = initExtractor(extractor, path) ?: run {
+                throw Exception("Could not get media type")
+            }
+            val mime = inputFormat.getString(MediaFormat.KEY_MIME) ?: run {
+                throw Exception("Could not get MIME type")
+            }
+            return AudioFile(path, volume, baseBufferSize, inputFormat, extractor, mime, listener).also {
+                Log.d(LOG_TAG,
+                    "REPRESSTEST: returning AudioFile(path=$path, volume=$volume, baseBufferSize=$baseBufferSize, inputFormat=$inputFormat, audioFile=$it")
+            }
+        }
     }
 }

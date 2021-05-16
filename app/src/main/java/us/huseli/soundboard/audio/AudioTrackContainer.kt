@@ -13,13 +13,13 @@ import java.nio.ByteBuffer
 
 class AudioTrackContainer(
     /** Volume = float, 0.0 - 1.0 */
-    private val audioAttributes: AudioAttributes,
     private var outputAudioFormat: AudioFormat,
     private var bufferSize: Int,
-    private var volume: Float) {
+    private var volume: Float,
+    private val audioAttributes: AudioAttributes) {
 
-    constructor(audioAttributes: AudioAttributes, outputAudioFormat: AudioFormat, bufferSize: Int, volume: Int) :
-            this(audioAttributes, outputAudioFormat, bufferSize, volume.toFloat() / 100)
+    constructor(outputAudioFormat: AudioFormat, bufferSize: Int, volume: Int, audioAttributes: AudioAttributes) :
+            this(outputAudioFormat, bufferSize, volume.toFloat() / 100, audioAttributes)
 
     private var audioTrack: AudioTrack? = null
     private var startAtPosition = 0
