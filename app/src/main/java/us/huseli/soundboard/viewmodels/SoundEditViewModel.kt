@@ -13,7 +13,7 @@ class SoundEditViewModel @Inject constructor(
     private val repository: SoundRepository, private val undoRepository: UndoRepository) : BaseSoundEditViewModel() {
 
     fun save() = viewModelScope.launch(Dispatchers.IO) {
-        repository.update(sounds, if (!multiple) name else null, volume, categoryId)
+        repository.update(sounds, if (!multiple) name.value.toString() else null, volume.value, categoryId)
         undoRepository.pushState()
     }
 }

@@ -1,52 +1,35 @@
 package us.huseli.soundboard.data
 
-import androidx.lifecycle.LiveData
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 
 @Dao
 interface CategoryDao {
     /********* INSERT ************************************************************************************************/
     @Insert
-    fun insert(categories: List<Category>)
-
-    @Query("INSERT INTO SoundCategory (name, backgroundColor, `order`, collapsed) VALUES(:name, :backgroundColor, :order, :collapsed)")
-    fun insert(name: String, backgroundColor: Int, order: Int, collapsed: Boolean)
-
-    @Transaction
-    fun insert(category: Category) {
-        val order = if (category.order > -1) category.order else getMaxOrder() + 1
-        insert(category.name, category.backgroundColor, order, category.collapsed)
-    }
+    fun insert(category: Category)
 
     @Insert
-    fun reInsert(category: Category)
+    fun insert(categories: List<Category>)
 
     /********* LIST **************************************************************************************************/
     @Query("SELECT * FROM SoundCategory ORDER BY `order`, id")
-    fun list(): List<Category>
+    fun list(): Flow<List<Category>>
 
     @Query("SELECT id FROM SoundCategory ORDER BY `order`, id")
     fun listIds(): List<Int>
-
-    @Query("SELECT * FROM SoundCategory ORDER BY `order`, id")
-    fun listLive(): LiveData<List<Category>>
 
 
     /********* UPDATE ************************************************************************************************/
     @Update
     fun update(category: Category)
 
-    @Transaction
-    fun update(id: Int, name: String?, backgroundColor: Int?) {
-        if (name != null) updateName(id, name)
-        if (backgroundColor != null) updateBackgroundColor(id, backgroundColor)
-    }
-
     @Query("UPDATE SoundCategory SET backgroundColor=:backgroundColor WHERE id=:id")
     fun updateBackgroundColor(id: Int, backgroundColor: Int)
 
     @Query("UPDATE SoundCategory SET collapsed = :value WHERE id = :id")
-    fun updateCollapsed(id: Int, value: Int)
+    fun updateCollapsed(id: Int, value: Boolean)
 
     @Query("UPDATE SoundCategory SET name=:name WHERE id=:id")
     fun updateName(id: Int, name: String)
@@ -70,34 +53,42 @@ interface CategoryDao {
     @Query("SELECT IFNULL(MAX(`order`), -1) FROM SoundCategory")
     fun getMaxOrder(): Int
 
-    @Query("SELECT backgroundColor FROM SoundCategory")
-    fun getUsedColors(): LiveData<List<Int>>
+    @Query("SELECT DISTINCT backgroundColor FROM SoundCategory")
+    fun getUsedColors(): Flow<List<Int>>
 
     @Transaction
-    fun applyState(categories: List<Category>) {
-        val dbCategories = list()
+    suspend fun applyState(categories: List<Category>) {
+        val dbCategories = list().first()
+
         categories.forEach { category ->
             if (dbCategories.contains(category)) {
                 update(category)
                 // Don't reset collapsed status (why?)
                 dbCategories.findLast { it == category }?.let {
                     if (it.collapsed != category.collapsed && category.id != null)
-                        updateCollapsed(category.id, if (it.collapsed) 1 else 0)
+                        updateCollapsed(category.id, it.collapsed)
                 }
-            } else reInsert(category)
+            } else insert(category)
         }
+
         deleteExcluding(categories.mapNotNull { it.id })
     }
 
+/*
     @Transaction
-    fun sort(ids: List<Int>) {
-        /** Update .order according to current order in list and save */
+    fun updateOrder(ids: List<Int>) {
+        */
+/** Update .order according to current order in list and save *//*
+
         ids.forEachIndexed { index, id -> updateOrder(id, index) }
     }
+*/
 
+/*
     @Transaction
     fun totalReset(categories: List<Category>) {
         deleteAll()
         insert(categories)
     }
+*/
 }

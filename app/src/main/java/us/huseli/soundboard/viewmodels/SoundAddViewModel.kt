@@ -12,7 +12,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SoundAddViewModel @Inject constructor(
-    private val repository: SoundRepository, private val undoRepository: UndoRepository) : BaseSoundEditViewModel() {
+    private val repository: SoundRepository,
+    private val undoRepository: UndoRepository
+) : BaseSoundEditViewModel() {
 
     private var _duplicates = emptyList<Sound>()
     private val newSounds: List<Sound>
@@ -33,7 +35,7 @@ class SoundAddViewModel @Inject constructor(
 
     var duplicateStrategy = DuplicateStrategy.ADD
 
-    fun setup(newSounds: List<Sound>, allSounds: List<Sound>, multipleSoundsString: String) {
+    fun setup(newSounds: List<Sound>, allSounds: List<Sound>, multipleSoundsString: CharSequence) {
         super.setup(newSounds, multipleSoundsString)
         order = -1
         _duplicates = allSounds.filter { sound -> sound.checksum in newSounds.map { it.checksum } }
@@ -43,8 +45,7 @@ class SoundAddViewModel @Inject constructor(
      * We could create and insert all the sounds in one batch, but we want to be able to display error messages for
      * individual sounds where Sound.createFromTemporary() throws an exception.
      */
-    fun soundsToInsert() =
-        (if (duplicateStrategy == DuplicateStrategy.ADD) sounds else newSounds).iterator()
+    fun soundsToInsert() = (if (duplicateStrategy == DuplicateStrategy.ADD) sounds else newSounds).iterator()
 
     fun insertSound(tempSound: Sound, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -52,15 +53,27 @@ class SoundAddViewModel @Inject constructor(
                 if (order == -1) order = repository.getMaxOrder(it).plus(1)
                 else order++
             }
-            val sound =
-                Sound.createFromTemporary(tempSound, if (!multiple) name else null, volume, categoryId, order, context)
+            val sound = Sound.createFromTemporary(
+                tempSound,
+                if (!multiple) name.value.toString() else null,
+                volume.value,
+                categoryId,
+                order,
+                context
+            )
             repository.insert(sound)
         }
     }
 
     fun updateExisting() = viewModelScope.launch(Dispatchers.IO) {
-        if (duplicateStrategy == DuplicateStrategy.UPDATE)
-            repository.update(duplicates, if (!multiple) name else null, volume, categoryId)
+        if (duplicateStrategy == DuplicateStrategy.UPDATE) {
+            repository.update(
+                duplicates,
+                if (!multiple) name.value.toString() else null,
+                volume.value,
+                categoryId
+            )
+        }
     }
 
     fun pushUndoState() = viewModelScope.launch(Dispatchers.IO) {

@@ -19,7 +19,7 @@ class EditSoundDialogFragment : BaseEditSoundDialogFragment<SoundEditViewModel>(
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        viewModel.categoryIndex = requireArguments().getInt(ARG_CATEGORY_INDEX)
+        viewModel.setCategoryIndex(requireArguments().getInt(ARG_CATEGORY_INDEX))
     }
 
     override fun save() = viewModel.save()

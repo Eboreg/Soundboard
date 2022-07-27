@@ -1,3 +1,98 @@
+
+
+
+
+
+
+
+
+Vokaler: 10
+Prob: 0.1
+Ny prob bör bli: 0.0
+
+Vokaler: 6
+Prob: 0.5
+Prob före ändring
+    = (0.5 + 0.5 + 0.5 + 0.5 + 0.5 + 0.5) / 6
+    = (0.5 * 6) / 6
+    = 0.5
+Prob efter ändring
+    = (1 + x + x + x + x + x) / 6 = 0.5
+    = (1 + 5x) / 6 = 0.5
+    => 1 + 5x = 0.5 * 6
+    => 5x = (0.5 * 6) - 1
+    => x = ((0.5 * 6) - 1) / 5
+    D.v.s. x = ((probability * vowels.size) - 1) / (vowels.size - 1)
+
+Vokaler: 10
+Prob: 0.1
+Ny prob bör bli: 0.0
+Prob före ändring
+    = (0.1 * 10) / 10
+    = 0.1
+Prob efter ändring
+    = (1 + 9x) / 10 = 0.1
+    => 1 + 9x = 0.1 * 10
+    => 9x = (0.1 * 10) - 1
+    => x = ((0.1 * 10) - 1) / 9 = 0
+    D.v.s. x = ((probability * vowels.size) - 1) / (vowels.size - 1)
+
+Vokaler: 10
+Prob: 0.8
+Prob före ändring
+    = (0.8 * 10) / 10
+    = 0.8
+Prob efter ändring
+    = (1 + 9x) / 10 = 0.8
+    => 1 + 9x = 0.8 * 10
+    => 9x = (0.8 * 10) - 1
+    => x = ((0.8 * 10) - 1) / 9 = 0.7777...
+    D.v.s. x = ((probability * vowels.size) - 1) / (vowels.size - 1)
+
+
+
+
+Radering sker:
+SoundDao.delete
+    SoundRepository.delete
+        SoundViewModel.moveFilesToLocalStorage (vid versionsuppdradering)
+            MainActivity.onAppVersionUpgraded
+        SoundDeleteViewModel.delete
+            DeleteSoundFragment.onPositiveButtonClick
+SoundDao.deleteAll
+    SoundDao.totalReset
+        RestoreDialogFrament.restoreDatabase
+            RestoreDialogFrament.doRestore
+                RestoreDialogFrament.onCreateDialog
+SoundDao.deleteExcluding
+    SoundDao.applyState
+        UndoRepository.apply
+            UndoRepository.redo
+                AppViewModel.redo
+                    MainActivity.redo
+                        MainActivity.onOptionsItemSelected
+            UndoRepository.undo
+                AppViewModel.undo
+                    MainActivity.undo
+                        MainActivity.onOptionsItemSelected
+SoundDao.deleteByCategory
+    SoundRepository.deleteByCategory
+        CategoryViewModel.delete
+            DeleteCategoryFragment.onCreateDialog
+
+
+
+
+Radera via papperskorg:
+- vid automatisk foldersynk
+Hårdradera:
+- vid manuell radering
+- vid undo/redo
+
+
+
+
+
 What happens on repress?
 SoundPlayer.togglePlay() runs audioFile.restart() in coroutine
     PlayActionAbstract.start()

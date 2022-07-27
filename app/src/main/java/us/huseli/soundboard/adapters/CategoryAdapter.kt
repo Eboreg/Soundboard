@@ -260,14 +260,14 @@ class CategoryAdapter(
 
         private fun moveCategoryUp() {
             if (bindingAdapterPosition > 0) {
-                categoryViewModel.switch(bindingAdapterPosition, bindingAdapterPosition - 1)
+                categoryViewModel.swap(bindingAdapterPosition, bindingAdapterPosition - 1)
             }
         }
 
         private fun moveCategoryDown() {
             bindingAdapter?.also { adapter ->
                 if (bindingAdapterPosition < adapter.itemCount - 1) {
-                    categoryViewModel.switch(bindingAdapterPosition, bindingAdapterPosition + 1)
+                    categoryViewModel.swap(bindingAdapterPosition, bindingAdapterPosition + 1)
                 }
             }
         }

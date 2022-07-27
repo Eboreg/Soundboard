@@ -1,15 +1,21 @@
 package us.huseli.soundboard.viewmodels
 
+import android.app.Activity
 import android.content.Context
+import android.net.Uri
 import android.text.Editable
 import android.util.Log
+import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import us.huseli.soundboard.BuildConfig
+import us.huseli.soundboard.data.CategoryRepository
 import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.data.SoundRepository
 import us.huseli.soundboard.data.UndoRepository
+import us.huseli.soundboard.interfaces.SnackbarInterface
 import java.util.*
 import javax.inject.Inject
 
@@ -17,7 +23,8 @@ import javax.inject.Inject
 class SoundViewModel
 @Inject constructor(
     private val repository: SoundRepository,
-    private val undoRepository: UndoRepository
+    private val undoRepository: UndoRepository,
+    private val categoryRepository: CategoryRepository,
 ) : ViewModel() {
 
     val allSounds = repository.listLiveExtended()
@@ -35,7 +42,7 @@ class SoundViewModel
 
     fun saveChecksums() = viewModelScope.launch(Dispatchers.IO) {
         /** One-time thing at app version upgrade */
-        repository.list().forEach { sound ->
+        repository.listAll().forEach { sound ->
             try {
                 if (sound.checksum == "") repository.updateChecksum(sound.id, sound.calculateChecksum())
             } catch (e: Exception) {
@@ -52,6 +59,54 @@ class SoundViewModel
             }
     }
 
+    private suspend fun insertSound(tempSound: Sound, categoryId: Int?, context: Context) {
+        val order = categoryId?.let { repository.getMaxOrder(categoryId).plus(1) }
+        val sound = Sound.createFromTemporary(tempSound, categoryId, order, context)
+        repository.insert(sound)
+    }
+
+    fun syncWatchedFolder(activity: Activity, treeUri: Uri, trashMissing: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+        val newSounds = mutableListOf<Sound>()
+        val oldSounds = repository.listAll()
+        val oldChecksums = oldSounds.map { it.checksum }
+
+        val files = DocumentFile.fromTreeUri(activity, treeUri)
+            ?.listFiles()
+            ?.filter { it.type?.startsWith("audio/") == true }
+            ?.sortedBy { it.name?.lowercase(Locale.getDefault()) }
+
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG,"syncWatchedFolder: treeUri=$treeUri, trashMissing=$trashMissing, oldSounds.size=${oldSounds.size}, files.size=${files?.size}")
+
+        if (!files.isNullOrEmpty()) {
+            val category = categoryRepository.getAutoImportCategory(activity)
+
+            files.forEach { file ->
+                try {
+                    newSounds.add(Sound.createTemporary(file.uri, activity))
+                } catch (e: Exception) {
+                    (activity as SnackbarInterface).showSnackbar("Could not add ${treeUri.lastPathSegment}: $e")
+                }
+            }
+
+            val newChecksums = newSounds.map { it.checksum }
+            // Add sounds not yet in DB:
+            newSounds.filter { !oldChecksums.contains(it.checksum) }.forEach { sound ->
+                insertSound(sound, category.id, activity)
+            }
+            // For sounds in DB, ensure they have trashed=false
+            repository.untrash(
+                oldSounds.filter { newChecksums.contains(it.checksum) && it.trashed }.mapNotNull { it.id }
+            )
+
+            if (trashMissing) {
+                // Trash DB sounds not in newSounds
+                repository.trash(
+                    oldSounds.filter { !newChecksums.contains(it.checksum) && !it.trashed }.mapNotNull { it.id }
+                )
+            }
+        }
+    }
+
 
     /******* FILTERING *******/
     private val _filterEnabled = MutableLiveData(false)
@@ -60,8 +115,7 @@ class SoundViewModel
     private val _filteredSounds = _filterTerm.switchMap { term ->
         allSounds.map { sounds ->
             sounds.filter { sound ->
-                sound.name.toLowerCase(Locale.getDefault())
-                    .contains(term.toLowerCase(Locale.getDefault()))
+                sound.name.lowercase(Locale.getDefault()).contains(term.lowercase(Locale.getDefault()))
             }
         }
     }

@@ -7,9 +7,11 @@ import kotlinx.coroutines.sync.withLock
 import us.huseli.soundboard.BuildConfig
 import us.huseli.soundboard.data.Sound
 
-class SoundPlayer(private val sound: Sound,
-                  private var bufferSize: Int,
-                  private var durationListener: DurationListener?) : AudioFile.Listener {
+class SoundPlayer(
+    private val sound: Sound,
+    private var bufferSize: Int,
+    private var durationListener: DurationListener?
+) : AudioFile.Listener {
     private var _duration: Long = -1
         set(value) {
             if (value != field) {
@@ -129,7 +131,6 @@ class SoundPlayer(private val sound: Sound,
                     "REPRESSTEST: toggleplay() after, state=$_state, tempAudioFiles.size=${tempAudioFiles.size}, timeoutUs=$timeoutUs, audioFile=$audioFile")
             }
             _state == State.PLAYING -> {
-                @Suppress("NON_EXHAUSTIVE_WHEN")
                 when (repressMode) {
                     RepressMode.STOP -> {
                         audioFile?.stop()
@@ -140,6 +141,7 @@ class SoundPlayer(private val sound: Sound,
                         audioFile?.pause()
                         stopTempPlayers()
                     }
+                    else -> {}
                 }
             }
             _state == State.PAUSED -> audioFile?.resume()
@@ -166,13 +168,13 @@ class SoundPlayer(private val sound: Sound,
     }
 
     override fun onAudioFileStateChange(state: AudioFile.State) {
-        @Suppress("NON_EXHAUSTIVE_WHEN")
         when (state) {
             AudioFile.State.INITIALIZING -> _state = State.INITIALIZING
             AudioFile.State.PLAYING -> _state = State.PLAYING
             AudioFile.State.PAUSED -> _state = State.PAUSED
             AudioFile.State.READY -> _state = State.READY
             AudioFile.State.STOPPED -> _state = State.STOPPED
+            else -> {}
         }
     }
 
@@ -235,7 +237,7 @@ class SoundPlayer(private val sound: Sound,
     }
 
     interface DurationListener {
-        fun onSoundPlayerDurationChange(sound: Sound, duration: Long)
+        fun onSoundPlayerDurationChange(sound: Sound, duration: Long): Any?
     }
 
     enum class State { INITIALIZING, READY, STOPPED, PLAYING, PAUSED, ERROR, RELEASED }

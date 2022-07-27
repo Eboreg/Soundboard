@@ -7,6 +7,7 @@ import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.R
+import us.huseli.soundboard.helpers.Functions
 import us.huseli.soundboard.viewmodels.CategoryViewModel
 
 @AndroidEntryPoint
@@ -22,11 +23,21 @@ class DeleteCategoryFragment : DialogFragment() {
 
             setTitle(R.string.delete_category)
             setNegativeButton(R.string.cancel) { _, _ -> dismiss() }
-            if (categoryCount <= 1) setMessage(resources.getString(R.string.cannot_delete_last_category))
+            if (categoryCount <= 1)
+                setMessage(Functions.umlautify(resources.getString(R.string.cannot_delete_last_category)))
             else {
                 when (soundCount) {
-                    0 -> setMessage(resources.getString(R.string.delete_category_with_name, name))
-                    else -> setMessage(resources.getQuantityString(R.plurals.delete_category_with_name_and_sounds, soundCount, name, soundCount))
+                    0 -> setMessage(Functions.umlautify(resources.getString(R.string.delete_category_with_name, name)))
+                    else -> setMessage(
+                        Functions.umlautify(
+                            resources.getQuantityString(
+                                R.plurals.delete_category_with_name_and_sounds,
+                                soundCount,
+                                name,
+                                soundCount
+                            )
+                        )
+                    )
                 }
                 setPositiveButton(R.string.ok) { _, _ ->
                     categoryListViewModel.delete(id)

@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import java.io.File
 import java.util.*
 
-@Database(entities = [Sound::class, Category::class], version = 15, exportSchema = true)
+@Database(entities = [Sound::class, Category::class], version = 16, exportSchema = true)
 @TypeConverters(Converters::class)
 abstract class SoundboardDatabase : RoomDatabase() {
     abstract fun soundDao(): SoundDao
@@ -160,10 +160,17 @@ abstract class SoundboardDatabase : RoomDatabase() {
                 val cursor = database.query("SELECT * FROM Sound")
                 while (cursor.moveToNext()) {
                     val sound = Sound(
-                        cursor.getInt(0), cursor.getInt(1), cursor.getString(2),
-                        Uri.parse(cursor.getString(3)).path!!, cursor.getInt(4),
-                        cursor.getInt(5), Date(cursor.getLong(6)), cursor.getLong(7),
-                        cursor.getString(8) ?: "")
+                        cursor.getInt(0),                       // id
+                        cursor.getInt(1),                       // categoryId
+                        cursor.getString(2),                    // name
+                        Uri.parse(cursor.getString(3)).path!!,  // path
+                        cursor.getInt(4),                       // order
+                        cursor.getInt(5),                       // volume
+                        Date(cursor.getLong(6)),                // added
+                        cursor.getLong(7),                      // duration
+                        cursor.getString(8) ?: "",
+                        false
+                    )
                     val query = """
                         INSERT INTO Sound_new (id, categoryId, name, path, 'order', volume, checksum, added, duration)
                         VALUES (${sound.id}, ${sound.categoryId}, '${sound.name.replace("'", "''")}', 
@@ -175,6 +182,36 @@ abstract class SoundboardDatabase : RoomDatabase() {
                 database.execSQL("DROP TABLE Sound")
                 database.execSQL("ALTER TABLE Sound_new RENAME TO Sound")
                 database.execSQL("CREATE INDEX index_Sound_categoryId ON Sound(categoryId)")
+            }
+        }
+
+        private val MIGRATION_14_16 = object : Migration(14, 16) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Alter ON DELETE for categoryId, add trashed column
+                val now = Date().time
+                database.execSQL("""
+                    CREATE TABLE Sound_new (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        uri TEXT NOT NULL,
+                        'order' INTEGER NOT NULL,
+                        volume INTEGER NOT NULL,
+                        categoryId INTEGER,
+                        added INTEGER NOT NULL DEFAULT $now,
+                        duration INTEGER NOT NULL DEFAULT -1,
+                        checksum TEXT DEFAULT NULL,
+                        trashed INTEGER NOT NULL DEFAULT 0,
+                        FOREIGN KEY (categoryId) REFERENCES SoundCategory(id) ON UPDATE CASCADE ON DELETE SET NULL
+                    )""".trimIndent())
+                database.execSQL("""
+                    INSERT INTO Sound_new (id, name, uri, 'order', volume, categoryId, added, duration, checksum)
+                    SELECT id, name, uri, 'order', volume, categoryId, added, duration, checksum FROM Sound
+                """.trimIndent())
+                database.execSQL("DROP TABLE Sound")
+                database.execSQL("ALTER TABLE Sound_new RENAME TO Sound")
+                database.execSQL("CREATE INDEX index_Sound_categoryId ON Sound(categoryId)")
+                // Add autoImportCategory column to SoundCategory
+                database.execSQL("ALTER TABLE SoundCategory ADD COLUMN autoImportCategory INTEGER NOT NULL DEFAULT 0")
             }
         }
 
@@ -196,6 +233,7 @@ abstract class SoundboardDatabase : RoomDatabase() {
                 .addMigrations(MIGRATION_11_12)
                 .addMigrations(MIGRATION_12_13)
                 .addMigrations(MIGRATION_13_14)
+                .addMigrations(MIGRATION_14_16)
                 .fallbackToDestructiveMigration()
                 .build()
         }

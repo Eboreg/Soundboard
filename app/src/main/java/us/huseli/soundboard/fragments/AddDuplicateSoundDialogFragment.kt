@@ -9,6 +9,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.R
 import us.huseli.soundboard.databinding.FragmentAddDuplicateSoundBinding
+import us.huseli.soundboard.helpers.Functions
 import us.huseli.soundboard.interfaces.EditSoundInterface
 import us.huseli.soundboard.interfaces.SnackbarInterface
 import us.huseli.soundboard.viewmodels.SoundAddViewModel
@@ -20,7 +21,7 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
     private fun onAddDuplicates() {
         viewModel.duplicateStrategy = SoundAddViewModel.DuplicateStrategy.ADD
         if (viewModel.multiple)
-            viewModel.name = getString(R.string.multiple_sounds_selected, viewModel.soundCount)
+            viewModel.setName(Functions.umlautify(getString(R.string.multiple_sounds_selected, viewModel.soundCount)))
         (requireActivity() as EditSoundInterface).showSoundAddDialog()
     }
 
@@ -29,7 +30,7 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
         if (viewModel.soundCount == 0) (requireActivity() as SnackbarInterface).showSnackbar(R.string.no_sounds_to_add)
         else {
             if (viewModel.multiple)
-                viewModel.name = getString(R.string.multiple_sounds_selected, viewModel.soundCount)
+                viewModel.setName(Functions.umlautify(getString(R.string.multiple_sounds_selected, viewModel.soundCount)))
             (requireActivity() as EditSoundInterface).showSoundAddDialog()
         }
     }
@@ -39,7 +40,7 @@ class AddDuplicateSoundDialogFragment : DialogFragment() {
         (requireActivity() as EditSoundInterface).apply {
             when {
                 viewModel.multiple -> {
-                    viewModel.name = getString(R.string.multiple_sounds_selected, viewModel.soundCount)
+                    viewModel.setName(Functions.umlautify(getString(R.string.multiple_sounds_selected, viewModel.soundCount)))
                     showSoundAddDialog()
                 }
                 viewModel.hasDuplicates -> showSoundEditDialog(viewModel.duplicates.first())

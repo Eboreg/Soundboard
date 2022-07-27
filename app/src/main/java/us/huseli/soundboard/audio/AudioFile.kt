@@ -359,13 +359,13 @@ class AudioFile(
                             val buffer = getBuffer(audioExtractor)
                             if (!job.isActive) return@launch
                             val writeResult = audioTrack.write(buffer)
-                            @Suppress("NON_EXHAUSTIVE_WHEN")
                             when (writeResult.status) {
                                 AudioTrackContainer.WriteStatus.FAIL -> onPlayFail()
                                 AudioTrackContainer.WriteStatus.OK -> onPlayStart()
                                 AudioTrackContainer.WriteStatus.ERROR -> onWarning(
                                     "Error playing file",
                                     "start: error, message=${writeResult.message}, status=${writeResult.status}, sampleSize=${writeResult.sampleSize}, writtenBytes=${writeResult.writtenBytes}")
+                                else -> {}
                             }
                         }
                     }

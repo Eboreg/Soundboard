@@ -2,6 +2,7 @@ package us.huseli.soundboard.activities
 
 import android.annotation.TargetApi
 import android.content.Context
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.view.View
@@ -25,9 +26,7 @@ abstract class BaseActivity : AppCompatActivity() {
     }
 
     private fun updateBaseContext(context: Context): Context {
-        /**
-         * Seems like we can't inject SettingsManager, because it will not yet have been created at this point?
-         */
+        /** Seems like we can't inject SettingsManager, because it will not yet have been created at this point? */
         val settingsManager = SettingsManager.createForContext(context)
         var newContext = context
 
@@ -103,7 +102,7 @@ abstract class BaseActivity : AppCompatActivity() {
         }
     }
 
-    fun updateProgress(text: String, currentFileIdx: Int?, totalFileCount: Int?) {
+    fun updateProgress(text: CharSequence, currentFileIdx: Int?, totalFileCount: Int?) {
         window.decorView.rootView.post {
             findViewById<TextView>(R.id.progressText)?.let {
                 it.visibility = View.VISIBLE
@@ -117,5 +116,12 @@ abstract class BaseActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    fun getAppVersion(): Long {
+        val pInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
+
+        @Suppress("DEPRECATION")
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) pInfo.longVersionCode else pInfo.versionCode.toLong()
     }
 }

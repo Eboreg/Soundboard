@@ -7,6 +7,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -33,17 +34,19 @@ class UndoRepository @Inject constructor(
         scope.launch { pushState() }
     }
 
-    fun pushState() = states.push(State(soundDao.list(), categoryDao.list()))
-
-    fun redo() {
-        apply(states.getRedoState())
+    suspend fun pushState() {
+        states.push(State(soundDao.listAll(), categoryDao.list().first()))
     }
 
-    fun undo() {
-        apply(states.getUndoState())
+    suspend fun replaceCurrentState() {
+        states.replaceCurrent(State(soundDao.listAll(), categoryDao.list().first()))
     }
 
-    private fun apply(state: State?) {
+    suspend fun redo() = apply(states.getRedoState())
+
+    suspend fun undo() = apply(states.getUndoState())
+
+    private suspend fun apply(state: State?) {
         state?.categories?.also { categoryDao.applyState(it) }
         state?.sounds?.also { soundDao.applyState(it) }
     }
@@ -69,7 +72,7 @@ class UndoRepository @Inject constructor(
         fun push(state: State): Boolean {
             /** On push of new state, all states after currentPos become unusable and are scrapped */
             if (currentPos < list.size - 1) {
-                list.removeAll(list.subList(currentPos + 1, list.size))
+                list.removeAll(list.subList(currentPos + 1, list.size).toSet())
                 currentPos = list.size - 1
             }
             return list.add(state).also {
@@ -79,6 +82,10 @@ class UndoRepository @Inject constructor(
                     if (list.size > Constants.MAX_UNDO_STATES) removeFirst()
                 }
             }
+        }
+
+        fun replaceCurrent(state: State) {
+            list[currentPos] = state
         }
 
         private fun deleteSoundFiles(removedState: State, nextState: State) {

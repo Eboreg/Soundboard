@@ -9,17 +9,17 @@ abstract class BaseCategoryEditViewModel : ViewModel() {
     protected val _backgroundColor = MutableLiveData<Int>()
     protected val _name = MutableLiveData("")
 
-    abstract val backgroundColor: LiveData<Int>
-    val name: LiveData<String>
-        get() = _name
-
-    abstract fun save(): Any?
-
+    open val backgroundColor: LiveData<Int>
+        get() = _backgroundColor
     fun setBackgroundColor(color: Int) {
         _backgroundColor.value = color
     }
 
+    val name: LiveData<String>
+        get() = _name
     fun setName(value: String) {
         _name.value = value
     }
+
+    abstract fun save(): Any?
 }

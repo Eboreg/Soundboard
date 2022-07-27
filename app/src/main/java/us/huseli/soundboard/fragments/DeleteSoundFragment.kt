@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.R
+import us.huseli.soundboard.helpers.Functions
 import us.huseli.soundboard.viewmodels.SoundDeleteViewModel
 
 @AndroidEntryPoint
@@ -28,9 +29,10 @@ class DeleteSoundFragment : BaseSoundDialogFragment() {
         super.onPositiveButtonClick()
     }
 
-    override fun getMessage() =
-            soundName?.let { getString(R.string.delete_sound_name, it) }
-                    ?: getString(R.string.delete_sounds_count, soundIds?.size)
+    override fun getMessage() = Functions.umlautify(
+        soundName?.let { getString(R.string.delete_sound_name, it) }
+            ?: getString(R.string.delete_sounds_count, soundIds?.size)
+    )
 
     companion object {
         const val ARG_NAME = "name"

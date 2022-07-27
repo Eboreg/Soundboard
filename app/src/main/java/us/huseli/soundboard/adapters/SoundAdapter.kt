@@ -71,8 +71,11 @@ class SoundAdapter(
     override fun onBindViewHolder(holder: SoundViewHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         val item = getItem(position)
-        if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-            "onBindViewHolder: item=$item, holder=$holder, position=$position, categoryId=$categoryId")
+        if (BuildConfig.DEBUG)
+            Log.d(
+                LOG_TAG,
+                "onBindViewHolder: item=$item, holder=$holder, position=$position, categoryId=$categoryId"
+            )
         holder.bind(item)
     }
 
@@ -114,15 +117,17 @@ class SoundAdapter(
         return currentList.size
     }
 
-    internal fun getSoundAt(position: Int) = getItem(position)
+    // internal fun getSoundAt(position: Int) = getItem(position)
 
     internal fun insertOrMoveSound(soundId: Int, toPosition: Int) {
         val fromPosition = currentList.map { it.id }.indexOf(soundId)
         val soundIds = currentList.mapNotNull { it.id }.toMutableList()
 
         if (BuildConfig.DEBUG)
-            Log.i(LOG_TAG,
-                "insertOrMoveSound: fromPosition=$fromPosition, toPosition=$toPosition, soundId=$soundId, this=$this, soundIds=$soundIds")
+            Log.i(
+                LOG_TAG,
+                "insertOrMoveSound: fromPosition=$fromPosition, toPosition=$toPosition, soundId=$soundId, this=$this, soundIds=$soundIds"
+            )
 
         // "The construct when can have branches that overlap, in case of multiple matches the
         // first branch is chosen." -- https://superkotlin.com/kotlin-when-statement/
@@ -224,7 +229,9 @@ class SoundAdapter(
 
         // private val soundViewModel = adapter.soundViewModel
         private val playerRepository = EntryPointAccessors.fromApplication(
-            binding.root.context.applicationContext, SoundViewHolderEntryPoint::class.java).playerRepository()
+            binding.root.context.applicationContext,
+            SoundViewHolderEntryPoint::class.java
+        ).playerRepository()
 
         private var longClickAnimator: SoundItemLongClickAnimator? = null
         private var player: SoundPlayer? = null
@@ -384,8 +391,7 @@ class SoundAdapter(
              * https://developer.android.com/guide/components/processes-and-threads#WorkerThreads
              */
             binding.root.post {
-                if (BuildConfig.DEBUG) Log.d(LOG_TAG,
-                    "onSoundPlayerStateChange: item=$item, state=$state")
+                if (BuildConfig.DEBUG) Log.d(LOG_TAG,"onSoundPlayerStateChange: item=$item, state=$state")
 
                 when (state) {
                     SoundPlayer.State.INITIALIZING -> Unit

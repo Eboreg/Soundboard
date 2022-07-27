@@ -143,4 +143,5 @@
     <string name="could_not_add_sound">Kunde inte lägga till ljud: %1$s</string>
     <string name="an_error_occurred">Ett fel inträffade</string>
     <string name="fail_move_sounds_local">Kunde inte flytta ljud till lokal lagring</string>
+    <string name="auto_imported_sounds">Autoimporterade ljud</string>
 </resources>

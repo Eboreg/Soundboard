@@ -41,4 +41,46 @@ object Functions {
         if (Looper.getMainLooper().thread == Thread.currentThread())
             Log.e("warnIfOnMainThread", "$caller was called from main thread, but it shouldn't be!")
     }
+
+    private fun umlautify(char: Char): Char {
+        val newChar = when(char.lowercaseChar()) {
+            'a' -> 'ä'
+            'e' -> 'ë'
+            'i' -> 'ï'
+            'o' -> 'ö'
+            'u' -> 'ü'
+            'y' -> 'ÿ'
+            else -> char
+        }
+        return if (char.isUpperCase()) newChar.uppercaseChar() else newChar
+    }
+
+    /**
+     * Randomly changes vowels into their cool ümläüt counterparts.
+     * `probability` (0.0 - 1.0) sets the probability that this will happen to
+     * any individual vowel. However, at least one vowel will always be
+     * changed.
+     */
+    fun umlautify(string: CharSequence, probability: Double = 0.3): CharSequence {
+        val vowels = string
+            .mapIndexedNotNull { idx, char ->
+                if ("aeiouy".contains(char, true)) Pair(idx, char) else null
+            }
+            .shuffled()
+        val correctedProbability = ((probability * vowels.size) - 1) / (vowels.size - 1)
+        var newString = string
+        var first = true
+
+        vowels.forEach { pair ->
+            if (first || Math.random() < correctedProbability) {
+                newString =
+                    newString.substring(0, pair.first) +
+                    umlautify(pair.second) +
+                    newString.substring(pair.first + 1)
+                first = false
+            }
+        }
+
+        return newString
+    }
 }

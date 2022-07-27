@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 15,
-    "identityHash": "7b849878361043c2272592a06f0cd818",
+    "identityHash": "0d94c6dd6fe2c11d8e72e0e47a9b1546",
     "entities": [
       {
         "tableName": "Sound",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `categoryId` INTEGER, `name` TEXT NOT NULL, `path` TEXT NOT NULL, `order` INTEGER NOT NULL, `volume` INTEGER NOT NULL, `added` INTEGER NOT NULL, `duration` INTEGER NOT NULL, `checksum` TEXT NOT NULL, FOREIGN KEY(`categoryId`) REFERENCES `SoundCategory`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `categoryId` INTEGER, `name` TEXT NOT NULL, `path` TEXT NOT NULL, `order` INTEGER NOT NULL, `volume` INTEGER NOT NULL, `added` INTEGER NOT NULL, `duration` INTEGER NOT NULL, `checksum` TEXT NOT NULL, `trashed` INTEGER NOT NULL, FOREIGN KEY(`categoryId`) REFERENCES `SoundCategory`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -61,13 +61,19 @@
             "columnName": "checksum",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "trashed",
+            "columnName": "trashed",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
+          "autoGenerate": true,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": true
+          ]
         },
         "indices": [
           {
@@ -76,6 +82,7 @@
             "columnNames": [
               "categoryId"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_Sound_categoryId` ON `${TABLE_NAME}` (`categoryId`)"
           }
         ],
@@ -95,7 +102,7 @@
       },
       {
         "tableName": "SoundCategory",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `backgroundColor` INTEGER NOT NULL, `order` INTEGER NOT NULL, `collapsed` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `backgroundColor` INTEGER NOT NULL, `order` INTEGER NOT NULL, `collapsed` INTEGER NOT NULL, `autoImportCategory` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -126,13 +133,19 @@
             "columnName": "collapsed",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "autoImportCategory",
+            "columnName": "autoImportCategory",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
+          "autoGenerate": true,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": true
+          ]
         },
         "indices": [],
         "foreignKeys": []
@@ -141,7 +154,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7b849878361043c2272592a06f0cd818')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0d94c6dd6fe2c11d8e72e0e47a9b1546')"
     ]
   }
 }

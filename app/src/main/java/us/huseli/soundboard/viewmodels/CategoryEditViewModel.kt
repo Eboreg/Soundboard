@@ -1,6 +1,5 @@
 package us.huseli.soundboard.viewmodels
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -16,9 +15,6 @@ class CategoryEditViewModel @Inject constructor(
 ) : BaseCategoryEditViewModel() {
 
     private var categoryId: Int? = null
-
-    override val backgroundColor: LiveData<Int>
-        get() = _backgroundColor
 
     var sortOrder = SoundSorting.Order.ASCENDING
     var sortParameter: SoundSorting.Parameter? = null

@@ -19,8 +19,10 @@ class AddSoundDialogFragment : BaseEditSoundDialogFragment<SoundAddViewModel>() 
             try {
                 viewModel.insertSound(sound, requireContext())
             } catch (e: Exception) {
-                failFragment.addMessage(StatusDialogFragment.Status.ERROR,
-                    getString(R.string.could_not_add_sound, sound.name))
+                failFragment.addMessage(
+                    StatusDialogFragment.Status.ERROR,
+                    getString(R.string.could_not_add_sound, sound.name)
+                )
                 failFragment.addException(e)
             }
         }

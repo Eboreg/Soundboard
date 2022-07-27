@@ -4,11 +4,9 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.LevelListDrawable
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.Menu
@@ -30,9 +28,13 @@ import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import dagger.hilt.android.AndroidEntryPoint
 import us.huseli.soundboard.R
 import us.huseli.soundboard.audio.SoundPlayer
-import us.huseli.soundboard.data.*
+import us.huseli.soundboard.data.Category
+import us.huseli.soundboard.data.Constants
+import us.huseli.soundboard.data.PlayerRepository
+import us.huseli.soundboard.data.Sound
 import us.huseli.soundboard.databinding.ActivityMainBinding
 import us.huseli.soundboard.fragments.*
+import us.huseli.soundboard.helpers.Functions
 import us.huseli.soundboard.helpers.SettingsManager
 import us.huseli.soundboard.interfaces.EditCategoryInterface
 import us.huseli.soundboard.interfaces.EditSoundInterface
@@ -49,8 +51,7 @@ class MainActivity :
     ColorPickerDialogListener,
     SnackbarInterface,
     ZoomInterface,
-    ActionMode.Callback,
-    SettingsManager.Listener {
+    ActionMode.Callback {
 
     @Inject
     lateinit var playerRepository: PlayerRepository
@@ -124,11 +125,11 @@ class MainActivity :
             }
         }
 
-        addSoundLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-                onAddSoundResult(it.data, it.resultCode)
-            }
+        addSoundLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            onAddSoundResult(it.data, it.resultCode)
+        }
 
+        // Take care of any files shared with us by other apps
         when (intent?.action) {
             Intent.ACTION_SEND -> (intent?.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)?.let {
                 addSoundsFromUris(listOf(it))
@@ -138,15 +139,13 @@ class MainActivity :
             }
         }
 
-        val pInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
+        // If version is higher than on last run
+        getAppVersion().also {
+            if (settingsManager.getLastVersion() < it) onAppVersionUpgraded(settingsManager.getLastVersion(), it)
+            settingsManager.setLastVersion(it)
+        }
 
-        @Suppress("DEPRECATION")
-        val currentVersion =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) pInfo.longVersionCode else pInfo.versionCode.toLong()
-        if (settingsManager.getLastVersion() < currentVersion) onAppVersionUpgraded(settingsManager.getLastVersion(),
-            currentVersion)
-        settingsManager.setLastVersion(currentVersion)
-
+        // This method will be run anew if device is rotated
         appViewModel.setOrientation(resources.configuration.orientation)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -154,15 +153,12 @@ class MainActivity :
         setContentView(binding.root)
 
         setSupportActionBar(binding.actionbar.actionbarToolbar)
-        supportActionBar?.apply {
-            setDisplayShowTitleEnabled(false)
-        }
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+
         setupEasterEggClickListener()
         setupBottomBar()
 
-        binding.filterTerm.addTextChangedListener {
-            soundViewModel.setFilterTerm(it)
-        }
+        binding.filterTerm.addTextChangedListener { soundViewModel.setFilterTerm(it) }
         binding.filterTerm.setOnEditorActionListener { _, actionId, _ ->
             return@setOnEditorActionListener when (actionId) {
                 EditorInfo.IME_ACTION_SEARCH -> {
@@ -184,10 +180,14 @@ class MainActivity :
         categoryListViewModel.categories.observe(this) {
             // Keep track of these to be able to send categoryIndex to EditSoundDialogFragment
             categories = it
-            if (it.isEmpty()) categoryListViewModel.create("Defäult")
+            if (it.isEmpty()) categoryListViewModel.create(Functions.umlautify("Defäult"))
         }
 
         appViewModel.deleteOrphans(getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE))
+
+        settingsManager.getWatchFolder()?.also { uri ->
+            soundViewModel.syncWatchedFolder(this, uri, settingsManager.getWatchFolderTrashMissing())
+        }
     }
 
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
@@ -202,8 +202,9 @@ class MainActivity :
         // On wider screens, also inflate "bottom menu" here
         if (resources.configuration.screenWidthDp >= 480) {
             menuInflater.inflate(R.menu.bottom_menu, menu)
-            menu.findItem(R.id.action_open_repress_mode_menu)
-                ?.setIcon(R.drawable.repress_mode_menu_icon_with_down_caret)
+            menu.findItem(R.id.action_open_repress_mode_menu)?.setIcon(
+                R.drawable.repress_mode_menu_icon_with_down_caret
+            )
         }
         // This has to be done here, because the callbacks require the menu to exist
         appViewModel.repressMode.observe(this) { onRepressModeChange(it) }
@@ -247,42 +248,25 @@ class MainActivity :
         return true
     }
 
-    override fun onPause() {
-        super.onPause()
-        settingsManager.unregisterListener(this)
-    }
-
     override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?) = false
-
-    override fun onResume() {
-        super.onResume()
-        settingsManager.registerListener(this)
-    }
 
 
     /********* OVERRIDDEN 3RD PARTY METHODS **********/
     override fun onColorSelected(dialogId: Int, color: Int) {
         // Have to do this just because ColorPickerDialog won't accept a Fragment as context :/
-        (supportFragmentManager.findFragmentByTag(DIALOG_TAGS[dialogId]) as ColorPickerDialogListener).onColorSelected(
-            dialogId,
-            color
-        )
+        (supportFragmentManager.findFragmentByTag(DIALOG_TAGS[dialogId]) as ColorPickerDialogListener)
+            .onColorSelected(dialogId, color)
     }
 
     override fun onDialogDismissed(dialogId: Int) = Unit
 
 
     /********* OVERRIDDEN OWN METHODS **********/
-    override fun onSettingChanged(key: String, value: Any) {
-        when (key) {
-            Constants.PREF_LANGUAGE -> setLanguage(value as String)
-        }
-    }
-
     override fun showCategoryAddDialog() {
         showFragment(
-            AddCategoryDialogFragment.newInstance(
-                DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG)), CATEGORY_ADD_DIALOG_TAG)
+            AddCategoryDialogFragment.newInstance(DIALOG_TAGS.indexOf(CATEGORY_ADD_DIALOG_TAG)),
+            CATEGORY_ADD_DIALOG_TAG
+        )
     }
 
     override fun showCategoryDeleteDialog(id: Int, name: String, soundCount: Int) =
@@ -292,11 +276,12 @@ class MainActivity :
         categoryEditViewModel.setup(category)
         showFragment(
             EditCategoryDialogFragment.newInstance(DIALOG_TAGS.indexOf(CATEGORY_EDIT_DIALOG_TAG)),
-            CATEGORY_EDIT_DIALOG_TAG)
+            CATEGORY_EDIT_DIALOG_TAG
+        )
     }
 
     override fun showSnackbar(text: CharSequence) =
-        Snackbar.make(binding.appCoordinator, text, Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(binding.appCoordinator, Functions.umlautify(text), Snackbar.LENGTH_SHORT).show()
 
     override fun showSnackbar(textResource: Int) = showSnackbar(getText(textResource))
 
@@ -307,9 +292,7 @@ class MainActivity :
         when {
             validSounds.size == 1 -> {
                 val sound = validSounds.first()
-                sound.id?.let { soundId ->
-                    showFragment(DeleteSoundFragment.newInstance(soundId, sound.name))
-                }
+                sound.id?.let { soundId -> showFragment(DeleteSoundFragment.newInstance(soundId, sound.name)) }
             }
             validSounds.size > 1 -> showFragment(DeleteSoundFragment.newInstance(sounds.map { it.id }))
         }
@@ -323,11 +306,9 @@ class MainActivity :
         showFragment(EditSoundDialogFragment.newInstance(categoryIndex))
     }
 
-    override fun zoomIn() =
-        appViewModel.zoomIn()?.let { showSnackbar(getString(R.string.zoom_level_percent, it)) }
+    override fun zoomIn() = appViewModel.zoomIn()?.let { showSnackbar(getString(R.string.zoom_level_percent, it)) }
 
-    override fun zoomOut() =
-        appViewModel.zoomOut()?.let { showSnackbar(getString(R.string.zoom_level_percent, it)) }
+    override fun zoomOut() = appViewModel.zoomOut()?.let { showSnackbar(getString(R.string.zoom_level_percent, it)) }
 
 
     /********* OWN METHODS **********/
@@ -348,7 +329,11 @@ class MainActivity :
             }
         }
 
-        soundAddViewModel.setup(sounds, this.allSounds, getString(R.string.multiple_sounds_selected, sounds.size))
+        soundAddViewModel.setup(
+            sounds,
+            this.allSounds,
+            getString(R.string.multiple_sounds_selected, sounds.size)
+        )
 
         when {
             soundAddViewModel.hasDuplicates -> showFragment(AddDuplicateSoundDialogFragment())
@@ -359,8 +344,7 @@ class MainActivity :
 
     private fun getCategoryIndex(selectedSounds: List<Sound>): Int {
         return when (selectedSounds.size) {
-            1 -> categories.map { it.id }.indexOf(selectedSounds.first().categoryId)
-                .let { if (it > -1) it else 0 }
+            1 -> categories.map { it.id }.indexOf(selectedSounds.first().categoryId).let { if (it > -1) it else 0 }
             else -> 0
         }
     }
@@ -392,7 +376,10 @@ class MainActivity :
             } catch (e: Exception) {
                 val fragment = StatusDialogFragment()
                     .setTitle(getString(R.string.an_error_occurred))
-                    .addMessage(StatusDialogFragment.Status.ERROR, getString(R.string.fail_move_sounds_local))
+                    .addMessage(
+                        StatusDialogFragment.Status.ERROR,
+                        getString(R.string.fail_move_sounds_local)
+                    )
                     .addException(e)
                 showFragment(fragment)
             }
@@ -542,7 +529,7 @@ class MainActivity :
 
 
     companion object {
-        const val EXTRA_SOUND_ID = "soundId"
+        // const val EXTRA_SOUND_ID = "soundId"
         const val CATEGORY_ADD_DIALOG_TAG = "categoryAddDialog"
         const val CATEGORY_EDIT_DIALOG_TAG = "categoryEditDialog"
         val DIALOG_TAGS = listOf(CATEGORY_ADD_DIALOG_TAG, CATEGORY_EDIT_DIALOG_TAG)

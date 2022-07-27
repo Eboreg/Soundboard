@@ -12,13 +12,18 @@ data class Category(
     val backgroundColor: Int,
     val order: Int,
     val collapsed: Boolean = false,
+    val autoImportCategory: Boolean = false,
     @Ignore var textColor: Int?
 ) {
-    constructor(id: Int?, name: String, backgroundColor: Int, order: Int, collapsed: Boolean) :
-            this(id, name, backgroundColor, order, collapsed, null)
+    constructor(id: Int?, name: String, backgroundColor: Int, order: Int, collapsed: Boolean, autoImportCategory: Boolean) :
+            this(id, name, backgroundColor, order, collapsed, autoImportCategory, null)
 
     @Ignore
-    constructor(name: String, backgroundColor: Int) : this(null, name, backgroundColor, -1, false)
+    constructor(name: String, backgroundColor: Int, autoImportCategory: Boolean) :
+            this(null, name, backgroundColor, -1, false, autoImportCategory)
+
+    @Ignore
+    constructor(name: String, backgroundColor: Int) : this(name, backgroundColor, false)
 
     @Ignore
     constructor(name: String) : this(name, Color.DKGRAY)

@@ -16,13 +16,14 @@ import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import us.huseli.soundboard.R
 import us.huseli.soundboard.databinding.FragmentStatusDialogBinding
+import us.huseli.soundboard.helpers.Functions
 
 open class StatusDialogFragment : DialogFragment() {
     private val errorMessages = mutableListOf<String>()
     private val messages = mutableListOf<Message>()
 
     private var onPositiveButton: DialogInterface.OnClickListener? = null
-    private var title: String? = null
+    private var title: CharSequence? = null
 
     private lateinit var binding: FragmentStatusDialogBinding
 
@@ -34,8 +35,8 @@ open class StatusDialogFragment : DialogFragment() {
         return this
     }
 
-    fun addMessage(status: Status, message: String): StatusDialogFragment {
-        messages.add(Message(status, message))
+    fun addMessage(status: Status, message: CharSequence): StatusDialogFragment {
+        messages.add(Message(status, Functions.umlautify(message)))
         return this
     }
 
@@ -47,8 +48,8 @@ open class StatusDialogFragment : DialogFragment() {
         return this
     }
 
-    fun setTitle(value: String): StatusDialogFragment {
-        title = value
+    fun setTitle(value: CharSequence): StatusDialogFragment {
+        title = Functions.umlautify(value)
         return this
     }
 
@@ -76,7 +77,7 @@ open class StatusDialogFragment : DialogFragment() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putString(ARG_TITLE, title)
+        outState.putString(ARG_TITLE, title?.toString())
         outState.putParcelableArrayList(ARG_MESSAGES, ArrayList<Message>(messages))
         outState.putStringArray(ARG_ERROR_MESSAGES, errorMessages.toTypedArray())
         super.onSaveInstanceState(outState)
@@ -86,14 +87,14 @@ open class StatusDialogFragment : DialogFragment() {
     enum class Status { SUCCESS, ERROR, WARNING }
 
 
-    data class Message(val status: Status, val text: String) : Parcelable {
+    data class Message(val status: Status, val text: CharSequence) : Parcelable {
         constructor(parcel: Parcel) : this(Status.valueOf(parcel.readString()!!), parcel.readString()!!)
 
         override fun describeContents() = 0
 
         override fun writeToParcel(dest: Parcel?, flags: Int) {
             dest?.writeString(status.name)
-            dest?.writeString(text)
+            dest?.writeString(text.toString())
         }
 
         companion object CREATOR : Parcelable.Creator<Message> {
@@ -103,7 +104,7 @@ open class StatusDialogFragment : DialogFragment() {
     }
 
 
-    inner class MessageAdapter(context: Context, val messages: List<Message>) :
+    inner class MessageAdapter(context: Context, private val messages: List<Message>) :
         ArrayAdapter<Message>(context, 0, messages) {
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             val view = convertView ?: layoutInflater.inflate(R.layout.item_status_dialog_message, parent, false)

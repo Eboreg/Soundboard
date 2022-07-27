@@ -164,7 +164,7 @@ class AudioTrackContainer(
         val status: WriteStatus,
         audioTrackResult: Int?,
         val sampleSize: Int,
-        val overshoot: Int) {
+        private val overshoot: Int) {
 
         val message = when (audioTrackResult) {
             AudioTrack.ERROR_BAD_VALUE -> "Audio output: bad value"

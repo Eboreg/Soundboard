@@ -17,44 +17,54 @@ import java.util.*
 @Entity(
     tableName = "Sound",
     foreignKeys = [ForeignKey(
-        entity = Category::class, parentColumns = ["id"], childColumns = ["categoryId"],
-        onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE
+        entity = Category::class,
+        parentColumns = ["id"],
+        childColumns = ["categoryId"],
+        onDelete = ForeignKey.CASCADE,
+        onUpdate = ForeignKey.CASCADE
     )],
     indices = [Index("categoryId")]
 )
-open class Sound(@PrimaryKey(autoGenerate = true) open val id: Int?,
-                 open val categoryId: Int?,
-                 open val name: String,
-                 open val path: String,
-                 open val order: Int,
-                 open val volume: Int,
-                 open val added: Date,
-                 open val duration: Long,
-                 open val checksum: String,
-                 @Ignore val uri: Uri?) : Parcelable {
+open class Sound(
+    @PrimaryKey(autoGenerate = true) open val id: Int?,
+    open val categoryId: Int?,
+    open val name: String,
+    open val path: String,
+    open val order: Int,
+    open val volume: Int,
+    open val added: Date,
+    open val duration: Long,
+    open val checksum: String,
+    open val trashed: Boolean,
+    @Ignore val uri: Uri?
+) : Parcelable {
 
-    constructor(id: Int?,
-                categoryId: Int?,
-                name: String,
-                path: String,
-                order: Int,
-                volume: Int,
-                added: Date,
-                duration: Long,
-                checksum: String) :
-            this(id, categoryId, name, path, order, volume, added, duration, checksum, null)
+    constructor(
+        id: Int?,
+        categoryId: Int?,
+        name: String,
+        path: String,
+        order: Int,
+        volume: Int,
+        added: Date,
+        duration: Long,
+        checksum: String,
+        trashed: Boolean
+    ) :
+            this(id, categoryId, name, path, order, volume, added, duration, checksum, trashed, null)
 
     constructor(parcel: Parcel) : this(
         parcel.readValue(Int::class.java.classLoader) as? Int,  // id
         parcel.readValue(Int::class.java.classLoader) as? Int,  // categoryId
-        parcel.readString() ?: "",  // name
-        parcel.readString() ?: "", // path
-        parcel.readInt(),  // order
-        parcel.readInt(),  // volume
-        parcel.readSerializable() as Date,  // added
-        parcel.readLong(),  // duration
-        parcel.readString() ?: "", // checksum
-        null
+        parcel.readString() ?: "",                        // name
+        parcel.readString() ?: "",                         // path
+        parcel.readInt(),                                       // order
+        parcel.readInt(),                                       // volume
+        parcel.readSerializable() as Date,                      // added
+        parcel.readLong(),                                      // duration
+        parcel.readString() ?: "",                     // checksum
+        parcel.readBoolean(),                                   // trashed
+        null                                                // uri
     ) {
         @Suppress("LeakingThis")
         if (BuildConfig.DEBUG) Log.d("SOUND", "Create Sound though Parcelable constructor: $this")
@@ -77,6 +87,7 @@ open class Sound(@PrimaryKey(autoGenerate = true) open val id: Int?,
         parcel.writeSerializable(added)
         parcel.writeLong(duration)
         parcel.writeString(checksum)
+        parcel.writeBoolean(trashed)
     }
 
     override fun describeContents() = 0
@@ -95,7 +106,7 @@ open class Sound(@PrimaryKey(autoGenerate = true) open val id: Int?,
             return when (sorting.parameter) {
                 SoundSorting.Parameter.NAME -> {
                     when {
-                        s1.name.toLowerCase(Locale.ROOT) > s2.name.toLowerCase(Locale.ROOT) -> 1
+                        s1.name.lowercase(Locale.getDefault()) > s2.name.lowercase(Locale.getDefault()) -> 1
                         s1.name.equals(s2.name, ignoreCase = true) -> 0
                         else -> -1
                     }
@@ -135,7 +146,12 @@ open class Sound(@PrimaryKey(autoGenerate = true) open val id: Int?,
             inputStream.close()
 
             val cursor = context.contentResolver.query(
-                uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+                uri,
+                arrayOf(OpenableColumns.DISPLAY_NAME),
+                null,
+                null,
+                null
+            )
 
             val name = when (cursor) {
                 null -> ""
@@ -150,16 +166,28 @@ open class Sound(@PrimaryKey(autoGenerate = true) open val id: Int?,
             cursor?.close()
 
             return Sound(
-                null, null, name, uri.path ?: "", -1, Constants.DEFAULT_VOLUME,
-                Date(), -1, checksum, uri)
+                null,
+                null,
+                name,
+                uri.path ?: "",
+                -1,
+                Constants.DEFAULT_VOLUME,
+                Date(),
+                -1,
+                checksum,
+                false,
+                uri
+            )
         }
 
-        fun createFromTemporary(tempSound: Sound,
-                                name: String?,
-                                volume: Int?,
-                                categoryId: Int?,
-                                order: Int?,
-                                context: Context): Sound {
+        fun createFromTemporary(
+            tempSound: Sound,
+            name: String?,
+            volume: Int?,
+            categoryId: Int?,
+            order: Int?,
+            context: Context
+        ): Sound {
             /** Copy data to local storage and return new Sound object to be saved to DB */
             val uri = tempSound.uri ?: throw Exception("Sound ${tempSound.name} has no URI")
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
@@ -182,27 +210,35 @@ open class Sound(@PrimaryKey(autoGenerate = true) open val id: Int?,
                         volume ?: tempSound.volume,
                         tempSound.added,
                         tempSound.duration,
-                        tempSound.checksum)
+                        tempSound.checksum,
+                        false
+                    )
                 }
             } ?: throw Exception("File provider returned null")
         }
+
+        fun createFromTemporary(tempSound: Sound, categoryId: Int?, order: Int?, context: Context) =
+            createFromTemporary(tempSound, null, null, categoryId, order, context)
 
         fun createFromTemporary(tempSound: Sound, context: Context) =
             createFromTemporary(tempSound, null, null, null, null, context)
     }
 }
 
-data class SoundExtended(override val id: Int?,
-                         override val categoryId: Int?,
-                         override val name: String,
-                         override val path: String,
-                         override val order: Int,
-                         override val volume: Int,
-                         override val added: Date,
-                         override val duration: Long,
-                         override val checksum: String,
-                         val backgroundColor: Int?) :
-    Sound(id, categoryId, name, path, order, volume, added, duration, checksum) {
+data class SoundExtended(
+    override val id: Int?,
+    override val categoryId: Int?,
+    override val name: String,
+    override val path: String,
+    override val order: Int,
+    override val volume: Int,
+    override val added: Date,
+    override val duration: Long,
+    override val checksum: String,
+    override val trashed: Boolean,
+    val backgroundColor: Int?
+) :
+    Sound(id, categoryId, name, path, order, volume, added, duration, checksum, trashed) {
 
     @Ignore
     var textColor: Int? = null

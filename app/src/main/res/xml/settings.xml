@@ -1,51 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <ListPreference
-        app:key="nightMode"
-        app:title="@string/night_day_mode"
+        app:defaultValue="default"
         app:entries="@array/nightModeEntries"
         app:entryValues="@array/nightModeEntryValues"
-        app:defaultValue="default"
-        app:useSimpleSummaryProvider="true"
-        app:icon="@drawable/ic_night_day" />
+        app:icon="@drawable/ic_night_day"
+        app:key="nightMode"
+        app:title="@string/night_day_mode"
+        app:useSimpleSummaryProvider="true" />
 
     <ListPreference
-        app:key="language"
-        app:title="@string/language"
-        app:useSimpleSummaryProvider="true"
+        app:defaultValue="default"
         app:entries="@array/languageEntries"
         app:entryValues="@array/languageEntryValues"
-        app:defaultValue="default"
-        app:icon="@drawable/ic_language" />
+        app:icon="@drawable/ic_language"
+        app:key="language"
+        app:title="@string/language"
+        app:useSimpleSummaryProvider="true" />
 
     <Preference
+        android:icon="@drawable/ic_save"
         android:key="backup"
-        android:title="@string/backup_settings_and_data"
-        android:icon="@drawable/ic_save" />
+        android:title="@string/backup_settings_and_data" />
 
     <Preference
+        android:icon="@drawable/ic_restore"
         android:key="restore"
-        android:title="@string/restore_settings_and_data"
-        android:icon="@drawable/ic_restore" />
+        android:title="@string/restore_settings_and_data" />
 
     <us.huseli.soundboard.helpers.LongSummaryPreferenceCategory
         android:icon="@drawable/ic_memory"
         app:key="bufferSizeCategory"
-        app:title="@string/audio_buffer_size"
-        app:summary="@string/buffer_size_summary">
+        app:summary="@string/buffer_size_summary"
+        app:title="@string/audio_buffer_size">
 
         <SeekBarPreference
+            android:max="8"
             app:key="bufferSize"
             app:min="0"
-            android:max="8"
             app:seekBarIncrement="1"
             app:updatesContinuously="true" />
     </us.huseli.soundboard.helpers.LongSummaryPreferenceCategory>
 
     <Preference
+        android:icon="@drawable/ic_restore"
         android:key="resetBufferSize"
-        android:title="@string/reset_buffer_size_to_default"
-        android:icon="@drawable/ic_restore" />
+        android:title="@string/reset_buffer_size_to_default" />
+
+    <us.huseli.soundboard.helpers.LongSummaryPreferenceCategory
+        android:icon="@drawable/ic_folder"
+        app:key="watchFolderCategory"
+        app:summary="If set, this folder will be watched for audio files. Any new files will be added to the default category."
+        app:title="Watch folder">
+
+        <us.huseli.soundboard.helpers.FolderSelectPreference
+            app:key="watchFolder"
+            app:summary="(Not set)" />
+    </us.huseli.soundboard.helpers.LongSummaryPreferenceCategory>
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="watchFolderTrashMissing"
+        android:icon="@drawable/ic_delete"
+        android:title="Trash missing sounds"
+        android:summary="Trash any sounds on the soundboard that were NOT found in the watched folder." />
+
+    <Preference
+        android:icon="@drawable/ic_cancel"
+        android:key="clearWatchFolder"
+        android:title="Unwatch folder" />
 
 </PreferenceScreen>

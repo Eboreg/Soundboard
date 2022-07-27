@@ -18,8 +18,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import us.huseli.soundboard.R
 import us.huseli.soundboard.activities.BaseActivity
+import us.huseli.soundboard.data.CategoryRepository
 import us.huseli.soundboard.data.Constants
+import us.huseli.soundboard.data.SoundRepository
 import us.huseli.soundboard.data.SoundboardDatabase
+import us.huseli.soundboard.helpers.Functions
 import us.huseli.soundboard.helpers.SettingsManager
 import java.io.File
 import java.io.FileNotFoundException
@@ -35,11 +38,19 @@ class RestoreDialogFragment : DialogFragment() {
 
     private lateinit var dialog: AlertDialog
 
+/*
     @Inject
     lateinit var existingDb: SoundboardDatabase
+*/
 
     @Inject
     lateinit var settingsManager: SettingsManager
+
+    @Inject
+    lateinit var categoryRepository: CategoryRepository
+
+    @Inject
+    lateinit var soundRepository: SoundRepository
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         getRestoreFileLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -48,9 +59,9 @@ class RestoreDialogFragment : DialogFragment() {
 
         dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.restore_settings_and_data)
-            .setMessage(getString(R.string.restore_description))
-            .setPositiveButton(R.string.do_it, null)
-            .setNegativeButton(R.string.cancel, null)
+            .setMessage(Functions.umlautify(getString(R.string.restore_description)))
+            .setPositiveButton(Functions.umlautify(getString(R.string.do_it)), null)
+            .setNegativeButton(Functions.umlautify(getString(R.string.cancel)), null)
             .create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { onRestoreConfirmClick() }
@@ -67,7 +78,7 @@ class RestoreDialogFragment : DialogFragment() {
         requireActivity().overridePendingTransition(0, 0)
     }
 
-    private fun restoreDatabase(uri: Uri, currentFileIdx: Int?, totalFileCount: Int?): Int? {
+    private suspend fun restoreDatabase(uri: Uri, currentFileIdx: Int?, totalFileCount: Int?): Int? {
         /** Make sure to run this on Dispatchers.IO */
         updateProgress(getString(R.string.restoring_database), currentFileIdx, totalFileCount)
 
@@ -76,9 +87,10 @@ class RestoreDialogFragment : DialogFragment() {
             do {
                 val entry = zipIn.nextEntry
                 if (entry?.name == "${Constants.ZIP_DB_DIR}/${Constants.DATABASE_NAME}") {
-                    val dbFile =
-                        File(requireActivity().getDir(Constants.BACKUP_TEMP_DIRNAME, Context.MODE_PRIVATE),
-                            Constants.DATABASE_NAME)
+                    val dbFile = File(
+                        requireActivity().getDir(Constants.BACKUP_TEMP_DIRNAME, Context.MODE_PRIVATE),
+                        Constants.DATABASE_NAME
+                    )
                     FileOutputStream(dbFile).use { outputStream ->
                         while (zipIn.available() == 1) {
                             val length = zipIn.read(data)
@@ -86,10 +98,15 @@ class RestoreDialogFragment : DialogFragment() {
                         }
                     }
                     val newDb = SoundboardDatabase.buildFromFile(
-                        requireContext(), dbFile, Constants.DATABASE_TEMP_NAME)
+                        requireContext(),
+                        dbFile,
+                        Constants.DATABASE_TEMP_NAME
+                    )
                     try {
-                        existingDb.categoryDao().totalReset(newDb.categoryDao().list())
-                        existingDb.soundDao().totalReset(newDb.soundDao().list())
+                        categoryRepository.totalReset(newDb.categoryDao().list())
+                        soundRepository.totalReset(newDb.soundDao().listAll())
+                        // existingDb.categoryDao().totalReset(newDb.categoryDao().list())
+                        // existingDb.soundDao().totalReset(newDb.soundDao().listWithTrashed())
                     } finally {
                         newDb.close()
                         dbFile.delete()
@@ -115,8 +132,10 @@ class RestoreDialogFragment : DialogFragment() {
                     if (soundFileName.isNotEmpty()) {
                         updateProgress(getString(R.string.restoring_sounds), currentFileIdx, totalFileCount)
                         currentFileIdx = currentFileIdx?.plus(1)
-                        val soundFile =
-                            File(requireActivity().getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE), soundFileName)
+                        val soundFile = File(
+                            requireActivity().getDir(Constants.SOUND_DIRNAME, Context.MODE_PRIVATE),
+                            soundFileName
+                        )
                         FileOutputStream(soundFile).use { outputStream ->
                             while (zipIn.available() == 1) {
                                 val length = zipIn.read(data)
@@ -180,8 +199,7 @@ class RestoreDialogFragment : DialogFragment() {
                     fragment.addMessage(StatusDialogFragment.Status.SUCCESS, getString(R.string.settings_restored))
                 } catch (e: Exception) {
                     fragment.addException(e)
-                    fragment.addMessage(
-                        StatusDialogFragment.Status.WARNING, getString(R.string.could_not_restore_settings))
+                    fragment.addMessage(StatusDialogFragment.Status.WARNING, getString(R.string.could_not_restore_settings))
                 }
 
                 val dbRestored = try {
@@ -194,7 +212,10 @@ class RestoreDialogFragment : DialogFragment() {
                     true
                 } catch (e: Exception) {
                     fragment.addException(e)
-                    fragment.addMessage(StatusDialogFragment.Status.ERROR, getString(R.string.could_not_restore_db))
+                    fragment.addMessage(
+                        StatusDialogFragment.Status.ERROR,
+                        getString(R.string.could_not_restore_db)
+                    )
                     false
                 }
 
@@ -205,7 +226,9 @@ class RestoreDialogFragment : DialogFragment() {
                     } catch (e: Exception) {
                         fragment.addException(e)
                         fragment.addMessage(
-                            StatusDialogFragment.Status.WARNING, getString(R.string.could_not_restore_sounds))
+                            StatusDialogFragment.Status.WARNING,
+                            getString(R.string.could_not_restore_sounds)
+                        )
                     }
                 }
 
@@ -221,8 +244,10 @@ class RestoreDialogFragment : DialogFragment() {
 
     private fun zipUriToFile(uri: Uri): File? {
         return try {
-            val outputFile =
-                File(requireActivity().getDir(Constants.BACKUP_TEMP_DIRNAME, Context.MODE_PRIVATE), "backup.zip")
+            val outputFile = File(
+                requireActivity().getDir(Constants.BACKUP_TEMP_DIRNAME, Context.MODE_PRIVATE),
+                "backup.zip"
+            )
             val buffer = ByteArray(Constants.ZIP_BUFFER_SIZE)
             requireActivity().contentResolver.openInputStream(uri)?.use { inputStream ->
                 FileOutputStream(outputFile).use { outputStream ->
@@ -242,7 +267,7 @@ class RestoreDialogFragment : DialogFragment() {
 
     private fun hideProgressOverlay() = (requireActivity() as BaseActivity).hideProgressOverlay()
 
-    private fun updateProgress(text: String, currentFileIdx: Int?, totalFileCount: Int?) =
-        (requireActivity() as BaseActivity).updateProgress(text, currentFileIdx, totalFileCount)
+    private fun updateProgress(text: CharSequence, currentFileIdx: Int?, totalFileCount: Int?) =
+        (requireActivity() as BaseActivity).updateProgress(Functions.umlautify(text), currentFileIdx, totalFileCount)
 
 }

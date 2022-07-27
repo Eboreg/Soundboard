@@ -1,59 +1,87 @@
+@file:Suppress("RedundantSuspendModifier")
+
 package us.huseli.soundboard.data
 
-import androidx.lifecycle.map
+import androidx.lifecycle.asLiveData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import us.huseli.soundboard.helpers.ColorHelper
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SoundRepository @Inject constructor(private val soundDao: SoundDao, private val colorHelper: ColorHelper) {
-    /********* INSERT ************************************************************************************************/
-    fun insert(sounds: List<Sound>) = soundDao.insert(sounds)
+    private val scope = CoroutineScope(Job() + Dispatchers.IO)
 
-    fun insert(sound: Sound) = soundDao.insert(sound)
+    /********* INSERT ************************************************************************************************/
+    suspend fun insert(sounds: List<Sound>) = soundDao.insert(sounds)
+
+    suspend fun insert(sound: Sound) = soundDao.insert(sound)
 
 
     /********* LIST **************************************************************************************************/
-    fun list() = soundDao.list()
 
-    fun listPaths() = soundDao.listPaths()
+    /** Only used in SoundViewModel.moveFilesToLocalStorage() */
+    suspend fun list(): List<Sound> = soundDao.list()
 
-    fun listLiveExtended() = soundDao.listLiveExtended().map { list ->
+    suspend fun listAll(): List<Sound> = soundDao.listAll()
+
+    fun listExtended() = soundDao.listExtended().map { list ->
         list.onEach { sound ->
-            sound.backgroundColor?.also {
-                sound.textColor = colorHelper.getColorOnBackground(it)
-            }
+            sound.backgroundColor?.also { sound.textColor = colorHelper.getColorOnBackground(it) }
         }
     }
 
+    fun listExtendedByCategory(categoryId: Int) = listExtended().map { list ->
+        list.filter { it.categoryId == categoryId }
+    }
+
+    fun listLiveExtended() = listExtended().asLiveData()
+
 
     /********* UPDATE ************************************************************************************************/
-    fun updateChecksum(soundId: Int?, checksum: String) {
+    suspend fun updateChecksum(soundId: Int?, checksum: String) {
         if (soundId != null) soundDao.updateChecksum(soundId, checksum)
     }
 
-    fun update(sounds: List<Sound>, name: String?, volume: Int, categoryId: Int?) =
-        soundDao.update(sounds, name, volume, categoryId)
+    suspend fun update(sounds: List<Sound>, name: String?, volume: Int?, categoryId: Int?) =
+        soundDao.update(sounds, name, volume ?: Constants.DEFAULT_VOLUME, categoryId)
 
-    fun updateCategoryAndOrder(soundIds: List<Int>, categoryId: Int) =
-        /**
-         * Updates category, then saves Sound.order according to position in list.
-         * List is assumed to contain _all_ sounds now in this category, in their intended order.
-         */
+    /**
+     * Updates category, then saves Sound.order according to position in list. List is assumed to contain _all_ sounds
+     * now in this category, in their intended order.
+     */
+    suspend fun updateCategoryAndOrder(soundIds: List<Int>, categoryId: Int) =
         soundDao.updateCategoryAndOrder(soundIds, categoryId)
 
 
     /********* DELETE ************************************************************************************************/
-    fun delete(soundIds: List<Int>) = soundDao.delete(soundIds)
+    suspend fun delete(soundIds: List<Int>) = soundDao.delete(soundIds)
 
-    fun deleteByCategory(categoryId: Int) = soundDao.deleteByCategory(categoryId)
+    suspend fun deleteByCategory(categoryId: Int) = soundDao.deleteByCategory(categoryId)
+
+    suspend fun trash(soundIds: List<Int>) = soundDao.trash(soundIds)
+
+    suspend fun untrash(soundIds: List<Int>) = soundDao.untrash(soundIds)
+
+    fun deleteAll() = scope.launch { soundDao.deleteAll() }
+
+    fun untrashAll() = scope.launch { soundDao.untrashAll() }
 
 
     /********* VARIOUS ***********************************************************************************************/
-    fun sort(categoryId: Int?, sorting: SoundSorting) {
+    suspend fun sort(categoryId: Int?, sorting: SoundSorting) {
         /** Sorts all sounds within category */
         categoryId?.let { soundDao.sortWithinCategory(it, sorting) }
     }
 
-    fun getMaxOrder(categoryId: Int) = soundDao.getMaxOrder(categoryId)
+    suspend fun getMaxOrder(categoryId: Int) = soundDao.getMaxOrder(categoryId)
+
+    suspend fun totalReset(sounds: List<Sound>) {
+        soundDao.deleteAll()
+        soundDao.insert(sounds)
+    }
 }

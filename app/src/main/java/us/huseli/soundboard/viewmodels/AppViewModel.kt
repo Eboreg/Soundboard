@@ -36,7 +36,7 @@ class AppViewModel @Inject constructor(
     }
 
     fun deleteOrphans(soundDir: File?) = viewModelScope.launch(Dispatchers.IO) {
-        val paths = soundRepository.listPaths()
+        val paths = soundRepository.listAll().map { it.path }
         soundDir?.listFiles()?.forEach { file -> if (!paths.contains(file.path)) file.delete() }
     }
 
@@ -53,6 +53,7 @@ class AppViewModel @Inject constructor(
 
 
     /********* SOUND/CATEGORY REORDERING *****************************************************************************/
+    // private val _reorderEnabled = MutableLiveData(false)
     private val _reorderEnabled = MutableLiveData(false)
 
     val reorderEnabled: LiveData<Boolean>
@@ -98,8 +99,10 @@ class AppViewModel @Inject constructor(
                 ((Constants.DEFAULT_SPANCOUNT_LANDSCAPE.toDouble() / it) * 100).roundToInt()
             }
             Configuration.ORIENTATION_PORTRAIT -> spanCountPortrait.value?.let {
-                ((landscapeSpanCountToPortrait(Constants.DEFAULT_SPANCOUNT_LANDSCAPE,
-                    screenRatio).toDouble() / it) * 100).roundToInt()
+                ((landscapeSpanCountToPortrait(
+                    Constants.DEFAULT_SPANCOUNT_LANDSCAPE,
+                    screenRatio
+                ).toDouble() / it) * 100).roundToInt()
             }
             else -> null
         }
@@ -128,7 +131,10 @@ class AppViewModel @Inject constructor(
                 spanCountPortrait.value?.let { spanCount ->
                     if (spanCount + factor >= 1) {
                         spanCountPortrait.value = spanCount + factor
-                        spanCountLandscape.value = portraitSpanCountToLandscape(spanCount + factor, screenRatio)
+                        spanCountLandscape.value = portraitSpanCountToLandscape(
+                            spanCount + factor,
+                            screenRatio
+                        )
                     }
                 }
             }

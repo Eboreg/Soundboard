@@ -79,7 +79,7 @@ class HelpFragment : Fragment() {
         constructor(title: Int, preText: Int) : this(title, preText, null, emptyList())
     }
 
-    inner class HelpSectionAdapter(context: Context, val sections: List<HelpSection>) :
+    inner class HelpSectionAdapter(context: Context, private val sections: List<HelpSection>) :
         ArrayAdapter<HelpSection>(context, 0, sections) {
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {

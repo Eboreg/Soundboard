@@ -45,10 +45,12 @@ class SoundPlayerTimer(private var duration: Long,
         progressBar.progress = percentage
     }
 
+/*
     fun resume() {
         if (millisLeft != duration) timer = CountDownTimerImpl(millisLeft)
         timer.start()
     }
+*/
 
     private fun onFinish() {
         progressBar.progress = originalProgress

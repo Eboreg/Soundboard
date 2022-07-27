@@ -19,8 +19,9 @@ import kotlin.collections.set
 
 @Singleton
 class PlayerRepository @Inject constructor(
-    private val soundDao: SoundDao, private val settingsManager: SettingsManager) : SoundPlayer.DurationListener,
-    SettingsManager.Listener {
+    private val soundDao: SoundDao,
+    private val settingsManager: SettingsManager
+) : SoundPlayer.DurationListener, SettingsManager.Listener {
 
     private var bufferSize = Constants.DEFAULT_BUFFER_SIZE
     private var playersRaw = mutableMapOf<Int, SoundPlayer>()
@@ -92,11 +93,11 @@ class PlayerRepository @Inject constructor(
         }
     }
 
-    override fun onSettingChanged(key: String, value: Any) {
-        if (key == Constants.PREF_BUFFER_SIZE) scope.launch { onBufferSizeChange(value as Int) }
+    override fun onSettingChanged(key: String, value: Any?) {
+        if (key == "bufferSize") scope.launch { onBufferSizeChange(value as Int) }
     }
 
-    override fun onSoundPlayerDurationChange(sound: Sound, duration: Long) {
+    override fun onSoundPlayerDurationChange(sound: Sound, duration: Long) = scope.launch {
         sound.id?.let { soundId -> soundDao.updateDuration(soundId, duration) }
     }
 

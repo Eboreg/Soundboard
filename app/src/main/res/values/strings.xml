@@ -144,4 +144,5 @@
     <string name="could_not_add_sound">Could not add sound: %1$s</string>
     <string name="an_error_occurred">An error occurred</string>
     <string name="fail_move_sounds_local">Could not move sound files to local storage</string>
+    <string name="auto_imported_sounds">Auto-imported sounds</string>
 </resources>

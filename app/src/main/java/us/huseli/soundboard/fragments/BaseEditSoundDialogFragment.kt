@@ -24,9 +24,9 @@ abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSo
     protected open fun getCategories() = categoryListViewModel.categories
 
     protected open fun recreateFromSavedInstanceState(state: Bundle) {
-        state.getString(ARG_NAME)?.let { viewModel.name = it }
-        viewModel.categoryIndex = state.getInt(ARG_CATEGORY_INDEX)
-        viewModel.volume = state.getInt(ARG_VOLUME)
+        state.getString(ARG_NAME)?.let { viewModel.setName(it) }
+        viewModel.setCategoryIndex(state.getInt(ARG_CATEGORY_INDEX))
+        viewModel.setVolume(state.getInt(ARG_VOLUME))
     }
 
     abstract fun save(): Any?
@@ -43,9 +43,9 @@ abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSo
         if (soundName.isEmpty() && !viewModel.multiple) {
             Snackbar.make(binding.root, R.string.name_cannot_be_empty, Snackbar.LENGTH_SHORT).show()
         } else {
-            viewModel.volume = binding.volume.progress
-            viewModel.name = soundName
-            (binding.category.selectedItem as Category).id?.let { viewModel.categoryId = it }
+            viewModel.setVolume(binding.volume.progress)
+            viewModel.setName(soundName)
+            (binding.category.selectedItem as Category).id?.let { viewModel.setCategoryId(it) }
             soundViewModel.disableSelect()
             save()
             dismiss()
@@ -101,7 +101,7 @@ abstract class BaseEditSoundDialogFragment<VM : BaseSoundEditViewModel> : BaseSo
 
 
     companion object {
-        const val ARG_ID = "soundId"
+        // const val ARG_ID = "soundId"
         const val ARG_CATEGORY_INDEX = "categoryIndex"
 
         // For use in instance state

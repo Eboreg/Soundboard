@@ -2,6 +2,7 @@ package us.huseli.soundboard.helpers
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.Uri
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -15,71 +16,91 @@ import javax.inject.Singleton
 @Singleton
 class SettingsManager @Inject constructor(@ApplicationContext context: Context) :
     SharedPreferences.OnSharedPreferenceChangeListener {
+
     private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         .also { it.registerOnSharedPreferenceChangeListener(this) }
     private val listeners = mutableListOf<Listener>()
 
     @Expose
-    private var language = prefs.getString(Constants.PREF_LANGUAGE, null) ?: Constants.DEFAULT_LANGUAGE
-    fun getLanguage() = language
-    fun setLanguage(value: String) {
-        if (value != language) {
-            language = value
-            prefs.edit().putString(Constants.PREF_LANGUAGE, value).apply()
-            listeners.forEach { it.onSettingChanged(Constants.PREF_LANGUAGE, value) }
+    private var watchFolder = prefs.getString("watchFolder", null)?.let {
+        if (it != "") Uri.parse(it) else null
+    }
+    fun getWatchFolder() = watchFolder
+    private fun setWatchFolder(value: Uri?) {
+        watchFolder = value
+        prefs.edit().putString("watchFolder", value?.toString()).apply()
+        listeners.forEach { listener -> listener.onSettingChanged("watchFolder", value) }
+    }
+
+    @Expose
+    private var watchFolderTrashMissing = prefs.getBoolean("watchFolderTrashMissing", false)
+    fun getWatchFolderTrashMissing() = watchFolderTrashMissing
+    private fun setWatchFolderTrashMissing(value: Boolean) {
+        if (value != watchFolderTrashMissing) {
+            watchFolderTrashMissing = value
+            prefs.edit().putBoolean("watchFolderTrashMissing", value).apply()
+            listeners.forEach { it.onSettingChanged("watchFolderTrashMissing", value) }
         }
     }
 
     @Expose
-    private var nightMode = prefs.getString(Constants.PREF_NIGHT_MODE, null) ?: "default"
+    private var language = prefs.getString("language", null) ?: Constants.DEFAULT_LANGUAGE
+    fun getLanguage() = language
+    private fun setLanguage(value: String) {
+        if (value != language) {
+            language = value
+            prefs.edit().putString("language", value).apply()
+            listeners.forEach { it.onSettingChanged("language", value) }
+        }
+    }
+
+    @Expose
+    private var nightMode = prefs.getString("nightMode", null) ?: "default"
     fun getNightMode() = nightMode
     private fun setNightMode(value: String) {
         if (value != nightMode) {
             nightMode = value
-            prefs.edit().putString(Constants.PREF_NIGHT_MODE, value).apply()
-            listeners.forEach { listener -> listener.onSettingChanged(Constants.PREF_NIGHT_MODE, value) }
+            prefs.edit().putString("nightMode", value).apply()
+            listeners.forEach { listener -> listener.onSettingChanged("nightMode", value) }
         }
     }
 
     @Expose
     private var bufferSize =
-        prefs.getInt(Constants.PREF_BUFFER_SIZE, Functions.bufferSizeToSeekbarValue(Constants.DEFAULT_BUFFER_SIZE))
-
+        prefs.getInt("bufferSize", Functions.bufferSizeToSeekbarValue(Constants.DEFAULT_BUFFER_SIZE))
     fun getBufferSize() = bufferSize
-    fun setBufferSize(value: Int) {
+    private fun setBufferSize(value: Int) {
         if (value != bufferSize && value > -1) {
             bufferSize = value
-            prefs.edit().putInt(Constants.PREF_BUFFER_SIZE, value).apply()
-            listeners.forEach { it.onSettingChanged(Constants.PREF_BUFFER_SIZE, value) }
+            prefs.edit().putInt("bufferSize", value).apply()
+            listeners.forEach { it.onSettingChanged("bufferSize", value) }
         }
     }
 
     @Expose
-    private var landscapeSpanCount =
-        prefs.getInt(Constants.PREF_LANDSCAPE_SPAN_COUNT, Constants.DEFAULT_SPANCOUNT_LANDSCAPE)
-
+    private var landscapeSpanCount = prefs.getInt("landscapeSpanCount", Constants.DEFAULT_SPANCOUNT_LANDSCAPE)
     fun getLandscapeSpanCount() = landscapeSpanCount
     fun setLandscapeSpanCount(value: Int) {
         if (value != landscapeSpanCount && value > -1) {
             landscapeSpanCount = value
-            prefs.edit().putInt(Constants.PREF_LANDSCAPE_SPAN_COUNT, value).apply()
-            listeners.forEach { it.onSettingChanged(Constants.PREF_LANDSCAPE_SPAN_COUNT, value) }
+            prefs.edit().putInt("landscapeSpanCount", value).apply()
+            listeners.forEach { it.onSettingChanged("landscapeSpanCount", value) }
         }
     }
 
     @Expose
-    private var lastVersion = prefs.getLong(Constants.PREF_LAST_VERSION, 0)
+    private var lastVersion = prefs.getLong("lastRunVersionCode", 0)
     fun getLastVersion() = lastVersion
     fun setLastVersion(value: Long) {
         if (value != lastVersion) {
             lastVersion = value
-            prefs.edit().putLong(Constants.PREF_LAST_VERSION, value).apply()
-            listeners.forEach { it.onSettingChanged(Constants.PREF_LAST_VERSION, value) }
+            prefs.edit().putLong("lastRunVersionCode", value).apply()
+            listeners.forEach { it.onSettingChanged("lastRunVersionCode", value) }
         }
     }
 
     @Expose
-    private var repressMode = prefs.getString(Constants.PREF_REPRESS_MODE, null).let {
+    private var repressMode = prefs.getString("repressMode", null).let {
         if (it != null) SoundPlayer.RepressMode.valueOf(it) else SoundPlayer.RepressMode.STOP
     }
 
@@ -87,8 +108,8 @@ class SettingsManager @Inject constructor(@ApplicationContext context: Context) 
     fun setRepressMode(value: SoundPlayer.RepressMode) {
         if (value != repressMode) {
             repressMode = value
-            prefs.edit().putString(Constants.PREF_REPRESS_MODE, value.name).apply()
-            listeners.forEach { it.onSettingChanged(Constants.PREF_REPRESS_MODE, value) }
+            prefs.edit().putString("repressMode", value.name).apply()
+            listeners.forEach { it.onSettingChanged("repressMode", value) }
         }
     }
 
@@ -106,6 +127,8 @@ class SettingsManager @Inject constructor(@ApplicationContext context: Context) 
             setLandscapeSpanCount(it.landscapeSpanCount)
             setLastVersion(it.lastVersion)
             setRepressMode(it.repressMode)
+            setWatchFolder(it.watchFolder)
+            setWatchFolderTrashMissing(it.watchFolderTrashMissing)
         }
     }
 
@@ -115,42 +138,48 @@ class SettingsManager @Inject constructor(@ApplicationContext context: Context) 
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         when (key) {
-            Constants.PREF_LANGUAGE -> sharedPreferences?.getString(key, Constants.DEFAULT_LANGUAGE)?.also {
+            "language" -> sharedPreferences?.getString(key, Constants.DEFAULT_LANGUAGE)?.also {
                 if (language != it) {
                     language = it
                     listeners.forEach { listener -> listener.onSettingChanged(key, it) }
                 }
             }
-            Constants.PREF_NIGHT_MODE -> sharedPreferences?.getString(key, "default")?.also {
+            "nightMode" -> sharedPreferences?.getString(key, "default")?.also {
                 if (nightMode != it) {
                     nightMode = it
                     listeners.forEach { listener -> listener.onSettingChanged(key, it) }
                 }
             }
-            Constants.PREF_BUFFER_SIZE -> sharedPreferences?.getInt(key,
+            "bufferSize" -> sharedPreferences?.getInt(key,
                 Functions.bufferSizeToSeekbarValue(Constants.DEFAULT_BUFFER_SIZE))?.also {
                 if (bufferSize != it) {
                     bufferSize = it
                     listeners.forEach { listener -> listener.onSettingChanged(key, it) }
                 }
             }
-            Constants.PREF_LANDSCAPE_SPAN_COUNT -> sharedPreferences?.getInt(key, Constants.DEFAULT_SPANCOUNT_LANDSCAPE)
-                ?.also {
-                    if (landscapeSpanCount != it) {
-                        landscapeSpanCount = it
-                        listeners.forEach { listener -> listener.onSettingChanged(key, it) }
-                    }
+            "landscapeSpanCount" -> sharedPreferences?.getInt(key, Constants.DEFAULT_SPANCOUNT_LANDSCAPE)?.also {
+                if (landscapeSpanCount != it) {
+                    landscapeSpanCount = it
+                    listeners.forEach { listener -> listener.onSettingChanged(key, it) }
                 }
-            Constants.PREF_LAST_VERSION -> sharedPreferences?.getLong(key, 0)?.also {
+            }
+            "lastRunVersionCode" -> sharedPreferences?.getLong(key, 0)?.also {
                 if (lastVersion != it) {
                     lastVersion = it
                     listeners.forEach { listener -> listener.onSettingChanged(key, it) }
                 }
             }
-            Constants.PREF_REPRESS_MODE -> sharedPreferences?.getString(key, null).also {
+            "repressMode" -> sharedPreferences?.getString(key, null).also {
                 val value = it?.let { SoundPlayer.RepressMode.valueOf(it) } ?: SoundPlayer.RepressMode.STOP
                 if (repressMode != value) {
                     repressMode = value
+                    listeners.forEach { listener -> listener.onSettingChanged(key, value) }
+                }
+            }
+            "watchFolder" -> sharedPreferences?.getString(key, null).also {
+                val value = if (it == null || it == "") null else Uri.parse(it)
+                if (watchFolder != value) {
+                    watchFolder = value
                     listeners.forEach { listener -> listener.onSettingChanged(key, value) }
                 }
             }
@@ -168,6 +197,6 @@ class SettingsManager @Inject constructor(@ApplicationContext context: Context) 
 
 
     interface Listener {
-        fun onSettingChanged(key: String, value: Any)
+        fun onSettingChanged(key: String, value: Any?)
     }
 }

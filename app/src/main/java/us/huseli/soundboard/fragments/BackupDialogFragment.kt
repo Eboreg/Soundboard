@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import us.huseli.soundboard.R
 import us.huseli.soundboard.activities.BaseActivity
 import us.huseli.soundboard.data.Constants
+import us.huseli.soundboard.helpers.Functions
 import us.huseli.soundboard.helpers.SettingsManager
 import java.io.BufferedInputStream
 import java.io.File
@@ -56,10 +57,15 @@ class BackupDialogFragment : DialogFragment() {
             try {
                 tryBackup()
                 resultFragment.addMessage(
-                    StatusDialogFragment.Status.SUCCESS, getString(R.string.backup_successful))
+                    StatusDialogFragment.Status.SUCCESS,
+                    getString(R.string.backup_successful)
+                )
             } catch (e: Exception) {
                 resultFragment.addException(e)
-                resultFragment.addMessage(StatusDialogFragment.Status.ERROR, getString(R.string.backup_failed))
+                resultFragment.addMessage(
+                    StatusDialogFragment.Status.ERROR,
+                    getString(R.string.backup_failed)
+                )
             }
             hideProgressOverlay()
             dismiss()
@@ -110,7 +116,7 @@ class BackupDialogFragment : DialogFragment() {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 setDataAndType(uri, requireActivity().contentResolver.getType(uri))
             }
-            startActivity(Intent.createChooser(intent, getString(R.string.share_with)))
+            startActivity(Intent.createChooser(intent, Functions.umlautify(getString(R.string.share_with))))
         } finally {
             outFile.deleteOnExit()
         }
@@ -134,7 +140,7 @@ class BackupDialogFragment : DialogFragment() {
 
     private fun hideProgressOverlay() = (requireActivity() as BaseActivity).hideProgressOverlay()
 
-    private fun updateProgress(text: String, currentFileIdx: Int?, totalFileCount: Int?) =
-        (requireActivity() as BaseActivity).updateProgress(text, currentFileIdx, totalFileCount)
+    private fun updateProgress(text: CharSequence, currentFileIdx: Int?, totalFileCount: Int?) =
+        (requireActivity() as BaseActivity).updateProgress(Functions.umlautify(text), currentFileIdx, totalFileCount)
 
 }

@@ -64,7 +64,7 @@ class EditCategoryDialogFragment : BaseCategoryDialogFragment(), RadioGroup.OnCh
     }
 
 
-    inner class SortParameterItem(val value: SoundSorting.Parameter, val stringRes: Int) {
+    inner class SortParameterItem(val value: SoundSorting.Parameter, private val stringRes: Int) {
         override fun toString() = getString(stringRes)
     }
 
