@@ -1,50 +1,48 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Soundboard.Style.ActionMode" parent="Widget.AppCompat.ActionMode">
+    <style name="Style.Soundboard.ActionMode" parent="Widget.AppCompat.ActionMode">
         <item name="background">?attr/colorPrimary</item>
     </style>
 
-    <style name="Soundboard.Style.Button.TextButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+    <style name="Style.Soundboard.Button.TextButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
         <item name="rippleColor">?attr/colorAccent</item>
         <item name="android:textColor">@color/alert_dialog_button</item>
     </style>
 
-    <style name="Soundboard.Style.Button.TextButton.Negative" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+    <style name="Style.Soundboard.Button.TextButton.Negative" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
         <item name="rippleColor">?attr/colorAccent</item>
         <item name="android:textColor">@color/color_on_surface_subdued</item>
     </style>
 
-    <style name="Soundboard.Style.Toolbar" parent="Widget.MaterialComponents.Light.ActionBar.Solid">
+    <style name="Style.Soundboard.Toolbar" parent="Widget.MaterialComponents.Light.ActionBar.Solid">
         <item name="android:background">?attr/colorPrimary</item>
         <item name="android:elevation" >0dp</item>
         <item name="android:minHeight">?attr/actionBarSize</item>
     </style>
 
-    <style name="Soundboard.Style.Title.Text" parent="MaterialAlertDialog.MaterialComponents.Title.Text">
+    <style name="Style.Soundboard.Title.Text" parent="MaterialAlertDialog.MaterialComponents.Title.Text">
         <item name="android:textSize">@dimen/title_text</item>
     </style>
 
-    <style name="Soundboard.Style.Spinner" parent="Widget.AppCompat.Spinner.DropDown">
+    <style name="Style.Soundboard.Spinner" parent="Widget.AppCompat.Spinner.DropDown">
         <item name="android:popupBackground">?attr/colorBackgroundFloating</item>
         <item name="android:popupElevation">@dimen/margin_small</item>
         <item name="android:popupEnterTransition" tools:targetApi="n">@null</item>
         <item name="android:popupExitTransition" tools:targetApi="n">@null</item>
     </style>
 
-    <style name="Soundboard.Style.Spinner.Item" parent="Widget.AppCompat.TextView.SpinnerItem">
+    <style name="Style.Soundboard.Spinner.Item" parent="Widget.AppCompat.TextView.SpinnerItem">
         <item name="android:padding">@dimen/margin_normal</item>
     </style>
 
-    <style name="Soundboard.Style.PopupMenu" parent="Widget.MaterialComponents.PopupMenu">
+    <style name="Style.Soundboard.PopupMenu" parent="Widget.MaterialComponents.PopupMenu">
         <item name="android:popupEnterTransition" tools:targetApi="n">@null</item>
         <item name="android:popupExitTransition" tools:targetApi="n">@null</item>
     </style>
 
-    <style name="Soundboard.Style.ProgressBar" parent="Widget.AppCompat.ProgressBar">
+    <style name="Style.Soundboard.ProgressBar" parent="Widget.AppCompat.ProgressBar">
         <item name="android:indeterminateTint">?attr/colorOnBackground</item>
     </style>
 
-    <style name="Soundboard.Style.ProgressBar.Horizontal" parent="Widget.AppCompat.ProgressBar.Horizontal">
-
-    </style>
+    <style name="Style.Soundboard.ProgressBar.Horizontal" parent="Widget.AppCompat.ProgressBar.Horizontal" />
 
 </resources>

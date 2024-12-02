@@ -197,7 +197,6 @@ class SoundAdapter(
     }
 
 
-    @SuppressLint("ClickableViewAccessibility")
     class SoundViewHolder(
         internal val binding: ItemSoundBinding,
         private val appViewModel: AppViewModel,
@@ -429,6 +428,7 @@ class SoundAdapter(
         override fun onSoundPlayerWarning(message: String) =
             Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
 
+        @SuppressLint("ClickableViewAccessibility")
         override fun onTouch(view: View, event: MotionEvent): Boolean {
             if (appViewModel.reorderEnabled.value == true) {
                 if (event.actionMasked == MotionEvent.ACTION_DOWN) {

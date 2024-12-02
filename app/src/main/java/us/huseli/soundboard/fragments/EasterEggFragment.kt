@@ -22,7 +22,7 @@ class EasterEggFragment : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
-        return MaterialAlertDialogBuilder(requireContext(), R.style.Soundboard_Theme_MaterialAlertDialog_EqualButtons)
+        return MaterialAlertDialogBuilder(requireContext(), R.style.Theme_Soundboard_MaterialAlertDialog_EqualButtons)
             .setTitle("HALLON!!!")
             .setMessage("Hur fan är det med dig, karl?")
             .setPositiveButton("Hockeyklubba") { _, _ -> play(R.raw.hallon3) }

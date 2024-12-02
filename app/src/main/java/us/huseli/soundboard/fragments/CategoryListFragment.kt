@@ -32,7 +32,6 @@ class CategoryListFragment : Fragment(), View.OnTouchListener {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // binding = null
         categoryAdapter?.setLifecycleDestroyed()
         categoryAdapter = null
     }

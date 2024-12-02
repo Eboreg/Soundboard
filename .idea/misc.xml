@@ -4,19 +4,33 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="../../.gradle/caches/transforms-3/c45429cae1b3618c1aed0cd2eab69965/transformed/preference-1.2.0/res/layout/preference_material.xml" value="0.2513586956521739" />
+        <entry key="app/src/debug/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.3465" />
+        <entry key="app/src/main/res/drawable/border.xml" value="0.3465" />
+        <entry key="app/src/main/res/drawable/color_circle.xml" value="0.3465" />
+        <entry key="app/src/main/res/drawable/ic_add_category.xml" value="0.3465" />
+        <entry key="app/src/main/res/drawable/ic_add_sound.xml" value="0.3465" />
         <entry key="app/src/main/res/drawable/ic_bug.xml" value="0.19" />
         <entry key="app/src/main/res/drawable/ic_cancel.xml" value="0.1875" />
         <entry key="app/src/main/res/drawable/ic_delete.xml" value="0.1875" />
         <entry key="app/src/main/res/drawable/ic_fail.xml" value="0.1875" />
         <entry key="app/src/main/res/drawable/ic_filter.xml" value="0.3305" />
         <entry key="app/src/main/res/drawable/ic_folder.xml" value="0.3305" />
+        <entry key="app/src/main/res/drawable/ic_memory.xml" value="0.3465" />
         <entry key="app/src/main/res/drawable/ic_undo.xml" value="0.1875" />
+        <entry key="app/src/main/res/drawable/repress_mode_menu_icon_with_down_caret.xml" value="0.3465" />
+        <entry key="app/src/main/res/drawable/repress_mode_menu_icon_with_up_caret.xml" value="0.3465" />
+        <entry key="app/src/main/res/layout-land/fragment_edit_category.xml" value="0.30158730158730157" />
         <entry key="app/src/main/res/layout-land/fragment_edit_sound.xml" value="0.2786458333333333" />
         <entry key="app/src/main/res/layout/actionbar.xml" value="0.2513586956521739" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.24230072463768115" />
         <entry key="app/src/main/res/layout/activity_settings.xml" value="0.35625" />
+        <entry key="app/src/main/res/layout/bottombar.xml" value="0.3546195652173913" />
+        <entry key="app/src/main/res/layout/category_spinner_dropdown_item.xml" value="0.18177083333333333" />
+        <entry key="app/src/main/res/layout/fragment_add_duplicate_sound.xml" value="0.3496376811594203" />
         <entry key="app/src/main/res/layout/fragment_category_list.xml" value="0.35625" />
-        <entry key="app/src/main/res/layout/item_category.xml" value="0.24230072463768115" />
+        <entry key="app/src/main/res/layout/fragment_edit_category.xml" value="0.35625" />
+        <entry key="app/src/main/res/layout/fragment_sound_list.xml" value="0.24230072463768115" />
+        <entry key="app/src/main/res/layout/item_category.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_sound.xml" value="0.35625" />
         <entry key="app/src/main/res/menu/actionmode_menu.xml" value="0.18177083333333333" />
         <entry key="app/src/main/res/menu/appbar_menu.xml" value="0.18177083333333333" />
@@ -26,7 +40,7 @@
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="jbr-17" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">
